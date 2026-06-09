@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Light Interaction: Training-Free Inference Acceleration for Interactive Video World Models</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+</head>
+<body>
+<p>
+<h2>Abstract</h2></p><p>Interactive video world models generate video chunk-by-chunk in response to user-controlled camera movements, enabling real-time game simulation, virtual scene navigation, and embodied AI training. However, scaling to long trajectories is prohibitively expensive due to growing context memory and quadratic attention complexity. Light Interaction is a training-free inference acceleration framework that achieves up to 2.59× speedup on HY-WorldPlay and Matrix-Game-3.0 without model retraining while maintaining competitive visual quality.</p><p><h2>Key Contributions</h2></p><p>- Introduces <strong>adaptive context management</strong> that discards retrieved spatial memory during novel exploration and adjusts temporal context based on local latent dynamics
+<li>Proposes <strong>denoising cache acceleration</strong> that reuses early-step model outputs when the camera revisits familiar regions</li>
+<li>Implements <strong>hardware-software co-designed 3D block sparse attention</strong> with fused Triton kernels for efficient computation</p><p><h2>Method Details</h2></p><p>Light Interaction is built on the insight that interaction naturally enables trajectory-dependent adaptive computation. The framework combines three components:</p><p>1. <strong>Adaptive Context Management</strong>: Spatial memory is discarded during novel exploration while temporal context is adjusted according to local latent dynamics. This reduces memory overhead for long trajectories.</p><p>2. <strong>Denoising Cache Acceleration</strong>: When the camera revisits familiar regions, early-step model outputs are reused instead of being recomputed, avoiding repeated denoising steps.</p><p>3. <strong>3D Block Sparse Attention</strong>: Hardware-software co-designed 3D block sparse attention with fused Triton kernels replaces standard attention, reducing computational complexity for interactive video generation.</p><p>The framework is training-free, meaning it can be applied to existing interactive video world models without any fine-tuning or retraining.</p><p><h2>Key Results</h2></p><p><table></li>
+| Benchmark | Speedup | Quality Maintained |
+|-----------|---------|-------------------|
+| HY-WorldPlay | 2.59× | Yes |
+| Matrix-Game-3.0 | 2.59× | Yes |
+</table></p><p><h2>Limitations and Future Work</h2></p><p>Future work could explore applying the framework to longer-horizon interactive tasks, other world model architectures, or scenarios with more complex camera movements. The training-free nature means it may not fully exploit domain-specific patterns that could yield further gains with targeted training.</p><p><h2>Relevance to Patrick's Research</h2></p><p>Directly relevant to NVIDIA Voyager (world model-driven Minecraft agent) and Uni Virtual World Model (CVPR) research. Interactive video world models are key for embodied AI training, virtual scene navigation, and game simulation. The training-free nature of Light Interaction makes it attractive for accelerating existing world models without architectural changes. This could benefit Patrick's tracking of physical world modeling for robotics and game-playing agents.
+</p>
+</body>
+</html>

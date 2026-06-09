@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DriveWAM: Video Generative Priors Enable Scalable World-Action Modeling for Autonomous Driving</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+</head>
+<body>
+<p>
+<h1>DriveWAM: Video Generative Priors Enable Scalable World-Action Modeling for Autonomous Driving</h1></p><p><h2>Abstract</h2></p><p>DriveWAM is a driving world-action model that adapts a pretrained video diffusion transformer into an autoregressive video-action policy for end-to-end autonomous driving. It unifies video and action streams into a joint temporal token sequence trained under flow matching. A frozen vision-language model provides scene-evolving driving guidance, while selective KV memory maintains bounded modality-aware memory pools for long-horizon rollout. Experiments on NAVSIM and PhysicalAI-Autonomous-Vehicles benchmarks demonstrate strong planning performance, and scaling from 4k to 100k driving clips confirms the approach's data scaling potential.</p><p><h2>Key Contributions</h2></p><p>- First work to adapt pretrained video diffusion transformer into an autoregressive video-action policy for end-to-end driving
+<li>Joint video-action flow matching objective preserving pretrained video-generation architecture</li>
+<li>Scene-evolving driving guidance using frozen VLM for high-level semantic intent</li>
+<li>Selective KV memory with relevance-redundancy cache selection for bounded long-horizon inference</li>
+<li>Data scaling study (4k → 100k clips) demonstrating scaling potential of world-action modeling</p><p><h2>Method Details</h2></p><p><strong>Architecture</strong>: DriveWAM adapts a pretrained video diffusion transformer (VDM) into a world-action model by:</p><p>1. <strong>Unified Temporal Token Sequence</strong>: Video frames and action commands (e.g., steering, acceleration) are organized into a single temporal token stream, treating actions as additional "modality tokens" alongside visual tokens.</p><p>2. <strong>Joint Flow Matching</strong>: Instead of separate video prediction and action prediction heads, DriveWAM trains under a joint flow-matching objective that predicts the combined video-action trajectory. This preserves the pretrained video-generation architecture while learning action generation.</p><p>3. <strong>Scene-Evolving Driving Guidance</strong>: A frozen vision-language model (VLM) processes the video context and produces chunk-specific semantic intent (e.g., "merge onto highway", "yield at intersection"). These high-level instructions guide the video-action generation without fine-tuning the VLM.</p><p>4. <strong>Selective KV Memory</strong>: For long-horizon rollout, DriveWAM maintains bounded modality-aware memory pools. At each step, it performs relevance-redundancy cache selection to decide which video and action tokens to keep in the KV cache, keeping memory bounded while preserving useful context.</p><p><strong>Pretrained Backbone</strong>: Uses a video diffusion transformer pretrained on large-scale video data as the foundation, benefiting from temporal dynamics and motion priors learned during pretraining — advantages over vision-language models pretrained only on static image-text pairs.</p><p><h2>Key Results</h2></p><p><table></li>
+| Experiment | Result |
+|------------|--------|
+| NAVSIM benchmark | Strong planning performance |
+| PhysicalAI-AV benchmark | Strong planning performance |
+| Data scaling (4k → 100k clips) | Consistent improvement with more data |
+</table></p><p>The data scaling study from 4k to 100k driving clips shows monotonically improving performance, confirming that world-action modeling benefits from larger datasets — an important finding for the field's scaling trajectory.</p><p><h2>Limitations and Future Work</h2></p><p>- Reliance on pretrained video diffusion transformer quality: if the backbone has biases, DriveWAM inherits them
+<li>Scene-evolving guidance from frozen VLM may not always be aligned with optimal driving strategy</li>
+<li>Evaluation primarily on simulated benchmarks; real-world deployment generalization unclear</li>
+<li>Long-tail safety-critical scenarios may require additional training data beyond 100k clips</li>
+<li>Action discretization: continuous action spaces may lose fidelity in tokenization</p><p><h2>Relevance to Patrick's Research</h2></p><p>DriveWAM directly demonstrates how video generative priors (Sora/VDM-style models) can be leveraged for robotics and control — in this case, autonomous driving. The flow-matching approach for joint video-action prediction is architecturally similar to how world models might be used in robotics more broadly. The selective KV memory mechanism for bounded inference is a practical solution for anyone doing long-horizon world model rollouts. This connects DeepMind's Genesis/Genie work and NVIDIA's Voyager to real-world control applications.</p><p>---</li>
+*Source: <a href="https://arxiv.org/abs/2605.28544">arXiv:2605.28544</a> | PDF: <a href="https://arxiv.org/pdf/2605.28544">2605.28544.pdf</a>*
+</p>
+</body>
+</html>

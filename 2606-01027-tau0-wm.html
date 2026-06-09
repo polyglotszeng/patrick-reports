@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>τ₀-WM: A Unified Video-Action World Model for Robotic Manipulation</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+</head>
+<body>
+<p>
+<h1>τ₀-WM: A Unified Video-Action World Model for Robotic Manipulation</h1></p><p><strong>arXiv:</strong> <a href="https://arxiv.org/abs/2606.01027">2606.01027</a>  
+<strong>Authors:</strong> Pengfei Zhou, Shengcong Chen, Di Chen, Jiaxu Wang, Rongjun Jin, Bingwen Zhu, Yike Pan, Songen Gu, Kuanning Wang, Shufeng Nan, Xingyu Qiu, Chenhao Qiu, Pu Yang, Yunuo Cai, Jianxiong Gao, Yifan Li, Yanwei Fu, Xiangyu Yue, Zhi Chen, Jianlan Luo  
+<strong>Affiliation:</strong> Shanghai Innovation Institute, AGIBOT Finch  
+<strong>Submitted:</strong> 31 May 2026</p><p><h2>Abstract</h2></p><p>Robotic manipulation requires models that generate executable actions while anticipating and evaluating their future consequences before physical execution. τ₀-WM is a unified video-action world model that integrates policy learning, video prediction, and action evaluation within a single future-predictive framework. Built on a shared video diffusion backbone, τ₀-WM provides two complementary interfaces: a Video Action Model (VAM) that jointly predicts future visual latents and continuous action chunks, and an Action-Conditioned Video Simulator (ACVS) that rolls out candidate action chunks into multi-view futures and predicts dense task-progress scores. Trained on ~27,300 hours of heterogeneous data (real-robot teleoperation, UMI-style, egocentric human videos, rollout/failure trajectories). At inference, uses test-time computation to sample, rank, and rectify actions.</p><p><h2>Key Contributions</h2></p><p>1. <strong>Unified video-action architecture</strong>: Shares a predictive representation across policy learning (VAM) and action-conditioned simulation (ACVS), both built on a Wan2.2-TI2V-5B video diffusion backbone
+2. <strong>Heterogeneous data training</strong>: Jointly trains on real-robot teleoperation (17.8K hours on AGIBOT-G01, ARX, dual-arm Franka), UMI-style demonstrations (6.5K hours), and egocentric human videos (3.0K hours) using modality-specific supervision masks
+3. <strong>Test-time proposal-evaluation-revision</strong>: Samples multiple action candidates, ranks them with Re-denoising Consistency Score (RCS), and invokes ACVS for simulator-based rectification of low-quality candidates</p><p><h2>Method</h2></p><p><h3>Architecture</h3></p><p>- <strong>Base:</strong> Wan2.2-TI2V-5B video diffusion backbone (5B video DiT)
+<li><strong>VAM (Video Action Model):</strong> 5.5B parameters total (5B video + 0.5B action decoder DiT). Consists of:</li>
+  - Wan VAE encoding multi-view observations into latent canvas
+  - Video branch predicting future visual latents through conditional denoising
+  - Action branch (0.5B DiT-style decoder) coupled to video transformer via cross-attention at matched stages
+<li><strong>ACVS (Action-Conditioned Video Simulator):</strong> Reuses video backbone without action decoder. Conditions future latent prediction on candidate action chunks via action blocks projected through MLPs, injected into diffusion-time and AdaLN modulation embeddings</li>
+<li><strong>Total parameters:</strong> ~5.5B (VAM) + ~5B (ACVS shares backbone)</p><p><h3>Training</h3></p><p>- <strong>Objective:</strong> Joint flow-matching for both video latents and action chunks</li>
+<li><strong>Supervision masks:</strong> Heterogeneous data sources contribute only to losses supported by their modalities (robot data → both video + action; egocentric video → video only)</li>
+<li><strong>Data composition:</strong></li>
+  - 17.8K hours real-robot teleoperation (AGIBOT-G01, ARX, dual-arm Franka)
+  - 6.5K hours UMI-style demonstrations (Gen-DAS Grippers)
+  - 3.0K hours egocentric human videos (EgoDEX, EgoVerse, Xperience-10m)
+<li><strong>Failure data:</strong> Incorporated for reward construction to teach ACVS to identify unsuccessful outcomes</p><p><h3>Inference: Test-Time Computation</h3></p><p><strong>Coarse-to-fine strategy:</strong></p><p>1. <strong>Re-denoising Consistency Score (RCS):</strong> Samples N action candidates, re-noises each at K random timesteps, measures average re-denoising error. Selects candidate maximizing RCS (most consistent with learned conditional action manifold)</p><p>2. <strong>Low-quality Action Rectification (LAR):</strong> When RCS falls below threshold γ, ACVS is invoked to evaluate all candidates. For each candidate:</li>
+   - Predicts imagined future rollout + dense reward trajectory
+   - Computes rollout value J = max_q r̂_{t+q}
+   - Selects highest-value rollout, converts to future conditioning
+   - Re-queries VAM conditioned on selected future to produce refined action</p><p><h2>Key Results</h2></p><p><h3>Main Results (4 Tasks, 3 Embodiments)</h3></p><p>τ₀-WM achieves highest average success rate across AGIBOT-G01, ARX, and dual-arm Franka on long-horizon fine-grained manipulation tasks (Toolbox, School Bag, Faucet, Badminton).</p><p><h3>Pre-training Data Ablation (Table I)</h3></p><p><table>
+| Setting | Zero-shot (Pen→Holder) | SFT (Object-wipe-place) |
+|---------|------------------------|-------------------------|
+| Robot only (clean/clutter/avg) | 0.22 / 0.06 / 0.14 | 0.85 / 0.55 / 0.70 |
+| <strong>Robot+UMI+Ego</strong> | <strong>0.56 / 0.53 / 0.55</strong> | <strong>0.90 / 0.75 / 0.83</strong> |
+</table></p><p>Heterogeneous pre-training improves zero-shot from 14% to 55% avg success.</p><p><h3>Test-Time Computation (Table II)</h3></p><p><table>
+| Variant | Tissue→Box | Pen→Box | Avg |
+|---------|------------|---------|-----|
+| w/o TTC | 0.55 | 0.30 | 0.43 |
+| w. CFG | 0.25 | 0.15 | 0.20 |
+| w. ACG | 0.40 | 0.35 | 0.38 |
+| w. RCS | 0.65 | 0.35 | 0.50 |
+| <strong>w. RCS + LAR</strong> | <strong>0.70</strong> | <strong>0.50</strong> | <strong>0.60</strong> |
+</table></p><p>TTC improves single-attempt success from 43% to 60%.</p><p><h2>Limitations and Future Work</h2></p><p>1. <strong>Tactile sensing:</strong> Many dexterous tasks require tactile feedback beyond vision; incorporating tactile sensing may improve contact-rich interactions (insertion, fastening, deformable objects)
+2. <strong>Uncertainty estimation:</strong> Better uncertainty estimation and longer-horizon evaluation could further improve action selection in difficult states
+3. <strong>Longer horizons:</strong> Extending predictive modeling to longer temporal horizons for more complex manipulation scenarios
+4. <strong>Faucet task remains challenging</strong> for all methods (strict alignment constraints); the task is far from saturated</p><p><h2>Relevance to Patrick's Research</h2></p><p>- Directly advances <strong>video diffusion world models for robotics</strong> (relevant to Sora/VDM, DeepMind's Genie/Genesis, Voyager)
+<li>Novel architecture unifying <strong>action generation + video prediction + action evaluation</strong> in a single framework</li>
+<li>Strong emphasis on <strong>test-time reasoning</strong> — proposal-evaluation-rectification loop is a key pattern for world model deployment</li>
+<li>Training on heterogeneous data (robot + UMI + egocentric video) demonstrates <strong>data diversity</strong> strategy for world models</li>
+<li>Authors from AGIBOT Finch (Chinese robotics lab); homepage: https://finch.agibot.com/research/tau0-wm</p><p><h2>References</h2></p><p>- Wan2.2-TI2V-5B: Wan video generation models</li>
+<li>Cosmos World Foundation Model (NVIDIA)</li>
+<li>π₀.5: Vision-language-action model with open-world generalization</li>
+<li>Fast-WAM: Do world action models need test-time future imagination?</li>
+<li>ACG: Action coherence guidance for flow-based VLA models</p><p>---</p><p>*Note generated from arXiv:2606.01027 (31 May 2026)*</li>
+</p>
+</body>
+</html>
