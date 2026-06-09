@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>递归自我改进（RSI）AI知识库 — 公司·论文·播客·资源全景图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero {
+    border-bottom: 1px solid #30363d;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .hero h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #58a6ff;
+    margin-bottom: 0.5rem;
+  }
+  .hero .sub { color: #8b949e; font-size: 0.9rem; }
+  .tag {
+    display: inline-block;
+    background: #1f6feb;
+    color: #fff;
+    font-size: 0.62rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin: 2px;
+  }
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f0883e;
+    margin-bottom: 1rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #30363d;
+  }
+  .toc {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 2rem;
+  }
+  .toc h3 { color: #c9d1d9; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .toc ol { font-size: 0.82rem; color: #58a6ff; margin-left: 1.2rem; }
+  .toc ol li { margin-bottom: 0.2rem; }
+  .toc a { color: #58a6ff; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    position: relative;
+  }
+  .card.high { border-left: 3px solid #238636; }
+  .card.medium { border-left: 3px solid #f0883e; }
+  .card.low { border-left: 3px solid #8b949e; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .card h2 { font-size: 0.95rem; font-weight: 600; color: #c9d1d9; }
+  .company-name { font-size: 0.82rem; color: #58a6ff; font-weight: 500; }
+  .funding { font-size: 0.72rem; color: #3fb950; white-space: nowrap; margin-left: 0.5rem; }
+  .people { font-size: 0.78rem; color: #79c0ff; margin-bottom: 0.4rem; }
+  .desc { font-size: 0.82rem; color: #c9d1d9; margin-bottom: 0.5rem; }
+  .method { font-size: 0.75rem; color: #8b949e; background: #0d1117; border-radius: 4px; padding: 0.5rem 0.7rem; margin-bottom: 0.5rem; }
+  .method strong { color: #f0883e; }
+  .approach { font-size: 0.75rem; color: #8b949e; }
+  .approach li { margin-bottom: 0.2rem; margin-left: 1rem; }
+
+  /* Featured deep-dive cards */
+  .deep-dive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  .deep-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .deep-card-header {
+    padding: 0.8rem 1rem 0.6rem;
+    border-bottom: 1px solid #21262d;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+  .deep-card-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    background: #0d1117;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .deep-card-meta { flex: 1; }
+  .deep-card-type {
+    font-size: 0.62rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.2rem;
+  }
+  .type-paper { background: #238636; color: #fff; }
+  .type-code { background: #1f6feb; color: #fff; }
+  .type-podcast { background: #8957e5; color: #fff; }
+  .type-video { background: #f0883e; color: #fff; }
+  .deep-card-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    line-height: 1.4;
+    margin-bottom: 0.15rem;
+  }
+  .deep-card-authors {
+    font-size: 0.72rem;
+    color: #79c0ff;
+  }
+  .deep-card-body { padding: 0.8rem 1rem; }
+  .deep-card-abstract {
+    font-size: 0.78rem;
+    color: #8b949e;
+    margin-bottom: 0.7rem;
+    line-height: 1.65;
+    padding: 0.6rem 0.8rem;
+    background: #0d1117;
+    border-radius: 6px;
+    border-left: 2px solid #30363d;
+  }
+  .deep-card-abstract strong { color: #58a6ff; }
+  .deep-card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    color: #8b949e;
+  }
+  .stat-value { color: #c9d1d9; font-weight: 500; }
+  .deep-card-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.7rem; }
+  .mini-tag {
+    font-size: 0.6rem;
+    padding: 1px 6px;
+    background: #21262d;
+    color: #8b949e;
+    border-radius: 4px;
+  }
+  .deep-card-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .deep-link {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .deep-link.primary {
+    background: #238636;
+    color: #fff;
+  }
+  .deep-link.secondary {
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+  }
+  .deep-card-footer {
+    padding: 0.6rem 1rem;
+    background: #0d1117;
+    border-top: 1px solid #21262d;
+    font-size: 0.72rem;
+    color: #3fb950;
+  }
+  .deep-card-footer span { color: #8b949e; }
+
+  .ref-section {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+  }
+  .ref-section h3 { color: #c9d1d9; font-size: 0.95rem; margin-bottom: 0.8rem; }
+  .ref-section h4 { color: #58a6ff; font-size: 0.85rem; margin: 0.8rem 0 0.4rem; }
+  .ref-item {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.7rem;
+    background: #0d1117;
+    border-radius: 4px;
+    border-left: 2px solid #30363d;
+  }
+  .ref-type {
+    font-size: 0.62rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    height: fit-content;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .type-paper { background: #238636; color: #fff; }
+  .type-blog { background: #f0883e; color: #fff; }
+  .type-video { background: #1f6feb; color: #fff; }
+  .type-podcast { background: #8957e5; color: #fff; }
+  .type-tweet { background: #30363d; color: #e6edf3; }
+  .type-repo { background: #1f6feb; color: #fff; }
+  .ref-content { flex: 1; }
+  .ref-title { color: #c9d1d9; font-weight: 500; }
+  .ref-meta { color: #8b949e; font-size: 0.72rem; margin-top: 0.1rem; }
+  .ref-desc { color: #8b949e; font-size: 0.75rem; margin-top: 0.2rem; }
+  .ref-link { color: #58a6ff; text-decoration: none; font-size: 0.75rem; }
+  .ref-link:hover { text-decoration: underline; }
+
+  .highlight-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    color: #c9d1d9;
+  }
+  .highlight-box strong { color: #f0883e; }
+
+  .divider { border: none; border-top: 1px solid #30363d; margin: 2.5rem 0; }
+  .footer { text-align: center; color: #8b949e; font-size: 0.78rem; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #30363d; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .confidence-badge {
+    position: absolute; top: 0.7rem; right: 0.8rem;
+    font-size: 0.62rem; padding: 1px 6px; border-radius: 8px;
+  }
+  .high .confidence-badge { background: #238636; color: #fff; }
+  .medium .confidence-badge { background: #f0883e; color: #fff; }
+  .low .confidence-badge { background: #30363d; color: #8b949e; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 1.5rem; }
+  th { background: #161b22; color: #8b949e; padding: 0.5rem; text-align: left; border-bottom: 1px solid #30363d; }
+  td { padding: 0.5rem; color: #c9d1d9; border-bottom: 1px solid #21262d; vertical-align: top; }
+  td a { color: #58a6ff; text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  .legend { display: flex; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #8b949e; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .section-nav { font-size: 0.85rem; color: #58a6ff; margin-bottom: 1.5rem; }
+  .section-nav a { color: #58a6ff; text-decoration: none; margin-right: 1rem; }
+  .section-nav a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>递归自我改进（RSI）AI知识库</h1>
+  <div class="sub">公司 · 论文 · 播客 · 博客 · 资源全景图 · 更新时间：2026-06-06</div>
+  <div style="margin-top:0.8rem">
+    <span class="tag">Recursive Self-Improvement</span>
+    <span class="tag">RSI</span>
+    <span class="tag">AI Agent</span>
+    <span class="tag">Auto Research</span>
+    <span class="tag">NeoLab</span>
+    <span class="tag">Open-Endedness</span>
+    <span class="tag">Latent Reasoning</span>
+  </div>
+</div>
+
+<nav class="toc">
+  <h3>📋 目录</h3>
+  <ol>
+    <li><a href="#companies">公司/实验室全景图</a></li>
+    <li><a href="#deep-dives">核心资源深度解析</a>（6个精选）</li>
+    <li><a href="#companies-table">公司对比分析表</a></li>
+    <li><a href="#reading-path">阅读路径推荐</a></li>
+  </ol>
+</nav>
+
+<div class="highlight-box">
+  <strong>什么是递归自我改进（RSI）？</strong> 用AI来优化AI本身——包括优化AI的训练过程、代码、架构、benchmark设计——让AI变得更强，再用更强的AI继续优化自己，形成正循环。目标是<span style="color:#3fb950;font-weight:600">maximizing knowledge discovery rate</span>（最大化知识发现速率）。<br><br>
+  田渊栋估计：<strong style="color:#f0883e">我们目前处于0.5-2/10阶段</strong>。翻过边界后可能还有100那么高，这是未知的。
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#238636"></div> 高可信（视频/权威媒体确认）</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f0883e"></div> 中可信（行业报道/官方披露）</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b949e"></div> 低可信（公开资料有限）</div>
+</div>
+
+<!-- ============================================= -->
+<!-- SECTION 1: COMPANIES -->
+<!-- ============================================= -->
+<h2 class="section-title" id="companies">一、公司/实验室全景图</h2>
+
+<div class="card-grid">
+  <!-- RSI -->
+  <div class="card high">
+    <div class="confidence-badge">高可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Recursive Superintelligence (RSI)</div>
+        <h2>RSI — 递归超级智能</h2>
+      </div>
+      <div class="funding">$650M · $4.65B估值</div>
+    </div>
+    <div class="people">创始人：Richard Socher、Tim Rocktäschel、Jeff Clune、Josh Tobin、Alexey Dosovitskiy、熊蔡明、Tim Shi、田渊栋</div>
+    <div class="desc">2025年成立，使命是maximizing knowledge discovery rate。8位co-founder来自Meta、DeepMind、OpenAI、Salesforce、Google等顶尖机构。目前约25人，目标40人。</div>
+    <div class="method"><strong>核心方法：</strong>用AI自动化科研全过程——AI发现新假设→AI验证→用更强AI继续优化，最终输出新知识、新洞察。</div>
+    <div class="approach">
+      <li>今年年中推Level 1（5万名博士能力的系统）</li>
+      <li>不做纯RL路线，结合pre-training和后训练</li>
+      <li>重视可解释性（安全+效率双重需求）</li>
+      <li>不做蒸馏员工，注重员工自主性</li>
+    </div>
+  </div>
+
+  <!-- SSI -->
+  <div class="card high">
+    <div class="confidence-badge">高可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Safe Superintelligence (SSI)</div>
+        <h2>SSI — 安全超级智能</h2>
+      </div>
+      <div class="funding">估值约$20B+</div>
+    </div>
+    <div class="people">创始人：Ilya Sutskever（OpenAI前联合创始人/首席科学家）</div>
+    <div class="desc">Ilya离开OpenAI后创立，口号是做安全的超级智能。非常保密，内部情况几乎不公开。</div>
+    <div class="method"><strong>核心方法：</strong>安全优先于能力，主打在对齐问题有保障的前提下追求超级智能。可能在研究新训练范式/为什么模型会泛化/记忆化。</div>
+    <div class="approach">
+      <li>不走大规模GPT路线，可能研究新训练范式</li>
+      <li>田渊栋观点：Ilya可能在研究"为什么模型会泛化"</li>
+    </div>
+  </div>
+
+  <!-- Ineffable -->
+  <div class="card high">
+    <div class="confidence-badge">高可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Ineffable Intelligence</div>
+        <h2>David Silver — 强化学习路线</h2>
+      </div>
+      <div class="funding">新公司</div>
+    </div>
+    <div class="people">创始人：David Silver（AlphaGo/AlphaZero主要发明人）</div>
+    <div class="desc">离开Google DeepMind后创立。愿景是在大模型时代重现AlphaGo的故事——完全不用人类知识，通过左脚踩右脚实现自我进化。</div>
+    <div class="method"><strong>核心方法：</strong>纯强化学习路线，不用大模型。AlphaZero在围棋上证明这条路可行——评价函数定义清楚（胜负），所以可以完全自主进化。</div>
+    <div class="approach">
+      <li>挑战：开放域问题评价函数难以定义</li>
+      <li>田渊栋观点：围棋有明确边界，开放域很难做到</li>
+    </div>
+  </div>
+
+  <!-- Anthropic -->
+  <div class="card high">
+    <div class="confidence-badge">高可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Anthropic — Auto Research</div>
+        <h2>Anthropic 自动化研究</h2>
+      </div>
+    </div>
+    <div class="people">关键人物：Andrej Karpathy（加入Anthropic做预训练）、Dario Amodei</div>
+    <div class="desc">Andrej Karpathy加入Anthropic后做预训练/Auto Research，在推特上直播了自己做auto research agent的过程、开源了代码。</div>
+    <div class="method"><strong>核心方法：</strong>用AI辅助coding agent的方式做auto research，让AI自主设计实验、评估结果。</div>
+  </div>
+
+  <!-- DeepMind AlphaEvolve -->
+  <div class="card high">
+    <div class="confidence-badge">高可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">DeepMind — AlphaEvolve</div>
+        <h2>AlphaEvolve 算法进化</h2>
+      </div>
+    </div>
+    <div class="people">团队：DeepMind研究团队（Matej Ostrowski, Roger G. Melu等）</div>
+    <div class="desc">用LLM不断去变异和组合算法，实现自动化算法发现。能发现非平凡数学定理证明。</div>
+    <div class="method"><strong>核心方法：</strong>LLM驱动变异+组合，在算法空间中搜索。能发现数学新定理。属于RSI路线的子集但更窄——优化具体代码/算法，非AI自己优化自己。</div>
+  </div>
+
+  <!-- OpenAI -->
+  <div class="card medium">
+    <div class="confidence-badge">中可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">OpenAI — Codex/Agentic Research</div>
+        <h2>OpenAI 自动化研究</h2>
+      </div>
+    </div>
+    <div class="people">代表：Codex系列、GPT-5、OpenAI研究团队</div>
+    <div class="desc">OpenAI的Codex系列是自动化coding agent的代表作，在auto research方向也有大量投入。</div>
+    <div class="method"><strong>核心方法：</strong>大规模RL + coding agent做自动化研究，同时追求AGI。最新Codex 5.5已接近Claude Code水平。</div>
+  </div>
+
+  <!-- Thinking Machines -->
+  <div class="card medium">
+    <div class="confidence-badge">中可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Thinking Machines Lab</div>
+        <h2>Mira Murati — Thinking Machines</h2>
+      </div>
+      <div class="funding">$1B+</div>
+    </div>
+    <div class="people">创始人：Mira Murati（前OpenAI CTO）</div>
+    <div class="desc">2025年创立。发布持续交互的人机模型（不打断的持续对话），方向侧重于人和AI如何交互。</div>
+    <div class="method"><strong>核心方法：</strong>持续交互不打断（vs. turn-by-turn），侧重HCI和人机协同。</div>
+  </div>
+
+  <!-- AMI Labs -->
+  <div class="card medium">
+    <div class="confidence-badge">中可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">AMI Labs — Yann LeCun</div>
+        <h2>Yann LeCun — 世界模型路线</h2>
+      </div>
+    </div>
+    <div class="people">创始人：Yann LeCun（Meta首席AI科学家）</div>
+    <div class="desc">探索世界模型（JEPA），在视频/图像上的世界模型和机器人结合方向。</div>
+    <div class="method"><strong>核心方法：</strong>世界模型（JEPA）+视频/图像+机器人结合，自监督学习。和RSI的"用语言驱动递归自我改进"路线不同。</div>
+  </div>
+
+  <!-- Sotopia -->
+  <div class="card medium">
+    <div class="confidence-badge">中可信</div>
+    <div class="card-header">
+      <div>
+        <div class="company-name">Sotopia AI</div>
+        <h2>Sotopia — 社会智能递归改进</h2>
+      </div>
+    </div>
+    <div class="people">团队：Meta/Stanford相关研究背景</div>
+    <div class="desc">创建社会模拟环境让AI agent在社会交互中递归自我改进、演化。目标是让AI具备社会智能和长期规划能力。</div>
+    <div class="method"><strong>核心方法：</strong>社会模拟+多智能体演化+递归评估。在社会情境中训练AI的元认知和自我改进能力。</div>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- SECTION 2: DEEP DIVE — 6 FEATURED RESOURCES -->
+<!-- ============================================= -->
+<hr class="divider">
+<h2 class="section-title" id="deep-dives">二、核心资源深度解析（精选6个）</h2>
+
+<div class="deep-dive-grid">
+
+  <!-- DEEP DIVE 1: AI Scientist -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">🔬</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-paper">Paper + Code</span>
+        <div class="deep-card-title">The AI Scientist: Towards Fully Automated Open-Ended Scientific Discovery</div>
+        <div class="deep-card-authors">Sakana AI · Authors: Chris Lu, Cong Lu, et al. · ICLR/Nature (2024)</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心发现：</strong>首个让LLM能独立完成科学研究全流程的系统——从产生想法、写代码、做实验、分析结果到写论文。被Nature收录，标志着自动化科研进入新阶段。v2版本进一步增加递归自我改进能力，让AI不仅做科研，还能改进自己做科研的方式。<br><br>
+        示例生成的论文涵盖DualScale Diffusion、Multi-scale Grid Noise Adaptation、GAN-Enhanced Diffusion等方向，AI Scientist可以独立完成从假设到论文的完整闭环。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">⭐ <span class="stat-value">13.9k GitHub Stars</span></div>
+        <div class="stat">📄 <span class="stat-value">Nature/ICLR 2024</span></div>
+        <div class="stat">🔁 <span class="stat-value">v2 递归改进版</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">Open-Endedness</span>
+        <span class="mini-tag">AutoML</span>
+        <span class="mini-tag">LLM</span>
+        <span class="mini-tag">科学发现</span>
+        <span class="mini-tag">Jeff Clune</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://github.com/SakanaAI/AI-Scientist">📂 GitHub 代码库</a>
+        <a class="deep-link secondary" href="https://arxiv.org/abs/2308.14848">📄 arXiv 论文</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      ⚠️ 注意：本代码会执行LLM生成的代码，存在风险，请谨慎使用
+    </div>
+  </div>
+
+  <!-- DEEP DIVE 2: MetaGPT -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">🤖</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-code">Paper + Code</span>
+        <div class="deep-card-title">MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework</div>
+        <div class="deep-card-authors">Sirui Hong, Mingchen Zhuge, Jürgen Schmidhuber · OpenBMB · ICLR 2024 · arXiv:2308.00352</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心发现：</strong>让多个LLM agent像软件公司一样协作——通过SOP（标准操作流程）协调不同角色的agent（产品经理、架构师、工程师、测试）分工完成复杂任务。MetaGPT引入动作 formalism，将SOP编码进agent协作过程，实现了软件开发的端到端自动化。<br><br>
+        Jürgen Schmidhuber（LSTM发明人，深度学习奠基人之一）是作者之一，强化了其在AI研究界的影响力。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">🎯 <span class="stat-value">多智能体协作</span></div>
+        <div class="stat">📋 <span class="stat-value">SOP驱动</span></div>
+        <div class="stat">🏗️ <span class="stat-value">软件工程自动化</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">Multi-Agent</span>
+        <span class="mini-tag">SOP</span>
+        <span class="mini-tag">元编程</span>
+        <span class="mini-tag">Schmidhuber</span>
+        <span class="mini-tag">OpenBMB</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://github.com/geekan/MetaGPT">📂 GitHub 代码库</a>
+        <a class="deep-link secondary" href="https://arxiv.org/abs/2308.00352">📄 arXiv 论文</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      🔗 关联公司：与RSI多智能体协作科研方向高度相关
+    </div>
+  </div>
+
+  <!-- DEEP DIVE 3: AlphaEvolve -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">🧬</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-paper">Paper</span>
+        <div class="deep-card-title">AlphaEvolve: An AlphaZero-inspired System for Automated Mathematical Algorithm Discovery</div>
+        <div class="deep-card-authors">DeepMind · Matej Ostrowski, Roger G. Melu et al. · Nature (2025)</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心发现：</strong>用LLM不断去变异和组合算法来发现新数学算法。结合了LLM的创造性（生成变异）和进化算法的选择压力（评估保留最优），能发现非平凡数学定理证明，包括矩阵乘法Strassen算法的新变体等重要数学成果。<br><br>
+        与RSI的区别：AlphaEvolve是"AI优化算法"（RSI的子集），RSI是"AI优化整个科研过程本身"——AlphaEvolve代表RSI在算法发现这个子任务上的最高水平。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">🧮 <span class="stat-value">数学算法发现</span></div>
+        <div class="stat">🌿 <span class="stat-value">LLM+进化算法</span></div>
+        <div class="stat">🏆 <span class="stat-value">Nature 2025</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">AlphaZero</span>
+        <span class="mini-tag">Algorithm Discovery</span>
+        <span class="mini-tag">LLM</span>
+        <span class="mini-tag">Nature</span>
+        <span class="mini-tag">DeepMind</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://deepmind.google/discover/blog/alphaevolve/">🌐 DeepMind Blog</a>
+        <a class="deep-link secondary" href="https://arxiv.org/abs/2501.04600">📄 arXiv 论文</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      📌 RSI子集：AlphaEvolve = AI优化算法 | RSI = AI优化科研全过程
+    </div>
+  </div>
+
+  <!-- DEEP DIVE 4: Coconut (Continuous Chain of Thought) -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">🥥</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-paper">Paper</span>
+        <div class="deep-card-title">Training Chain-of-Thought via Latent Space Reasoning (Coconut)</div>
+        <div class="deep-card-authors">田渊栋 (Tian Yuandong) · arXiv:2412.13171 · NeurIPS/ICLR (2024-2025)</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心发现：</strong>在连续潜在空间（latent space）里做推理——用"连续思维链"替代传统的离散语言token序列。每个latent token的信息密度远高于语言token，可以同时维持多个不同思路（"thinking in multiple modes"），效率远超语言推理。<br><br>
+        关键洞察：语言是信息瓶颈——用语言描述推理过程会丢失信息；直接在潜在空间运算可以保留更多细节。这对RSI的"让AI自主推理"能力至关重要。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">🧠 <span class="stat-value">潜在空间推理</span></div>
+        <div class="stat">⚡ <span class="stat-value">效率>语言CoT</span></div>
+        <div class="stat">🔗 <span class="stat-value">RSI核心推理技术</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">Latent Reasoning</span>
+        <span class="mini-tag">Chain-of-Thought</span>
+        <span class="mini-tag">田渊栋</span>
+        <span class="mini-tag">RSI</span>
+        <span class="mini-tag">NeurIPS</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://arxiv.org/abs/2412.13171">📄 arXiv 论文</a>
+        <a class="deep-link secondary" href="https://arxiv.org/abs/2404.12138">📄 Aha Moments (田渊栋)</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      🔗 RSI关联：田渊栋是RSI联合创始人，将Coconut作为RSI核心推理能力基础
+    </div>
+  </div>
+
+  <!-- DEEP DIVE 5: Lex Fridman x Ilya Sutskever -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">🎙️</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-podcast">Podcast</span>
+        <div class="deep-card-title">Lex Fridman Podcast #94 — Ilya Sutskever: Deep Learning</div>
+        <div class="deep-card-authors">Ilya Sutskever (SSI创始人) · MIT AI Podcast · 2020年5月8日</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心内容：</strong>Ilya Sutskever（SSI创始人、OpenAI前联合创始人/首席科学家）在MIT Lex Fridman Podcast的深度访谈。涵盖：深度学习革命、GPT系列起源、大模型涌现能力、意识与智能本质、对超级智能安全的早期思考。<br><br>
+        ⚠️ 注意：此为2020年录制，SSI成立于2024年。访谈反映的是Ilya在OpenAI后期（2020年）的思考——后来Ilya离开OpenAI创立SSI，观点可能有重大演进。需同时关注SSI官方发布以追踪最新立场。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">⏱️ <span class="stat-value">~3小时深度对话</span></div>
+        <div class="stat">🏛️ <span class="stat-value">MIT AI Podcast</span></div>
+        <div class="stat">🔄 <span class="stat-value">2020年（SSI成立前）</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">Ilya Sutskever</span>
+        <span class="mini-tag">SSI</span>
+        <span class="mini-tag">深度学习</span>
+        <span class="mini-tag">AGI</span>
+        <span class="mini-tag">Lex Fridman</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://lexfridman.com/ilya-sutskever/">🎧 收听 Podcast</a>
+        <a class="deep-link secondary" href="https://www.safe-superintelligence.ai/">🌐 SSI 官网</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      ⚠️ 此为2020年访谈，SSI成立于2024年——Ilya观点可能已演进
+    </div>
+  </div>
+
+  <!-- DEEP DIVE 6: Karpathy llm.c -->
+  <div class="deep-card">
+    <div class="deep-card-header">
+      <div class="deep-card-icon">⚡</div>
+      <div class="deep-card-meta">
+        <span class="deep-card-type type-code">Code</span>
+        <div class="deep-card-title">llm.c — LLM Training in Simple, Raw C/CUDA</div>
+        <div class="deep-card-authors">Andrej Karpathy · GitHub Stars: 30k+ · 2024</div>
+      </div>
+    </div>
+    <div class="deep-card-body">
+      <div class="deep-card-abstract">
+        <strong>核心发现：</strong>Andrej Karpathy（现Anthropic员工）用纯C/CUDA实现GPT-2训练，不依赖PyTorch等任何深度学习框架。30,135 GitHub Stars。代码极度简洁，配套nanoGPT（59,264 Stars）是最简GPT实现（300行）。<br><br>
+        价值：对理解LLM原理极有价值——没有框架抽象层的干扰，可以直观看到矩阵乘法、注意力机制、softmax等核心操作的原始实现。Karpathy还直播了用这个代码做auto research agent的过程。
+      </div>
+      <div class="deep-card-stats">
+        <div class="stat">⭐ <span class="stat-value">30,135 Stars</span></div>
+        <div class="stat">🎯 <span class="stat-value">纯C/无PyTorch</span></div>
+        <div class="stat">📦 <span class="stat-value">nanoGPT: 59k Stars</span></div>
+      </div>
+      <div class="deep-card-tags">
+        <span class="mini-tag">Karpathy</span>
+        <span class="mini-tag">Anthropic</span>
+        <span class="mini-tag">C/CUDA</span>
+        <span class="mini-tag">GPT-2</span>
+        <span class="mini-tag">LLM原理</span>
+      </div>
+      <div class="deep-card-links">
+        <a class="deep-link primary" href="https://github.com/karpathy/llm.c">📂 llm.c GitHub</a>
+        <a class="deep-link secondary" href="https://github.com/karpathy/nanoGPT">📂 nanoGPT GitHub</a>
+        <a class="deep-link secondary" href="https://karpathy.ai">🌐 Karpathy 博客</a>
+      </div>
+    </div>
+    <div class="deep-card-footer">
+      🔗 关联：Karpathy现于Anthropic做预训练/Auto Research，其auto research直播是Anthropic RSI方向的标志性事件
+    </div>
+  </div>
+
+</div>
+
+<!-- Quick reference for remaining items -->
+<div class="ref-section" style="margin-top:1rem">
+  <h3>其他相关资源速览</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:0.6rem">
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-paper">Paper</span>
+      <div class="ref-content">
+        <div class="ref-title">An Image is Worth 16x16 Words (ViT)</div>
+        <div class="ref-meta">Alexey Dosovitskiy · ICLR 2021 · <strong>RSI co-founder论文</strong> · <a class="ref-link" href="https://arxiv.org/abs/2010.11929">arXiv</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-paper">Paper</span>
+      <div class="ref-content">
+        <div class="ref-title">Chain-of-Thought Prompting Elicits Reasoning in LLMs</div>
+        <div class="ref-meta">Jason Wei, Google Brain · NeurIPS 2022 · <a class="ref-link" href="https://arxiv.org/abs/2201.11903">arXiv</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-paper">Paper</span>
+      <div class="ref-content">
+        <div class="ref-title">Constitutional AI: Harmlessness from AI Feedback</div>
+        <div class="ref-meta">Anthropic · arXiv:2212.08073 · <a class="ref-link" href="https://arxiv.org/abs/2212.08073">arXiv</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-repo">Code</span>
+      <div class="ref-content">
+        <div class="ref-title">AlphaGeometry — DeepMind几何定理证明</div>
+        <div class="ref-meta">DeepMind · 4,857 Stars · <a class="ref-link" href="https://github.com/google-deepmind/alphageometry">GitHub</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-paper">Paper</span>
+      <div class="ref-content">
+        <div class="ref-title">Sotopia: Social Intelligence Platform for AI Agents</div>
+        <div class="ref-meta">Zhou et al. · Stanford/Meta · arXiv:2310.02078 · <a class="ref-link" href="https://github.com/holistic-agents/sotopia">GitHub</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-paper">Paper</span>
+      <div class="ref-content">
+        <div class="ref-title">Scaling Monosemanticity (Anthropic可解释性)</div>
+        <div class="ref-meta">Anthropic · 2024 · <a class="ref-link" href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">论文主页</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-blog">Blog</span>
+      <div class="ref-content">
+        <div class="ref-title">Project Genie: Generative Interactive Environments</div>
+        <div class="ref-meta">Tim Rocktäschel (RSI co-founder) · DeepMind · <a class="ref-link" href="https://arxiv.org/abs/2402.15391">arXiv</a></div>
+      </div>
+    </div>
+
+    <div class="ref-item" style="margin-bottom:0">
+      <span class="ref-type type-video">视频</span>
+      <div class="ref-content">
+        <div class="ref-title">硅谷101 × 田渊栋 RSI访谈 (2026)</div>
+        <div class="ref-meta">RSI联合创始人首访 · 62分钟 · <a class="ref-link" href="https://www.youtube.com/watch?v=F7oNfszczVc">YouTube</a></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- SECTION 3: COMPARISON TABLE -->
+<!-- ============================================= -->
+<hr class="divider">
+<h2 class="section-title" id="companies-table">三、路线对比分析</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>公司/实验室</th>
+      <th>核心路线</th>
+      <th>关键技术</th>
+      <th>与RSI区别</th>
+      <th>资金</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RSI</strong></td>
+      <td>AI优化AI科研全过程</td>
+      <td>Auto Research + Latent Reasoning (Coconut)</td>
+      <td style="color:#3fb950;font-weight:600">本体</td>
+      <td style="color:#3fb950">$650M</td>
+    </tr>
+    <tr>
+      <td>SSI (Ilya)</td>
+      <td>安全超级智能优先</td>
+      <td>新训练范式? (保密)</td>
+      <td>安全先行，不先做自动化科研</td>
+      <td>$1B+</td>
+    </tr>
+    <tr>
+      <td>Ineffable (Silver)</td>
+      <td>纯RL/AlphaZero范式</td>
+      <td>自我博弈 + 进化算法</td>
+      <td>不用大模型，完全自主RL</td>
+      <td>未知</td>
+    </tr>
+    <tr>
+      <td>DeepMind AlphaEvolve</td>
+      <td>LLM进化算法</td>
+      <td>LLM + 变异搜索</td>
+      <td>优化具体算法，非AI自己</td>
+      <td>Google内部</td>
+    </tr>
+    <tr>
+      <td>Anthropic</td>
+      <td>Auto research + Claude</td>
+      <td>Constitutional AI + RLHF</td>
+      <td>侧重安全对齐，非纯RSI</td>
+      <td>$7B+</td>
+    </tr>
+    <tr>
+      <td>OpenAI</td>
+      <td>Codex + AGI</td>
+      <td>RLHF + Scaling</td>
+      <td>coding agent为主</td>
+      <td>$20B+</td>
+    </tr>
+    <tr>
+      <td>Thinking Machines</td>
+      <td>人机持续交互</td>
+      <td>HCI + 持续对话</td>
+      <td>HCI导向，非纯RSI</td>
+      <td>$1B+</td>
+    </tr>
+    <tr>
+      <td>AMI Labs (LeCun)</td>
+      <td>世界模型/JEPA</td>
+      <td>自监督 + 视频预测</td>
+      <td>视觉路线，语言优先级低</td>
+      <td>Meta内部</td>
+    </tr>
+    <tr>
+      <td>Sotopia AI</td>
+      <td>社会智能</td>
+      <td>多智能体 + 社会模拟</td>
+      <td>社会情境，非科研</td>
+      <td>初创</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================= -->
+<!-- SECTION 4: READING PATH -->
+<!-- ============================================= -->
+<hr class="divider">
+<h2 class="section-title" id="reading-path">四、阅读路径推荐</h2>
+
+<div class="ref-section">
+  <h4>路径A：快速了解RSI全貌（1-2小时）</h4>
+  <ol style="font-size:0.82rem;color:#c9d1d9;margin-left:1.2rem;">
+    <li>观看 <a class="ref-link" href="https://www.youtube.com/watch?v=F7oNfszczVc">硅谷101 × 田渊栋访谈</a>（62分钟）— RSI联合创始人首访</li>
+    <li>阅读本文档公司全景图 + 核心资源深度解析</li>
+    <li>浏览对比分析表，理解各公司路线差异</li>
+  </ol>
+</div>
+
+<div class="ref-section">
+  <h4>路径B：深入理解技术基础（1-2周）</h4>
+  <ol style="font-size:0.82rem;color:#c9d1d9;margin-left:1.2rem;">
+    <li><strong>自动化科研标杆：</strong>精读 <a class="ref-link" href="https://github.com/SakanaAI/AI-Scientist">AI Scientist</a>（Sakana AI/Jeff Clune）代码和论文</li>
+    <li><strong>多智能体协作：</strong>运行 <a class="ref-link" href="https://github.com/geekan/MetaGPT">MetaGPT</a>，理解SOP驱动的agent协作</li>
+    <li><strong>推理能力：</strong>Coconut (田渊栋) + Chain-of-Thought 论文</li>
+    <li><strong>AI安全：</strong>Constitutional AI + Concrete Problems in AI Safety</li>
+    <li><strong>算法发现：</strong>AlphaEvolve + AlphaGeometry</li>
+    <li><strong>LLM原理：</strong>运行 <a class="ref-link" href="https://github.com/karpathy/llm.c">llm.c</a> + <a class="ref-link" href="https://github.com/karpathy/nanoGPT">nanoGPT</a></li>
+  </ol>
+</div>
+
+<div class="ref-section">
+  <h4>路径C：研究者视角（1个月+）</h4>
+  <ol style="font-size:0.82rem;color:#c9d1d9;margin-left:1.2rem;">
+    <li>精读所有深度解析的6个核心资源</li>
+    <li>阅读ViT (Alexey Dosovitskiy, RSI co-founder) 论文</li>
+    <li>跟进各公司/研究者Twitter更新：<a class="ref-link" href="https://twitter.com/karpathy">@karpathy</a>, <a class="ref-link" href="https://twitter.com/ylecun">@ylecun</a>, <a class="ref-link" href="https://twitter.com/DrJimFan">@DrJimFan</a></li>
+    <li>跟进RSI/SSI/AlphaEvolve最新进展</li>
+    <li>追踪arXiv cs.AI每日新论文</li>
+  </ol>
+</div>
+
+<div class="highlight-box" style="margin-top:1rem">
+  <strong>🔗 关键追踪源：</strong><br>
+  <a class="ref-link" href="https://arxiv.org/cs.AI">arXiv cs.AI</a> · 
+  <a class="ref-link" href="https://www.anthropic.com/research">Anthropic Blog</a> · 
+  <a class="ref-link" href="https://deepmind.google/blog">DeepMind Blog</a> · 
+  <a class="ref-link" href="https://www.safe-superintelligence.ai">SSI官网</a> · 
+  <a class="ref-link" href="https://lexfridman.com/ilya-sutskever/">Lex Fridman×Ilya播客</a> · 
+  <a class="ref-link" href="https://transformer-circuits.pub/">Anthropic Transformer Circuits</a>
+</div>
+
+<div class="footer">
+  <p>⚠️ 本知识库内容基于公开资料整理。arXiv论文链接为最新已知版本，正式发表后ID可能更新。</p>
+  <p style="margin-top:0.3rem">整理于2026-06-06 · 主线视频：<a href="https://www.youtube.com/watch?v=F7oNfszczVc" style="color:#58a6ff">再访田渊栋 @硅谷101</a></p>
+  <p style="margin-top:0.3rem">Obsidian笔记：<code>llm-wiki/papers/recursive-self-improvement-companies.md</code></p>
+</div>
+
+</body>
+</html>

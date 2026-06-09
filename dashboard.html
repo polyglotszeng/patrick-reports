@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基金排名 Dashboard</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --accent: #e94560;
+    --green: #4ade80;
+    --red: #f87171;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  h1 { font-size: 1.5rem; color: var(--accent); }
+  .updated { color: var(--muted); font-size: 0.85rem; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-size: 0.9rem; transition: all 0.2s; }
+  .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+  .card-title { font-size: 0.9rem; color: var(--muted); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .card-title span { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 0.75rem; }
+  td { padding: 6px 8px; border-bottom: 1px solid #1e293b; }
+  tr:last-child td { border-bottom: none; }
+  .rank { color: var(--muted); width: 24px; text-align: center; }
+  .fund-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fund-code { color: var(--muted); font-size: 0.75rem; }
+  .ret { text-align: right; font-weight: 600; }
+  .ret.pos { color: var(--green); }
+  .ret.neg { color: var(--red); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin: 2px; }
+  .tag-stock { background: #1e3a5f; color: #60a5fa; }
+  .tag-mixed { background: #1e3a2f; color: #4ade80; }
+  .tag-index { background: #3a1e5f; color: #c084fc; }
+  .tag-bond { background: #3a3a1e; color: #facc15; }
+  .tag-all { background: #2d1e3a; color: #f472b6; }
+  .summary-bar { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; min-width: 140px; }
+  .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .section-title { font-size: 1.1rem; margin: 24px 0 12px; color: var(--text); border-left: 3px solid var(--accent); padding-left: 10px; }
+  .platforms { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .platform { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+  .platform:hover { border-color: var(--accent); color: var(--text); }
+  canvas { max-height: 200px; }
+  .loading { text-align: center; color: var(--muted); padding: 40px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📈 基金排名 Dashboard</h1>
+  <span class="updated" id="updated">加载中...</span>
+</header>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="stat"><div class="stat-value" id="stat-types">-</div><div class="stat-label">基金类型</div></div>
+  <div class="stat"><div class="stat-value" id="stat-categories">-</div><div class="stat-label">排名维度</div></div>
+  <div class="stat"><div class="stat-value" id="stat-topfund">-</div><div class="stat-label">TOP1基金</div></div>
+  <div class="stat"><div class="stat-value" id="stat-bestret">-</div><div class="stat-label">最高收益</div></div>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="grid"></div>
+
+<div class="section-title">外部平台</div>
+<div class="platforms">
+  <a class="platform" href="https://www.joinquant.com/" target="_blank">聚宽 JoinQuant</a>
+  <a class="platform" href="https://www.ricequant.com/" target="_blank">米筐 RiceQuant</a>
+  <a class="platform" href="https://bigquant.com/" target="_blank">BigQuant</a>
+  <a class="platform" href="https://www.datayes.com/" target="_blank">通联数据</a>
+  <a class="platform" href="https://www.simuwang.com/" target="_blank">私募排排网</a>
+  <a class="platform" href="https://www.howbuy.com/" target="_blank">好买基金</a>
+  <a class="platform" href="https://tushare.pro/" target="_blank">TuShare</a>
+  <a class="platform" href="https://akshare.xyz/" target="_blank">AKShare</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Fund type → CSS class mapping
+const typeClass = { '股票型': 'tag-stock', '混合型': 'tag-mixed', '指数型': 'tag-index', '债券型': 'tag-bond', '全部': 'tag-all' };
+const typeColors = { '股票型': '#60a5fa', '混合型': '#4ade80', '指数型': '#c084fc', '债券型': '#facc15', '全部': '#f472b6' };
+
+// Load fund data from Obsidian vault JSON
+async function loadData() {
+  const base = 'http://localhost:9199/dashboard/vault/llm-wiki/funds';
+  const categories = ['股票型', '混合型', '指数型', '债券型', '全部'];
+  const indicators = ['近1年', '今年来', '近3年'];
+  const IND_MAP = { '近1年': '近1年收益率', '今年来': '今年来收益率', '近3年': '近3年收益率' };
+
+  const allData = {};
+  let bestFund = { name: '', ret: 0 };
+
+  for (const ft of categories) {
+    allData[ft] = {};
+    for (const ind of indicators) {
+      try {
+        const res = await fetch(`${base}/rankings/${encodeURIComponent(ft+'基金'+IND_MAP[ind]+'TOP10')}.json`);
+        if (res.ok) {
+          const json = await res.json();
+          allData[ft][ind] = json;
+          for (const f of json.rank || []) {
+            const r = parseFloat(f[ind] || 0);
+            if (r > bestFund.ret) {
+              bestFund = { name: f['基金简称'], ret: r, type: ft };
+            }
+          }
+        }
+      } catch(e) {}
+    }
+  }
+
+  return { allData, bestFund, categories, indicators, IND_MAP };
+}
+
+function fmt(v, suf='%') {
+  if (!v && v !== 0) return '-';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '-';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + suf;
+}
+
+function fmtRet(v) {
+  if (!v && v !== 0) return { s: '-', c: '' };
+  const n = parseFloat(v);
+  if (isNaN(n)) return { s: '-', c: '' };
+  return { s: (n >= 0 ? '+' : '') + n.toFixed(2) + '%', c: n >= 0 ? 'pos' : 'neg' };
+}
+
+function render(data) {
+  const { allData, bestFund, categories, indicators, IND_MAP } = data;
+
+  // Summary stats
+  document.getElementById('updated').textContent = '数据更新: ' + (json.date || TODAY);
+  document.getElementById('stat-types').textContent = categories.length;
+  document.getElementById('stat-categories').textContent = categories.length * indicators.length;
+  document.getElementById('stat-topfund').textContent = bestFund.name.slice(0, 6);
+  document.getElementById('stat-bestret').textContent = fmt(bestFund.ret);
+
+  // Build tabs
+  const tabsEl = document.getElementById('tabs');
+  tabsEl.innerHTML = '';
+  const allCats = ['全部汇总', ...categories];
+  allCats.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (i === 0 ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderGrid(cat === '全部汇总' ? categories : [cat]);
+    };
+    tabsEl.appendChild(btn);
+  });
+
+  renderGrid(categories);
+}
+
+function renderGrid(cats) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const IND_MAP = { '近1年': '近1年收益率', '今年来': '今年来收益率', '近3年': '近3年收益率' };
+  const indicators = ['近1年', '今年来', '近3年'];
+
+  for (const ft of cats) {
+    for (const ind of indicators) {
+      const json = window._fundData?.allData?.[ft]?.[ind];
+      if (!json || !json.rank) continue;
+      const card = document.createElement('div');
+      card.className = 'card';
+      const tagCls = typeClass[ft] || 'tag-all';
+      card.innerHTML = `
+        <div class="card-title">
+          <span class="tag ${tagCls}">${ft}</span>
+          <strong>${IND_MAP[ind]}</strong>
+          <span style="color:var(--muted);font-size:0.75rem">${json.date || ''}</span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>基金</th><th>近1年</th><th>今年来</th><th>成立来</th></tr></thead>
+          <tbody>
+            ${json.rank.slice(0, 8).map((f, i) => {
+              const r1 = fmtRet(f['近1年']);
+              const ryt = fmtRet(f['今年来']);
+              const rc = fmtRet(f['成立来']);
+              return `<tr>
+                <td class="rank">${i+1}</td>
+                <td><div class="fund-name" title="${f['基金简称']}">${f['基金简称']}</div><div class="fund-code">${f['基金代码']}</div></td>
+                <td class="ret ${r1.c}">${r1.s}</td>
+                <td class="ret ${ryt.c}">${ryt.s}</td>
+                <td class="ret ${rc.c}">${rc.s}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+      grid.appendChild(card);
+    }
+  }
+}
+
+// Init
+loadData().then(d => {
+  window._fundData = d;
+  render(d);
+}).catch(e => {
+  document.getElementById('grid').innerHTML = `<div class="loading">数据加载失败: ${e.message}<br><br>请确保 Hermes Dashboard 在 localhost:9199 运行</div>`;
+});
+</script>
+</body>
+</html>
