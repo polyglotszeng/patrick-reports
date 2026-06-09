@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code Dynamic Workflows — Interactive Guide</title>
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1f2937;
+  --border: #374151;
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --accent: #60a5fa;
+  --red: #f87171;
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --cyan: #22d3ee;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); border-bottom: 1px solid var(--border); padding: 20px 24px; position: sticky; top: 0; z-index: 100; }
+header h1 { font-size: 1.3rem; font-weight: 700; background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+header p { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+.badge.blue { background: rgba(96,165,250,0.2); color: #93c5fd; }
+.badge.purple { background: rgba(167,139,250,0.2); color: #c4b5fd; }
+.badge.green { background: rgba(74,222,128,0.2); color: #86efac; }
+.badge.amber { background: rgba(251,191,36,0.2); color: #fcd34d; }
+
+.tabs { display: flex; gap: 2px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 8px 16px; background: transparent; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+.tab:hover { background: var(--surface2); color: var(--text); }
+.tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+.panel { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+.panel.active { display: block; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h2 { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h3 { font-size: 0.88rem; font-weight: 600; margin: 12px 0 6px; color: var(--text); }
+.card p, .card li { font-size: 0.83rem; line-height: 1.65; color: var(--muted); }
+.card ul { padding-left: 20px; }
+.card ul li { margin-bottom: 5px; }
+
+.highlight-box { border-left: 3px solid var(--accent); padding: 12px 16px; background: rgba(96,165,250,0.06); border-radius: 0 8px 8px 0; margin: 10px 0; }
+.highlight-box.red { border-color: var(--red); background: rgba(248,113,113,0.06); }
+.highlight-box.green { border-color: var(--green); background: rgba(74,222,128,0.06); }
+.highlight-box.amber { border-color: var(--amber); background: rgba(251,191,36,0.06); }
+.highlight-box p { font-size: 0.82rem; line-height: 1.55; }
+
+/* COST TABLE */
+.cost-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 10px; }
+.cost-table th { text-align: left; padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600; }
+.cost-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+.cost-table tr:last-child td { border-bottom: none; }
+.cost-bar { height: 6px; border-radius: 3px; margin-top: 4px; }
+.cost-bar.$ { background: var(--green); }
+.cost-bar.$$ { background: var(--amber); }
+.cost-bar.$$$ { background: var(--pink); }
+.cost-bar.$$$$ { background: var(--red); }
+.cost-bar.$$$$$ { background: #ef4444; }
+
+/* LADDER */
+.ladder { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.ladder-item { display: flex; align-items: center; gap: 12px; background: var(--surface2); border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border); }
+.ladder-item .num { min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; }
+.ladder-item .info { flex: 1; }
+.ladder-item .name { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.ladder-item .desc { font-size: 0.75rem; color: var(--muted); }
+.ladder-item .cost { font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.cost-$ { background: rgba(74,222,128,0.2); color: #86efac; }
+.cost-$$ { background: rgba(251,191,36,0.2); color: #fcd34d; }
+.cost-$$$ { background: rgba(244,114,182,0.2); color: #f9a8d4; }
+.cost-$$$$ { background: rgba(248,113,113,0.2); color: #fca5a5; }
+.cost-$$$$$ { background: rgba(239,68,68,0.3); color: #fca5a5; }
+
+/* FLOW DIAGRAM */
+.flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 16px 0; }
+.flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; font-size: 0.78rem; }
+.flow-box.blue { border-color: var(--accent); background: rgba(96,165,250,0.1); color: #93c5fd; }
+.flow-box.green { border-color: var(--green); background: rgba(74,222,128,0.1); color: #86efac; }
+.flow-box.purple { border-color: var(--purple); background: rgba(167,139,250,0.1); color: #c4b5fd; }
+.flow-box.amber { border-color: var(--amber); background: rgba(251,191,36,0.1); color: #fcd34d; }
+.flow-box.red { border-color: var(--red); background: rgba(248,113,113,0.1); color: #fca5a5; }
+.flow-arrow { color: var(--muted); font-size: 1.1rem; }
+
+/* DECISION TREE */
+.decision-tree { margin-top: 12px; }
+.decision-node { margin-left: 16px; padding: 6px 0; font-size: 0.82rem; color: var(--muted); }
+.decision-node::before { content: '→ '; color: var(--accent); }
+.decision-end { display: inline-block; padding: 2px 10px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; margin-left: 8px; }
+
+/* CASE STUDY */
+.case-study { background: var(--surface2); border-radius: 10px; padding: 16px; border: 1px solid var(--border); margin-top: 10px; }
+.case-study-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.case-study-stat { display: flex; gap: 16px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat .val { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.stat .label { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+/* COMPARISON GRID */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cmp { border-radius: 10px; padding: 16px; border: 2px solid; }
+.cmp.green { background: rgba(74,222,128,0.07); border-color: var(--green); }
+.cmp.red { background: rgba(248,113,113,0.07); border-color: var(--red); }
+.cmp.green h3 { color: var(--green); font-size: 0.9rem; margin-bottom: 8px; }
+.cmp.red h3 { color: var(--red); font-size: 0.9rem; margin-bottom: 8px; }
+.cmp ul { padding-left: 16px; }
+.cmp ul li { font-size: 0.78rem; margin-bottom: 5px; color: var(--muted); line-height: 1.5; }
+
+/* TIP/CAUTION BOX */
+.tip { border-radius: 8px; padding: 12px 16px; margin-top: 10px; font-size: 0.82rem; line-height: 1.5; }
+.tip.amber { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); color: #fcd34d; }
+.tip.green { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #86efac; }
+.tip.red { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+.tip::before { content: attr(data-label) ' '; font-weight: 700; }
+
+/* GLOSSARY */
+.glossary-item { background: var(--surface2); border-radius: 10px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); }
+.glossary-item h3 { font-size: 0.88rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.glossary-item p { font-size: 0.78rem; line-height: 1.55; color: var(--muted); }
+
+/* SEARCH */
+.search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; margin-bottom: 16px; max-width: 500px; }
+.search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: 0.85rem; width: 100%; }
+.search-bar input::placeholder { color: var(--muted); }
+
+footer { text-align: center; padding: 20px; color: var(--muted); font-size: 0.72rem; border-top: 1px solid var(--border); margin-top: 40px; }
+
+@media (max-width: 700px) {
+  .compare-grid { grid-template-columns: 1fr; }
+  .tabs { padding: 10px 16px; }
+  .panel { padding: 16px; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.panel.active .card { animation: fadeIn 0.25s ease-out; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Claude Code Dynamic Workflows</h1>
+  <p>By Nate Herk · AI Automation · Full comparison: Skills vs Sub-agents vs Agent Teams vs /goal</p>
+  <div class="badges">
+    <span class="badge blue">Claude Code</span>
+    <span class="badge purple">Dynamic Workflows</span>
+    <span class="badge green">Agentic AI</span>
+    <span class="badge amber">Cost Analysis</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('overview')">Overview</button>
+  <button class="tab" onclick="show('ladder')">Feature Ladder</button>
+  <button class="tab" onclick="show('compare')">Compare</button>
+  <button class="tab" onclick="show('cost')">Cost Analysis</button>
+  <button class="tab" onclick="show('when')">When to Use</button>
+  <button class="tab" onclick="show('case')">Case Study</button>
+  <button class="tab" onclick="show('decision')">Decision Tree</button>
+  <button class="tab" onclick="show('glossary')">Glossary</button>
+</div>
+
+<!-- ===================== PANEL: OVERVIEW ===================== -->
+<div id="panel-overview" class="panel active">
+  <div class="card">
+    <h2>💡 What Is a Dynamic Workflow?</h2>
+    <p>Claude Opus 4.8 feature. Claude writes a <strong>JavaScript script</strong> that orchestrates hundreds of agents working in parallel. Results are merged and sent back to the main Claude session.</p>
+    <div class="flow" style="margin-top:14px;">
+      <div class="flow-box blue">🎯 You describe the goal</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box purple">📝 Claude writes JS script</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">🤖 N agents run in parallel</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">🔄 Results merged & returned</div>
+    </div>
+    <div class="tip amber" data-label="⚡ Key:">Unlike /goal (loop until done=true), workflows are <strong>width-first</strong> — many agents run horizontally, then stop. No endless loop checking.</div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 The Core Insight</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp green">
+        <h3>Skill = the HOW</h3>
+        <p style="font-size:0.78rem; color:var(--muted);">A reusable recipe. "How do I do this task?"</p>
+      </div>
+      <div class="cmp red">
+        <h3>Workflow = the HOW MANY / WIDTH</h3>
+        <p style="font-size:0.78rem; color:var(--muted);">A parallel execution engine. "How many agents do I spin up?"</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 /goal vs Workflow</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp green">
+        <h3>✅ /goal — Depth-first</h3>
+        <ul>
+          <li>Loop until <code>done == true</code></li>
+          <li>Can run 24h+</li>
+          <li>Good for: iterative refinement</li>
+          <li>Single agent or sub-agents</li>
+          <li>Checks end criteria each pass</li>
+        </ul>
+      </div>
+      <div class="cmp red">
+        <h3>⚡ Workflow — Width-first</h3>
+        <ul>
+          <li>N agents execute in parallel</li>
+          <li>Stops when all done</li>
+          <li>Good for: parallel batch jobs</li>
+          <li>Results synthesized at end</li>
+          <li>No criteria loop — "do your task, then stop"</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip green" data-label="💡 Tip:">Combine both: run a <strong>workflow inside a /goal</strong> for complex nested parallelism. But be careful — that's a money burner!</div>
+  </div>
+
+  <div class="card">
+    <h2>🧩 What Gets Generated</h2>
+    <p>A JavaScript file saved to <code>.claude/workflows/</code>. You can:</p>
+    <ul style="margin-top:8px;">
+      <li>View the raw script via <code>/workflows</code> command</li>
+      <li>Re-run it later without rebuilding from scratch</li>
+      <li>Browse all open workflows and stop them if needed</li>
+    </ul>
+    <div class="tip amber" data-label="⚠️ Watch out:">By default workflows may save to a <strong>global</strong> location, not your project. Specify the save path explicitly in your prompt.</div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: LADDER ===================== -->
+<div id="panel-ladder" class="panel">
+  <div class="card">
+    <h2>📐 Feature Ladder — Complexity vs Power</h2>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:12px;">As you move up: more complexity, more functionality, but also more cost and more risk.</p>
+    <div class="ladder">
+      <div class="ladder-item">
+        <div class="num" style="background:#4ade80;">$</div>
+        <div class="info">
+          <div class="name">Direct Question — Just ask</div>
+          <div class="desc">Quick questions, general knowledge work</div>
+        </div>
+        <div class="cost cost-$">$</div>
+      </div>
+      <div class="ladder-item">
+        <div class="num" style="background:#fbbf24;">$$</div>
+        <div class="info">
+          <div class="name">Skill — Reusable Recipe</div>
+          <div class="desc">Repeatable tasks, define once, run many times</div>
+        </div>
+        <div class="cost cost-$$">$$</div>
+      </div>
+      <div class="ladder-item">
+        <div class="num" style="background:#f472b6;">$$$</div>
+        <div class="info">
+          <div class="name">Sub-agent — Parallel Isolated Worker</div>
+          <div class="desc">Side tasks, isolated context, only reports back to main session</div>
+        </div>
+        <div class="cost cost-$$$">$$$</div>
+      </div>
+      <div class="ladder-item">
+        <div class="num" style="background:#f87171;">$$$$</div>
+        <div class="info">
+          <div class="name">Agent Team — Small Crew that Talks</div>
+          <div class="desc">War rooms, councils, debates. Members share task list & communicate</div>
+        </div>
+        <div class="cost cost-$$$$">$$$$</div>
+      </div>
+      <div class="ladder-item">
+        <div class="num" style="background:#f87171;">$$$$</div>
+        <div class="info">
+          <div class="name">/goal — Loop Until Done</div>
+          <div class="desc">Repeated passes until end criteria met. Can run 24h+</div>
+        </div>
+        <div class="cost cost-$$$$">$$$$</div>
+      </div>
+      <div class="ladder-item" style="border-color:var(--accent); background:rgba(96,165,250,0.05);">
+        <div class="num" style="background:#ef4444;">$$$$$</div>
+        <div class="info">
+          <div class="name">Dynamic Workflow — Giant Parallel Job</div>
+          <div class="desc">Hundreds of agents, width-first, results synthesized at end</div>
+        </div>
+        <div class="cost cost-$$$$$">$$$$$</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔄 Sub-agent vs Workflow</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp green">
+        <h3>Sub-agent</h3>
+        <ul>
+          <li>Single agent in parallel execution</li>
+          <li>Only talks back to main session</li>
+          <li>Cannot talk to other sub-agents</li>
+          <li>Isolated context window</li>
+          <li>Best for: one-off side tasks</li>
+        </ul>
+      </div>
+      <div class="cmp red">
+        <h3>Workflow</h3>
+        <ul>
+          <li>Many agents in parallel (can be 100+)</li>
+          <li>All results merged at end</li>
+          <li>More like a "big sub-agent"</li>
+          <li>Claude holds overall plan</li>
+          <li>Best for: batch parallel analysis</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 Agent Team vs Workflow</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp green">
+        <h3>Agent Team</h3>
+        <ul>
+          <li>Members can talk to each other</li>
+          <li>Share task list</li>
+          <li>War rooms / councils / debates</li>
+          <li>Individual roles & tools</li>
+          <li>High cost due to inter-agent communication</li>
+        </ul>
+      </div>
+      <div class="cmp red">
+        <h3>Workflow</h3>
+        <ul>
+          <li>Agents work alone</li>
+          <li>No inter-agent communication</li>
+          <li>Results merged at end</li>
+          <li>No shared task list</li>
+          <li>More predictable cost</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: COMPARE ===================== -->
+<div id="panel-compare" class="panel">
+  <div class="card">
+    <h2>🆚 Feature Comparison Table</h2>
+    <table class="cost-table" style="margin-top:10px;">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Agents</th>
+          <th>Inter-Agent Talk</th>
+          <th>Context</th>
+          <th>Best For</th>
+          <th>Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Direct Ask</td>
+          <td>1</td>
+          <td>—</td>
+          <td>Full session</td>
+          <td>Quick Q&A</td>
+          <td><div class="cost-bar $"></div></td>
+        </tr>
+        <tr>
+          <td>Skill</td>
+          <td>1</td>
+          <td>—</td>
+          <td>Session + skill</td>
+          <td>Repeatable recipes</td>
+          <td><div class="cost-bar $$"></div></td>
+        </tr>
+        <tr>
+          <td>Sub-agent</td>
+          <td>1+</td>
+          <td>❌ No</td>
+          <td>Isolated</td>
+          <td>Side tasks</td>
+          <td><div class="cost-bar $$$"></div></td>
+        </tr>
+        <tr>
+          <td>Agent Team</td>
+          <td>2-5</td>
+          <td>✅ Yes</td>
+          <td>Own + shared</td>
+          <td>Debates, councils</td>
+          <td><div class="cost-bar $$$$"></div></td>
+        </tr>
+        <tr>
+          <td>/goal</td>
+          <td>1 (+ subs)</td>
+          <td>Via subs</td>
+          <td>Session</td>
+          <td>Iterative until done</td>
+          <td><div class="cost-bar $$$$"></div></td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent); font-weight:700;">Dynamic Workflow</td>
+          <td style="color:var(--accent);">1 to 100+</td>
+          <td>❌ No</td>
+          <td>Own each</td>
+          <td>Batch parallel jobs</td>
+          <td><div class="cost-bar $$$$$"></div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🔬 Deep Comparison: /goal vs Workflow</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp green">
+        <h3>/goal — Depth Loop</h3>
+        <ul>
+          <li><strong>Execution model:</strong> Sequential passes</li>
+          <li><strong>End condition:</strong> Explicit <code>done == true</code></li>
+          <li><strong>Duration:</strong> Can run 24+ hours</li>
+          <li><strong>Agent count:</strong> 1 primary (can spin up sub-agents)</li>
+          <li><strong>Communication:</strong> Main agent coordinates sub-agents</li>
+          <li><strong>Cost profile:</strong> Predictable but can balloon with long loops</li>
+        </ul>
+      </div>
+      <div class="cmp red">
+        <h3>Workflow — Width Parallel</h3>
+        <ul>
+          <li><strong>Execution model:</strong> Parallel batch</li>
+          <li><strong>End condition:</strong> All agents report done</li>
+          <li><strong>Duration:</strong> Bounded by longest single task</li>
+          <li><strong>Agent count:</strong> Up to 100+ simultaneously</li>
+          <li><strong>Communication:</strong> None between agents</li>
+          <li><strong>Cost profile:</strong> High input tokens (each agent reads own context)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔍 Workflow Internal Architecture</h2>
+    <div class="flow" style="margin-top:10px;">
+      <div class="flow-box purple">👤 User prompt</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">📝 JS script created</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">🤖 Agent 1</div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-box green">🤖 Agent 2</div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-box green">🤖 ...N</div>
+    </div>
+    <div class="flow" style="margin-top:4px;">
+      <div class="flow-box green">🤖 Agent 1</div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-box green">🤖 Agent 2</div>
+      <div class="flow-arrow">|</div>
+      <div class="flow-box green">🤖 ...N</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box purple">🔄 Results merged</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">👤 Back to main session</div>
+    </div>
+    <div class="tip amber" data-label="⚠️ Note:">Each agent is a full Claude call with its own context window. This is why input tokens add up fast — even with Haiku models.</div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: COST ===================== -->
+<div id="panel-cost" class="panel">
+  <div class="card">
+    <h2>💰 Real Cost: Skill Audit Case</h2>
+    <div class="case-study">
+      <div class="case-study-header">
+        <span class="badge blue">Actual Data</span>
+        <span class="badge amber">Nate Herk's Skill Audit</span>
+      </div>
+      <div class="case-study-stat">
+        <div class="stat">
+          <div class="val">41</div>
+          <div class="label">Haiku agents</div>
+        </div>
+        <div class="stat">
+          <div class="val">1</div>
+          <div class="label">Opus synthesis</div>
+        </div>
+        <div class="stat">
+          <div class="val">~5M</div>
+          <div class="label">input tokens</div>
+        </div>
+        <div class="stat">
+          <div class="val">30+</div>
+          <div class="label">minutes</div>
+        </div>
+        <div class="stat">
+          <div class="val" style="color:#fbbf24;">~$100</div>
+          <div class="label">half of $200/mo</div>
+        </div>
+      </div>
+    </div>
+    <div class="tip red" data-label="⚠️ Warning:">One workflow prompt burned through <strong>half of a $200/month subscription</strong>. Budget carefully!</div>
+  </div>
+
+  <div class="card">
+    <h2>💸 Cost Drivers</h2>
+    <table class="cost-table" style="margin-top:10px;">
+      <thead>
+        <tr><th>Driver</th><th>Why It Costs</th><th>Mitigation</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;">Number of agents</td>
+          <td>Each agent = 1 full Claude API call</td>
+          <td>Only use workflow when truly parallelizable</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Context size per agent</td>
+          <td>Each agent reads its own context window</td>
+          <td>Minimize shared context; keep agent prompts lean</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Model tier</td>
+          <td>Opus >> Sonnet >> Haiku in cost</td>
+          <td>Use Haiku for workers, Opus only for synthesis</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Duration</td>
+          <td>Agents run concurrently but time still adds up</td>
+          <td>Bound scope tightly, name deliverables explicitly</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Input >> Output</td>
+          <td>Most tokens are input (context reads)</td>
+          <td>Output-heavy is more expensive per token</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>✅ Cost-Saving Strategies</h2>
+    <ul style="margin-top:8px;">
+      <li><strong>Haiku for all workers</strong> — Only the synthesis agent needs Opus</li>
+      <li><strong>Bound the scope</strong> — Vague requests cause long loops</li>
+      <li><strong>Name the deliverable</strong> — "Give me 3 specific fixes" not "improve my skills"</li>
+      <li><strong>Check before running</strong> — Claude asks permission; review the plan first</li>
+      <li><strong>View the raw script</strong> — See exactly what will run before approving</li>
+      <li><strong>Stop runaway workflows</strong> — Use <code>/workflows</code> to see and stop running ones</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>📊 Model Cost Tiers (relative)</h2>
+    <table class="cost-table" style="margin-top:10px;">
+      <thead>
+        <tr><th>Model</th><th>Relative Cost</th><th>Use Case in Workflow</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Haiku</td>
+          <td><span class="badge green" style="font-size:0.9rem;">$</span></td>
+          <td>Worker agents (scoring, analysis)</td>
+        </tr>
+        <tr>
+          <td>Sonnet</td>
+          <td><span class="badge amber" style="font-size:0.9rem;">$$</span></td>
+          <td>Intermediate synthesis</td>
+        </tr>
+        <tr>
+          <td>Opus</td>
+          <td><span class="badge pink" style="font-size:0.9rem;">$$$</span></td>
+          <td>Final synthesis, high-reasoning tasks</td>
+        </tr>
+        <tr>
+          <td>Ultra Code</td>
+          <td><span class="badge red" style="font-size:0.9rem;">MAX</span></td>
+          <td>Every prompt = workflow (very expensive!)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== PANEL: WHEN ===================== -->
+<div id="panel-when" class="panel">
+  <div class="card">
+    <h2>✅ Good Fit for Workflows</h2>
+    <ul style="margin-top:8px;">
+      <li>✅ Reviewing <strong>every file in a codebase</strong></li>
+      <li>✅ <strong>400+ file migration</strong> with independent subtasks</li>
+      <li>✅ High-risk work needing max compute/reasoning per piece</li>
+      <li>✅ <strong>Skill audit</strong> — 41 skills scored in parallel</li>
+      <li>✅ <strong>Feature ranking</strong> across multiple dimensions simultaneously</li>
+      <li>✅ Batch parallel research (especially with <code>/deep</code> research)</li>
+    </ul>
+    <div class="tip green" data-label="💡 Rule:">If the task can be split into <strong>N independent pieces that can run simultaneously</strong>, workflow is a fit.</div>
+  </div>
+
+  <div class="card">
+    <h2>❌ Bad Fit for Workflows</h2>
+    <ul style="margin-top:8px;">
+      <li>❌ Single edits or quick changes</li>
+      <li>❌ Quick questions or general Q&A</li>
+      <li>❌ Tasks that need sequential reasoning (use /goal instead)</li>
+      <li>❌ Work that doesn't parallelize well</li>
+      <li>❌ Everyday coding tasks (overkill)</li>
+    </ul>
+    <div class="tip red" data-label="⚠️ Overkill:">If a simple skill or sub-agent would do the job, adding a workflow just burns money.</div>
+  </div>
+
+  <div class="card">
+    <h2>🔧 /deep research — Built-in Workflow</h2>
+    <p style="margin-bottom:10px;">Slash deep research is a <strong>built-in workflow</strong> that:</p>
+    <ul>
+      <li>Spins up multiple agents for parallel research</li>
+      <li>Agents <strong>vote on each claim</strong></li>
+      <li>Outputs a <strong>cited deep research report</strong></li>
+    </ul>
+    <div class="tip green" data-label="💡 Try it:">If you're doing research and want to build your own deep research skills, test <code>/deep</code> first to see how the built-in workflow works.</div>
+  </div>
+
+  <div class="card">
+    <h2>🚀 Ultra Code Mode</h2>
+    <ul style="margin-top:8px;">
+      <li>Uses <strong>X-high effort reasoning</strong></li>
+      <li><strong>Every single prompt runs as a workflow</strong> by default</li>
+      <li>Bypasses many permission checks</li>
+      <li>Most expensive mode — essentially X-high + workflow always on</li>
+    </ul>
+    <div class="tip red" data-label="⚠️ Ultra = Max $:">Unless you need this level of orchestration constantly, use lower effort levels to control costs.</div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: CASE STUDY ===================== -->
+<div id="panel-case" class="panel">
+  <div class="card">
+    <h2>📋 The Skill Audit — Step by Step</h2>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:12px;">Nate's actual workflow invocation prompt:</p>
+    <div class="highlight-box" style="margin-top:8px;">
+      <p style="font-size:0.8rem; color:var(--text); font-style:italic; line-height:1.6;">
+        "Run a workflow that audits all of my Claude Code skills in two places: my user-level global skills and this project skills. Grade each on: Clarity, Front matter pass-fail, Trigger quality, and give me the single highest value fix. One final agent ranks every skill worst to best..."
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ What Happened Internally</h2>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+      <div style="display:flex; gap:10px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:10px;">
+        <div style="color:var(--accent); font-weight:700; min-width:20px;">1</div>
+        <div><strong style="font-size:0.82rem;">Claude asks permission</strong><br><span style="font-size:0.75rem; color:var(--muted);">"Can you let me run a dynamic workflow to do this?"</span></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:10px;">
+        <div style="color:var(--accent); font-weight:700; min-width:20px;">2</div>
+        <div><strong style="font-size:0.82rem;">User approves</strong><br><span style="font-size:0.75rem; color:var(--muted);">Click "Yes, run it" — or view raw JS script first</span></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:10px;">
+        <div style="color:var(--accent); font-weight:700; min-width:20px;">3</div>
+        <div><strong style="font-size:0.82rem;">41 Haiku agents spin up in parallel</strong><br><span style="font-size:0.75rem; color:var(--muted);">Each scores one skill. All running simultaneously via JS script.</span></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:10px;">
+        <div style="color:var(--accent); font-weight:700; min-width:20px;">4</div>
+        <div><strong style="font-size:0.82rem;">Opus synthesis agent receives all results</strong><br><span style="font-size:0.75rem; color:var(--muted);">Ranks skills worst to best, generates HTML report with fixes</span></div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:10px;">
+        <div style="color:var(--green); font-weight:700; min-width:20px;">5</div>
+        <div><strong style="font-size:0.82rem;">Output: HTML file saved to .claude/workflows/</strong><br><span style="font-size:0.75rem; color:var(--muted);">Reusable — run again anytime by pointing at the workflow</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👀 What You Can Monitor</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin-top:10px;">
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.3rem;">🤖</div>
+        <div style="font-size:0.82rem; font-weight:600; margin:4px 0;">Agent count</div>
+        <div style="font-size:0.72rem; color:var(--muted);">All 41 visible</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.3rem;">🧠</div>
+        <div style="font-size:0.82rem; font-weight:600; margin:4px 0;">Model used</div>
+        <div style="font-size:0.72rem; color:var(--muted);">Haiku per worker</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.3rem;">📊</div>
+        <div style="font-size:0.82rem; font-weight:600; margin:4px 0;">Tokens used</div>
+        <div style="font-size:0.72rem; color:var(--muted);">Per agent shown</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.3rem;">⏱️</div>
+        <div style="font-size:0.82rem; font-weight:600; margin:4px 0;">Duration</div>
+        <div style="font-size:0.72rem; color:var(--muted);">Running time</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.3rem;">🛠️</div>
+        <div style="font-size:0.82rem; font-weight:600; margin:4px 0;">Tools used</div>
+        <div style="font-size:0.72rem; color:var(--muted);">Per agent</div>
+      </div>
+    </div>
+    <div class="tip amber" data-label="⚠️ Storage:">Workflows may save to global <code>~/.claude/workflows/</code> by default. Specify your project path explicitly if you want project-level storage.</div>
+  </div>
+
+  <div class="card">
+    <h2>📁 Output Format</h2>
+    <p style="margin-bottom:10px;">Nate's skill audit output was an <strong>HTML file</strong> containing:</p>
+    <ul style="margin-top:8px;">
+      <li>All skills ranked <strong>worst to best</strong></li>
+      <li>Specific fix recommendations per skill</li>
+      <li>Patterns identified across skills</li>
+      <li>Common pitfalls to avoid in future skill authoring</li>
+    </ul>
+    <div class="tip green" data-label="💡 Reusable:">To re-run: <code>/workflows</code> → select the saved workflow → "run again". No need to rebuild the prompt.</div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: DECISION ===================== -->
+<div id="panel-decision" class="panel">
+  <div class="card">
+    <h2>🌳 Which Tool Should I Use?</h2>
+    <div class="decision-tree" style="margin-top:12px;">
+      <div class="decision-node">
+        Do you need <strong>immediate answers</strong>?
+        <span class="decision-end" style="background:rgba(74,222,128,0.2); color:#86efac;">→ Just ask Claude</span>
+      </div>
+      <div class="decision-node">
+        Is this a <strong>repeatable task</strong> you run often?
+        <span class="decision-end" style="background:rgba(251,191,36,0.2); color:#fcd34d;">→ Use a Skill</span>
+      </div>
+      <div class="decision-node">
+        Is it a <strong>messy one-off</strong> side task?
+        <span class="decision-end" style="background:rgba(244,114,182,0.2); color:#f9a8d4;">→ Use a Sub-agent</span>
+      </div>
+      <div class="decision-node">
+        Do you need <strong>multiple agents to debate or collaborate</strong>?
+        <span class="decision-end" style="background:rgba(248,113,113,0.2); color:#fca5a5;">→ Use Agent Team</span>
+      </div>
+      <div class="decision-node">
+        Should it <strong>keep looping until a specific criteria is met</strong>?
+        <span class="decision-end" style="background:rgba(248,113,113,0.2); color:#fca5a5;">→ Use /goal</span>
+      </div>
+      <div class="decision-node">
+        Can the task be <strong>split into N independent parallel pieces</strong>?
+        <span class="decision-end" style="background:rgba(96,165,250,0.2); color:#93c5fd;">→ Use Dynamic Workflow</span>
+      </div>
+    </div>
+    <div class="tip green" data-label="💡 One-sentence summary:">
+      Skills = HOW · Sub-agents = CLEAN SIDETASKS · Agent Teams = CREWS · /goal = LOOPS · Workflows = PARALLEL JOBS
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 The Parallelism Test</h2>
+    <p style="margin-bottom:10px; font-size:0.85rem;">Ask yourself:</p>
+    <div class="highlight-box green">
+      <p style="font-size:0.88rem; font-weight:600; color:var(--green);">
+        "Does this break into many pieces that can run <strong>individually of each other</strong> at the same time?"
+      </p>
+    </div>
+    <p style="margin-top:10px; font-size:0.82rem; color:var(--muted);">
+      If YES → Dynamic Workflow is appropriate<br>
+      If NO → Consider /goal, skill, or sub-agent
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>⚡ Invocation Tips</h2>
+    <ul style="margin-top:8px;">
+      <li><strong>Be explicit</strong> — "Set me up a dynamic workflow to do this" (not just "workflow" in natural speech)</li>
+      <li>The word "workflow" in natural speech just <strong>highlights in rainbow</strong> — doesn't auto-trigger</li>
+      <li>Claude will ask permission before running — say "Yes, run it"</li>
+      <li>You can always <strong>view the raw JS script</strong> before approving</li>
+      <li>Use <code>/workflows</code> to browse history and stop running ones</li>
+    </ul>
+    <div class="tip amber" data-label="⚠️ Permissions:">Ultra Code mode will bypass many permission checks automatically. Be extra careful about cost.</div>
+  </div>
+
+  <div class="card">
+    <h2>🔗 Combination Play</h2>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:10px;">Advanced users can nest these:</p>
+    <div class="flow" style="margin-top:8px;">
+      <div class="flow-box purple">/goal (loop)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box red">Workflow (parallel)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Haiku agents</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box blue">Opus synthesis</div>
+    </div>
+    <div class="tip red" data-label="⚠️ Caution:">This level of autonomy is <strong>very powerful but very expensive</strong>. Use only when the value justifies the cost.</div>
+  </div>
+</div>
+
+<!-- ===================== PANEL: GLOSSARY ===================== -->
+<div id="panel-glossary" class="panel">
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" placeholder="Search terms..." oninput="filterGlossary(this.value)">
+  </div>
+  <div id="glossary-list">
+    <div class="glossary-item">
+      <h3>Dynamic Workflow</h3>
+      <p>Claude Code feature (Opus 4.8+). Claude writes a JavaScript script that orchestrates many agents in parallel, merging results at the end. Width-first, not loop-based.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Skill</h3>
+      <p>A reusable recipe for a task. Can be run by main session, sub-agents, agent teams, or workflows. Defines the "how."</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Sub-agent</h3>
+      <p>A parallel agent isolated from the main session context. Cannot talk to other sub-agents — only reports back to main session.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Agent Team</h3>
+      <p>A small crew of agents that can talk to each other, share a task list, and have individual roles/tools. Good for debates, councils, collaborative problem-solving.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>/goal</h3>
+      <p>A Claude Code command that loops until done==true. Depth-first, iterative. Can run 24+ hours. Can spin up sub-agents. Good for: keep refining until criteria met.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Slash Deep Research (/deep)</h3>
+      <p>Built-in workflow that spins up parallel research agents, has them vote on claims, and outputs a cited deep research report.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Ultra Code</h3>
+      <p>Highest intelligence mode. Uses X-high reasoning + defaults every prompt to a workflow. Most expensive mode. Bypasses many permission checks.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Workflow Script</h3>
+      <p>JavaScript file generated by Claude when a workflow runs. Saved to .claude/workflows/. Can be reviewed, reused, and re-run later.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Context Window</h3>
+      <p>Each agent (sub-agent or workflow worker) has its own isolated context window. This is why input tokens multiply — every agent re-reads shared data.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Synthesis Agent</h3>
+      <p>The final agent in a workflow that collects all parallel agent results and produces the unified output. Often Opus-tier for complex synthesis.</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Width-first vs Depth-first</h3>
+      <p>Width-first = many agents in parallel, results merged at end (workflow). Depth-first = one agent looping until done=true (/goal).</p>
+    </div>
+    <div class="glossary-item">
+      <h3>Cost-per-Agent</h3>
+      <p>Each agent in a workflow = 1 full Claude API call with its own context. 100 agents = 100x the context reads = massive input token accumulation.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>Video: <a href="https://www.youtube.com/watch?v=jZgcWCzxh1I">How to Actually Use Claude Code Dynamic Workflows</a> by Nate Herk</p>
+  <p style="margin-top:4px;">Generated by Hermes Agent · Claude Code Dynamic Workflows Guide</p>
+</footer>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function filterGlossary(query) {
+  const items = document.querySelectorAll('.glossary-item');
+  const q = query.toLowerCase();
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(q) ? 'block' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

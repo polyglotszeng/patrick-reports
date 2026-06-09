@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI下一步是走向生成认知 — 知识仪表板</title>
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1f2937;
+  --border: #374151;
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --accent: #60a5fa;
+  --red: #f87171;
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --cyan: #22d3ee;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body.dark { --bg: #0a0e17; --surface: #111827; }
+body.light { --bg: #f8fafc; --surface: #ffffff; --text: #1f2937; --muted: #6b7280; }
+
+/* HEADER */
+header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); border-bottom: 1px solid var(--border); padding: 20px 24px; position: sticky; top: 0; z-index: 100; }
+header h1 { font-size: 1.4rem; font-weight: 700; background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+header p { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+/* TABS */
+.tabs { display: flex; gap: 2px; padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 8px 16px; background: transparent; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; border-radius: 8px; transition: all 0.2s; white-space: nowrap; }
+.tab:hover { background: var(--surface2); color: var(--text); }
+.tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+/* PANELS */
+.panel { display: none; padding: 24px; max-width: 1200px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* CARDS */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h2 { font-size: 1rem; font-weight: 600; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h3 { font-size: 0.9rem; font-weight: 600; margin: 12px 0 6px; }
+.card p, .card li { font-size: 0.85rem; line-height: 1.6; color: var(--muted); }
+.card ul { padding-left: 20px; }
+.card ul li { margin-bottom: 4px; }
+
+/* COMPARE BOXES */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.cmp { border-radius: 12px; padding: 20px; border: 2px solid; }
+.cmp.red { background: rgba(248,113,113,0.08); border-color: var(--red); }
+.cmp.green { background: rgba(74,222,128,0.08); border-color: var(--green); }
+.cmp.red h3 { color: var(--red); }
+.cmp.green h3 { color: var(--green); }
+.cmp.red li, .cmp.red p { color: #fecaca; }
+.cmp.green li, .cmp.green p { color: #bbf7d0; }
+.cmp h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; }
+.cmp ul { padding-left: 18px; }
+.cmp ul li { margin-bottom: 6px; font-size: 0.82rem; line-height: 1.5; }
+.cmp .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right: 4px; }
+.tag.red { background: rgba(248,113,113,0.3); color: #fca5a5; }
+.tag.green { background: rgba(74,222,128,0.3); color: #86efac; }
+.tag.blue { background: rgba(96,165,250,0.3); color: #93c5fd; }
+.tag.amber { background: rgba(251,191,36,0.3); color: #fcd34d; }
+.tag.purple { background: rgba(167,139,250,0.3); color: #c4b5fd; }
+.tag.cyan { background: rgba(34,211,238,0.3); color: #67e8f9; }
+
+/* PILLARS */
+.pillars-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.pillar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.pillar-num { display: inline-block; width: 28px; height: 28px; background: var(--accent); border-radius: 50%; text-align: center; line-height: 28px; font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.pillar h3 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.pillar p { font-size: 0.8rem; line-height: 1.5; color: var(--muted); }
+
+/* THEORISTS */
+.theorists-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.theorist { background: var(--surface2); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+.theorist-name { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.theorist-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+
+/* QUOTE */
+blockquote { background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(167,139,250,0.1)); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 12px 0; font-size: 0.85rem; line-height: 1.6; color: var(--text); font-style: italic; }
+blockquote cite { display: block; margin-top: 6px; font-size: 0.75rem; color: var(--muted); font-style: normal; }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.tl-item { position: relative; margin-bottom: 16px; }
+.tl-item::before { content: ''; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+.tl-item h4 { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.tl-item p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+
+/* FLOW DIAGRAM */
+.flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 16px 0; }
+.flow-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; text-align: center; font-size: 0.8rem; }
+.flow-box.blue { border-color: var(--accent); background: rgba(96,165,250,0.1); }
+.flow-box.red { border-color: var(--red); background: rgba(248,113,113,0.1); }
+.flow-box.green { border-color: var(--green); background: rgba(74,222,128,0.1); }
+.flow-box.purple { border-color: var(--purple); background: rgba(167,139,250,0.1); }
+.flow-arrow { color: var(--muted); font-size: 1.2rem; }
+
+/* CRITIQUE TABLE */
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th { text-align: left; padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600; }
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+td:first-child { font-weight: 600; color: var(--text); }
+
+/* BADGE ROW */
+.badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
+.badge span { font-size: 0.9rem; }
+
+/* SEARCH */
+.search-bar { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; margin-bottom: 16px; max-width: 500px; }
+.search-bar input { background: none; border: none; outline: none; color: var(--text); font-size: 0.85rem; width: 100%; }
+.search-bar input::placeholder { color: var(--muted); }
+
+/* FOOTER */
+footer { text-align: center; padding: 20px; color: var(--muted); font-size: 0.75rem; border-top: 1px solid var(--border); margin-top: 40px; }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .compare-grid, .pillars-grid { grid-template-columns: 1fr; }
+  .tabs { padding: 10px 16px; }
+  .panel { padding: 16px; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.panel.active .card, .panel.active .cmp, .panel.active .pillar { animation: fadeIn 0.3s ease-out; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 AI下一步是走向生成认知</h1>
+  <p>视频Lecture · 最佳拍档 · Enactive Cognition vs 表征主义</p>
+  <div class="badge-row" style="margin-top:10px;">
+    <span class="badge tag.blue">具身智能</span>
+    <span class="badge tag.purple">生成认知</span>
+    <span class="badge tag.green">强化学习</span>
+    <span class="badge tag.amber">认知科学</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('overview')">总览</button>
+  <button class="tab" onclick="show('compare')">两大范式对比</button>
+  <button class="tab" onclick="show('pillars')">四大支柱</button>
+  <button class="tab" onclick="show('foundations')">哲学基础</button>
+  <button class="tab" onclick="show('critique')">AI批判</button>
+  <button class="tab" onclick="show('glossary')">术语表</button>
+</div>
+
+<!-- ===================== PANEL 1: OVERVIEW ===================== -->
+<div id="panel-overview" class="panel active">
+  <div class="card">
+    <h2>💡 核心问题</h2>
+    <blockquote>
+      这些运行在全球各地服务器里的AI，它们真的理解这个世界吗？它们展现出来的那些令人惊叹的所谓智能，和人类几十亿年进化出来的认知能力，在本质上是同一种东西吗？
+      <cite>— 大飞（最佳拍档）</cite>
+    </blockquote>
+    <p>这个问题直接关系到AI未来的发展方向。如果现在的AI已经有真正的理解能力，只需继续扩大模型规模，AGI自然到来。但如果它们只是在模仿行为、统计模式，无论模型做多大，都永远不可能达到真正的通用智能。</p>
+  </div>
+
+  <div class="card">
+    <h2>🔑 核心论点</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 8px;">
+      <div style="background: var(--surface2); border-radius: 10px; padding: 14px; border: 1px solid var(--border);">
+        <div style="font-size:1.5rem; margin-bottom:6px;">🚫</div>
+        <div style="font-weight:700; font-size:0.85rem; color: var(--red); margin-bottom:4px;">表征主义（错误路线）</div>
+        <div style="font-size:0.78rem; color: var(--muted);">认知 = 构建世界副本的信息处理过程。感知是被动的。</div>
+      </div>
+      <div style="background: var(--surface2); border-radius: 10px; padding: 14px; border: 1px solid var(--border);">
+        <div style="font-size:1.5rem; margin-bottom:6px;">✅</div>
+        <div style="font-weight:700; font-size:0.85rem; color: var(--green); margin-bottom:4px;">生成认知（正确方向）</div>
+        <div style="font-size:0.78rem; color: var(--muted);">认知是在具身主体与环境的互动中被"生成"的。意义是行动中创造的。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🪑 经典例子：椅子</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp red">
+        <h3>🚫 表征主义</h3>
+        <p style="margin-bottom:8px; font-size:0.82rem;">你识别出这是"椅子"，因为脑子里有"椅子"的内部表征，你把眼前的物体和这个表征进行了匹配。</p>
+        <span class="tag red">被动</span>
+        <span class="tag red">符号匹配</span>
+      </div>
+      <div class="cmp green">
+        <h3>✅ 生成认知</h3>
+        <p style="margin-bottom:8px; font-size:0.82rem;">你知道这是椅子，因为你知道可以坐在上面、可以搬动它、可以把它当桌子用。这些"能做什么"的知识，就是你对椅子的理解。</p>
+        <span class="tag green">主动</span>
+        <span class="tag green">行动创造意义</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 生成认知四大支柱</h2>
+    <div class="pillars-grid" style="margin-top:8px;">
+      <div class="pillar">
+        <div class="pillar-num">1</div>
+        <h3>经验</h3>
+        <p>Agent与环境持续互动，不是静态数据集。"世界本身就是它最好的模型"——罗德尼·布鲁克斯</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">2</div>
+        <h3>行动-感知不可分割</h3>
+        <p>没有行动就没有感知，感知本身就是一种行动。掌握行动如何改变感官输入的规律 = 感知世界。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">3</div>
+        <h3>具身性</h3>
+        <p>认知离不开身体。你的身体能做什么、不能做什么，决定了你能有什么样的经验。</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">4</div>
+        <h3>自主性</h3>
+        <p>Agent主动定义自己的目标和意义，从欲望出发投射到世界生成目标——"意向弧"。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📖 核心引言</h2>
+    <blockquote>
+      数据不再是一种静态的资源，而是Agentic能力的产物。只有通过Agent自己的经验，才能实现真正的持续进步。
+      <cite>— 萨顿 & 西尔弗，《欢迎来到经验时代》(2025)</cite>
+    </blockquote>
+    <blockquote>
+      一个大模型即使看过了所有关于"杯子"的文本和图片，它也不可能真正理解"杯子"是什么，因为 它从来没有拿过一个杯子，从来没有用杯子喝过水，从来没有打碎过一个杯子。
+      <cite>— 大飞</cite>
+    </blockquote>
+  </div>
+</div>
+
+<!-- ===================== PANEL 2: COMPARE ===================== -->
+<div id="panel-compare" class="panel">
+  <div class="card">
+    <h2>🔄 表征主义 vs 生成认知 — 完整对比</h2>
+    <div class="compare-grid" style="margin-top:8px;">
+      <div class="cmp red">
+        <h3>🚫 表征主义 Representationalism</h3>
+        <p style="margin-bottom:8px; font-size:0.78rem;">主流AI路线 · 1950年代认知革命 · 来源：古希腊柏拉图</p>
+        <ul>
+          <li><strong>认知 = 信息处理</strong>：感官接收 → 内部表征 → 推理决策 → 行动输出</li>
+          <li><strong>感知是被动的</strong>：先看见 → 再识别 → 再行动</li>
+          <li><strong>世界是客观存在的</strong>：等待被精确复刻</li>
+          <li><strong>意义是发现的</strong>：世界有固定意义等待被表征</li>
+          <li><strong>知识是静态的</strong>：训练完就固定</li>
+          <li><strong>数据是被动的</strong>：人类收集的标注数据集</li>
+          <li><strong>失败案例</strong>：专家系统、纯监督学习</li>
+        </ul>
+      </div>
+      <div class="cmp green">
+        <h3>✅ 生成认知 Enactive Cognition</h3>
+        <p style="margin-bottom:8px; font-size:0.78rem;">新方向 · 具身智能 · 来源：现象学+生态心理学</p>
+        <ul>
+          <li><strong>认知是生成的</strong>：在具身主体与环境的互动中生成</li>
+          <li><strong>感知是主动的</strong>：没有行动就没有感知，感知本身就是行动</li>
+          <li><strong>世界是可能性空间</strong>：动态、无限复杂</li>
+          <li><strong>意义是创造的</strong>：Agent在行动中创造意义</li>
+          <li><strong>知识是持续的</strong>：持续学习，终身适应</li>
+          <li><strong>数据是生成的</strong>：Agent自己的经验产生</li>
+          <li><strong>成功案例</strong>：强化学习（部分）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔀 认知模型对比</h2>
+    <div style="margin: 16px 0;">
+      <p style="font-size:0.8rem; color: var(--muted); margin-bottom:8px;">表征主义流程：</p>
+      <div class="flow">
+        <div class="flow-box red">🌍 外部世界</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">👁 感官输入</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box blue">🧠 内部表征</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box purple">⚙️ 推理/决策</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green">✋ 行动输出</div>
+      </div>
+      <p style="font-size:0.8rem; color: var(--muted); margin:12px 0 8px;">生成认知流程：</p>
+      <div class="flow">
+        <div class="flow-box green">🤖 Agent</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-box purple">🔄 行动-感知循环</div>
+        <div class="flow-arrow">↔</div>
+        <div class="flow-box green">🌍 世界（实时互动）</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏛 表征主义思想史</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <h4>古希腊 · 柏拉图</h4>
+        <p>理念论：现实世界是理念世界的影子，知识是对理念的回忆</p>
+      </div>
+      <div class="tl-item">
+        <h4>1950年代 · 认知革命</h4>
+        <p>认知科学诞生：认知 = 计算 + 表征，成为AI基础范式</p>
+      </div>
+      <div class="tl-item">
+        <h4>1960年代 · 专家系统</h4>
+        <p>符号AI：规则匹配 + 逻辑推理，完全缺乏身体经验</p>
+      </div>
+      <div class="tl-item">
+        <h4>2010年代 · 深度学习</h4>
+        <p>数据驱动表征学习，但仍是被动学习人类留下的痕迹</p>
+      </div>
+      <div class="tl-item">
+        <h4>2025 · 《走向生成式AI》</h4>
+        <p>萨顿 & 拉菲系统性批判表征主义，提出生成认知路线</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANEL 3: PILLARS ===================== -->
+<div id="panel-pillars" class="panel">
+  <div class="card">
+    <h2>🏛 生成认知四大支柱</h2>
+    <p style="font-size:0.82rem; color: var(--muted); margin-bottom:16px;">萨顿和拉菲从丰富的哲学和科学思想中，提炼出四个对AI最关键的核心概念</p>
+  </div>
+
+  <div class="pillars-grid">
+    <div class="pillar">
+      <div class="pillar-num">1</div>
+      <h3>经验 Experience</h3>
+      <p>Agent与环境持续互动、相互影响。不是过去经历的数据集，而是实时生成的互动过程。</p>
+      <div style="margin-top:10px;">
+        <span class="tag blue">技能性</span>
+        <span class="tag amber">规范性</span>
+        <span class="tag purple">具身性</span>
+      </div>
+      <div style="margin-top:10px; font-size:0.78rem; color: var(--muted);">
+        <strong style="color:var(--text);">技能性：</strong>老自行车手看到的是骑行路线，新手只看到障碍物<br>
+        <strong style="color:var(--text);">规范性：</strong>行动有成功/失败，Agent自我调整<br>
+        <strong style="color:var(--text);">具身性：</strong>身体能力决定经验范围
+      </div>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-num">2</div>
+      <h3>行动-感知不可分割性</h3>
+      <p>感知和行动是相互建构、不可分割的整体。没有行动就没有感知，感知本身就是一种行动。</p>
+      <div style="margin-top:10px; font-size:0.78rem; color: var(--muted);">
+        <strong style="color:var(--text);">传感器运动偶联：</strong>行动系统性地改变感官输入，掌握这些规律就是感知世界<br>
+        <strong style="color:var(--text);">例子：</strong>眼球不动 → 视网膜图像稳定 → 神经适应 → 什么都看不见
+      </div>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-num">3</div>
+      <h3>具身性 Embodiment</h3>
+      <p>认知离不开身体。你的身体能做什么、不能做什么，决定了你能有什么样的经验。</p>
+      <div style="margin-top:10px; font-size:0.78rem; color: var(--muted);">
+        <strong style="color:var(--text);">梅洛-庞蒂：</strong>身体不是拥有的物体，而是体验世界的媒介<br>
+        <strong style="color:var(--text);">启示：</strong>AI需要身体来获得真正的理解
+      </div>
+    </div>
+
+    <div class="pillar">
+      <div class="pillar-num">4</div>
+      <h3>自主性 Autonomy</h3>
+      <p>Agent不是被动接收信息，而是主动定义自己的目标和意义。</p>
+      <div style="margin-top:10px; font-size:0.78rem; color: var(--muted);">
+        <strong style="color:var(--text);">意向弧（Intentional Arc）：</strong>从欲望/需要出发，投射到世界生成目标<br>
+        <strong style="color:var(--text);">示能性（Affordance）：</strong>环境提供给智能体的行动可能性——地面→行走，杯子→抓握
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h2>🌊 经验 vs 数据</h2>
+    <table>
+      <thead>
+        <tr><th></th><th>机器学习的"经验"</th><th>生成认知的"经验"</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>本质</td>
+          <td>人类预先收集的静态数据集</td>
+          <td>Agent与环境实时生成的互动过程</td>
+        </tr>
+        <tr>
+          <td>来源</td>
+          <td>人类经验留下的痕迹</td>
+          <td>Agent自己的行动和反馈</td>
+        </tr>
+        <tr>
+          <td>持续性</td>
+          <td>一次性的，训练完就固定</td>
+          <td>持续不断，没有终点</td>
+        </tr>
+        <tr>
+          <td>游泳比喻</td>
+          <td>看了一万本游泳书和视频</td>
+          <td>真正下水，体验浮力、呛水、保持平衡</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== PANEL 4: FOUNDATIONS ===================== -->
+<div id="panel-foundations" class="panel">
+  <div class="card">
+    <h2>🧠 思想史脉络</h2>
+    <div class="theorists-grid" style="margin-top:8px;">
+      <div class="theorist">
+        <div class="theorist-name">埃德蒙德·胡塞尔</div>
+        <div class="theorist-desc"><strong>现象学创始人</strong><br>感知不是头脑中构建世界模型，而是主体在生活经验中直接与世界相遇</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">马丁·海德格尔</div>
+        <div class="theorist-desc"><strong>存在主义哲学家</strong><br>"在世存在"——我们一开始就沉浸在有意义的实践情境中，意义从一开始就存在于互动中</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">莫里斯·梅洛-庞蒂</div>
+        <div class="theorist-desc"><strong>身体现象学</strong><br>身体不是拥有的物体，而是体验世界的媒介。感知、思想、情感都离不开身体</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">詹姆斯·吉布森</div>
+        <div class="theorist-desc"><strong>生态心理学</strong><br>感知不是环境的物理特征，而是环境提供的行动可能性——"示能性"（Affordance）</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">弗朗西斯科·瓦雷拉</div>
+        <div class="theorist-desc"><strong>神经科学+哲学</strong><br>《具身心智》——正式提出"生成主义"（Enactivism）框架</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">凯文·奥雷根 & 阿尔瓦·诺埃</div>
+        <div class="theorist-desc"><strong>感知理论</strong><br>传感器运动偶联理论——感知就是掌握行动如何改变感官输入的规律</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">理查德·萨顿</div>
+        <div class="theorist-desc"><strong>强化学习之父 / 2017图灵奖</strong><br>《走向生成式人工智能》——系统性批判表征主义，提出生成认知方向</div>
+      </div>
+      <div class="theorist">
+        <div class="theorist-name">罗德尼·布鲁克斯</div>
+        <div class="theorist-desc"><strong>机器人学家</strong><br>"世界本身就是它最好的模型。最准确、最新鲜的信息永远都在世界本身里"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 示能性（Affordance）详解</h2>
+    <p style="margin-bottom:12px;">吉布森提出：环境提供给智能体的行动可能性，不是物体固有属性，而是物体与智能体身体能力之间的关系。</p>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px;">
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.5rem;">🏠</div>
+        <div style="font-size:0.8rem; font-weight:600; margin:4px 0;">地面</div>
+        <div style="font-size:0.72rem; color:var(--muted);">行走、奔跑</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.5rem;">☕</div>
+        <div style="font-size:0.8rem; font-weight:600; margin:4px 0;">杯子</div>
+        <div style="font-size:0.72rem; color:var(--muted);">抓握、饮用</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.5rem;">🪜</div>
+        <div style="font-size:0.8rem; font-weight:600; margin:4px 0;">楼梯</div>
+        <div style="font-size:0.72rem; color:var(--muted);">攀登、跨越</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.5rem;">💧</div>
+        <div style="font-size:0.8rem; font-weight:600; margin:4px 0;">水面</div>
+        <div style="font-size:0.72rem; color:var(--muted);">漂浮、淹没</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📄 关键论文</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <h4>1972 · 《计算机不能做什么》</h4>
+        <p>休伯特·德雷福斯批判专家系统缺乏人类基于身体经验的常识</p>
+      </div>
+      <div class="tl-item">
+        <h4>1991 · 《具身心智》</h4>
+        <p>瓦雷拉、汤普森、罗施——正式提出生成主义框架</p>
+      </div>
+      <div class="tl-item">
+        <h4>2001 · 《理解大脑》</h4>
+        <p>奥雷根 & 诺埃——传感器运动偶联理论</p>
+      </div>
+      <div class="tl-item">
+        <h4>2025 · 《走向生成式人工智能》</h4>
+        <p>萨顿 & 拉菲——对主流AI范式的系统性批判和反思</p>
+      </div>
+      <div class="tl-item">
+        <h4>2025 · 《欢迎来到经验时代》</h4>
+        <p>萨顿 & 西尔弗——数据是Agentic能力的产物，只有通过Agent自己的经验才能持续进步</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANEL 5: CRITIQUE ===================== -->
+<div id="panel-critique" class="panel">
+  <div class="card">
+    <h2>🔍 对当前AI的系统性批判</h2>
+    <table>
+      <thead>
+        <tr><th>AI类型</th><th>问题</th><th>诊断</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🟡 专家系统</td>
+          <td>完全缺乏经验，只有规则匹配</td>
+          <td><span class="tag red">零经验</span></td>
+        </tr>
+        <tr>
+          <td>🔴 监督学习</td>
+          <td>数据只是人类经验痕迹，不是AI自己的经验</td>
+          <td><span class="tag red">二手经验</span></td>
+        </tr>
+        <tr>
+          <td>🔴 大语言模型</td>
+          <td>看过所有"杯子"文本图片，仍不理解"杯子"</td>
+          <td><span class="tag red">无具身</span></td>
+        </tr>
+        <tr>
+          <td>🟡 强化学习</td>
+          <td>最接近经验观，但仍不完整</td>
+          <td><span class="tag amber">部分经验</span></td>
+        </tr>
+        <tr>
+          <td>🟢 具身AI/机器人</td>
+          <td>有身体，持续学习，有希望</td>
+          <td><span class="tag green">接近目标</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ 表征主义的根本缺陷</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:12px;">
+        <div style="color:var(--red); font-size:1.2rem; font-weight:700;">1</div>
+        <div>
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:3px;">世界不可能被完美表征</div>
+          <div style="font-size:0.78rem; color:var(--muted);">世界是动态的、无限复杂的可能性空间，任何有限模型都无法捕捉全部。无论模型多大，都是简化和近似。</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:12px;">
+        <div style="color:var(--red); font-size:1.2rem; font-weight:700;">2</div>
+        <div>
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:3px;">感知不是被动的</div>
+          <div style="font-size:0.78rem; color:var(--muted);">表征主义假设感知是被动的接收，但传感器运动偶联证明：感知是主动的，依赖于行动如何改变感官输入。</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:12px;">
+        <div style="color:var(--red); font-size:1.2rem; font-weight:700;">3</div>
+        <div>
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:3px;">意义不是发现的，是创造的</div>
+          <div style="font-size:0.78rem; color:var(--muted);">世界本身没有固定的等待被发现的意义。意义是Agent在行动中和世界一起生成的。</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border-radius:8px; padding:12px;">
+        <div style="color:var(--red); font-size:1.2rem; font-weight:700;">4</div>
+        <div>
+          <div style="font-weight:600; font-size:0.85rem; margin-bottom:3px;">学习没有终点</div>
+          <div style="font-size:0.78rem; color:var(--muted);">监督学习把学习当成一次性的，但真正的经验是持续不断的。必须持续学习和适应——"大世界假说"。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌟 启示：对AI研究的建议</h2>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:8px;">
+      <div style="background:rgba(74,222,128,0.08); border:1px solid var(--green); border-radius:10px; padding:14px;">
+        <div style="font-size:0.85rem; font-weight:700; color:var(--green); margin-bottom:6px;">🤖 给Agent身体</div>
+        <div style="font-size:0.78rem; color:var(--muted);">具身性是真正理解的基础。AI需要身体来生成经验。</div>
+      </div>
+      <div style="background:rgba(96,165,250,0.08); border:1px solid var(--accent); border-radius:10px; padding:14px;">
+        <div style="font-size:0.85rem; font-weight:700; color:var(--accent); margin-bottom:6px;">🔄 主动探索</div>
+        <div style="font-size:0.78rem; color:var(--muted);">不是被动接收数据，而是主动探索环境，生成自己的经验。</div>
+      </div>
+      <div style="background:rgba(167,139,250,0.08); border:1px solid var(--purple); border-radius:10px; padding:14px;">
+        <div style="font-size:0.85rem; font-weight:700; color:var(--purple); margin-bottom:6px;">♻️ 持续学习</div>
+        <div style="font-size:0.78rem; color:var(--muted);">解决灾难性遗忘，实现终身学习，适应不断变化的世界。</div>
+      </div>
+      <div style="background:rgba(251,191,36,0.08); border:1px solid var(--amber); border-radius:10px; padding:14px;">
+        <div style="font-size:0.85rem; font-weight:700; color:var(--amber); margin-bottom:6px;">⚖️ 自我评估</div>
+        <div style="font-size:0.78rem; color:var(--muted);">行动有成功/失败，Agent根据反馈自我调整，而非依赖外部标注。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PANEL 6: GLOSSARY ===================== -->
+<div id="panel-glossary" class="panel">
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" placeholder="搜索术语..." oninput="filterGlossary(this.value)">
+  </div>
+  <div id="glossary-list">
+    <div class="card"><h2>📚 核心术语表</h2></div>
+    <div class="card glossary-item">
+      <h2>Enactive Cognition</h2>
+      <p><strong>生成认知</strong> — 认知不是在头脑中构建世界的模型，而是在具身主体与环境的互动中被"生成"的。意义是Agent在行动中创造的。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Representationalism</h2>
+      <p><strong>表征主义</strong> — 主流AI依赖的认知观。认为认知是信息处理过程：外部信息→内部表征→推理决策→行动输出。感知是被动的。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Affordance / 示能性</h2>
+      <p>环境提供给智能体的行动可能性。不是物体固有属性，而是物体与智能体身体能力之间的关系。如：地面→行走，杯子→抓握。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Embodiment / 具身性</h2>
+      <p>认知离不开身体。你的身体能做什么、不能做什么，决定了你能有什么样的经验。（梅洛-庞蒂）</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Sensorimotor Coupling / 传感器运动偶联</h2>
+      <p>行动系统性地改变感官输入，掌握这些规律就是感知世界。如：眼球转动→视野物体反向移动→据此感知深度和空间。（奥雷根 & 诺埃）</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Big World Hypothesis / 大世界假说</h2>
+      <p>世界比任何Agent都大得多、复杂得多。它永远不可能见过所有情况，必须持续学习和适应。（萨顿）</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Intentional Arc / 意向弧</h2>
+      <p>从欲望/需要出发，投射到世界生成目标。Agent不是被动接收信息，而是主动定义自己的意义和方向。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Passive Representations / 被动表征</h2>
+      <p>表征主义的核心假设：感知是对预先存在的世界的被动复制，先看见再识别再行动。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Experience (Enactive) / 经验</h2>
+      <p>生成认知的经验 ≠ 机器学习的数据集。是Agent与环境之间持续不断、相互影响的实时互动过程，有技能性、规范性、具身性三个特点。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Catastrophic Forgetting / 灾难性遗忘</h2>
+      <p>神经网络学习新任务时完全忘记旧任务的现象。持续学习（终身学习）研究的核心问题。</p>
+    </div>
+    <div class="card glossary-item">
+      <h2>Agentic AI / 代理式AI</h2>
+      <p>能够主动行动、设定目标、持续学习的AI系统。萨顿："数据不再是静态资源，而是Agentic能力的产物。"</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>视频：AI下一步是走向生成认知 · 最佳拍档 · <a href="https://www.youtube.com/watch?v=6bfCuxI_84U" style="color:var(--accent);">YouTube</a></p>
+  <p style="margin-top:4px;">Generated by Hermes Agent · Obsidian + HTML Dashboard</p>
+</footer>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function filterGlossary(query) {
+  const items = document.querySelectorAll('.glossary-item');
+  const q = query.toLowerCase();
+  items.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(q) ? 'block' : 'none';
+  });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6 Hermes Agent Use Cases — Alex Finn</title>
+<style>
+:root {
+  --bg: #0a0e17;
+  --card: #111827;
+  --border: #1f2937;
+  --blue: #60a5fa;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --cyan: #22d3ee;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --dim: #4b5563;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.container { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+/* Header */
+.header { text-align: center; margin-bottom: 32px; }
+.header h1 { font-size: 26px; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+.header .sub { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+.header .tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.tag { background: var(--card); border: 1px solid var(--border); padding: 3px 10px; border-radius: 20px; font-size: 11px; color: var(--muted); }
+
+/* Nav */
+.nav { display: flex; gap: 4px; background: var(--card); border-radius: 10px; padding: 4px; margin-bottom: 24px; overflow-x: auto; }
+.nav button { background: none; border: none; color: var(--muted); padding: 8px 16px; border-radius: 7px; cursor: pointer; font-size: 13px; white-space: nowrap; transition: all 0.2s; }
+.nav button:hover { color: var(--text); background: var(--border); }
+.nav button.active { background: var(--blue); color: #fff; font-weight: 600; }
+
+/* Pages */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h3 { font-size: 15px; color: var(--blue); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h3 .num { background: var(--blue); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+/* Grid */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+/* Stat */
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+.stat .val { font-size: 32px; font-weight: 700; color: var(--green); }
+.stat .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* Flow */
+.flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.flow-step { background: var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; color: var(--text); }
+.flow-arrow { color: var(--blue); font-size: 16px; font-weight: 700; }
+
+/* Use case detail */
+.uc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.uc-icon { font-size: 28px; }
+.uc-title { font-size: 17px; font-weight: 600; }
+.uc-subtitle { font-size: 12px; color: var(--muted); }
+.uc-desc { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 12px; }
+.uc-steps { display: flex; flex-direction: column; gap: 6px; }
+.uc-step { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; }
+.uc-step-n { background: var(--blue); color: #fff; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; }
+.uc-step-t { color: var(--muted); flex: 1; line-height: 1.5; }
+
+/* Tags */
+.ht { display: inline-block; background: var(--border); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: var(--yellow); margin-right: 4px; margin-bottom: 4px; }
+.ht.green { color: var(--green); }
+.ht.blue { color: var(--blue); }
+.ht.purple { color: var(--purple); }
+.ht.cyan { color: var(--cyan); }
+
+/* Quote */
+.quote { background: var(--card); border-left: 3px solid var(--blue); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic; }
+.quote-meta { font-size: 11px; color: var(--muted); margin-top: 6px; font-style: normal; }
+
+/* Radar */
+.chart-wrap { position: relative; height: 280px; }
+.chart-wrap.tall { height: 320px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: var(--border); padding: 8px 10px; text-align: left; color: var(--muted); font-weight: 500; }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+tr:last-child td { border-bottom: none; }
+.score-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 3px; }
+
+/* Complexities */
+.comp-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.comp-lbl { font-size: 12px; color: var(--muted); width: 140px; flex-shrink: 0; }
+.comp-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.comp-fill { height: 100%; border-radius: 4px; }
+.comp-val { font-size: 11px; width: 30px; text-align: right; }
+
+/* Memory wiki */
+.mem-diagram { display: flex; gap: 16px; align-items: center; justify-content: center; padding: 20px; }
+.mem-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; text-align: center; min-width: 140px; }
+.mem-box h4 { font-size: 13px; margin-bottom: 4px; }
+.mem-box p { font-size: 11px; color: var(--muted); }
+.mem-arrow { color: var(--blue); font-size: 20px; }
+
+/* Triage flow */
+.triage-flow { display: flex; gap: 0; align-items: stretch; margin: 16px 0; }
+.triage-col { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; min-width: 0; }
+.triage-col h4 { font-size: 12px; margin-bottom: 8px; }
+.triage-col.triage { border-color: var(--yellow); }
+.triage-col.triage h4 { color: var(--yellow); }
+.triage-col.todo { border-color: var(--blue); }
+.triage-col.todo h4 { color: var(--blue); }
+.triage-col.done { border-color: var(--green); }
+.triage-col.done h4 { color: var(--green); }
+.triage-items { display: flex; flex-direction: column; gap: 4px; }
+.triage-item { background: var(--border); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: var(--text); }
+.triage-arrow { display: flex; align-items: center; padding: 0 6px; color: var(--muted); font-size: 18px; }
+
+/* Footer */
+.footer { text-align: center; color: var(--dim); font-size: 11px; padding: 20px 0; }
+
+/* Highlight boxes */
+.hl { padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+.hl-y { background: rgba(251,191,36,0.15); color: var(--yellow); }
+.hl-g { background: rgba(52,211,153,0.15); color: var(--green); }
+.hl-b { background: rgba(96,165,250,0.15); color: var(--blue); }
+
+/* Scrollable */
+.scroll { overflow-x: auto; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>🤖 6 Hermes Agent Use Cases</h1>
+  <div class="sub">Alex Finn · 15:17 · Hermes Agent · AI Productivity</div>
+  <div class="sub" style="color:var(--blue)">"99%的人不知道该怎么用 Hermes Agent"</div>
+  <div class="tags">
+    <span class="tag">hermes-agent</span>
+    <span class="tag">ai-agent</span>
+    <span class="tag">productivity</span>
+    <span class="tag">automation</span>
+    <span class="tag">workflow</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="active" onclick="showPage('overview')">总览</button>
+  <button onclick="showPage('uc1')">/goal</button>
+  <button onclick="showPage('uc2')">Kanban</button>
+  <button onclick="showPage('uc3')">竞品调研</button>
+  <button onclick="showPage('uc4')">Memory Wiki</button>
+  <button onclick="showPage('uc5')">跨设备管理</button>
+  <button onclick="showPage('uc6')">晨间Prompt</button>
+  <button onclick="showPage('prompts')">Prompt库</button>
+  <button onclick="showPage('charts')">分析图表</button>
+</div>
+
+<!-- PAGE: OVERVIEW -->
+<div id="page-overview" class="page active">
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="stat"><div class="val">6</div><div class="lbl">Use Cases</div></div>
+    <div class="stat"><div class="val" style="color:var(--yellow)">24h+</div><div class="lbl">最长连续运行</div></div>
+    <div class="stat"><div class="val" style="color:var(--purple)">5</div><div class="lbl">Alex的Agent数量</div></div>
+  </div>
+
+  <div class="card">
+    <h3>💡 核心洞察</h3>
+    <div style="font-size:13px;line-height:1.8;color:var(--text)">
+      Hermes Agent 不只是工具，是你的 <span style="color:var(--yellow)">24/7 AI 员工</span>。<br>
+      关键差异在于：<span style="color:var(--blue)">/goal + metaprompting</span> 解锁超长任务，<br>
+      <span style="color:var(--green)">Kanban + Triage</span> 实现自动化分发，<br>
+      <span style="color:var(--purple)">Memory Wiki</span> 让 Agent 拥有记忆。<br><br>
+      <div style="color:var(--muted);font-size:12px">"general computer administrator, basically the CEO of all your devices is what it turns Hermes into."</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📊 Use Cases 难度 vs 收益矩阵</h3>
+    <div class="chart-wrap">
+      <canvas id="chart-matrix"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔄 每日工作流闭环</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;padding:10px 0">
+      <div style="text-align:center">
+        <div class="flow-step">🌅 起床</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">9:00 AM</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="text-align:center">
+        <div class="flow-step" style="background:var(--yellow);color:#000">📋 晨间优先Prompt</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">告诉Agent今日重点</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="text-align:center">
+        <div class="flow-step" style="background:var(--blue)">📥 任务进Triage</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">AI领任务</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="text-align:center">
+        <div class="flow-step" style="background:var(--green)">✅ AI完成</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">人类做人的事</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div style="text-align:center">
+        <div class="flow-step" style="background:var(--purple)">🧠 更新Memory</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Agent自我改进</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>⚡ 最高 ROI 的两个 Use Cases</h3>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">按立即可执行性和影响排序</div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px">UC1: /goal + Metaprompting</span>
+          <span class="hl hl-y">ROI最高</span>
+        </div>
+        <div class="score-bar"><div class="score-fill" style="width:95%;background:var(--yellow)"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px">UC4: Memory Wiki</span>
+          <span class="hl hl-g">长期复利</span>
+        </div>
+        <div class="score-bar"><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:90%;background:var(--green);border-radius:3px"></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🛠 技术门槛</h3>
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:12px">UC5: Tailscale跨设备</span>
+          <span style="font-size:11px;color:var(--red)">需安装Tailscale</span>
+        </div>
+        <div class="score-bar"><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:var(--green);border-radius:3px"></div></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:12px">UC3: 竞品调研</span>
+          <span style="font-size:11px;color:var(--yellow)">需浏览器+Console</span>
+        </div>
+        <div class="score-bar"><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:20%;background:var(--green);border-radius:3px"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC1 -->
+<div id="page-uc1" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">🎯</div>
+      <div>
+        <div class="uc-title">/goal + Metaprompting</div>
+        <div class="uc-subtitle">最被低估的 AI 功能 · 超长任务执行器</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      <span class="hl hl-y">/goal</span> 允许 Agent 执行超长任务（Alex 跑过 <strong>24小时+</strong> 不间断）。关键解锁方式：
+      <span class="hl hl-b">Metaprompting</span> —— 让 AI 先帮你写 prompt，再用精心设计的 prompt 跑 /goal。
+    </div>
+    <div class="quote">
+      "/goal is one of the most underrated features in AI this year. Metaprompting is what unlocks slashgoal."
+      <div class="quote-meta">— Alex Finn @ 0:51 / 1:18</div>
+    </div>
+    <div style="margin-top:16px">
+      <h4 style="font-size:13px;color:var(--muted);margin-bottom:10px">Metaprompting 工作流</h4>
+      <div class="flow">
+        <div class="flow-step">📝 描述需求</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="background:var(--yellow);color:#000">🤖 AI写prompt</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="background:var(--blue)">📋 复制prompt</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">▶️ 执行/goal</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="background:var(--green)">✅ 24h+运行</div>
+      </div>
+    </div>
+    <div class="uc-steps" style="margin-top:14px">
+      <div class="uc-step"><div class="uc-step-n">1</div><div class="uc-step-t">告诉 AI 你想做什么（"我想做一个 3D 第三人称射击游戏"）</div></div>
+      <div class="uc-step"><div class="uc-step-n">2</div><div class="uc-step-t">让 AI 帮你写一个详细的 <code style="background:var(--border);padding:1px5px;border-radius:3px">/goal</code> prompt</div></div>
+      <div class="uc-step"><div class="uc-step-n">3</div><div class="uc-step-t">复制生成的 prompt，在 Hermes 里执行 <code style="background:var(--border);padding:1px5px;border-radius:3px">/goal</code></div></div>
+      <div class="uc-step"><div class="uc-step-n">4</div><div class="uc-step-t">Agent 先问几个澄清问题，然后开始长时间运行</div></div>
+      <div class="uc-step"><div class="uc-step-n">5</div><div class="uc-step-t">完成后，用 Claude Code/Cline 接手代码继续完善</div></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>✅ 适合 /goal 的任务</h3>
+      <div style="font-size:12px;line-height:2">
+        <span class="ht">复杂 App 构建</span>
+        <span class="ht">详细设计变更</span>
+        <span class="ht">超长研究文档</span>
+        <span class="ht">大规模重构</span>
+        <span class="ht">多文件代码生成</span>
+        <span class="ht">视频脚本编写</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>❌ 不适合 /goal 的任务</h3>
+      <div style="font-size:12px;line-height:2">
+        <span class="ht" style="color:var(--red)">简单问答</span>
+        <span class="ht" style="color:var(--red)">单行修改</span>
+        <span class="ht" style="color:var(--red)">需要实时反馈</span>
+        <span class="ht" style="color:var(--red)">模糊目标</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">核心：任务需要细节和约束，给得越多跑得越好</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📈 /goal 任务规模 vs 运行时间</h3>
+    <div class="chart-wrap">
+      <canvas id="chart-goal"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC2 -->
+<div id="page-uc2" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">📋</div>
+      <div>
+        <div class="uc-title">Hermes Kanban Board</div>
+        <div class="uc-subtitle">任务自动化分发 · 每日工作流核心</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      Hermes 内置 Kanban 板（<code style="background:var(--border);padding:2px6px;border-radius:4px">Hermes dashboard</code> → URL → Kanban Tab）。
+      任务放进 <span class="hl hl-y">Triage</span> 列，Agent 自动领取并完成。人做只有人能做的事。
+    </div>
+    <div style="margin-top:16px">
+      <h4 style="font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center">Alex 的晨间流程</h4>
+      <div class="triage-flow">
+        <div class="triage-col">
+          <h4>📝 To-Do</h4>
+          <div class="triage-items">
+            <div class="triage-item">写YouTube脚本</div>
+            <div class="triage-item">找AI工具报告</div>
+            <div class="triage-item">发推3条</div>
+          </div>
+        </div>
+        <div class="triage-arrow">→</div>
+        <div class="triage-col triage">
+          <h4>🔀 Triage</h4>
+          <div class="triage-items">
+            <div class="triage-item" style="border:1px solid var(--yellow)">AI能做的任务</div>
+            <div class="triage-item" style="border:1px solid var(--muted)">付账单(人类)</div>
+          </div>
+        </div>
+        <div class="triage-arrow">→</div>
+        <div class="triage-col todo">
+          <h4>📌 To-Do</h4>
+          <div class="triage-items">
+            <div class="triage-item" style="background:var(--blue);color:#fff">写脚本...进行中</div>
+          </div>
+        </div>
+        <div class="triage-arrow">→</div>
+        <div class="triage-col done">
+          <h4>✅ Done</h4>
+          <div class="triage-items">
+            <div class="triage-item" style="background:var(--green);color:#000">3条推文✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>🎯 Triage 自动化逻辑</h3>
+      <div style="font-size:12px;line-height:1.8">
+        <div style="margin-bottom:8px"><span class="hl hl-y">放进去</span> 任何任务 → Hermes 自动识别</div>
+        <div style="margin-bottom:8px"><span class="hl hl-b">判断</span> AI 能做 → 分配给 Sub-Agent</div>
+        <div style="margin-bottom:8px"><span class="hl hl-g">人类任务</span> → 留在原地等你处理</div>
+        <div style="margin-bottom:8px"><span class="hl hl-y">完成后</span> → 移动到 Done 列</div>
+      </div>
+      <div class="quote" style="margin-top:12px">
+        "You start your day, you go hey Hermes here's everything I need you to do. Put in the Kanban board. You go get your human work done. And by the time you're done with that, Hermes took care of all the work it can do."
+        <div class="quote-meta">— Alex Finn @ 4:19</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>💡 与 /goal 的协同</h3>
+      <div style="font-size:12px;line-height:1.8">
+        <div style="margin-bottom:8px"><span class="hl hl-b">简单任务</span> → Kanban 直接完成</div>
+        <div style="margin-bottom:8px"><span class="hl hl-y">复杂任务</span> → Kanban → /goal 执行</div>
+        <div style="margin-bottom:8px"><span class="hl hl-g">代码任务</span> → Claude Code / Cline 接手</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">三者组合：Kanban（入口） + /goal（执行） + Coder（完善）</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC3 -->
+<div id="page-uc3" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">🔍</div>
+      <div>
+        <div class="uc-title">竞品技术调研</div>
+        <div class="uc-subtitle">浏览器控制 · 完整技术分析报告</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      Hermes 控制浏览器，自动访问竞品网站，查看 Console，分析技术栈，生成完整技术报告。
+      结果可以喂给 Coding Agent 帮你实现竞品做得好的功能。
+    </div>
+    <div class="uc-steps" style="margin-top:14px">
+      <div class="uc-step"><div class="uc-step-n">1</div><div class="uc-step-t">对 Hermes 说："Open a browser and go to [竞品网站]. Do a full research and technical breakdown."</div></div>
+      <div class="uc-step"><div class="uc-step-n">2</div><div class="uc-step-t">Hermes 自己打开浏览器，点击页面，查看 Console，分析技术栈</div></div>
+      <div class="uc-step"><div class="uc-step-n">3</div><div class="uc-step-t">生成完整技术报告（准确度很高）</div></div>
+      <div class="uc-step"><div class="uc-step-n">4</div><div class="uc-step-t">发给 Claude Code → 让它帮你实现竞品的功能</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📊 技术报告输出内容</h3>
+    <table>
+      <tr><th>维度</th><th>内容</th><th>价值</th></tr>
+      <tr><td>技术栈</td><td>前端框架、后端、语言</td><td class="hl hl-g">高</td></tr>
+      <tr><td>定价模式</td><td>订阅/免费/一次性</td><td class="hl hl-g">高</td></tr>
+      <tr><td>分析事件</td><td>收集哪些用户数据</td><td class="hl hl-y">中</td></tr>
+      <tr><td>功能列表</td><td>所有 Feature</td><td class="hl hl-g">高</td></tr>
+      <tr><td>可借鉴点</td><td>做得好可以 emulated</td><td class="hl hl-g">高</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>🔗 完整 Pipeline</h3>
+    <div class="flow" style="justify-content:center">
+      <div class="flow-step">🔍 竞品调研</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:var(--blue)">📄 技术报告</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:var(--yellow);color:#000">👨‍💻 Claude Code</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="background:var(--green)">🚀 你的 App</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC4 -->
+<div id="page-uc4" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">🧠</div>
+      <div>
+        <div class="uc-title">Memory Wiki</div>
+        <div class="uc-subtitle">个人记忆系统 · Agent 自我改进</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      建一个网站，记录所有对话、每日工作日志、所有做过的事。既是人类日记（回溯过去），也是 Agent 记忆强化。
+    </div>
+    <div class="quote">
+      "This reinforces your memory system. If you have your Hermes agent maintain this memory wiki, it can go back and look at these daily logs itself."
+      <div class="quote-meta">— Alex Finn @ 9:46</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🏗 Memory Wiki 数据结构</h3>
+    <div class="mem-diagram">
+      <div class="mem-box" style="border-color:var(--yellow)">
+        <h4 style="color:var(--yellow)">📚 Subjects</h4>
+        <p>所有聊过的话题</p>
+      </div>
+      <div class="mem-arrow">→</div>
+      <div class="mem-box" style="border-color:var(--blue)">
+        <h4 style="color:var(--blue)">📅 Daily Logs</h4>
+        <p>每天做过的事</p>
+      </div>
+      <div class="mem-arrow">→</div>
+      <div class="mem-box" style="border-color:var(--green)">
+        <h4 style="color:var(--green)">💬 Conversations</h4>
+        <p>具体对话内容</p>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>🎯 Memory Wiki 价值</h3>
+      <div style="font-size:12px;line-height:2">
+        <div><span class="hl hl-y">回溯</span> — 之前用 Hermes 做过什么关于 X 的事？</div>
+        <div><span class="hl hl-b">记忆强化</span> — Agent 可查看自己的 daily logs</div>
+        <div><span class="hl hl-g">自动化日记</span> — 追踪所有对话和工作</div>
+        <div><span class="hl hl-purple">自我学习</span> — Agent 越来越懂你</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>📋 Memory Wiki Prompt</h3>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;line-height:1.7;color:var(--muted);font-family:monospace">
+        I want to build a memory wiki. This should be a site I can visit that has:<br>
+        - A list of all the subjects we've talked about<br>
+        - Daily logs of what we've done together<br>
+        - I should be able to click on any subject or daily log and get more details
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC5 -->
+<div id="page-uc5" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">💻</div>
+      <div>
+        <div class="uc-title">General Computer Administrator</div>
+        <div class="uc-subtitle">Tailscale 组网 · 跨设备控制</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      通过 <span class="hl hl-g">Tailscale（免费）</span> 把所有设备组成私有网络，Hermes Agent 在任何设备上工作。
+      "CEO of all your devices"。
+    </div>
+    <div class="quote">
+      "General computer administrator, basically the CEO of all your devices is what it turns Hermes into."
+      <div class="quote-meta">— Alex Finn @ 12:47</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🌐 Tailscale 网络拓扑</h3>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:16px 0">
+      <div style="text-align:center">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;margin-bottom:4px">MacBook Pro</div>
+        <div style="font-size:10px;color:var(--muted)">你的开发机</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+        <div style="color:var(--blue);font-size:20px">↔</div>
+        <div style="font-size:10px;color:var(--blue)">Tailscale VPN</div>
+      </div>
+      <div style="text-align:center">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;margin-bottom:4px">Mac Studio</div>
+        <div style="font-size:10px;color:var(--muted)">你的服务器</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+        <div style="color:var(--blue);font-size:20px">↔</div>
+        <div style="font-size:10px;color:var(--blue)">Tailscale VPN</div>
+      </div>
+      <div style="text-align:center">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;margin-bottom:4px">iPhone</div>
+        <div style="font-size:10px;color:var(--muted)">你的手机</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+        <div style="color:var(--purple);font-size:20px">🔗</div>
+        <div style="font-size:10px;color:var(--purple)">统一控制</div>
+      </div>
+      <div style="text-align:center">
+        <div style="background:var(--blue);border-radius:8px;padding:10px 16px;font-size:12px;margin-bottom:4px;color:#fff;font-weight:600">Hermes Agent</div>
+        <div style="font-size:10px;color:var(--muted)">任何设备访问</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>💡 核心使用场景</h3>
+    <div style="font-size:12px;line-height:2">
+      <div>📱 <span class="hl hl-b">手机取文件</span> — 在手机上让 Hermes 从电脑取文件</div>
+      <div>🖥 <span class="hl hl-y">LLM 调用</span> — 在一台电脑上安装本地 LLM，另一台直接调用</div>
+      <div>🧪 <span class="hl hl-g">跨设备测试</span> — 在 MacBook 上 vibe coding，在 iPhone 上测试</div>
+      <div>🌍 <span class="hl hl-purple">远程访问</span> — 任何地方访问家里电脑的 localhost</div>
+    </div>
+    <div style="margin-top:12px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--green)">
+      ✅ Tailscale 完全免费，支持所有主流平台（macOS/iOS/Windows/Linux）
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: UC6 -->
+<div id="page-uc6" class="page">
+  <div class="card">
+    <div class="uc-header">
+      <div class="uc-icon">🌅</div>
+      <div>
+        <div class="uc-title">Morning Priority Prompt</div>
+        <div class="uc-subtitle">每日 Context 注入 · Agent 自我改进</div>
+      </div>
+    </div>
+    <div class="uc-desc">
+      每天早上 9 点，Agent 主动问你当天最重要的一件事。通过每日回答，Agent 越来越了解你，工作越来越个性化。
+    </div>
+    <div style="margin-top:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;line-height:1.8">
+      <div style="color:var(--blue);margin-bottom:6px;font-weight:600">📋 Morning Priority Prompt（直接可用）</div>
+      <div style="font-family:monospace;font-size:11px;color:var(--muted)">
+        Every morning at 9:00 AM, ask me what my number one priority is for that day.<br>
+        Then, come up with tasks you can do to help me with that priority.<br>
+        Then, update your memories about me accordingly.
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>🔄 每日增强循环</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:center;padding:10px 0">
+        <div style="text-align:center">
+          <div style="background:var(--yellow);color:#000;padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600">🌅 9AM 提问</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">今天最重要的事？</div>
+        </div>
+        <div style="color:var(--blue);font-size:20px">↓</div>
+        <div style="text-align:center">
+          <div style="background:var(--blue);padding:6px 16px;border-radius:8px;font-size:12px">🧠 Context 更新</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Agent 更新对你的记忆</div>
+        </div>
+        <div style="color:var(--blue);font-size:20px">↓</div>
+        <div style="text-align:center">
+          <div style="background:var(--green);color:#000;padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600">📈 越来越懂你</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">个性化程度持续提升</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>💎 长期价值</h3>
+      <div style="font-size:12px;line-height:2">
+        <div><span class="hl hl-b">30天后</span> — Agent 掌握你的工作模式</div>
+        <div><span class="hl hl-y">90天后</span> — Agent 能预测你的需求</div>
+        <div><span class="hl hl-g">180天后</span> — Agent 成为真正的数字分身</div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--muted)">
+        关键是每天坚持回答，日积月累的 context 让 Agent 越来越精准。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: PROMPTS -->
+<div id="page-prompts" class="page">
+  <div class="card">
+    <h3>📋 Prompt 库（可直接 Copy 使用）</h3>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--yellow)">🎯 Metaprompting for /goal</h3>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;line-height:1.8;color:var(--muted);font-family:monospace;margin-top:10px">
+I want to do a slash goal with you. But first, I want to come up with the perfect prompt for it. I'm looking to build [YOUR PROJECT DETAILS]. Please build me a /goal prompt for this.</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">先让 AI 写 prompt，再执行 /goal，跑 24h+ 不间断</div>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--blue)">📋 Memory Wiki</h3>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;line-height:1.8;color:var(--muted);font-family:monospace;margin-top:10px">
+I want to build a memory wiki. This should be a site I can visit that has:
+- A list of all the subjects we've talked about
+- Daily logs of what we've done together
+- I should be able to click on any subject or daily log and get more details</div>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--green)">🌅 Morning Priority (配合 Cron Job)</h3>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;line-height:1.8;color:var(--muted);font-family:monospace;margin-top:10px">
+Every morning at 9:00 AM, ask me what my number one priority is for that day. Then, come up with tasks you can do to help me with that priority. Then, update your memories about me accordingly.</div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted)">建议配合 cron job 每天 9:00 AM 自动触发</div>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--purple)">🔍 竞品调研</h3>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:11px;line-height:1.8;color:var(--muted);font-family:monospace;margin-top:10px">
+Open a browser and go to [COMPETITOR-URL]. Do a full research and technical breakdown of the site. What stack does it use? How does it work? Which features does it have? What can we emulate?</div>
+  </div>
+</div>
+
+<!-- PAGE: CHARTS -->
+<div id="page-charts" class="page">
+  <div class="card">
+    <h3>📊 Use Cases 多维度分析</h3>
+    <div class="chart-wrap tall">
+      <canvas id="chart-radar"></canvas>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>⏱ 预计节省时间（每周）</h3>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="chart-time"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🎯 实施难度</h3>
+      <div style="padding:10px 0">
+        <div class="comp-row">
+          <div class="comp-lbl">UC1: /goal</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:25%;background:var(--green)"></div></div>
+          <div class="comp-val" style="color:var(--green)">低</div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-lbl">UC2: Kanban</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:20%;background:var(--green)"></div></div>
+          <div class="comp-val" style="color:var(--green)">低</div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-lbl">UC3: 竞品调研</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:35%;background:var(--yellow)"></div></div>
+          <div class="comp-val" style="color:var(--yellow)">中</div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-lbl">UC4: Memory Wiki</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:30%;background:var(--green)"></div></div>
+          <div class="comp-val" style="color:var(--green)">低</div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-lbl">UC5: Tailscale</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:40%;background:var(--yellow)"></div></div>
+          <div class="comp-val" style="color:var(--yellow)">中</div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-lbl">UC6: Morning</div>
+          <div class="comp-bar"><div class="comp-fill" style="width:15%;background:var(--green)"></div></div>
+          <div class="comp-val" style="color:var(--green)">低</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Source: <a href="https://www.youtube.com/watch?v=AQHlyGA2cZM" style="color:var(--blue)">Alex Finn — 6 Hermes Agent Use Cases</a> · Hermes Agent Pipeline
+</div>
+</div>
+
+<script>
+// ── Page Navigation ──────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Chart.js defaults ──────────────────────────────────────
+Chart.defaults.color = '#9ca3af';
+Chart.defaults.borderColor = '#1f2937';
+Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+
+// ── Radar: Use Cases Matrix ─────────────────────────────
+new Chart(document.getElementById('chart-matrix'), {
+  type: 'bar',
+  data: {
+    labels: ['/goal', 'Kanban', '竞品调研', 'Memory Wiki', 'Tailscale', 'Morning'],
+    datasets: [
+      { label: 'ROI (收益)', data: [95, 80, 70, 90, 60, 75], backgroundColor: 'rgba(251,191,36,0.7)', borderRadius: 4 },
+      { label: '易用性', data: [70, 90, 60, 75, 55, 95], backgroundColor: 'rgba(96,165,250,0.7)', borderRadius: 4 },
+      { label: '长期价值', data: [85, 65, 50, 95, 80, 90], backgroundColor: 'rgba(52,211,153,0.7)', borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } } }
+  }
+});
+
+// ── Radar: 6D Analysis ──────────────────────────────────
+new Chart(document.getElementById('chart-radar'), {
+  type: 'radar',
+  data: {
+    labels: ['时间节省', '实施难度', '长期价值', '立即可用', '协同效应', '自我改进'],
+    datasets: [
+      { label: '/goal', data: [90, 25, 85, 70, 80, 40], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', pointBackgroundColor: '#fbbf24' },
+      { label: 'Kanban', data: [80, 20, 65, 95, 90, 30], borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)', pointBackgroundColor: '#60a5fa' },
+      { label: '竞品调研', data: [70, 35, 50, 60, 95, 20], borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,0.1)', pointBackgroundColor: '#a78bfa' },
+      { label: 'Memory Wiki', data: [40, 30, 95, 75, 60, 90], borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,0.1)', pointBackgroundColor: '#34d399' },
+      { label: 'Tailscale', data: [60, 40, 80, 55, 70, 50], borderColor: '#22d3ee', backgroundColor: 'rgba(34,211,238,0.1)', pointBackgroundColor: '#22d3ee' },
+      { label: 'Morning', data: [50, 15, 90, 90, 65, 95], borderColor: '#f472b6', backgroundColor: 'rgba(244,114,182,0.1)', pointBackgroundColor: '#f472b6' },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 25 } } }
+  }
+});
+
+// ── /goal Task Scale vs Time ────────────────────────────
+new Chart(document.getElementById('chart-goal'), {
+  type: 'line',
+  data: {
+    labels: ['简单App', '中型App', '复杂App', '超复杂系统', '企业级平台'],
+    datasets: [{
+      label: '预计运行时间',
+      data: [2, 8, 24, 72, 168],
+      borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)',
+      fill: true, tension: 0.4,
+      pointBackgroundColor: '#60a5fa'
+    }, {
+      label: '人工所需时间',
+      data: [8, 40, 160, 640, 2000],
+      borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.1)',
+      fill: true, tension: 0.4,
+      pointBackgroundColor: '#f87171'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: { title: { display: true, text: '小时' }, beginAtZero: true },
+      x: { title: { display: true, text: '任务规模' } }
+    }
+  }
+});
+
+// ── Time Saved Per Week ────────────────────────────────
+new Chart(document.getElementById('chart-time'), {
+  type: 'doughnut',
+  data: {
+    labels: ['/goal', 'Kanban', '竞品调研', 'Memory Wiki', 'Tailscale', 'Morning'],
+    datasets: [{
+      data: [10, 8, 4, 2, 3, 5],
+      backgroundColor: ['#fbbf24','#60a5fa','#a78bfa','#34d399','#22d3ee','#f472b6'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+      title: { display: true, text: '每周节省小时数', color: '#9ca3af', font: { size: 12 } }
+    }
+  }
+});
+</script>
+</body>
+</html>
