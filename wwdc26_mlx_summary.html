@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWDC26 MLX Local Agentic AI</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.7; padding: 2rem; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+  h2 { font-size: 1.15rem; color: var(--text); margin: 1.5rem 0 0.5rem; }
+  h3 { font-size: 1rem; color: var(--text-muted); margin: 1rem 0 0.3rem; }
+  p { color: var(--text); margin: 0.4rem 0; }
+  .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .highlight { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.9rem; }
+  th { text-align: left; background: var(--surface); color: var(--accent); padding: 0.5rem 0.75rem; border: 1px solid var(--border); }
+  td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); color: var(--text); }
+  td:first-child { color: var(--text-muted); font-size: 0.85rem; }
+  ul { margin: 0.4rem 0 0.4rem 1.2rem; }
+  li { margin: 0.2rem 0; color: var(--text); font-size: 0.9rem; }
+  code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.82rem; color: var(--green); font-family: 'SF Mono', Menlo, monospace; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem; overflow-x: auto; margin: 0.6rem 0; }
+  pre code { background: none; border: none; padding: 0; color: var(--green); font-size: 0.82rem; }
+  .badge { display: inline-block; background: var(--accent); color: var(--bg); font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 20px; font-weight: 600; margin-right: 0.3rem; }
+  .challenge-box { background: var(--surface); border-left: 3px solid var(--orange); padding: 0.8rem 1rem; margin: 0.8rem 0; border-radius: 0 6px 6px 0; }
+  .solution-box { background: var(--surface); border-left: 3px solid var(--green); padding: 0.8rem 1rem; margin: 0.5rem 0 0.5rem 1rem; border-radius: 0 6px 6px 0; }
+  .metric { display: flex; gap: 1.5rem; margin: 1rem 0; }
+  .metric-item { text-align: center; }
+  .metric-num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+  .comparison-col { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem; }
+  .comparison-col h4 { font-size: 0.85rem; margin-bottom: 0.4rem; }
+  .check { color: var(--green); }
+  .cross { color: var(--red); }
+</style>
+</head>
+<body>
+
+<h1>WWDC26: Run Local Agentic AI on Mac using MLX</h1>
+<p class="meta">演讲者：Angeles，MLX 团队工程师 &nbsp;|&nbsp; 平台：WWDC26 &nbsp;|&nbsp; 工具：MLX LLM Server + 本地模型</p>
+
+<div class="highlight">
+  <strong style="color: var(--accent)">核心主张</strong>
+  <p style="margin-top: 0.4rem; font-size: 1.05rem;">完全本地运行，无云、无 API key，数据永不离开 Mac。</p>
+</div>
+
+<h2>🏗️ 四层技术栈</h2>
+<table>
+  <tr><th>层级</th><th>组件</th><th>职责</th></tr>
+  <tr><td>L4</td><td>Agent</td><td>Xcode Intelligence、Pie Agent 等任意 OpenAI Chat Completion Protocol 框架</td></tr>
+  <tr><td>L3</td><td>MLX LLM Server</td><td>OpenAI 兼容 API，支持 structured tool calling + reasoning models</td></tr>
+  <tr><td>L2</td><td>MLX LLM Library</td><td>加载、运行、量化、微调大语言模型</td></tr>
+  <tr><td>L1</td><td>MLX Core</td><td>Apple Silicon 高效计算底层框架</td></tr>
+</table>
+<p class="meta">生态：Ollama、LM Studio、vLLM 均基于 MLX 构建</p>
+
+<h2>⚡ 三大硬件挑战与解决方案</h2>
+
+<h3>1️⃣ Prompt Processing（提示词处理）</h3>
+<div class="challenge-box"><strong>挑战</strong>：Agentic session 含数十万 token，每次工具执行后模型都要重新处理全部上下文</div>
+<div class="solution-box"><strong>MLX 方案</strong>：M5 神经加速器矩阵乘法比 M4 快 <strong style="color:var(--green)">4x</strong>。MLX 专用 attention kernel 直接转化提速。<span style="color:var(--text-muted)">无需代码修改</span>，MLX 自动选择最优 kernel。</div>
+
+<h3>2️⃣ Concurrency（并发）</h3>
+<div class="challenge-box"><strong>挑战</strong>：Agent spawn 多个子 agent 并行（读文档 / 搜代码 / 写测试同时），多请求同时打到本地模型</div>
+<div class="solution-box"><strong>MLX 方案</strong>：<strong>Continuous Batching</strong> — 动态分组请求批量处理，新请求可加入进行中 batch，子 agent 不会因排队 stall</div>
+
+<h3>3️⃣ Model Size（模型体积）</h3>
+<div class="challenge-box"><strong>挑战</strong>：单 Mac 内存有限（如 DeepSeek 1.6T 参数需 800GB+ 显存）</div>
+<div class="solution-box"><strong>MLX 方案</strong>：<strong>分布式推理</strong> — 多 Mac 通过 Thunderbolt/以太网共享模型。<br>macOS 26.2 新增 <strong>Thunderbolt RDMA</strong>（低延迟高带宽），4 节点提速最高 <strong style="color:var(--green)">3x</strong></div>
+
+<h2>📊 关键数据</h2>
+<div class="metric">
+  <div class="metric-item"><div class="metric-num">4x</div><div class="metric-label">M5 vs M4 矩阵乘法提速</div></div>
+  <div class="metric-item"><div class="metric-num">3x</div><div class="metric-label">4节点分布式推理提速</div></div>
+  <div class="metric-item"><div class="metric-num">1.6T</div><div class="metric-label">DeepSeek 最大参数量</div></div>
+  <div class="metric-item"><div class="metric-num">800GB+</div><div class="metric-label">1.6T模型所需最小内存</div></div>
+  <div class="metric-item"><div class="metric-num">~2min</div><div class="metric-label">iPad绘图App初版构建</div></div>
+</div>
+
+<h2>🎬 三个 Demo</h2>
+
+<div class="highlight">
+  <strong>Demo 1: GitHub PR Summary</strong>
+  <p>Agent 自动抓取 PR、总结变更、标记重点（read &amp; report）</p>
+</div>
+
+<div class="highlight">
+  <strong>Demo 2: 从空白 Xcode 项目构建 iPad 绘图 App</strong>
+  <ul>
+    <li>从零创建 SwiftUI 绘图 App，<strong>2 分钟</strong>完成第一版</li>
+    <li>Agent：探索目录 → 制定计划 → 写代码 → 编译 → <strong>自动修复错误</strong></li>
+    <li>迭代修改：添加圆角端点（rounded end caps）</li>
+    <li>全程本地：MLX LLM Server + <code>xcodebuild</code> 验证</li>
+  </ul>
+</div>
+
+<div class="highlight">
+  <strong>Demo 3: Xcode 内直接集成</strong>
+  <ul>
+    <li>Settings → Intelligence → App Chat Provider → 选择本地托管</li>
+    <li>Port 设为 8080，Xcode 即可对话本地模型</li>
+    <li>读取项目文件、理解编译错误、精准修复 bug</li>
+    <li><strong>代码永不离开本机</strong></li>
+  </ul>
+</div>
+
+<h2>🚀 安装步骤</h2>
+<pre><code># 1. 安装
+pip install mlx-lm
+
+# 2. 启动 server
+mlx_lm.server --model &lt;model_name&gt;
+
+# 3. Agent 端配置指向
+http://localhost:8080/v1</code></pre>
+
+<h2>⚖️ 本地 vs 云端对比</h2>
+<div class="comparison">
+  <div class="comparison-col">
+    <h4 style="color: var(--green)">✅ 本地 MLX</h4>
+    <ul>
+      <li><span class="check">✔</span> 数据完全本地</li>
+      <li><span class="check">✔</span> 无需 API Key</li>
+      <li><span class="check">✔</span> 无网络延迟</li>
+      <li><span class="cross">✗</span> 受 Mac 内存限制</li>
+    </ul>
+  </div>
+  <div class="comparison-col">
+    <h4 style="color: var(--orange)">☁️ 云端 API</h4>
+    <ul>
+      <li><span class="cross">✗</span> 数据需上传</li>
+      <li><span class="check">✔</span> 需要 API Key</li>
+      <li><span class="cross">✗</span> 受网络延迟影响</li>
+      <li><span class="check">✔</span> 可用任意大模型</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
