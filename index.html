@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrick's Daily Reports</title>
+<meta name="description" content="Patrick 自动生成的 HTML 报告 / 日报 / 数据可视化 — 每日更新">
+<meta name="author" content="Patrick">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+         background: #0d0d10; color: #e8e8ea; line-height: 1.7;
+         max-width: 860px; margin: 2rem auto; padding: 1rem 1.5rem; }
+  h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f);
+       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+       background-clip: text; margin: 0 0 0.5rem; }
+  .subtitle { color: #9a9aa6; margin-bottom: 2rem; }
+  #reports { list-style: none; padding: 0; }
+  #reports li { background: #16161b; border: 1px solid #2a2a32;
+                border-left: 3px solid #ff6b35; border-radius: 8px;
+                padding: 0.8rem 1rem; margin-bottom: 0.5rem; }
+  #reports a { color: #e8e8ea; text-decoration: none; font-weight: 500; }
+  #reports a:hover { color: #ff6b35; }
+  #reports .meta { color: #6a6a76; font-size: 0.8rem; margin-top: 0.3rem; }
+  #empty { color: #6a6a76; font-style: italic; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #2a2a32;
+           color: #6a6a76; font-size: 0.82rem; }
+  footer a { color: #60a5fa; }
+</style>
+</head>
+<body>
+  <h1>📚 Patrick's Daily Reports</h1>
+  <p class="subtitle">每日自动生成的 HTML 报告 / 调研 / 数据可视化</p>
+  <ul id="reports"><li id="empty">Loading...</li></ul>
+  <footer>
+    <p>由 <a href="https://github.com/polyglotszeng">Patrick</a> 自动生成 ·
+       部署于 <a href="https://pages.cloudflare.com/">Cloudflare Pages</a> ·
+       <a href="rss.xml">RSS</a></p>
+  </footer>
+<script>
+fetch('reports.json')
+  .then(r => r.ok ? r.json() : [])
+  .then(reports => {
+    const ul = document.getElementById('reports');
+    if (reports.length === 0) {
+      ul.innerHTML = '<li id="empty">暂无报告 — 等 Hermes 生成第一个 HTML 报告</li>';
+      return;
+    }
+    ul.innerHTML = '';
+    reports.forEach(r => {
+      const li = document.createElement('li');
+      const dateStr = new Date(r.date).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'});
+      li.innerHTML = `<a href="${r.file}">${r.title}</a>
+                      <div class="meta">📅 ${dateStr}${r.tags ? ' · 🏷️ ' + r.tags.join(', ') : ''}</div>`;
+      ul.appendChild(li);
+    });
+  })
+  .catch(() => {
+    document.getElementById('reports').innerHTML = '<li id="empty">暂无报告</li>';
+  });
+</script>
+</body>
+</html>
