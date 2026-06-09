@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Routing Strategy — 多模型协作</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e0e0e8;
+    --muted: #6b6b80;
+    --fast: #00d4ff;
+    --grok: #a855f7;
+    --claude: #f97316;
+    --green: #22c55e;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, var(--fast), var(--grok), var(--claude));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  /* Profile Cards */
+  .profiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  
+  .card.fast::before { background: var(--fast); }
+  .card.grok::before { background: var(--grok); }
+  .card.claude::before { background: var(--claude); }
+  
+  .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .card.fast .card-icon { background: rgba(0,212,255,0.15); }
+  .card.grok .card-icon { background: rgba(168,85,247,0.15); }
+  .card.claude .card-icon { background: rgba(249,115,22,0.15); }
+  
+  .card-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  
+  .card.fast .card-name { color: var(--fast); }
+  .card.grok .card-name { color: var(--grok); }
+  .card.claude .card-name { color: var(--claude); }
+  
+  .card-model {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    font-family: 'SF Mono', monospace;
+  }
+  
+  .card-desc {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+  
+  .card-cmds {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  
+  .cmd {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-family: 'SF Mono', monospace;
+    color: var(--muted);
+  }
+  
+  .cmd span { color: var(--text); }
+  
+  /* Workflow Demo */
+  .workflow-section {
+    margin-bottom: 3rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .section-title::before {
+    content: '';
+    width: 4px; height: 20px;
+    background: linear-gradient(180deg, var(--fast), var(--claude));
+    border-radius: 2px;
+  }
+  
+  .workflow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .workflow-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .workflow-task {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+  
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .flow-step .role {
+    font-weight: 600;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+  }
+  
+  .flow-step.fast .role { background: rgba(0,212,255,0.2); color: var(--fast); }
+  .flow-step.grok .role { background: rgba(168,85,247,0.2); color: var(--grok); }
+  .flow-step.claude .role { background: rgba(249,115,22,0.2); color: var(--claude); }
+  
+  .flow-step .action {
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+  
+  .flow-arrow {
+    color: var(--muted);
+    font-size: 1.2rem;
+  }
+  
+  .output {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    color: var(--green);
+  }
+  
+  .output-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+  }
+  
+  /* Stats Bar */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--fast), var(--grok));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .stat-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  
+  /* Comparison Table */
+  .comparison {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  .comparison table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .comparison th {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .comparison td {
+    padding: 1rem 1.5rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .comparison tr:last-child td { border-bottom: none; }
+  
+  .comparison .tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  
+  .tag-fast { background: rgba(0,212,255,0.15); color: var(--fast); }
+  .tag-grok { background: rgba(168,85,247,0.15); color: var(--grok); }
+  .tag-claude { background: rgba(249,115,22,0.15); color: var(--claude); }
+  .tag-all { background: rgba(255,255,255,0.1); color: var(--text); }
+  
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+  
+  .badge-yes { background: rgba(34,197,94,0.2); color: var(--green); }
+  .badge-no { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .badge-var { background: rgba(251,191,36,0.2); color: #fbbf24; }
+</style>
+</head>
+<body>
+
+<h1>多模型协作策略</h1>
+<p class="subtitle">Model Routing Strategy — 3 Profiles 协同工作流可视化</p>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-value">3</div>
+    <div class="stat-label">Profile 实例</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">2</div>
+    <div class="stat-label">API Provider</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">1</div>
+    <div class="stat-label">共用 CLI</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">∞</div>
+    <div class="stat-label">组合方式</div>
+  </div>
+</div>
+
+<!-- Profile Cards -->
+<div class="profiles">
+  
+  <div class="card fast">
+    <div class="card-icon">⚡</div>
+    <div class="card-name">fast</div>
+    <div class="card-model">MiniMax-M2.7-highspeed</div>
+    <div class="card-desc">极速响应，适合巡逻监控、轻量查询、文件处理、天气查询等日常任务。</div>
+    <div class="card-cmds">
+      <div class="cmd"><span>fast -z</span> "杭州天气"</div>
+      <div class="cmd"><span>fast chat</span> 交互模式</div>
+    </div>
+  </div>
+  
+  <div class="card grok">
+    <div class="card-icon">🔍</div>
+    <div class="card-name">grok</div>
+    <div class="card-model">GPT-4o-mini · OpenRouter</div>
+    <div class="card-desc">深度研究、长文档分析、论文评审、多角度对比分析。</div>
+    <div class="card-cmds">
+      <div class="cmd"><span>hermes -p grok -z</span> "分析这篇论文"</div>
+      <div class="cmd"><span>hermes -p grok chat</span> 交互模式</div>
+    </div>
+  </div>
+  
+  <div class="card claude">
+    <div class="card-icon">🔧</div>
+    <div class="card-name">claude</div>
+    <div class="card-model">GPT-4o-mini · OpenRouter</div>
+    <div class="card-desc">复杂代码调试、架构设计、代码审查、多文件重构。</div>
+    <div class="card-cmds">
+      <div class="cmd"><span>hermes -p claude -z</span> "审查这段代码"</div>
+      <div class="cmd"><span>hermes -p claude chat</span> 交互模式</div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Collaboration Workflows -->
+<div class="workflow-section">
+  <div class="section-title">协作工作流</div>
+  
+  <div class="workflow">
+    <div class="workflow-title">工作流 1：深度代码审查 + 修复</div>
+    <div class="workflow-task">任务：对一个 Python 项目进行安全审计并生成修复补丁</div>
+    <div class="flow">
+      <div class="flow-step fast">
+        <span class="role">fast</span>
+        <span class="action">文件扫描 + 快速分类</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step claude">
+        <span class="role">claude</span>
+        <span class="action">深度安全审查 + 生成修复</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step grok">
+        <span class="role">grok</span>
+        <span class="action">审查修复方案 + 补充建议</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="output">
+        <div class="output-label">最终输出</div>
+        安全审计报告 + 修复补丁
+      </div>
+    </div>
+  </div>
+  
+  <div class="workflow">
+    <div class="workflow-title">工作流 2：论文研究流水线</div>
+    <div class="workflow-task">任务：追踪领域最新论文并生成摘要报告</div>
+    <div class="flow">
+      <div class="flow-step grok">
+        <span class="role">grok</span>
+        <span class="action">arXiv API 获取最新论文</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step grok">
+        <span class="role">grok</span>
+        <span class="action">并行摘要 + 关键发现提取</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step claude">
+        <span class="role">claude</span>
+        <span class="action">对比分析 + 趋势判断</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step fast">
+        <span class="role">fast</span>
+        <span class="action">格式化输出 + 归档 Obsidian</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="output">
+        <div class="output-label">最终输出</div>
+        结构化论文报告
+      </div>
+    </div>
+  </div>
+  
+  <div class="workflow">
+    <div class="workflow-title">工作流 3：Cron 自动化协作</div>
+    <div class="workflow-task">任务：每日定时情报收集 + 分析 + 推送</div>
+    <div class="flow">
+      <div class="flow-step fast">
+        <span class="role">fast</span>
+        <span class="action">Cron 巡逻：HN + arXiv</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step grok">
+        <span class="role">grok</span>
+        <span class="action">深度分析 + 洞察提取</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step fast">
+        <span class="role">fast</span>
+        <span class="action">汇总 + 推送 Telegram</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="output">
+        <div class="output-label">最终输出</div>
+        每日情报简报
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<!-- Comparison Table -->
+<div class="section-title">能力对比</div>
+<div class="comparison">
+  <table>
+    <thead>
+      <tr>
+        <th>任务类型</th>
+        <th>fast</th>
+        <th>grok</th>
+        <th>claude</th>
+        <th>推荐组合</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>快速查询 / 天气 / 计算</td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="tag tag-fast">fast</span></td>
+      </tr>
+      <tr>
+        <td>Cron 巡逻 / 监控</td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="badge badge-no">✗ 浪费</span></td>
+        <td><span class="tag tag-fast">fast</span></td>
+      </tr>
+      <tr>
+        <td>长文档摘要 / 论文分析</td>
+        <td><span class="badge badge-no">✗ 上下文不足</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="tag tag-grok">grok</span></td>
+      </tr>
+      <tr>
+        <td>代码调试 / 复杂重构</td>
+        <td><span class="badge badge-no">✗ 深度不足</span></td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="tag tag-claude">claude</span></td>
+      </tr>
+      <tr>
+        <td>多语言 / 跨文化分析</td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="tag tag-grok tag-claude">grok + claude</span></td>
+      </tr>
+      <tr>
+        <td>架构设计 / 系统评审</td>
+        <td><span class="badge badge-no">✗ 不适合</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="tag tag-claude">claude</span></td>
+      </tr>
+      <tr>
+        <td>数据可视化 / 图表生成</td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="badge badge-var">~ 可用</span></td>
+        <td><span class="badge badge-yes">✓ 最优</span></td>
+        <td><span class="tag tag-all">任意组合</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- How It Works -->
+<div class="section-title">技术原理</div>
+<div class="comparison">
+  <table>
+    <thead>
+      <tr>
+        <th>组件</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Profile 隔离</td>
+        <td>每个 profile 独立 config.yaml + .env，HERMES_HOME 隔离，credentials 不泄露</td>
+      </tr>
+      <tr>
+        <td>CLI 别名</td>
+        <td><code>fast</code> → <code>hermes -p fast</code>，零延迟切换模型</td>
+      </tr>
+      <tr>
+        <td>Cron 模型指定</td>
+        <td><code>--model minimax/MiniMax-M2.7-highspeed</code> 精确指定每 job 模型</td>
+      </tr>
+      <tr>
+        <td>delegate_task 路由</td>
+        <td>Orchestrator subagent 可根据任务类型 spawn 指定 profile 的 agent</td>
+      </tr>
+      <tr>
+        <td>凭证管理</td>
+        <td>auth.json 统一管理所有 provider credentials，profile 共享认证状态</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
