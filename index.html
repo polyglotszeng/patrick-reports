@@ -3,46 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patrick's Daily Reports — 每日报告</title>
-  <meta name="description" content="每日自动生成的 HTML 报告 / 调研 / 数据可视化。深色主题、无追踪、永久 URL。">
+  <title>Patrick's Daily Reports — 每日报告 / 论文笔记</title>
+  <meta name="description" content="每日自动生成的 HTML 报告 + arXiv 论文笔记（世界模型、机器人、视频生成）。深色主题、无追踪、永久 URL。">
   <meta property="og:title" content="Patrick's Daily Reports">
-  <meta property="og:description" content="每日自动生成的 HTML 报告 / 调研 / 数据可视化">
+  <meta property="og:description" content="每日报告 / arXiv 论文笔记 / 数据可视化">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://patrick-reports.patrick-l-zeng.workers.dev/">
   <link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="/rss.xml">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:780px;margin:0 auto;padding:48px 24px;background:#0d0d10;color:#e8e8ea;line-height:1.7}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:820px;margin:0 auto;padding:48px 24px;background:#0d0d10;color:#e8e8ea;line-height:1.7}
     h1{font-size:42px;font-weight:800;background:linear-gradient(135deg,#ff8a3d 0%,#ffd29d 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}
-    .sub{color:#888;font-size:14px;margin-bottom:40px}
+    .sub{color:#888;font-size:14px;margin-bottom:32px}
+    .stats{color:#666;font-size:12px;margin-bottom:24px;padding:10px 14px;background:#16161b;border:1px solid #26262e;border-radius:8px}
+    .stats b{color:#ff8a3d}
+    .filter{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .filter button{background:#16161b;border:1px solid #26262e;color:#a0a0a8;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;transition:all .15s}
+    .filter button:hover{border-color:#ff8a3d;color:#ff8a3d}
+    .filter button.active{background:#ff8a3d;color:#0d0d10;border-color:#ff8a3d;font-weight:600}
     .reports{list-style:none}
-    .reports li{margin:20px 0;padding:18px 20px;background:#16161b;border:1px solid #26262e;border-radius:10px;transition:transform .15s,border-color .15s}
+    .reports li{margin:14px 0;padding:16px 18px;background:#16161b;border:1px solid #26262e;border-radius:10px;transition:transform .15s,border-color .15s}
     .reports li:hover{transform:translateX(4px);border-color:#ff8a3d}
-    .reports a{color:#ffa05a;text-decoration:none;font-weight:600;font-size:17px}
-    .reports .meta{display:block;color:#666;font-size:12px;margin-top:4px}
-    .reports .desc{color:#a0a0a8;font-size:14px;margin-top:8px;display:block}
+    .reports a{color:#ffa05a;text-decoration:none;font-weight:600;font-size:16px}
+    .reports .meta{display:inline-block;color:#666;font-size:11px;margin-left:8px}
+    .reports .cat{display:inline-block;background:#26262e;color:#888;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;text-transform:uppercase;letter-spacing:0.5px}
+    .reports .cat.papers{background:rgba(74,222,128,0.15);color:#4ade80}
+    .reports .desc{color:#a0a0a8;font-size:13px;margin-top:6px;display:block;line-height:1.5}
     footer{margin-top:60px;padding-top:20px;border-top:1px solid #26262e;color:#555;font-size:12px;text-align:center}
     footer a{color:#888;text-decoration:none;margin:0 8px}
+    .empty{color:#666;font-size:14px;padding:24px;text-align:center}
   </style>
 </head>
 <body>
   <h1>📚 Patrick's Daily Reports</h1>
-  <p class="sub">每日自动生成的 HTML 报告 · 调研 · 数据可视化</p>
+  <p class="sub">每日自动生成的 HTML 报告 · 调研 · 数据可视化 · arXiv 论文笔记</p>
+  <div class="stats" id="stats">加载中...</div>
+  <div class="filter">
+    <button class="active" data-cat="all">全部</button>
+    <button data-cat="reports">报告</button>
+    <button data-cat="papers">论文</button>
+  </div>
   <ul class="reports" id="reports"></ul>
   <footer>
-    由 Patrick 自动生成 · 部署于 <a href="https://pages.cloudflare.com">Cloudflare Pages</a> · <a href="/rss.xml">RSS</a>
+    由 Patrick 自动生成 · 部署于 <a href="https://pages.cloudflare.com">Cloudflare Pages</a> · <a href="/rss.xml">RSS</a> · <a href="/sitemap.xml">Sitemap</a>
   </footer>
   <script>
-    fetch('reports.json').then(r=>r.json()).then(d=>{
-      const ul=document.getElementById('reports');
-      d.forEach(rep=>{
-        const li=document.createElement('li');
-        li.innerHTML=`<a href="${rep.url}">${rep.title}</a><span class="meta">📅 ${rep.date}</span><span class="desc">${rep.description||''}</span>`;
-        ul.appendChild(li);
+    let allReports = [];
+    async function init() {
+      const res = await fetch('reports.json');
+      allReports = await res.json();
+      // 统计
+      const reports = allReports.filter(r => r.category !== 'papers');
+      const papers = allReports.filter(r => r.category === 'papers');
+      const tags = new Set();
+      allReports.forEach(r => (r.tags||[]).forEach(t => tags.add(t)));
+      document.getElementById('stats').innerHTML = `共 <b>${allReports.length}</b> 篇 · 报告 <b>${reports.length}</b> · 论文 <b>${papers.length}</b> · 标签 <b>${tags.size}</b> 个`;
+      render('all');
+      document.querySelectorAll('.filter button').forEach(b => {
+        b.addEventListener('click', () => {
+          document.querySelectorAll('.filter button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          render(b.dataset.cat);
+        });
       });
-    }).catch(()=>{
-      document.getElementById('reports').innerHTML='<li><a href="insect-learning-platforms-2026.html">insect learning platforms 2026</a></li><li><a href="wwdc26-summary.html">wwdc26 summary</a></li>';
-    });
+    }
+    function render(cat) {
+      const ul = document.getElementById('reports');
+      const list = cat === 'all' ? allReports : allReports.filter(r => (r.category||'reports') === cat);
+      if (list.length === 0) {
+        ul.innerHTML = '<li class="empty">没有匹配的记录</li>';
+        return;
+      }
+      ul.innerHTML = list.map(r => {
+        const cat = r.category || 'reports';
+        const desc = r.description ? r.description.substring(0, 250) : '';
+        return `<li>
+          <a href="${r.file}">${r.title}</a>
+          <span class="meta">📅 ${r.date}</span>
+          <span class="cat ${cat}">${cat === 'papers' ? '论文' : '报告'}</span>
+          <span class="desc">${desc}</span>
+        </li>`;
+      }).join('');
+    }
+    init();
   </script>
 </body>
 </html>
