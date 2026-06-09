@@ -228,6 +228,12 @@
       apiKey: '',
       badges: [],             // 解锁的勋章名
       childName: '小冒险家',
+      voiceInputEnabled: true,   // 语音输入开关
+      voiceOutputEnabled: true,  // 语音输出开关
+      voiceLang: 'zh-CN',         // 识别/朗读语言
+      voiceName: '',              // 朗读声音（中文女声优先）
+      voiceRate: 0.95,            // 朗读速度（适合儿童）
+      voicePitch: 1.1,            // 音调
     };
 
     function loadState() {
@@ -733,9 +739,17 @@
           </div>
           <div class="flex gap-2">
             <input id="chat-input" type="text" placeholder="${mode === 'A' ? '输入你的猜想...' : mode === 'B' ? '输入你的观点...' : '输入你想问的问题...'}" onkeydown="if(event.key==='Enter') sendChat('${mode}')" />
+            <button id="mic-btn" class="btn-ghost" onclick="toggleMic('${mode}')" title="语音输入" style="padding: 0.5rem 0.75rem; ${state.voiceInputEnabled === false || !SR ? 'display:none' : ''}">🎤</button>
             <button class="btn-primary" onclick="sendChat('${mode}')">发送</button>
           </div>
-          <p class="text-xs text-gray-500 mt-2">💡 提示：先告诉 AI 你的想法，AI 会给你线索 / 反驳 / 引导问题，但不会直接告诉你答案。</p>
+          <div class="flex gap-2 items-center mt-2">
+            <label class="text-xs text-gray-500 flex items-center gap-1">
+              <input type="checkbox" id="tts-toggle" ${state.voiceOutputEnabled !== false ? 'checked' : ''} onchange="state.voiceOutputEnabled = this.checked; saveState();">
+              <span>🔊 思考导师朗读回复</span>
+            </label>
+            <button id="tts-stop-btn" class="text-xs text-gray-500 underline" onclick="stopSpeak()" style="background:none;border:none;cursor:pointer;padding:0">⏹ 停止</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">💡 提示：可以打字，也可以按 🎤 说话。AI 回复会自动朗读出来。</p>
         </section>
 
         <section class="card mb-3">
@@ -846,6 +860,30 @@
               <input type="password" value="${escapeHtml(state.apiKey)}" placeholder="sk-..." oninput="state.apiKey=this.value;saveState()" />
             </label>
             <p class="text-xs text-gray-500 mt-1">💡 留空 = 总是用模拟 AI。Key 只存在浏览器本地，不会上传。</p>
+          </div>
+
+          <h3 class="font-bold mt-4 mb-2">🗣️ 语音设置</h3>
+          <div class="bg-orange-50 p-3 rounded-xl">
+            <label class="block mb-2 text-sm flex items-center gap-2">
+              <input type="checkbox" ${state.voiceInputEnabled ? 'checked' : ''} onchange="state.voiceInputEnabled=this.checked;saveState()" />
+              <span>🎤 启用语音输入（麦克风按钮）</span>
+            </label>
+            <label class="block mb-2 text-sm flex items-center gap-2">
+              <input type="checkbox" ${state.voiceOutputEnabled ? 'checked' : ''} onchange="state.voiceOutputEnabled=this.checked;saveState()" />
+              <span>🔊 启用语音输出（AI 回复自动朗读）</span>
+            </label>
+            <label class="block mb-2 text-sm">语言:
+              <select onchange="state.voiceLang=this.value;if(recognition)recognition.lang=this.value;saveState()">
+                <option value="zh-CN" ${state.voiceLang==='zh-CN'?'selected':''}>中文（简体）</option>
+                <option value="zh-TW" ${state.voiceLang==='zh-TW'?'selected':''}>中文（繁體）</option>
+                <option value="en-US" ${state.voiceLang==='en-US'?'selected':''}>English (US)</option>
+              </select>
+            </label>
+            <label class="block mb-2 text-sm">朗读速度: ${state.voiceRate.toFixed(2)}x
+              <input type="range" min="0.5" max="1.5" step="0.05" value="${state.voiceRate}" oninput="state.voiceRate=parseFloat(this.value);saveState();this.previousSibling.textContent='朗读速度: '+state.voiceRate.toFixed(2)+'x'" />
+            </label>
+            <button class="btn-ghost text-sm mt-2" onclick="testSpeak()">🔊 测试声音</button>
+            <p class="text-xs text-gray-500 mt-2">💡 浏览器支持：Chrome / Edge / Safari 14.5+ / 微信内置浏览器（部分）。如不支持，🎤 按钮会显示但提示不可用。</p>
           </div>
 
           <h3 class="font-bold mt-4 mb-2">🗓️ 关卡管理</h3>
@@ -1001,6 +1039,8 @@
       try {
         const reply = await aiRespond(mode, text, ctx);
         cs.chat[cs.chat.length - 1] = { from: 'ai', text: reply };
+        // 自动朗读 AI 回复（如果用户开启了 TTS）
+        if (state.voiceOutputEnabled) speak(reply);
       } catch (e) {
         cs.chat[cs.chat.length - 1] = { from: 'ai', text: `（出错了：${e.message}）` };
       }
@@ -1042,6 +1082,168 @@
       setTimeout(() => alert(`🎉 恭喜！挑战完成！\n+1⭐ +10 EXP\n当前: Lv.${state.level} · ${state.exp} EXP · ${state.stars}⭐`), 100);
     }
 
+    // =================== 5.7 语音输入 + 输出 (Web Speech API) ===================
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const TTS = window.speechSynthesis;
+    let recognition = null;
+    let isRecording = false;
+
+    function ensureRecognition() {
+      if (!SR) return null;
+      if (recognition) return recognition;
+      recognition = new SR();
+      recognition.lang = state.voiceLang || 'zh-CN';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (event) => {
+        let final = '';
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) final += t;
+          else interim += t;
+        }
+        const input = document.getElementById('chat-input');
+        if (input) {
+          // 保留已输入 + 追加识别结果
+          const existing = input.dataset.baseText || '';
+          input.value = existing + (existing && final ? ' ' : '') + (final + interim);
+        }
+      };
+      recognition.onerror = (e) => {
+        console.warn('SpeechRecognition error:', e.error);
+        setMicState(false);
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          alert('麦克风权限被拒绝。请在浏览器设置中允许麦克风访问。');
+        } else if (e.error === 'no-speech') {
+          // 静默 — 用户没说话
+        } else if (e.error !== 'aborted') {
+          alert('语音识别出错: ' + e.error);
+        }
+      };
+      recognition.onend = () => {
+        setMicState(false);
+      };
+      return recognition;
+    }
+
+    function setMicState(recording) {
+      isRecording = recording;
+      const btn = document.getElementById('mic-btn');
+      if (!btn) return;
+      if (recording) {
+        btn.textContent = '🔴 停止';
+        btn.style.background = '#fee2e2';
+        btn.style.borderColor = '#dc2626';
+        btn.style.color = '#dc2626';
+      } else {
+        btn.textContent = '🎤';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }
+    }
+
+    function toggleMic(mode) {
+      if (!SR) {
+        alert('你的浏览器不支持语音输入。\n建议用 Chrome / Edge / Safari 14.5+');
+        return;
+      }
+      if (isRecording) {
+        if (recognition) {
+          // 保存已确认文字作 base，下次继续追加
+          const input = document.getElementById('chat-input');
+          if (input) {
+            // 提取 final 部分作为 base
+            input.dataset.baseText = input.value.trim();
+          }
+          recognition.stop();
+        }
+        setMicState(false);
+        return;
+      }
+      const rec = ensureRecognition();
+      if (!rec) return;
+      try {
+        // 清空 input 之前的 base（开启新一次录音）
+        const input = document.getElementById('chat-input');
+        if (input) input.dataset.baseText = '';
+        rec.start();
+        setMicState(true);
+      } catch (e) {
+        console.warn('recognition.start failed:', e);
+        setMicState(false);
+      }
+    }
+
+    // ---- TTS ----
+    let cachedVoices = null;
+    function getVoices() {
+      if (cachedVoices) return cachedVoices;
+      if (!TTS) return [];
+      cachedVoices = TTS.getVoices();
+      return cachedVoices;
+    }
+    // 某些浏览器 voices 异步加载
+    if (TTS) {
+      TTS.onvoiceschanged = () => { cachedVoices = TTS.getVoices(); };
+    }
+
+    function pickChineseVoice() {
+      const voices = getVoices();
+      if (!voices.length) return null;
+      // 优先选择中文女声
+      const zh = voices.filter(v => /zh|cmn|chinese/i.test(v.lang) || /chinese|mandarin/i.test(v.name));
+      if (!zh.length) return voices[0];
+      // 优先 female
+      const female = zh.find(v => /female|woman|girl|tingting|xiaoxiao|yunxi|yunyang/i.test(v.name));
+      if (female) return female;
+      // 其次: Microsoft / Google 中文
+      const ms = zh.find(v => /microsoft|google/i.test(v.name));
+      if (ms) return ms;
+      return zh[0];
+    }
+
+    function cleanTextForSpeech(text) {
+      if (!text) return '';
+      // 去掉 markdown / emoji / 标点噪音，让朗读更自然
+      return text
+        .replace(/[🔦🛠️🤔❓✅💬📝🎉⭐🧠🤖🎤🔊⏹🔍💫💡🦎⚽🌟🥉🥈🥇🏆🔥💎]/g, ' ')
+        .replace(/[*_`#]/g, '')
+        .replace(/\n+/g, '。')
+        .replace(/\s+/g, ' ')
+        .replace(/。+/g, '。')
+        .trim();
+    }
+
+    function speak(text) {
+      if (!TTS || !state.voiceOutputEnabled) return;
+      TTS.cancel();
+      const cleaned = cleanTextForSpeech(text);
+      if (!cleaned) return;
+      const utter = new SpeechSynthesisUtterance(cleaned);
+      utter.lang = state.voiceLang || 'zh-CN';
+      utter.rate = state.voiceRate || 0.95;
+      utter.pitch = state.voicePitch || 1.1;
+      const v = pickChineseVoice();
+      if (v) utter.voice = v;
+      TTS.speak(utter);
+    }
+
+    function testSpeak() {
+      if (!TTS) { alert('你的浏览器不支持语音输出。'); return; }
+      // 临时强制开启
+      const wasEnabled = state.voiceOutputEnabled;
+      state.voiceOutputEnabled = true;
+      speak('你好！我是思考导师。今天我们来玩一个有趣的思考游戏吧。');
+      state.voiceOutputEnabled = wasEnabled;
+    }
+
+    function stopSpeak() {
+      if (TTS) TTS.cancel();
+    }
+
     // =================== 6. 路由 ===================
     window.addEventListener('hashchange', render);
     window.goHash = goHash;
@@ -1055,6 +1257,10 @@
     window.sendChat = sendChat;
     window.saveGuess = saveGuess;
     window.completeChallenge = completeChallenge;
+    window.toggleMic = toggleMic;
+    window.speak = speak;
+    window.stopSpeak = stopSpeak;
+    window.testSpeak = testSpeak;
 
     // 首次渲染
     render();
