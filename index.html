@@ -1,64 +1,48 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Patrick's Daily Reports</title>
-<meta name="description" content="Patrick 自动生成的 HTML 报告 / 日报 / 数据可视化 — 每日更新">
-<meta name="author" content="Patrick">
-<link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-         background: #0d0d10; color: #e8e8ea; line-height: 1.7;
-         max-width: 860px; margin: 2rem auto; padding: 1rem 1.5rem; }
-  h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f);
-       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-       background-clip: text; margin: 0 0 0.5rem; }
-  .subtitle { color: #9a9aa6; margin-bottom: 2rem; }
-  #reports { list-style: none; padding: 0; }
-  #reports li { background: #16161b; border: 1px solid #2a2a32;
-                border-left: 3px solid #ff6b35; border-radius: 8px;
-                padding: 0.8rem 1rem; margin-bottom: 0.5rem; }
-  #reports a { color: #e8e8ea; text-decoration: none; font-weight: 500; }
-  #reports a:hover { color: #ff6b35; }
-  #reports .meta { color: #6a6a76; font-size: 0.8rem; margin-top: 0.3rem; }
-  #empty { color: #6a6a76; font-style: italic; }
-  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #2a2a32;
-           color: #6a6a76; font-size: 0.82rem; }
-  footer a { color: #60a5fa; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patrick's Daily Reports — 每日报告</title>
+  <meta name="description" content="每日自动生成的 HTML 报告 / 调研 / 数据可视化。深色主题、无追踪、永久 URL。">
+  <meta property="og:title" content="Patrick's Daily Reports">
+  <meta property="og:description" content="每日自动生成的 HTML 报告 / 调研 / 数据可视化">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://patrick-reports.pages.dev/">
+  <link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="/rss.xml">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:780px;margin:0 auto;padding:48px 24px;background:#0d0d10;color:#e8e8ea;line-height:1.7}
+    h1{font-size:42px;font-weight:800;background:linear-gradient(135deg,#ff8a3d 0%,#ffd29d 100%);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}
+    .sub{color:#888;font-size:14px;margin-bottom:40px}
+    .reports{list-style:none}
+    .reports li{margin:20px 0;padding:18px 20px;background:#16161b;border:1px solid #26262e;border-radius:10px;transition:transform .15s,border-color .15s}
+    .reports li:hover{transform:translateX(4px);border-color:#ff8a3d}
+    .reports a{color:#ffa05a;text-decoration:none;font-weight:600;font-size:17px}
+    .reports .meta{display:block;color:#666;font-size:12px;margin-top:4px}
+    .reports .desc{color:#a0a0a8;font-size:14px;margin-top:8px;display:block}
+    footer{margin-top:60px;padding-top:20px;border-top:1px solid #26262e;color:#555;font-size:12px;text-align:center}
+    footer a{color:#888;text-decoration:none;margin:0 8px}
+  </style>
 </head>
 <body>
   <h1>📚 Patrick's Daily Reports</h1>
-  <p class="subtitle">每日自动生成的 HTML 报告 / 调研 / 数据可视化</p>
-  <ul id="reports"><li id="empty">Loading...</li></ul>
+  <p class="sub">每日自动生成的 HTML 报告 · 调研 · 数据可视化</p>
+  <ul class="reports" id="reports"></ul>
   <footer>
-    <p>由 <a href="https://github.com/polyglotszeng">Patrick</a> 自动生成 ·
-       部署于 <a href="https://pages.cloudflare.com/">Cloudflare Pages</a> ·
-       <a href="rss.xml">RSS</a></p>
+    由 Patrick 自动生成 · 部署于 <a href="https://pages.cloudflare.com">Cloudflare Pages</a> · <a href="/rss.xml">RSS</a>
   </footer>
-<script>
-fetch('reports.json')
-  .then(r => r.ok ? r.json() : [])
-  .then(reports => {
-    const ul = document.getElementById('reports');
-    if (reports.length === 0) {
-      ul.innerHTML = '<li id="empty">暂无报告 — 等 Hermes 生成第一个 HTML 报告</li>';
-      return;
-    }
-    ul.innerHTML = '';
-    reports.forEach(r => {
-      const li = document.createElement('li');
-      const dateStr = new Date(r.date).toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric'});
-      li.innerHTML = `<a href="${r.file}">${r.title}</a>
-                      <div class="meta">📅 ${dateStr}${r.tags ? ' · 🏷️ ' + r.tags.join(', ') : ''}</div>`;
-      ul.appendChild(li);
+  <script>
+    fetch('reports.json').then(r=>r.json()).then(d=>{
+      const ul=document.getElementById('reports');
+      d.forEach(rep=>{
+        const li=document.createElement('li');
+        li.innerHTML=`<a href="${rep.url}">${rep.title}</a><span class="meta">📅 ${rep.date}</span><span class="desc">${rep.description||''}</span>`;
+        ul.appendChild(li);
+      });
+    }).catch(()=>{
+      document.getElementById('reports').innerHTML='<li><a href="insect-learning-platforms-2026.html">insect learning platforms 2026</a></li><li><a href="wwdc26-summary.html">wwdc26 summary</a></li>';
     });
-  })
-  .catch(() => {
-    document.getElementById('reports').innerHTML = '<li id="empty">暂无报告</li>';
-  });
-</script>
+  </script>
 </body>
 </html>
