@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ReflectiChain: Epistemic Grounding in LLM-Driven World Models for Supply Chain Resilience</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<h2>Abstract</h2>
+
+<p>Supply-chain AI agents face a gap: LLMs interpret policies but lack physical grounding, while RL optimizes flows but is semantically blind to unstructured constraints. <strong>ReflectiChain</strong> bridges this with a <strong>Generative Supply Chain World Model (SC-WM)</strong> — a 6-dim graph-latent space with physical conservation — plus <strong>Double-Loop Learning</strong> that separates epistemic uncertainty (KL-trust-region-bounded policy adaptation) from aleatoric uncertainty (stochastic latent rollouts). On <strong>Semi-Sim</strong>, a 10-node semiconductor benchmark with SIR risk propagation, 6 perturbation types, and 10 policy constraint templates, ReflectiChain improves Rationale Consistency Score by <strong>+33.0%</strong> (p < 0.0001, d = 2.78), maintains <strong>82.3% operability</strong> under adversarial shocks, and gains <strong>+40.2% under moderate pressure</strong> (anti-fragile behavior).</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Generative Supply Chain World Model (SC-WM)</strong> — heterogeneous supply networks encoded in a 6-dimensional graph-latent space with explicit physical-conservation constraints</li>
+<li><strong>Double-Loop Learning</strong> — separates epistemic uncertainty (handled via KL-trust-region policy adaptation) from aleatoric uncertainty (handled via stochastic latent rollouts)</li>
+<li><strong>Semi-Sim benchmark</strong> — 10-node semiconductor supply chain with SIR risk propagation, 6 perturbation types, 10 policy constraint templates</li>
+<li><strong>Three operational epistemic mechanisms</strong> identified: uncertainty separation, knowledge-boundary detection, empirical Bayesian policy updating</li>
+<li><strong>Five limitation categories</strong> explicitly enumerated</li>
+<li><strong>Anti-fragile behavior</strong> — performance <em>improves</em> under moderate pressure rather than degrading</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>Architecture:</p>
+
+<ol>
+<li><strong>Graph encoder</strong> — heterogeneous supply network (nodes = firms/facilities, edges = material/information flows) is encoded into a <strong>6-dimensional latent space per node</strong>; physical conservation (flow balance, capacity) is enforced as a hard constraint</li>
+<li><strong>Generative latent dynamics</strong> — SC-WM rolls forward the latent graph under policy actions and exogenous perturbations, producing a distribution over future states (aleatoric uncertainty captured by sampling)</li>
+<li><strong>Epistemic uncertainty estimator</strong> — separate module that estimates where the world model itself is uncertain (e.g., sparse data, distribution shift) via a knowledge-boundary detector</li>
+<li><strong>Double-Loop policy adaptation</strong>:</li>
+</ol>
+<ul>
+<li><strong>Inner loop (aleatoric)</strong>: policy is optimized against the <em>stochastic rollouts</em> from SC-WM</li>
+<li><strong>Outer loop (epistemic)</strong>: policy is <em>constrained</em> to stay within a KL trust region of the current best policy when epistemic uncertainty is high — preventing overconfident updates on out-of-distribution states</li>
+</ul>
+<ol>
+<li><strong>Empirical Bayesian updating</strong> — observed outcomes update both the world-model posterior and the policy's belief state</li>
+<li><strong>Rationale Consistency scoring</strong> — evaluated against human-annotated policy rationales (used as the primary metric)</li>
+</ol>
+
+<h2>Key Results</h2>
+
+<ul>
+<li><strong>+33.0% Rationale Consistency Score</strong> vs. baselines (p < 0.0001, Cohen's d = 2.78) — large effect</li>
+<li><strong>82.3% operability</strong> maintained under adversarial shocks (vs. typical sharp degradation in baseline RL)</li>
+<li><strong>+40.2% performance gain under moderate pressure</strong> — anti-fragile behavior, the system improves with stress up to a point</li>
+<li>Validated on <strong>Semi-Sim</strong>: 10-node semiconductor supply chain benchmark with SIR-style risk propagation, 6 perturbation types, 10 policy constraint templates</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<p>The authors enumerate <strong>five limitation categories</strong> (per the abstract; specifics in the paper body), likely covering:</p>
+<ul>
+<li>Benchmark scale (10-node Semi-Sim is modest; real supply chains are 10³–10⁴ nodes)</li>
+<li>6-dim graph latent may under-express multi-product, multi-modal flows</li>
+<li>SIR risk propagation is a stylized model; cascading risks in practice are messier</li>
+<li>Anti-fragility is only demonstrated under moderate pressure, not extreme shocks</li>
+<li>Empirical Bayesian updating assumes stationarity that long-horizon supply chains violate</li>
+</ul>
+
+<h2>Relevance to Patrick&#x27;s Research</h2>
+
+<p>ReflectiChain is a domain-specific world model that demonstrates the <strong>epistemic-vs-aleatoric decomposition</strong> LeCun and others have argued is essential for autonomous intelligence. The Double-Loop Learning pattern (KL trust region in the outer loop + stochastic rollouts in the inner loop) is a concrete, implementable instantiation of "know what you don't know" that generalizes beyond supply chains to any agent that must act under model uncertainty. The <strong>+33% rationale consistency</strong> with d=2.78 is a strong effect size to cite when arguing that world-model-grounded LLMs beat either pure-LLM or pure-RL approaches. For Patrick's tracking, this is a useful case study in <em>applied</em> world modeling, complementary to the embodied/simulator-focused papers.</p>
+
+</body>
+</html>

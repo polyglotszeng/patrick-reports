@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Latent Spatial Memory for Video World Models (Mirage)</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<h2>Abstract</h2>
+
+<p>Video world models that maintain 3D spatial consistency across generated frames typically rely on explicit point-cloud memory constructed in RGB space, which is computationally expensive (repeated rendering + VAE encoding) and lossy (round-trip through pixel space discards learned latent features). The authors introduce <strong>latent spatial memory</strong> — a persistent 3D cache that stores scene information directly in the diffusion latent space — and build <strong>Mirage</strong>, a framework that lifts latent tokens into 3D via depth-guided back-projection and queries them through direct latent-space warping, eliminating both pixel-space reconstruction and repeated encoding/rendering.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Latent spatial memory</strong> — a persistent 3D cache living entirely in the diffusion latent space, not in pixel/RGB space</li>
+<li><strong>Mirage framework</strong> — depth-guided back-projection of latent tokens + latent-space warping for novel-view synthesis, with no VAE re-encoding</li>
+<li><strong>State-of-the-art on WorldScore</strong> while delivering 10.57× faster end-to-end video generation and 55× smaller memory footprint than explicit 3D baselines</li>
+<li><strong>Strong reconstruction on RealEstate10K</strong> by leveraging the diffusion model's own geometric prior</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>Architecture:</p>
+
+<ol>
+<li><strong>Latent token extraction</strong> — the diffusion model (backbone unspecified, but works with video diffusion priors) produces latent tokens for each generated frame</li>
+<li><strong>Depth-guided back-projection</strong> — latent tokens are lifted from 2D frame coordinates into a 3D point cloud in latent space using a monocular depth estimator; no render-to-RGB step</li>
+<li><strong>Persistent 3D latent cache</strong> — points accumulate across frames as the camera moves, indexed by 3D position</li>
+<li><strong>Latent-space novel-view querying</strong> — to render a new viewpoint, the cache is queried by 3D position and warped directly into the target frame's latent coordinates; the warped latents condition the next diffusion denoising step</li>
+<li><strong>No pixel-space round trip</strong> — the framework never decodes to RGB for memory operations, preserving the rich features of the learned representation</li>
+</ol>
+
+<p>The design exploits a key insight: the diffusion latent space already carries geometric prior from training, so 3D consistency can be maintained <em>inside</em> the latents rather than imposed from an external point-cloud module.</p>
+
+<h2>Key Results</h2>
+
+<ul>
+<li><strong>10.57× faster</strong> end-to-end video generation vs. explicit 3D memory baselines</li>
+<li><strong>55× reduction in memory footprint</strong> for the spatial memory module</li>
+<li><strong>State-of-the-art on WorldScore</strong> (composite world-model generation benchmark)</li>
+<li><strong>Strong reconstruction on RealEstate10K</strong> — competitive with explicit 3D methods while staying in latent space</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>Depth estimator quality caps back-projection accuracy; errors compound over long rollouts</li>
+<li>Latent-space warping is bounded by the diffusion backbone's geometric prior — non-rigid scenes and large camera excursions remain hard</li>
+<li>The 55× memory reduction is relative to explicit 3D baselines; absolute memory still grows with trajectory length, so cache compression / eviction policies are a clear next step</li>
+</ul>
+
+<h2>Relevance to Patrick&#x27;s Research</h2>
+
+<p>Mirage directly attacks the central efficiency bottleneck of 3D-consistent video world models: the pixel-space round trip. For anyone tracking the Genie/Sora/WAN-class of video world models, the 10.57× speedup and 55× memory win are the kind of numbers that change deployment economics. The core idea — that the diffusion latent already has 3D prior baked in, so memory should live there too — is conceptually aligned with the JEPA philosophy of "predict in representation space, never decode." Worth tracking whether this generalizes to interactive game-environment rollouts where long-horizon cache growth dominates.</p>
+
+</body>
+</html>

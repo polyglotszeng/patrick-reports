@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WorldKernel: A World Model is the Coupling Kernel of Admissible Possible Worlds</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<h2>Abstract</h2>
+
+<p>The paper challenges the assumption that more data plus a strong predictor suffices for world modeling. Across hundreds of structural causal models, predictors and Bayesian baselines recover the <em>diagonal</em> (posterior over observed worlds) but <strong>collapse to a point on the off-diagonal</strong> — the coupling between counterfactual worlds — on <strong>28% of models</strong> to values no valid model can produce, while the true answer is an interval that more data never narrows. WorldKernel casts a world model as a <strong>single positive semidefinite coupling kernel K(T,T′)</strong> over admissible worlds: the diagonal is the ordinary posterior, the off-diagonal is the cross-world coupling that fixes counterfactuals, and PSD-enforcement yields tractable bounds on quantities that exact response-type programs cannot compute.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Failure-mode identification</strong> — empirical demonstration that strong predictors fail on <strong>28% of SCMs</strong> because point predictions cannot represent uncertainty over counterfactual couplings</li>
+<li><strong>WorldKernel framework</strong> — a world model = a single PSD coupling kernel K(T,T′) over admissible worlds; diagonal = posterior, off-diagonal = counterfactual coupling</li>
+<li><strong>Tractable counterfactual bounds</strong> — PSD-enforcement gives polynomial-time bounds where the exact response-type program is intractable</li>
+<li><strong>Logical structure sharpens the bound</strong> — ontology axioms tighten bounds by <strong>up to 1/3</strong>, propagating to couplings they never directly touch</li>
+<li><strong>Targeted scars for efficient acquisition</strong> — constraints learned from encountered infeasibilities close the gap "several times faster" than untargeted ones</li>
+<li><strong>Computational complexity result</strong> — full kernel reconstruction ≈ counting admissible worlds; tractable below the Sly–Sun threshold, inapproximable above</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>Conceptual architecture:</p>
+
+<ol>
+<li><strong>Admissible worlds</strong> — the set of all structural causal models (SCMs) consistent with the observed data</li>
+<li><strong>Coupling kernel K(T,T′)</strong> — a positive semidefinite matrix indexed by pairs of admissible worlds; entries encode joint plausibility of two worlds under the same observations</li>
+<li><strong>Diagonal = posterior</strong> — K(T,T) is exactly the Bayesian posterior over worlds given the data (what predictors recover)</li>
+<li><strong>Off-diagonal = counterfactual coupling</strong> — K(T,T′) for T≠T′ fixes the answer to "what would have happened in T′ if the world were T," a quantity no point predictor can express</li>
+<li><strong>PSD-enforcement as partial identification</strong> — positive semidefiniteness is a constraint the marginal posteriors lack; it bounds counterfactuals in polynomial time</li>
+<li><strong>Ontology axioms</strong> — logical structure over admissible worlds tightens the PSD bound by propagating constraints to couplings that were not directly constrained (up to <strong>1/3</strong> tighter)</li>
+<li><strong>Targeted scars</strong> — additional constraints learned from observed infeasibilities during data collection, prioritized to close the kernel gap faster than uniform sampling</li>
+<li><strong>Reconstruction complexity</strong> — exact K is equivalent to #P-hard counting of admissible worlds; tractable below the Sly–Sun threshold, inapproximable above</li>
+</ol>
+
+<h2>Key Results</h2>
+
+<ul>
+<li>On <strong>28% of tested SCMs</strong>, point predictors and Bayesian baselines collapse to invalid counterfactual values that no valid world model can produce</li>
+<li>More data does <strong>not</strong> narrow the off-diagonal interval — the gap is structural, not statistical</li>
+<li><strong>PSD-enforcement</strong> gives polynomial-time counterfactual bounds where exact response-type computation is intractable</li>
+<li><strong>Ontology axioms</strong> tighten the PSD bound by <strong>up to ~33%</strong> on couplings they never directly touch</li>
+<li><strong>Targeted scars</strong> close the kernel gap "several times faster" than untargeted acquisition</li>
+<li>Full K reconstruction is <strong>tractable below Sly–Sun, inapproximable above</strong> — a clean complexity-theoretic boundary</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>The complexity result says K is <em>inapproximable above Sly–Sun</em> — the authors do <strong>not</strong> claim to beat the worst case, only to provide useful partial identification</li>
+<li>Empirical results are on synthetic SCM families; scaling to real-world causal graphs is open</li>
+<li>Targeted scars require encountering infeasibilities in deployment, which is a chicken-and-egg problem for the very domains where bounds matter most</li>
+<li>The framework is theoretical; turning K into a deployable world-model architecture for embodied agents is not addressed</li>
+</ul>
+
+<h2>Relevance to Patrick&#x27;s Research</h2>
+
+<p>WorldKernel is the rare world-model paper that attacks the <em>epistemic</em> foundations rather than the architecture. For Patrick's tracking, it formalizes a sharp distinction between <strong>diagonal (what any predictor learns)</strong> and <strong>off-diagonal (what counterfactual reasoning needs)</strong> — a distinction that doesn't show up in JEPA, Genie, or Sora-style models but matters for any agent that asks "what would have happened if I had done X." The PSD-coupling formulation is also conceptually aligned with the kernel-method tradition Yann LeCun's JEPA lineage draws on. The 28% failure rate is a concrete number to cite when arguing that generative world models alone are insufficient for counterfactual planning.</p>
+
+</body>
+</html>

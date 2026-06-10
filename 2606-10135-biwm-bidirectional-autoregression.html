@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>BiWM: Advancing Open-Source Interactive Video World Models with Bidirectional Autoregression</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<h2>Abstract</h2>
+
+<p>BiWM is the first full-stack open-source framework for interactive video world models under the <strong>bidirectional autoregressive</strong> paradigm. Existing causal pipelines (e.g., minWM) need four training stages and still trail bidirectional models in quality due to error accumulation, while bidirectional-only models like Yume-1.5 and Matrix-Game-3.0 self-correct but lack open frameworks. BiWM collapses the pipeline to <strong>two training stages</strong> (control fine-tuning + few-step DMD distillation), spans four backbones (Wan2.1-1.3B, Wan2.2-5B, HunyuanVideo-1.5-8B, LTX-2.3-22B), and adds pluggable history compression plus an optional NVFP4 4-bit path for long rollouts.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>First open-source bidirectional-autoregressive framework for interactive video world models</strong> — fills the gap left by minWM (causal-only) and closed-source systems like Yume-1.5 / Matrix-Game-3.0</li>
+<li><strong>Two-stage training recipe</strong> — control fine-tuning + few-step Distribution Matching Distillation (DMD), converging in "a few hundred steps on 8×H200 GPUs"</li>
+<li><strong>Backbone-agnostic</strong> — single recipe ports to Wan2.1-1.3B, Wan2.2-5B, HunyuanVideo-1.5-8B, and LTX-2.3-22B</li>
+<li><strong>Pluggable history compression</strong> — supports FramePack-style and PackForcing-style modules for long rollouts</li>
+<li><strong>Optional NVFP4 4-bit training/inference</strong> — quantization path for memory-constrained deployment</li>
+<li><strong>Mode-covering regularizers</strong> — GAN loss + mass-covering forward-KL added to counter DMD's mode-seeking tendency and preserve scene dynamics</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>Pipeline (two stages from a pretrained video backbone):</p>
+
+<ol>
+<li><strong>Stage 1 — Control fine-tuning</strong>: inject camera and action conditioning into the pretrained video diffusion backbone, retaining its bidirectional generative quality</li>
+<li><strong>Stage 2 — Few-step DMD</strong>: distill the multi-step diffusion sampler into a few-step generator conditioned on actions/camera; this yields the action/camera-controllable world model</li>
+</ol>
+
+<p><strong>Bidirectional autoregressive rollout</strong> at inference: each rollout chunk is generated bidirectionally (high fidelity, self-correcting error propagation) and chunks are stitched autoregressively for long horizons — combining the strengths of Yume-1.5 / Matrix-Game-3.0 with interactive control.</p>
+
+<p><strong>Stabilizers</strong>:</p>
+<ul>
+<li>GAN adversarial loss against the multi-step teacher</li>
+<li>Mass-covering forward-KL term to prevent DMD mode collapse</li>
+<li>Plug-in history compression (FramePack / PackForcing) to bound KV-cache growth</li>
+</ul>
+
+<p><strong>Backbones covered</strong>: Wan2.1-1.3B, Wan2.2-5B, HunyuanVideo-1.5-8B, LTX-2.3-22B (all leading open video diffusion models).</p>
+
+<h2>Key Results</h2>
+
+<ul>
+<li>Converges in <strong>a few hundred steps on 8×H200 GPUs</strong> — much cheaper than minWM's four-stage pipeline</li>
+<li><strong>Real-world camera control</strong> in settings where minWM loses controllability (per the authors)</li>
+<li><strong>Long-horizon rollout stability</strong> via self-correcting bidirectional chunks + history compression</li>
+<li><strong>Open-source release</strong> for resource-constrained research and high-fidelity environment simulation</li>
+</ul>
+
+<p>(No specific % metrics reported in the abstract — quantitative benchmarks presumably in the paper body.)</p>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>Quantitative benchmark numbers are deferred to the paper body; the abstract emphasizes pipeline and qualitative stability</li>
+<li>4-bit NVFP4 path requires compatible hardware (Hopper/Blackwell-class NVIDIA GPUs)</li>
+<li>DMD mode-seeking is mitigated but not eliminated; very long rollouts may still drift</li>
+<li>"Open-source for resource-constrained research" suggests the largest backbones (22B) still need multi-GPU setups</li>
+</ul>
+
+<h2>Relevance to Patrick&#x27;s Research</h2>
+
+<p>BiWM is a direct counterpoint to minWM and a practical open-source path to the Yume-1.5 / Matrix-Game-3.0 class of interactive world models. The <strong>two-stage recipe</strong> (control fine-tune + DMD) is the kind of operational simplification that makes world-model research reproducible outside well-funded labs. The pluggable FramePack / PackForcing compression is directly relevant to long-horizon planning, where cache growth is the bottleneck. For Patrick's tracking, BiWM is the new open-source baseline to beat on camera-controllable interactive rollouts.</p>
+
+</body>
+</html>
