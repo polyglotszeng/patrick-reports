@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fable 5 Workflow — David Ondrej</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.7; padding: 2rem; max-width: 900px; margin: 0 auto; }
+a { color: #f7c59f; text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.5rem; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.3rem; margin: 2rem 0 0.8rem; font-size: 1.3rem; }
+h3 { color: #f7c59f; margin: 1.2rem 0 0.5rem; }
+.meta { color: #888; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.meta span { margin-right: 1.5rem; }
+.highlight-box { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 12px; padding: 1.4rem; margin: 1.5rem 0; }
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.card { background: #161616; border: 1px solid #222; border-radius: 8px; padding: 1rem; }
+.card .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+.card .value { font-size: 1.1rem; font-weight: 600; color: #f7c59f; margin-top: 0.2rem; }
+.takeaway-list { list-style: none; }
+.takeaway-list li { padding: 0.7rem 1rem; margin: 0.4rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; font-size: 0.95rem; }
+.takeaway-list li strong { color: #ff6b35; margin-right: 0.3rem; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: #1f1f1f; color: #f7c59f; padding: 8px 12px; text-align: left; border: 1px solid #2a2a2a; font-size: 0.85rem; }
+td { padding: 8px 12px; border: 1px solid #222; font-size: 0.9rem; }
+td .star { color: #ff6b35; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; border-radius: 0 8px 8px 0; }
+blockquote .attr { color: #888; font-size: 0.8rem; font-style: normal; margin-top: 0.3rem; display: block; }
+.section { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 1.2rem; margin: 1rem 0; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1rem 0; }
+.old-way { background: #1a0a0a; border: 1px solid #5a2020; border-radius: 8px; padding: 1rem; }
+.new-way { background: #0a1a0a; border: 1px solid #205a20; border-radius: 8px; padding: 1rem; }
+.old-way h4 { color: #ff6b6b; margin-bottom: 0.5rem; font-size: 0.85rem; }
+.new-way h4 { color: #6bff6b; margin-bottom: 0.5rem; font-size: 0.85rem; }
+.old-way li, .new-way li { font-size: 0.85rem; margin: 0.3rem 0; padding-left: 0.5rem; }
+.warn-box { background: #1a1200; border: 1px solid #f7c59f; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+.warn-box .title { color: #f7c59f; font-weight: 600; margin-bottom: 0.5rem; }
+.cost-row { display: flex; gap: 1rem; margin: 0.8rem 0; }
+.cost-chip { background: #1f1f1f; border: 1px solid #333; border-radius: 20px; padding: 0.5rem 1rem; font-size: 0.85rem; }
+.cost-chip .amt { color: #ff6b35; font-weight: 700; font-size: 1.1rem; }
+.cost-chip .label { color: #888; font-size: 0.75rem; }
+.quote-section { margin: 1.5rem 0; }
+.quote-section blockquote { margin: 0.8rem 0; }
+.qna { background: #111; border-radius: 8px; padding: 1rem 1.2rem; margin: 0.5rem 0; }
+.qna .num { color: #ff6b35; font-weight: 700; margin-right: 0.5rem; }
+.footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #222; color: #555; font-size: 0.8rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Don't Use Fable 5 in Claude… Do This Instead</h1>
+<div class="meta">
+  <span>🎬 David Ondrej</span>
+  <span>📅 2026-06-10</span>
+  <span>⏱ 32:29</span>
+  <span>👁 26,980 views</span>
+</div>
+
+<div class="highlight-box">
+  <h2 style="margin-top:0">⚡ Core Thesis</h2>
+  <p>Fable 5 是自 GPT-4 以来最大模型飞跃 — 但大多数人的使用方式是<strong style="color:#ff6b35">错误的</strong>。本文档详解 David Ondrej 测试 12-14 小时后的实战工作流，包含成本对比、最佳入口选择、Guard Rail 规避技巧和提示范式转变。</p>
+</div>
+
+<div class="card-grid">
+  <div class="card">
+    <div class="label">月度 AI 支出</div>
+    <div class="value">$10K+</div>
+    <div style="font-size:0.75rem;color:#888;margin-top:0.3rem">切换到 Fable 后预估</div>
+  </div>
+  <div class="card">
+    <div class="label">Claude Code 性价比</div>
+    <div class="value">20×</div>
+    <div style="font-size:0.75rem;color:#888;margin-top:0.3rem">vs OpenRouter API</div>
+  </div>
+  <div class="card">
+    <div class="label">Fable vs Opus 成本</div>
+    <div class="value">2×</div>
+    <div style="font-size:0.75rem;color:#888;margin-top:0.3rem">更贵，但值</div>
+  </div>
+  <div class="card">
+    <div class="label">One-Shot 能力</div>
+    <div class="value">3D / 克隆 / 仿真</div>
+    <div style="font-size:0.75rem;color:#888;margin-top:0.3rem">无竞争对手</div>
+  </div>
+</div>
+
+<h2>📊 四大场景推荐度</h2>
+<table>
+  <tr><th>场景</th><th>推荐度</th><th>核心原因</th></tr>
+  <tr><td>Cursor Agent Window</td><td><span class="star">★★★★★</span></td><td>内置 fallback，safeguard 触发时自动降级到 Opus 4.8</td></tr>
+  <tr><td>Claude Code（云端应用）</td><td><span class="star">★★★★★</span></td><td>$100/月 ≈ $2000 API credits，有订阅补贴</td></tr>
+  <tr><td>Claude App（Claw）</td><td><span class="star">★★</span></td><td>guardrails 过多，面向大众用户限制 Fable 能力</td></tr>
+  <tr><td>API / OpenRouter</td><td><span class="star">★</span></td><td>无 fallback，触发 safeguard 直接报错</td></tr>
+</table>
+
+<h2>💰 成本对比</h2>
+<div class="section">
+  <div class="cost-row">
+    <div class="cost-chip"><div class="amt">$100</div><div class="label">Claude Code 月订阅</div></div>
+    <div class="cost-chip"><div class="amt">≈$2000</div><div class="label">等价 API credits（有补贴）</div></div>
+  </div>
+  <div class="cost-row">
+    <div class="cost-chip"><div class="amt">$200</div><div class="label">OpenRouter 月支出</div></div>
+    <div class="cost-chip"><div class="amt">≈$20-25</div><div class="label">实际可用 credits（无补贴）</div></div>
+  </div>
+</div>
+
+<div class="warn-box">
+  <div class="title">⚠️ 重要变化：2026-06-23 起</div>
+  <p>Anthropic 将把 Fable 5 从 Claude Code 订阅中移除，改为纯 API credits 计费。这意味着当前 $100 享受 $2000 价值的窗口期即将关闭，"永久下层阶级"分化将加速。</p>
+</div>
+
+<h2>🧠 提示范式转变</h2>
+<div class="two-col">
+  <div class="old-way">
+    <h4>❌ 旧范式（GPT-4 / Sonnet 有效）</h4>
+    <ul>
+      <li>写超长超详细的提示词</li>
+      <li>微观管理每一步实现</li>
+      <li>提供大量规范和限制</li>
+      <li>分步骤逐步引导模型</li>
+      <li>只用于大任务</li>
+    </ul>
+  </div>
+  <div class="new-way">
+    <h4>✅ 新范式（Fable 5）</h4>
+    <ul>
+      <li>对目标模糊，对外观清晰</li>
+      <li>给目标 + 约束，让它推理</li>
+      <li>删除所有 verbose scaffolding</li>
+      <li>Scope Guard: 最简可行方案</li>
+      <li>任何有智能需求的地方都用</li>
+    </ul>
+  </div>
+</div>
+
+<h2>🚫 Guard Rail 规避技巧</h2>
+<div class="section">
+  <ul class="takeaway-list">
+    <li><strong>禁止句式</strong> — "告诉我关于 Fable 5 的一切"会被识别为模型蒸馏攻击企图 → 自动降级</li>
+    <li><strong>不要提网络安全</strong> — "帮我检查 App 安全性"会触发 safeguard</li>
+    <li><strong>正确做法：两段式</strong> — 先用 Opus 4.8 做分析 → 结果包装 XML tag → 给 Fable 评估实现方案</li>
+    <li><strong>XML tag 包装</strong> — 把其他模型的输出包装到 XML tag 再给 Fable，降低触发概率</li>
+  </ul>
+</div>
+
+<h2>🚀 Fable 5 One-Shot 能力展示</h2>
+<div class="card-grid">
+  <div class="card"><div class="label">3D 游戏</div><div class="value" style="font-size:0.9rem">Slenderman 后室游戏，带动画，Cloud Artifact 内一次生成</div></div>
+  <div class="card"><div class="label">网络可视化</div><div class="value" style="font-size:0.9rem">网络包渲染成 3D 赛车，实时物理效果</div></div>
+  <div class="card"><div class="label">软件克隆</div><div class="value" style="font-size:0.9rem">Lovely.app 完整 App Builder，两次提示 vs 传统开发数周</div></div>
+  <div class="card"><div class="label">3D 机械仿真</div><div class="value" style="font-size:0.9rem">复杂连杆机构，物理引擎，日夜循环</div></div>
+</div>
+
+<h2>🔧 AutoGit 开源工具</h2>
+<div class="section">
+  <p><strong>链接：</strong><a href="https://github.com/davidondrej/autogit" target="_blank">github.com/davidondrej/autogit</a></p>
+  <p style="margin-top:0.5rem;font-size:0.9rem;color:#aaa">功能：每次 agent 操作自动 git commit + push。用 Fable built 并开源。用法：<code style="background:#1f1f1f;padding:0.2rem 0.4rem;border-radius:4px">npm install autogit</code> → <code style="background:#1f1f1f;padding:0.2rem 0.4rem;border-radius:4px">autogit setup</code> → <code style="background:#1f1f1f;padding:0.2rem 0.4rem;border-radius:4px">autogit</code></p>
+</div>
+
+<h2>💬 关键引言</h2>
+<div class="quote-section">
+  <blockquote>"If you aren't prepared to spend multiple thousands of dollars per month for AI, you're not going to have an advantage."<span class="attr">— David Ondrej, 4:44</span></blockquote>
+  <blockquote>"Give it a goal, some constraints, success criteria, and let it run. Stop trying to think you know the implementation better. These models are way too competent."<span class="attr">— David Ondrej, 23:40</span></blockquote>
+  <blockquote>"This is probably the first model that I feel like is close to my intelligence. Like most of the models when you talk to them, you can feel like they're yesmen, they're kind of agreeable. With Fable, you don't have that feeling."<span class="attr">— David Ondrej, 12:26</span></blockquote>
+  <blockquote>"The time it takes for your idea to become reality has never been lower."<span class="attr">— David Ondrej, 18:08</span></blockquote>
+  <blockquote>"Whether it's building mobile apps, video games, B2B SaaS, internal software, open source packages — I mean, just do something. Like that's the main message. Do something. Stop making excuses."<span class="attr">— David Ondrej, 31:05</span></blockquote>
+</div>
+
+<h2>❓ 讨论问题</h2>
+<div class="section">
+  <div class="qna"><span class="num">1.</span> Fable 5 的"防 safeguard"机制是否意味着 Claude 实际上在监控你的提示内容？</div>
+  <div class="qna"><span class="num">2.</span> Anthropic 的 30 天数据留置政策是否会成为企业采用的阻碍？</div>
+  <div class="qna"><span class="num">3.</span> 随着 AI 模型成本持续上升，"AI 精英"和"AI 下层阶级"的分化是否不可避免？</div>
+  <div class="qna"><span class="num">4.</span> AutoGit 这类自动 commit 工具的出现，是否意味着传统版本控制概念正在被重新定义？</div>
+  <div class="qna"><span class="num">5.</span> 如果 Fable 可以 one-shot 复制任何软件，闭源软件的经济护城河是否已经崩溃？</div>
+</div>
+
+<div class="footer">
+  Source: <a href="https://www.youtube.com/watch?v=BxR-r4F4Pbw" target="_blank">David Ondrej — Don't use Fable 5 in Claude… do this instead</a><br>
+  Notes generated by Hermes Agent · 2026-06-11
+</div>
+
+</body>
+</html>

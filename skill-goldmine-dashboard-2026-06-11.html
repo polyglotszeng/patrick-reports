@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Skill Goldmine Dashboard — 2026-06-11</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --gold: #ffd866;
+    --gold-bg: #3d2f00;
+    --gem: #79c0ff;
+    --gem-bg: #0d2d4d;
+    --under: #d2a8ff;
+    --under-bg: #2d1b4d;
+    --stale: #f85149;
+    --stale-bg: #3d0a0a;
+    --accent: #2ea043;
+    --accent-2: #a371f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  h1, h2, h3 { color: var(--text); margin-top: 0; }
+  h1 {
+    font-size: 28px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h1 .badge {
+    background: linear-gradient(135deg, #ffd866, #d29922);
+    color: #1c1200;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: 32px;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+  }
+  h3 { font-size: 16px; color: var(--muted); margin-top: 24px; }
+  .meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .stat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat .value { font-size: 28px; font-weight: 600; margin-top: 4px; }
+  .stat.gold .value { color: var(--gold); }
+  .stat.gem .value { color: var(--gem); }
+  .stat.under .value { color: var(--under); }
+  .stat.stale .value { color: var(--stale); }
+  .stat.total .value { color: var(--accent); }
+  .stat.avg .value { color: var(--accent-2); }
+
+  .dist-bar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  .dist-bar .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin: 4px 0;
+  }
+  .dist-bar .label { width: 50px; color: var(--muted); }
+  .dist-bar .count { width: 40px; text-align: right; }
+  .dist-bar .fill { background: var(--accent-2); height: 12px; border-radius: 2px; }
+
+  .skill-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .skill-table th, .skill-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .skill-table th {
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .skill-table tr:last-child td { border-bottom: none; }
+  .skill-table tr:hover { background: var(--panel-2); }
+  .score {
+    font-family: "SF Mono", "Menlo", monospace;
+    font-weight: 600;
+    text-align: right;
+  }
+  .path { font-family: "SF Mono", "Menlo", monospace; font-size: 13px; }
+  .desc-cell { color: var(--muted); font-size: 13px; max-width: 480px; }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .pill-gold { background: var(--gold-bg); color: var(--gold); }
+  .pill-gem { background: var(--gem-bg); color: var(--gem); }
+  .pill-under { background: var(--under-bg); color: var(--under); }
+  .pill-stale { background: var(--stale-bg); color: var(--stale); }
+  .pill-gene { background: #1f3a52; color: #79c0ff; margin-left: 4px; }
+  .pill-unc { background: #2d2d2d; color: var(--muted); margin-left: 4px; }
+  .pill-cron { background: #2a1a3a; color: #d2a8ff; }
+
+  .research-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+  .research-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+  .research-card h3 {
+    color: var(--gold);
+    margin-top: 0;
+    font-size: 16px;
+  }
+  .research-card .goal {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 8px 0 12px;
+  }
+  .research-card ul { margin: 0; padding-left: 18px; }
+  .research-card li { margin: 6px 0; font-size: 13px; }
+  .research-card .skill-name {
+    font-family: "SF Mono", "Menlo", monospace;
+    color: var(--gem);
+  }
+  .research-card .why { color: var(--muted); font-size: 12px; }
+
+  .key-finding {
+    background: linear-gradient(135deg, #1c2128, #161b22);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .key-finding .label {
+    color: var(--gold);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .key-finding .body { margin-top: 4px; font-size: 14px; }
+
+  footer {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<h1>⛏️ Skill Goldmine Dashboard <span class="badge">GCP-1.0</span></h1>
+<div class="meta">
+  Patrick's Hermes skill library scan · 2026-06-11 · 239 skills (238 active + 1 archived) · 6 Gene domains
+</div>
+
+<div class="key-finding">
+  <div class="label">🔑 Key Finding</div>
+  <div class="body">
+    63% of skills are "Underused" (high maturity, low cross-reference) — the library has a
+    <b>structural discovery problem</b>, not a content problem. The 4 true Gold Mines
+    (evaluation-mastery, gene-capsule-protocol, systematic-debugging, investigate) are
+    the only ones with active cron wiring.
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="stats-grid">
+  <div class="stat total"><div class="label">Total</div><div class="value">239</div></div>
+  <div class="stat gold"><div class="label">Gold Mine</div><div class="value">4</div></div>
+  <div class="stat gem"><div class="label">Hidden Gem</div><div class="value">25</div></div>
+  <div class="stat under"><div class="label">Underused</div><div class="value">151</div></div>
+  <div class="stat stale"><div class="label">Stale</div><div class="value">59</div></div>
+  <div class="stat avg"><div class="label">Avg / Median</div><div class="value">37.6 / 39</div></div>
+</div>
+
+<div class="dist-bar">
+  <h3 style="margin-top:0">Score distribution</h3>
+  <div class="row"><span class="label">0-9</span><span class="count">0</span><span class="fill" style="width:0%"></span></div>
+  <div class="row"><span class="label">10-19</span><span class="count">11</span><span class="fill" style="width:5%"></span></div>
+  <div class="row"><span class="label">20-29</span><span class="count">49</span><span class="fill" style="width:21%"></span></div>
+  <div class="row"><span class="label">30-39</span><span class="count">76</span><span class="fill" style="width:32%"></span></div>
+  <div class="row"><span class="label">40-49</span><span class="count">75</span><span class="fill" style="width:31%"></span></div>
+  <div class="row"><span class="label">50-59</span><span class="count">19</span><span class="fill" style="width:8%"></span></div>
+  <div class="row"><span class="label">60-69</span><span class="count">5</span><span class="fill" style="width:2%"></span></div>
+  <div class="row"><span class="label">70-79</span><span class="count">3</span><span class="fill" style="width:1%"></span></div>
+  <div class="row"><span class="label">80-89</span><span class="count">1</span><span class="fill" style="width:0.5%"></span></div>
+</div>
+
+<!-- ===== TOP 20 GOLD MINE ===== -->
+<h2>🏆 Top 20 Gold Mine + Hidden Gem</h2>
+<div class="meta">Active and mature — these are the de facto daily drivers.</div>
+
+<table class="skill-table">
+<thead>
+<tr><th>#</th><th>Score</th><th>Skill</th><th>Gene</th><th>Refs / Cron</th><th>Why</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td class="score" style="color:var(--gold)">81</td><td class="path">productivity/evaluation-mastery <span class="pill pill-gold">Gold</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>0 / 3 <span class="pill pill-cron">cron</span></td><td class="desc-cell">Six-dim output quality eval. 3 cron jobs (数据控/情感顾问/HN Top5). 6 triggers. The de facto quality gate.</td></tr>
+<tr><td>2</td><td class="score" style="color:var(--gold)">73</td><td class="path">agentic-os/gene-capsule-protocol <span class="pill pill-gold">Gold</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>1 / 0</td><td class="desc-cell">GCP-1.0 protocol — the meta-skill that organizes all 238 skills. See_also anchors skillify + resolver-check.</td></tr>
+<tr><td>3</td><td class="score" style="color:var(--gold)">72</td><td class="path">systematic-debugging <span class="pill pill-gold">Gold</span></td><td><span class="pill pill-unc">unclassified</span></td><td>4 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">Iron Law: no fixes without root cause. 4 see_also refs, 2 cron jobs.</td></tr>
+<tr><td>4</td><td class="score" style="color:var(--gold)">70</td><td class="path">investigate <span class="pill pill-gold">Gold</span></td><td><span class="pill pill-unc">unclassified</span></td><td>0 / 0</td><td class="desc-cell">4-phase systematic debugging. 5 triggers. Highest maturity (3 signals, 493-char desc). Proactive invocation pattern.</td></tr>
+<tr><td>5</td><td class="score" style="color:var(--gem)">63</td><td class="path">automation-pipeline <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>0 / 0</td><td class="desc-cell">11 triggers (n8n/Cloudflare/migration/HTML→公网). Bridge between OpenClaw imports and Hermes.</td></tr>
+<tr><td>6</td><td class="score" style="color:var(--gem)">63</td><td class="path">autonomous-ai-agents/skillify <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">knowledge-synthesis</span></td><td>5 / 0</td><td class="desc-cell">11-step skill authoring flow (Garry Tan). 5 see_also refs. Gates every new skill creation.</td></tr>
+<tr><td>7</td><td class="score" style="color:var(--gem)">60</td><td class="path">note-taking/emai-closeday <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">emai-workflow</span></td><td>0 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">Cron-driven daily review. depends_on: emai-today + obsidian + emai-vault.</td></tr>
+<tr><td>8</td><td class="score" style="color:var(--gem)">60</td><td class="path">note-taking/emai-today <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">emai-workflow</span></td><td>0 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">Cron-driven morning planning. 3 triggers. Life-blood of EMAI.</td></tr>
+<tr><td>9</td><td class="score" style="color:var(--gem)">60</td><td class="path">note-taking/obsidian <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">emai-workflow</span></td><td>0 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">2 cron jobs. Universal CRUD for the vault.</td></tr>
+<tr><td>10</td><td class="score" style="color:var(--gem)">60</td><td class="path">software-development/systematic-debugging <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-unc">unclassified</span></td><td>2 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">Sister skill to investigate; software-specific debug flow.</td></tr>
+<tr><td>11</td><td class="score" style="color:var(--gem)">57</td><td class="path">hermes/hermes-gateway <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-unc">unclassified</span></td><td>0 / 0</td><td class="desc-cell">Hub skill for gateway/channel management. Recent activity.</td></tr>
+<tr><td>12</td><td class="score" style="color:var(--gem)">56</td><td class="path">meta/claude-superpowers <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>0 / 0</td><td class="desc-cell">Claude Code superpowers meta-prompt. 30d old — aging but still in active reference.</td></tr>
+<tr><td>13</td><td class="score" style="color:var(--gem)">55</td><td class="path">devops/kanban-orchestrator <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>0 / 0</td><td class="desc-cell">Anti-temptation playbook for orchestrator role. Just published.</td></tr>
+<tr><td>14</td><td class="score" style="color:var(--gem)">55</td><td class="path">devops/static-site-deploy-cloudflare-pages <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-unc">unclassified</span></td><td>0 / 0</td><td class="desc-cell">Active daily-brief→公网 cron path uses this. Recent mtime.</td></tr>
+<tr><td>15</td><td class="score" style="color:var(--gem)">55</td><td class="path">gstack-review <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">cross-domain-intent</span></td><td>0 / 0</td><td class="desc-cell">gstack methodology imported 4d ago. Tight integration with investigate.</td></tr>
+<tr><td>16</td><td class="score" style="color:var(--gem)">55</td><td class="path">media/video-to-knowledge-dashboard <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-unc">unclassified</span></td><td>0 / 0</td><td class="desc-cell">YouTube→HTML pipeline, recent mtime, mature 3.5 signals.</td></tr>
+<tr><td>17</td><td class="score" style="color:var(--gem)">55</td><td class="path">productivity/financial-analysis <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">cross-domain-intent</span></td><td>0 / 0</td><td class="desc-cell">Apple-style comparison UI from yfinance. Recent.</td></tr>
+<tr><td>18</td><td class="score" style="color:var(--gem)">55</td><td class="path">research/world-model-tracker <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>0 / 0</td><td class="desc-cell">10-faction world-model tracker, cron-driven. 1 day old.</td></tr>
+<tr><td>19</td><td class="score" style="color:var(--gem)">55</td><td class="path">software-development/single-file-spa-design-patterns <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">ios-development</span></td><td>0 / 0</td><td class="desc-cell">Design patterns for single-page apps. Just published.</td></tr>
+<tr><td>20</td><td class="score" style="color:var(--gem)">54</td><td class="path">autonomous-ai-agents/agent-orchestration <span class="pill pill-gem">Gem</span></td><td><span class="pill pill-gene">knowledge-synthesis</span></td><td>0 / 2 <span class="pill pill-cron">cron</span></td><td class="desc-cell">2 cron refs (AI Daily Research parallel). depends_on: agent-diagnosis + calibrate.</td></tr>
+</tbody>
+</table>
+
+<!-- ===== TOP 15 UNDERUSED ===== -->
+<h2>💎 Top 15 Underused (被低估的 Capsule)</h2>
+<div class="meta">High maturity, low reference count. These are the "should be wired up" candidates.</div>
+
+<table class="skill-table">
+<thead>
+<tr><th>#</th><th>Score</th><th>Skill</th><th>Gene</th><th>Maturity</th><th>How to use</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td class="score" style="color:var(--under)">49</td><td class="path">autonomous-ai-agents/memory-three-layer <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>1.0</td><td class="desc-cell">Invoke before any agent redesign; defines WORKING/EPISODIC/PROCEDURAL split.</td></tr>
+<tr><td>2</td><td class="score" style="color:var(--under)">49</td><td class="path">note-taking/emai-new <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">emai-workflow</span></td><td>1.5</td><td class="desc-cell">Trigger after a brain-dump; routes raw thought to the right EMAI vault file.</td></tr>
+<tr><td>3</td><td class="score" style="color:var(--under)">48</td><td class="path">productivity/hermes-learnings <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>3.0</td><td class="desc-cell">End every session with /learnings — auto-logs corrections, errors, insights.</td></tr>
+<tr><td>4</td><td class="score" style="color:var(--under)">48</td><td class="path">research/arxiv <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">knowledge-synthesis</span></td><td>2.5</td><td class="desc-cell">Ad-hoc paper search; <code>arxiv search "fusion energy"</code>. Already wired in 2 cron jobs.</td></tr>
+<tr><td>5</td><td class="score" style="color:var(--under)">48</td><td class="path">note-taking/emai-vault <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">emai-workflow</span></td><td>2.5</td><td class="desc-cell"><code>vault status</code> / <code>vault search</code> to navigate Obsidian.</td></tr>
+<tr><td>6</td><td class="score" style="color:var(--under)">48</td><td class="path">media/video-to-knowledge-dashboard <span class="pill pill-under">Under</span></td><td><span class="pill pill-unc">unclassified</span></td><td>2.5</td><td class="desc-cell">YouTube URL → interactive HTML dashboard. Paste URL with "summarize to dashboard".</td></tr>
+<tr><td>7</td><td class="score" style="color:var(--under)">48</td><td class="path">research/web-research-cn <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">knowledge-synthesis</span></td><td>2.0</td><td class="desc-cell">China-network web research with fallbacks. Invoke first for any China-only research.</td></tr>
+<tr><td>8</td><td class="score" style="color:var(--under)">48</td><td class="path">creative/pretext <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">cross-domain-intent</span></td><td>3.0</td><td class="desc-cell">@chenglou/pretext text-as-geometry demos. Ask for "kinetic typography demo" or "ASCII game".</td></tr>
+<tr><td>9</td><td class="score" style="color:var(--under)">48</td><td class="path">agentic-os <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>3.0</td><td class="desc-cell">Top-level umbrella (hub skill). Read first when orienting to Agentic OS domain.</td></tr>
+<tr><td>10</td><td class="score" style="color:var(--under)">48</td><td class="path">autonomous-ai-agents/hermes-agent <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>2.5</td><td class="desc-cell">Load before delegating a multi-step task — defines delegation contract.</td></tr>
+<tr><td>11</td><td class="score" style="color:var(--under)">48</td><td class="path">devops/computer-use-debugging <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>2.5</td><td class="desc-cell">Invoke when a Mac computer-use session hangs/errors.</td></tr>
+<tr><td>12</td><td class="score" style="color:var(--under)">48</td><td class="path">education/kid-edu-single-file-app <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">agentic-os</span></td><td>2.5</td><td class="desc-cell">Ask for a kid-education single-file app; auto-scaffolds the HTML.</td></tr>
+<tr><td>13</td><td class="score" style="color:var(--under)">48</td><td class="path">software-development/openswarm-setup <span class="pill pill-under">Under</span></td><td><span class="pill pill-unc">unclassified</span></td><td>2.0</td><td class="desc-cell">When installing a new OpenSwarm worker node, this is the playbook.</td></tr>
+<tr><td>14</td><td class="score" style="color:var(--under)">48</td><td class="path">software-development/plan <span class="pill pill-under">Under</span></td><td><span class="pill pill-unc">unclassified</span></td><td>2.0</td><td class="desc-cell">Write a plan before any non-trivial code change. Say "plan this" before coding.</td></tr>
+<tr><td>15</td><td class="score" style="color:var(--under)">48</td><td class="path">software-development/requesting-code-review <span class="pill pill-under">Under</span></td><td><span class="pill pill-gene">cross-domain-intent</span></td><td>3.5</td><td class="desc-cell">After writing code, invoke before pushing — defines the review request template.</td></tr>
+</tbody>
+</table>
+
+<!-- ===== TOP 10 STALE ===== -->
+<h2>🗄️ Top 10 Stale (待 archive 或重写)</h2>
+<div class="meta">All 10 are in <code>openclaw-imports/</code> — legacy from the OpenClaw → Hermes migration. None touched since 2026-03-10/16.</div>
+
+<table class="skill-table">
+<thead>
+<tr><th>#</th><th>Score</th><th>Skill</th><th>mtime</th><th>Age</th><th>Action</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/model-validation <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>2</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/format-conversion <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>3</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/error-recovery <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>4</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/dimension-analysis <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>5</td><td class="score" style="color:var(--stale)">14</td><td class="path">openclaw-imports/slicing-preview <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">DELETE or REWRITE — no gene mapping, no content updates</td></tr>
+<tr><td>6</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/model-optimization <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>7</td><td class="score" style="color:var(--stale)">24</td><td class="path">openclaw-imports/texture-handling <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">ARCHIVE — already in gene registry (ios-development)</td></tr>
+<tr><td>8</td><td class="score" style="color:var(--stale)">14</td><td class="path">openclaw-imports/batch-processing <span class="pill pill-stale">Stale</span></td><td>2026-03-10</td><td>92d</td><td class="desc-cell">DELETE or REWRITE — no gene mapping</td></tr>
+<tr><td>9</td><td class="score" style="color:var(--stale)">28</td><td class="path">openclaw-imports/google-workspace <span class="pill pill-stale">Stale</span></td><td>2026-03-16</td><td>86d</td><td class="desc-cell">REWRITE — duplicated by productivity/google-workspace (active)</td></tr>
+<tr><td>10</td><td class="score" style="color:var(--stale)">18</td><td class="path">openclaw-imports/knowledge-base <span class="pill pill-stale">Stale</span></td><td>2026-03-16</td><td>86d</td><td class="desc-cell">DELETE — no gene, no desc, superseded by llm-wiki</td></tr>
+</tbody>
+</table>
+
+<!-- ===== 4 RESEARCH DIRECTIONS ===== -->
+<h2>🎯 4 Research Directions — Recommended Capsule Combinations</h2>
+<div class="meta">Based on Patrick's 2026-06-09 launch of 4 parallel research directions (see distributed-research-playbook v1.1.0).</div>
+
+<div class="research-grid">
+
+<div class="research-card">
+  <h3>1) AI Agent 经济</h3>
+  <div class="goal">Solo-agent businesses, $5K/month per customer, agent-as-employee economics.</div>
+  <ul>
+    <li><span class="skill-name">solo-agent-business</span> <span class="why">— $5K/mo model, target industries, 30-day onboarding</span></li>
+    <li><span class="skill-name">agent-observability</span> <span class="why">— watchdog + Agent Mail, ops reliability story</span></li>
+    <li><span class="skill-name">orgo-infra</span> <span class="why">— cloud infrastructure for hosting agents</span></li>
+    <li><span class="skill-name">audit</span> <span class="why">— 8-dimension framework for agent workflows</span></li>
+    <li><span class="skill-name">local-llm-deployment-bench</span> <span class="why">— "reach for cloud APIs" anti-pattern; per-customer cost</span></li>
+    <li><span class="skill-name">how-to-sell</span> <span class="why">— sales process for solo-agent business</span></li>
+  </ul>
+</div>
+
+<div class="research-card">
+  <h3>2) 世界模型 (World Models)</h3>
+  <div class="goal">Track 10-faction landscape (JEPA, Genie 3, Cosmos, HY-World…), find under-priced bets.</div>
+  <ul>
+    <li><span class="skill-name">world-model-tracker</span> <span class="why">— 10-faction arXiv tracker, cron-driven. Direct fit.</span></li>
+    <li><span class="skill-name">arxiv</span> <span class="why">— ad-hoc paper search companion</span></li>
+    <li><span class="skill-name">notebooklm</span> <span class="why">— synthesize multi-paper research into Audio/Quiz/Mind-Map</span></li>
+    <li><span class="skill-name">llm-wiki</span> <span class="why">— interlinked markdown KB for cross-faction relationships</span></li>
+    <li><span class="skill-name">dimension-physics</span> <span class="why">— geometric priors (string theory / M-theory)</span></li>
+    <li><span class="skill-name">distributed-research-playbook</span> <span class="why">— meta-skill for 10-year research direction</span></li>
+  </ul>
+</div>
+
+<div class="research-card">
+  <h3>3) 个人 AI OS (Personal AI OS)</h3>
+  <div class="goal">Extend agentic-os into a true daily-driver — self-evolving skills + ISA for the individual.</div>
+  <ul>
+    <li><span class="skill-name">evaluation-mastery</span> <span class="why">— quality gate (Gold Mine #1)</span></li>
+    <li><span class="skill-name">hermes-learnings</span> <span class="why">— end-of-session correction log = self-evolution</span></li>
+    <li><span class="skill-name">hermes-isa-manager</span> <span class="why">— Ideal State Architecture</span></li>
+    <li><span class="skill-name">hermes-telos-consult</span> <span class="why">— major decision against TELOS</span></li>
+    <li><span class="skill-name">hermes-proactive</span> <span class="why">— WAL-style proactive logging</span></li>
+    <li><span class="skill-name">hermes-ontology</span> <span class="why">— typed entity knowledge management</span></li>
+    <li><span class="skill-name">memory-three-layer</span> <span class="why">— WORKING/EPISODIC/PROCEDURAL split</span></li>
+    <li><span class="skill-name">gene-capsule-protocol</span> <span class="why">— GCP-1.0 — protocol that makes Gene architecture work</span></li>
+  </ul>
+</div>
+
+<div class="research-card">
+  <h3>4) 量化 + AI (Quant + AI)</h3>
+  <div class="goal">LLM-driven fundamentals + quant factors + prediction markets + broker APIs.</div>
+  <ul>
+    <li><span class="skill-name">financial-analysis</span> <span class="why">— yfinance → comparison report (fundamentals)</span></li>
+    <li><span class="skill-name">polymarket</span> <span class="why">— prediction market prices, edge detection</span></li>
+    <li><span class="skill-name">local-llm-benchmark</span> <span class="why">— pick the right local LLM for quant tasks</span></li>
+    <li><span class="skill-name">notebooklm</span> <span class="why">— SEC filings / earnings transcripts synthesis</span></li>
+    <li><span class="skill-name">parallel-subagent-content-extract</span> <span class="why">— parallel 10-K/10-Q text extraction (3x faster)</span></li>
+    <li><span class="skill-name">arxiv</span> <span class="why">— q-fin (quant finance) papers</span></li>
+    <li><span class="skill-name">kanban-orchestrator</span> <span class="why">— multi-agent research squad orchestration</span></li>
+  </ul>
+</div>
+
+</div>
+
+<!-- ===== ACTION ITEMS ===== -->
+<h2>⚡ Recommended Next Actions</h2>
+<ol>
+  <li><b>RUN GCP-1.0 migration on 12 openclaw-imports/* skills</b> — move to .archive or absorb into ios-development Gene. 6 are already in the gene registry but their SKILL.md files haven't been updated in 3 months — direct GCP-1.0 violation.</li>
+  <li><b>ADD see_also cross-links in the 151 Underused skills</b> — even 1-2 links per skill would reclassify ~30 of them as Hidden Gem. Estimated +5-8 points on global average.</li>
+  <li><b>WIRE UP the 4 research-direction skills</b> — solo-agent-business + audit (Agent 经济); world-model-tracker + llm-wiki (世界模型); hermes-learnings + isa-manager (个人 AI OS); financial-analysis + polymarket (量化 + AI).</li>
+  <li><b>PROMOTE the 4 true Gold Mine skills</b> as the default-on preamble for every session: evaluation-mastery, gene-capsule-protocol, systematic-debugging, investigate.</li>
+</ol>
+
+<footer>
+  Scan generated by GCP-1.0 protocol scanner · 2026-06-11 · Patrick's Hermes skill library · 239 skills · 6 Gene domains
+  <br>Source data: <code>~/.hermes/skills/**/*.md</code> + <code>~/.hermes/cron/jobs.json</code> + <code>~/.hermes/skills/genes/README.md</code>
+</footer>
+
+</body>
+</html>
