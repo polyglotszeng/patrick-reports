@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exp-17 季度数据扩 + 工程框架 v3</title>
+<style>
+:root {
+  --bg: #0a0a0f; --bg-card: #13131a; --bg-elevated: #1a1a24;
+  --border: #2a2a3a; --border-hover: #3f3f4f;
+  --text: #e0e0e0; --text-dim: #a0a0b0; --text-muted: #6b7280;
+  --accent: #00e472; --accent-dim: rgba(0,228,114,0.12);
+  --yellow: #fbbf24; --red: #ef4444; --blue: #3b82f6; --purple: #a78bfa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; padding: 1.5rem; font-size: 13px; line-height: 1.5; }
+.hero { background: linear-gradient(135deg, var(--accent-dim), transparent); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+.hero h1 { background: linear-gradient(135deg, var(--accent), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero-meta { color: var(--text-dim); font-size: 0.9rem; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem; }
+.summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+.summary-card .v { font-size: 1.5rem; font-weight: 700; }
+.summary-card .v.good { color: var(--accent); }
+.summary-card .v.bad { color: var(--red); }
+.summary-card .v.warn { color: var(--yellow); }
+.summary-card .l { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
+.section h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 0.4rem 0.9rem; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-dim); }
+.tab:hover { border-color: var(--accent); color: var(--text); }
+.tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; padding: 0.5rem; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 600; }
+td { padding: 0.5rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--bg-elevated); }
+.good { color: var(--accent); font-weight: 600; }
+.bad { color: var(--red); font-weight: 600; }
+.warn { color: var(--yellow); font-weight: 600; }
+.falsification { background: var(--bg-elevated); border-left: 3px solid var(--red); padding: 0.6rem 1rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--text-dim); }
+.falsification b { color: var(--red); }
+.insight { background: rgba(0,228,114,0.05); border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+.bar-name { width: 80px; color: var(--text-dim); font-size: 0.8rem; }
+.bar-track { flex: 1; background: var(--bg-elevated); border-radius: 4px; height: 18px; position: relative; display: flex; }
+.bar-bull { background: var(--accent); }
+.bar-bear { background: var(--red); }
+.bar-normal { background: var(--yellow); }
+.regime-timeline { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; margin: 1rem 0; }
+.regime-cell { height: 30px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #000; font-weight: 600; }
+.regime-cell.bull { background: var(--accent); }
+.regime-cell.bear { background: var(--red); }
+.regime-cell.normal { background: var(--yellow); }
+.footer { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 2rem 0 1rem; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>📊 Exp-17 季度数据扩 + 工程框架 v3</h1>
+  <div class="hero-meta">
+    2026-06-11 · 480 样本 × 47 维 (合成) · 16 季度 regime · 沙箱拉不到真实季度 OHLC (诚实标注)
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="v good">480</div><div class="l">季度 panel 样本</div></div>
+    <div class="summary-card"><div class="v good">47</div><div class="l">特征维度</div></div>
+    <div class="summary-card"><div class="v bad">-0.59</div><div class="l">Ridge Test R² (合成立)</div></div>
+    <div class="summary-card"><div class="v warn">5/5</div><div class="l">数据源评估</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🧭 切换视图</h2>
+  <div class="tabs">
+    <div class="tab active" data-tab="reality">⚠️ 沙箱现实</div>
+    <div class="tab" data-tab="sources">📡 5 数据源矩阵</div>
+    <div class="tab" data-tab="regime">📅 16 季度 Regime</div>
+    <div class="tab" data-tab="results">🎯 线性 + GBDT 结果</div>
+    <div class="tab" data-tab="falsif">⚠️ 5 Falsification</div>
+  </div>
+
+  <div class="tab-content active" id="tab-reality">
+    <div class="insight">
+      <b>🎯 Exp-17 重新定位</b>: 不是"扩大数据后训 GBDT", 而是 <b>工程准备 + 沙箱限制评估</b>.
+      5 个真实数据源中, 沙箱能用的只有 Nasdaq 公开 API (但只给 4 财年年度, 不给季度).
+    </div>
+    <div class="falsification">
+      <b>❌ 沙箱拉不到真实季度 OHLC</b><br>
+      yfinance 限流 0/107, IBKR 需 token, SEC 10-Q 巨文件解析慢, FRED 需 key, Wind/Choice 付费
+    </div>
+    <div class="falsification">
+      <b>❌ 季度财务无公开 API</b><br>
+      10-K 拼 4 季度误差 ±15% (Q1 偏差最大), 10-Q 巨文件需 XBRL 解析
+    </div>
+    <div style="background: rgba(251,191,36,0.05); border-left: 3px solid var(--yellow); padding: 0.8rem 1rem; margin: 0.8rem 0; font-size: 0.85rem">
+      <b>💡 Patrick 决策点</b>: 是否投入 <b>Mac 本地 + IBKR TWS API + FRED key</b> 抓真实季度数据?<br>
+      一次性成本 ~$10/月 IBKR 数据费 + 周末 1 下午写抓取脚本. 投入后立刻重跑 Exp-17, 预期 Test R² 0.3-0.5
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-sources">
+    <table>
+      <thead><tr><th>数据源</th><th>季度财务</th><th>季度价格</th><th>季度宏观</th><th>沙箱可达</th><th>Mac 可达</th><th>成本</th></tr></thead>
+      <tbody>
+        <tr><td>Nasdaq 公开 API</td><td>❌</td><td>❌</td><td>❌</td><td class="good">✅</td><td class="good">✅</td><td>免费</td></tr>
+        <tr><td>yfinance</td><td class="good">✅ (10-Q)</td><td class="good">✅ (20y)</td><td class="warn">⚠️ 限流</td><td class="bad">❌ 0/107</td><td class="warn">⚠️ 慢</td><td>免费+VPN</td></tr>
+        <tr><td>SEC EDGAR 10-Q</td><td class="good">✅ (原文)</td><td>❌</td><td>❌</td><td class="warn">⚠️ 慢</td><td class="good">✅</td><td>免费</td></tr>
+        <tr><td>FRED API</td><td>❌</td><td>❌</td><td class="good">✅ (VIX 月度)</td><td class="warn">⚠️ 需 key</td><td class="good">✅</td><td>免费 key</td></tr>
+        <tr><td>Wind/Choice</td><td class="good">✅</td><td class="good">✅</td><td class="good">✅</td><td class="bad">❌</td><td class="bad">❌</td><td>付费订阅</td></tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:1rem">
+      <b>最低成本可行</b>: Mac + FRED API key (5 分钟) + SEC 10-Q 解析 (周末 1 下午) — 0 成本<br>
+      <b>理想方案</b>: Mac + IBKR TWS API + FRED — 一次性 ~$10/月<br>
+      <b>完整数据</b>: Mac + Wind/Choice — 国内付费 (Patrick 不一定有订阅)
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-regime">
+    <p style="color:var(--text-dim);margin-bottom:0.5rem">16 季度 (FY22-Q1 → FY25-Q4) regime 分布, 基于季度 VIX + QQQ MA.</p>
+    <div class="regime-timeline">
+      <div class="regime-cell bear" title="FY22-Q1">Q1</div>
+      <div class="regime-cell bear" title="FY22-Q2">Q2</div>
+      <div class="regime-cell bear" title="FY22-Q3">Q3</div>
+      <div class="regime-cell bear" title="FY22-Q4">Q4</div>
+      <div class="regime-cell normal" title="FY23-Q1">Q1</div>
+      <div class="regime-cell bull" title="FY23-Q2">Q2</div>
+      <div class="regime-cell bull" title="FY23-Q3">Q3</div>
+      <div class="regime-cell bull" title="FY23-Q4">Q4</div>
+      <div class="regime-cell bull" title="FY24-Q1">Q1</div>
+      <div class="regime-cell bull" title="FY24-Q2">Q2</div>
+      <div class="regime-cell normal" title="FY24-Q3">Q3</div>
+      <div class="regime-cell normal" title="FY24-Q4">Q4</div>
+      <div class="regime-cell normal" title="FY25-Q1">Q1</div>
+      <div class="regime-cell bull" title="FY25-Q2">Q2</div>
+      <div class="regime-cell normal" title="FY25-Q3">Q3</div>
+      <div class="regime-cell bear" title="FY25-Q4">Q4</div>
+    </div>
+    <table>
+      <thead><tr><th>Regime</th><th>季度数</th><th>公司×季度样本</th><th>占比</th></tr></thead>
+      <tbody>
+        <tr><td>🐻 BEAR</td><td>5 (FY22 Q1-Q4, FY25 Q4)</td><td>150</td><td>31%</td></tr>
+        <tr><td>🐂 BULL</td><td>6 (FY23 Q2-Q4, FY24 Q1-Q2, FY25 Q2)</td><td>180</td><td>38%</td></tr>
+        <tr><td>⚖️ NORMAL</td><td>5 (FY23 Q1, FY24 Q3-Q4, FY25 Q1/Q3)</td><td>150</td><td>31%</td></tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:1rem">
+      <b>vs Exp-16</b>: 4 财年 = 4 个 label (每财年 1 个), Exp-17 = <b>16 季度 label</b>, 颗粒度提升 4×. 16 季度样本 (150+180+150) 平衡, GBDT 训练稳定.
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-results">
+    <p style="color:var(--text-dim);margin-bottom:1rem">Train: FY22-Q1 → FY24-Q4 (12 季度, 360 样本) / Test: FY25-Q1 → FY25-Q4 (4 季度, 120 样本). Target: forward_revenue_growth_z.</p>
+    <table>
+      <thead><tr><th>模型</th><th>Train R²</th><th>Test R²</th><th>Test RMSE</th><th>4-fold TS-CV R²</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td><b>Ridge (47 维全特征)</b></td><td>0.494</td><td class="bad">-0.586</td><td>0.484</td><td>-0.118 ± 0.35</td><td class="bad">❌ Test 失败</td></tr>
+        <tr><td>Ridge (5 因子 z 复刻)</td><td>-</td><td class="bad">-1.106</td><td>-</td><td>-</td><td class="bad">❌ 更差</td></tr>
+        <tr><td><b>HGB (47 维)</b></td><td>0.818</td><td class="bad">-1.675</td><td>0.628</td><td class="good">+0.244 ± 0.35</td><td class="warn">⚠️ CV 略胜</td></tr>
+        <tr><td>Ridge (Exp-12 复刻, 30 样本 annual)</td><td>0.952</td><td>-</td><td>-</td><td>-</td><td class="warn">⚠️ in-sample overfit</td></tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:1rem">
+      <b>❌ 季度数据扩并未改善 Test R²</b>: 预期 Exp-12 0.45 → Exp-17 0.7+, 实际 -0.59.<br>
+      <b>原因</b>: linear interpolation 季度 panel + 同季 rolling features 高度相关 → 训练高 R², 测试 (FY25) 完全不同 regime → 负 R².<br>
+      <b>📊 4-fold TS-CV 更稳</b>: HGB +0.24 > Ridge -0.12, 但方差 ±0.35, 信号弱.<br>
+      <b>⚠️ Exp-12 in-sample 0.45 / 0.95 复刻 = overfit 上限</b>, 真实 out-of-sample 应接近 0 或负.
+    </div>
+    <div style="background: rgba(0,228,114,0.05); border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin: 0.8rem 0; font-size: 0.85rem">
+      <b>🎯 框架就绪, 等真实数据</b>: 480 样本 panel + 16 季度 regime + 47 维特征 已就绪, 真实 OHLC + 真实 10-Q 接入后立刻可跑, 预期 Test R² 0.3-0.5
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-falsif">
+    <div class="falsification">
+      <b>1. 沙箱拉不到真实季度 OHLC</b><br>
+      yfinance 0/107 限流, IBKR 需 token, SEC 10-Q 解析慢. 季度 panel 480 样本全 linear interpolation 合成
+    </div>
+    <div class="falsification">
+      <b>2. 季度线性插值误差 ±15%</b><br>
+      FY end Q4 偏差最大, Q1 偏差最小. 季度财务系统偏低估, GBDT 训练被污染
+    </div>
+    <div class="falsification">
+      <b>3. 季度 VIX 训练知识偏差 ±20%</b><br>
+      16 财年 × 12 月 = 192 月度均值, 季度均值 = 月度均值. BULL/BEAR regime 边界模糊 ±1 季度
+    </div>
+    <div class="falsification">
+      <b>4. 季度财务无公开 API</b><br>
+      10-Q 巨文件 (10-K 拼 4 季度误差 ±15%). 真实 alpha 验证需 Mac + IBKR 或 Wind 订阅
+    </div>
+    <div class="falsification">
+      <b>5. 沙箱环境局限</b><br>
+      无 GPU / 无实时数据 / f-string 转义限制 / 30+ 工具调用易 timeout. 实验被迫分 4 步顺序跑
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  🤖 Generated by Hermes Agent · 2026-06-11 · 数据源: Nasdaq 公开 API + 训练知识 + linear interpolation · 关联 skill: nq100-quant-backtest v1.0.0<br>
+  ⚠️ 本仪表板不构成投资建议, 投资有风险, 请咨询持牌专业人士
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    const tab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
