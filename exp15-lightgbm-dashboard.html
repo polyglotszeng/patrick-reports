@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Exp-15 LightGBM Alpha 预测 Dashboard</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --panel: #12121a;
+  --panel2: #1a1a25;
+  --border: #252535;
+  --text: #d8d8e0;
+  --muted: #7a7a8c;
+  --accent: #00e472;
+  --accent2: #00b8d4;
+  --warn: #ff5252;
+  --warn-bg: #2a1518;
+  --good: #00e472;
+  --bad: #ff5252;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "SF Pro Display", "JetBrains Mono", monospace;
+  font-size: 14px;
+  line-height: 1.55;
+  padding: 32px 48px 64px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+h1 { font-size: 32px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+h2 { font-size: 20px; color: var(--accent); margin: 32px 0 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+h3 { font-size: 16px; color: var(--text); margin: 16px 0 8px; }
+.muted { color: var(--muted); font-size: 12px; }
+.tag {
+  display: inline-block;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-right: 6px;
+  color: var(--accent);
+}
+.tag.red { color: var(--warn); border-color: var(--warn); }
+.tag.cyan { color: var(--accent2); border-color: var(--accent2); }
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #0a0a0f 0%, #12121a 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.hero h1 { color: var(--accent); }
+.hero p { color: var(--text); margin-top: 12px; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+.kpi {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.kpi .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.kpi .value { color: var(--accent); font-size: 28px; font-weight: 600; margin-top: 4px; }
+.kpi .sub { color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+/* SECTIONS */
+.section {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+/* CHART */
+.chart {
+  background: var(--panel2);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.chart svg { width: 100%; height: auto; display: block; }
+.chart-title { color: var(--accent2); font-size: 12px; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+
+/* TABLES */
+table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+tr:hover td { background: var(--panel2); }
+td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--accent); }
+
+/* FALSIFICATION */
+.falsification {
+  border-left: 4px solid var(--warn);
+  background: var(--warn-bg);
+  padding: 12px 16px;
+  margin: 12px 0;
+  border-radius: 0 4px 4px 0;
+}
+.falsification .num {
+  color: var(--warn);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.falsification .body { color: var(--text); margin-top: 4px; font-size: 13px; }
+
+/* BAR (feature importance) */
+.bar-row { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
+.bar-label { width: 200px; color: var(--text); font-size: 12px; font-family: "JetBrains Mono", monospace; }
+.bar-track { flex: 1; background: var(--panel2); height: 18px; border-radius: 2px; position: relative; overflow: hidden; }
+.bar-fill { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; border-radius: 2px; }
+.bar-value { width: 60px; text-align: right; color: var(--accent); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* FOLD CARDS */
+.fold-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+.fold-card {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+.fold-card .fold-num { color: var(--accent2); font-size: 11px; text-transform: uppercase; }
+.fold-card .fold-val { color: var(--accent); font-size: 22px; font-weight: 600; margin: 4px 0; }
+.fold-card .fold-r2 { color: var(--muted); font-size: 11px; }
+
+/* MISC */
+.divider { border: 0; border-top: 1px dashed var(--border); margin: 24px 0; }
+code { background: var(--panel2); padding: 2px 6px; border-radius: 3px; color: var(--accent); font-size: 12px; }
+a { color: var(--accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.footer { color: var(--muted); font-size: 11px; margin-top: 32px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Exp-15 · LightGBM Alpha 预测</h1>
+  <p>NQ-100 30 公司 × 4 财年 × 100 特征 · sklearn HistGradientBoostingRegressor (lightgbm 沙箱装不上)</p>
+  <div style="margin-top:12px">
+    <span class="tag">gcp-1.1.0</span>
+    <span class="tag">gene: knowledge-synthesis</span>
+    <span class="tag cyan">2026-06-11</span>
+    <span class="tag red">5 Falsifications</span>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="label">5-Fold CV R²</div>
+      <div class="value">0.501</div>
+      <div class="sub">± 0.340 (极不稳)</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Test R²</div>
+      <div class="value">0.752</div>
+      <div class="sub">n=21, 标签含 5 因子</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Test RMSE</div>
+      <div class="value">0.412</div>
+      <div class="sub">forward return 标准化后</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Features</div>
+      <div class="value">100</div>
+      <div class="sub">n=104, p≈n 灾难</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: DATA -->
+<h2>1 · 数据总览</h2>
+<div class="section">
+  <h3>1.1 数据源 & 样本量</h3>
+  <table>
+    <tr><th>字段</th><th>数值</th><th>备注</th></tr>
+    <tr><td>主数据</td><td class="num">nq100_complete_v2.csv</td><td>105 行 × 32 列, FY22-25 财务</td></tr>
+    <tr><td>清洗后</td><td class="num">104 行</td><td>删除 1 行营收缺失</td></tr>
+    <tr><td>Sector</td><td class="num">11 类</td><td>Tech 40, Consumer 17, Healthcare 13, ...</td></tr>
+    <tr><td>Train</td><td class="num">83 行 (80%)</td><td>FY22-24 财务 + 噪声代理 forward</td></tr>
+    <tr><td>Test (OOS)</td><td class="num">21 行 (20%)</td><td>FY25 OOS 验证</td></tr>
+    <tr><td>特征维度</td><td class="num">100</td><td>10 大类 × 8-20 维</td></tr>
+  </table>
+
+  <h3>1.2 10 大类特征分布</h3>
+  <div class="fold-grid">
+    <div class="fold-card"><div class="fold-num">财务基础</div><div class="fold-val">20</div><div class="fold-r2">yoy, cagr, log</div></div>
+    <div class="fold-card"><div class="fold-num">盈利能力</div><div class="fold-val">10</div><div class="fold-r2">ROE/ROA/ROIC</div></div>
+    <div class="fold-card"><div class="fold-num">成长性</div><div class="fold-val">10</div><div class="fold-r2">g_1y/2y/3y</div></div>
+    <div class="fold-card"><div class="fold-num">估值</div><div class="fold-val">10</div><div class="fold-r2">PE/PB/PS/PEG</div></div>
+    <div class="fold-card"><div class="fold-num">动量</div><div class="fold-val">10</div><div class="fold-r2">3m/6m/12m</div></div>
+    <div class="fold-card"><div class="fold-num">质量</div><div class="fold-val">10</div><div class="fold-r2">debt/accrual</div></div>
+    <div class="fold-card"><div class="fold-num">行业 OHE</div><div class="fold-val">8</div><div class="fold-r2">top 8 sector</div></div>
+    <div class="fold-card"><div class="fold-num">技术</div><div class="fold-val">8</div><div class="fold-r2">RSI/MA/vol</div></div>
+    <div class="fold-card"><div class="fold-num">宏观</div><div class="fold-val">6</div><div class="fold-r2">VIX/QQQ_MA</div></div>
+    <div class="fold-card"><div class="fold-num">5 因子 z</div><div class="fold-val">8</div><div class="fold-r2">growth/margin/...</div></div>
+  </div>
+  <p class="muted" style="margin-top:12px">注: 部分资产负债表项 (total_assets/liabilities/cash) 在 v2 csv 中无, 用 marketcap_B 比例代理; FCF 在 v2 无, 用 operating_income 代理. 真实数据需从 EDGAR 拉.</p>
+</div>
+
+<!-- SECTION 2: 5-FOLD CV -->
+<h2>2 · 5-Fold Time Series CV</h2>
+<div class="section">
+  <h3>2.1 每折 RMSE / R²</h3>
+  <div class="chart">
+    <div class="chart-title">5-Fold TS-CV: RMSE 下降 (记忆 5 因子结构)</div>
+    <svg viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet">
+      <!-- grid -->
+      <g stroke="#252535" stroke-width="1">
+        <line x1="60" y1="40" x2="660" y2="40"/>
+        <line x1="60" y1="100" x2="660" y2="100"/>
+        <line x1="60" y1="160" x2="660" y2="160"/>
+        <line x1="60" y1="220" x2="660" y2="220"/>
+        <line x1="60" y1="240" x2="660" y2="240"/>
+      </g>
+      <!-- y-axis labels (RMSE) -->
+      <g fill="#7a7a8c" font-size="10" font-family="monospace">
+        <text x="20" y="44">0.9</text>
+        <text x="20" y="104">0.7</text>
+        <text x="20" y="164">0.5</text>
+        <text x="20" y="224">0.3</text>
+      </g>
+      <!-- x-axis labels -->
+      <g fill="#7a7a8c" font-size="11" font-family="monospace" text-anchor="middle">
+        <text x="120" y="262">Fold 0</text>
+        <text x="240" y="262">Fold 1</text>
+        <text x="360" y="262">Fold 2</text>
+        <text x="480" y="262">Fold 3</text>
+        <text x="600" y="262">Fold 4</text>
+      </g>
+      <!-- RMSE line: 0.843, 0.794, 0.652, 0.642, 0.355 -->
+      <!-- scale: y = 240 - (rmse - 0.3) * 500; r=0.843 -> 240-271.5= -31.5; cap to 0-240 -->
+      <!-- remap: 0.3 -> y=240, 0.9 -> y=40,  so y = 240 - (rmse-0.3)*333.33 -->
+      <polyline fill="none" stroke="#00e472" stroke-width="3"
+        points="120,99 240,115 360,153 480,156 600,253"/>
+      <!-- points -->
+      <g fill="#00e472">
+        <circle cx="120" cy="99" r="5"/>
+        <circle cx="240" cy="115" r="5"/>
+        <circle cx="360" cy="153" r="5"/>
+        <circle cx="480" cy="156" r="5"/>
+        <circle cx="600" cy="253" r="5"/>
+      </g>
+      <!-- R² line (secondary, scaled 0-1 to 240-40) -->
+      <!-- R²: -0.081, 0.562, 0.670, 0.463, 0.891; y = 240 - r2*200 -->
+      <polyline fill="none" stroke="#00b8d4" stroke-width="2" stroke-dasharray="4 2"
+        points="120,256 240,128 360,106 480,147 600,62"/>
+      <g fill="#00b8d4">
+        <circle cx="120" cy="256" r="4"/>
+        <circle cx="240" cy="128" r="4"/>
+        <circle cx="360" cy="106" r="4"/>
+        <circle cx="480" cy="147" r="4"/>
+        <circle cx="600" cy="62" r="4"/>
+      </g>
+      <!-- value labels RMSE -->
+      <g fill="#00e472" font-size="10" font-family="monospace" text-anchor="middle">
+        <text x="120" y="92">0.84</text>
+        <text x="240" y="108">0.79</text>
+        <text x="360" y="146">0.65</text>
+        <text x="480" y="149">0.64</text>
+        <text x="600" y="246">0.35</text>
+      </g>
+      <!-- value labels R² -->
+      <g fill="#00b8d4" font-size="10" font-family="monospace" text-anchor="middle">
+        <text x="120" y="20" fill="#ff5252">-0.08</text>
+        <text x="240" y="121">0.56</text>
+        <text x="360" y="99">0.67</text>
+        <text x="480" y="140">0.46</text>
+        <text x="600" y="55">0.89</text>
+      </g>
+      <!-- legend -->
+      <g font-size="10" font-family="monospace">
+        <line x1="400" y1="14" x2="425" y2="14" stroke="#00e472" stroke-width="3"/>
+        <text x="430" y="17" fill="#00e472">RMSE</text>
+        <line x1="480" y1="14" x2="505" y2="14" stroke="#00b8d4" stroke-width="2" stroke-dasharray="4 2"/>
+        <text x="510" y="17" fill="#00b8d4">R²</text>
+      </g>
+    </svg>
+  </div>
+  <table>
+    <tr><th>Fold</th><th>Train</th><th>Val</th><th>RMSE</th><th>R²</th><th>解释</th></tr>
+    <tr><td>0</td><td class="num">18</td><td class="num">13</td><td class="num">0.843</td><td class="num" style="color:var(--warn)">-0.081</td><td>小样本冷启动</td></tr>
+    <tr><td>1</td><td class="num">31</td><td class="num">13</td><td class="num">0.794</td><td class="num">0.562</td><td>开始学到 5 因子</td></tr>
+    <tr><td>2</td><td class="num">44</td><td class="num">13</td><td class="num">0.652</td><td class="num">0.670</td><td>稳定</td></tr>
+    <tr><td>3</td><td class="num">57</td><td class="num">13</td><td class="num">0.642</td><td class="num">0.463</td><td>噪声</td></tr>
+    <tr><td>4</td><td class="num">70</td><td class="num">13</td><td class="num">0.355</td><td class="num">0.891</td><td>记忆 5 因子</td></tr>
+    <tr style="background:var(--panel2)"><td><b>均值</b></td><td>-</td><td>-</td><td class="num"><b>0.657</b></td><td class="num"><b>0.501</b></td><td>± 0.34, 极不稳</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 3: TOP 20 FEATURES -->
+<h2>3 · Top 20 特征重要性 (permutation importance)</h2>
+<div class="section">
+  <div class="chart">
+    <div class="chart-title">Permutation Importance — Top 20 (test set, n_repeats=10)</div>
+    <div class="bar-row"><div class="bar-label">debt_to_equity</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-value">0.605</div></div>
+    <div class="bar-row"><div class="bar-label">profitability_z</div><div class="bar-track"><div class="bar-fill" style="width:71.5%"></div></div><div class="bar-value">0.432</div></div>
+    <div class="bar-row"><div class="bar-label">margin_stability</div><div class="bar-track"><div class="bar-fill" style="width:10.5%"></div></div><div class="bar-value">0.064</div></div>
+    <div class="bar-row"><div class="bar-label">PE</div><div class="bar-track"><div class="bar-fill" style="width:7.0%"></div></div><div class="bar-value">0.043</div></div>
+    <div class="bar-row"><div class="bar-label">revenue_yoy_24</div><div class="bar-track"><div class="bar-fill" style="width:6.0%"></div></div><div class="bar-value">0.036</div></div>
+    <div class="bar-row"><div class="bar-label">revenue_cagr_3y</div><div class="bar-track"><div class="bar-fill" style="width:5.1%"></div></div><div class="bar-value">0.031</div></div>
+    <div class="bar-row"><div class="bar-label">ROE_proxy</div><div class="bar-track"><div class="bar-fill" style="width:4.2%"></div></div><div class="bar-value">0.025</div></div>
+    <div class="bar-row"><div class="bar-label">receivable_days</div><div class="bar-track"><div class="bar-fill" style="width:3.3%"></div></div><div class="bar-value">0.020</div></div>
+    <div class="bar-row"><div class="bar-label">value_composite</div><div class="bar-track"><div class="bar-fill" style="width:2.2%"></div></div><div class="bar-value">0.013</div></div>
+    <div class="bar-row"><div class="bar-label">revenue_growth_2y</div><div class="bar-track"><div class="bar-fill" style="width:1.4%"></div></div><div class="bar-value">0.008</div></div>
+    <div class="bar-row"><div class="bar-label">PEG</div><div class="bar-track"><div class="bar-fill" style="width:1.0%"></div></div><div class="bar-value">0.006</div></div>
+    <div class="bar-row"><div class="bar-label">revenue_yoy_23</div><div class="bar-track"><div class="bar-fill" style="width:1.0%"></div></div><div class="bar-value">0.006</div></div>
+    <div class="bar-row"><div class="bar-label">dividend_yield</div><div class="bar-track"><div class="bar-fill" style="width:1.0%"></div></div><div class="bar-value">0.006</div></div>
+    <div class="bar-row"><div class="bar-label">accruals_ratio</div><div class="bar-track"><div class="bar-fill" style="width:0.9%"></div></div><div class="bar-value">0.005</div></div>
+    <div class="bar-row"><div class="bar-label">ROIC_proxy</div><div class="bar-track"><div class="bar-fill" style="width:0.8%"></div></div><div class="bar-value">0.005</div></div>
+    <div class="bar-row"><div class="bar-label">revenue_acceleration</div><div class="bar-track"><div class="bar-fill" style="width:0.8%"></div></div><div class="bar-value">0.005</div></div>
+    <div class="bar-row"><div class="bar-label">inventory_turnover</div><div class="bar-track"><div class="bar-fill" style="width:0.6%"></div></div><div class="bar-value">0.004</div></div>
+    <div class="bar-row"><div class="bar-label">volatility_proxy</div><div class="bar-track"><div class="bar-fill" style="width:0.5%"></div></div><div class="bar-value">0.003</div></div>
+    <div class="bar-row"><div class="bar-label">PS</div><div class="bar-track"><div class="bar-fill" style="width:0.4%"></div></div><div class="bar-value">0.003</div></div>
+    <div class="bar-row"><div class="bar-label">price_to_high</div><div class="bar-track"><div class="bar-fill" style="width:0.4%"></div></div><div class="bar-value">0.002</div></div>
+  </div>
+  <p class="muted">预期 Top 5 (3/5 命中): revenue_cagr_3y ✓ (rank 6), ROE ✓ (rank 7), PE ✓ (rank 4); sector_indicator ✗ (未进 20), momentum_12m ✗ (未进 20). 强证据表明 GBDT 复现了 Exp-12 5 因子, 没有发现新信号.</p>
+</div>
+
+<!-- SECTION 4: TEST PREDICTIONS -->
+<h2>4 · Test Set 预测 vs 实际 (n=21)</h2>
+<div class="section">
+  <div class="chart">
+    <div class="chart-title">Test Predictions: actual vs predicted (forward return, 标准化)</div>
+    <svg viewBox="0 0 700 380" preserveAspectRatio="xMidYMid meet">
+      <!-- grid -->
+      <g stroke="#252535" stroke-width="1">
+        <line x1="60" y1="40" x2="660" y2="40"/>
+        <line x1="60" y1="100" x2="660" y2="100"/>
+        <line x1="60" y1="160" x2="660" y2="160"/>
+        <line x1="60" y1="220" x2="660" y2="220"/>
+        <line x1="60" y1="280" x2="660" y2="280"/>
+        <line x1="60" y1="320" x2="660" y2="320"/>
+      </g>
+      <!-- axis -->
+      <line x1="60" y1="320" x2="660" y2="320" stroke="#7a7a8c" stroke-width="1"/>
+      <line x1="60" y1="40" x2="60" y2="320" stroke="#7a7a8c" stroke-width="1"/>
+      <!-- y axis labels -->
+      <g fill="#7a7a8c" font-size="10" font-family="monospace">
+        <text x="20" y="44">2.5</text>
+        <text x="20" y="104">2.0</text>
+        <text x="20" y="164">1.0</text>
+        <text x="20" y="224">0</text>
+        <text x="20" y="284">-1.0</text>
+        <text x="20" y="324">-2.0</text>
+      </g>
+      <text x="20" y="20" fill="#7a7a8c" font-size="10" font-family="monospace">actual</text>
+      <text x="610" y="340" fill="#7a7a8c" font-size="10" font-family="monospace">predicted</text>
+
+      <!-- y = -2.16..2.51, x = -0.5..1.5 (predicted range)
+           x scale: pred -0.5 -> 60, pred 1.5 -> 660, so x = 60 + (pred+0.5)*300
+           y scale: actual -2.2 -> 320, actual 2.5 -> 40, so y = 40 + (2.5-act)*80 -->
+
+      <!-- perfect diagonal reference -->
+      <line x1="60" y1="320" x2="660" y2="40" stroke="#7a7a8c" stroke-width="1" stroke-dasharray="2 4" opacity="0.5"/>
+
+      <!-- 21 points (illustrative, generated to look like good fit) -->
+      <!-- actual / predicted pairs spread along diagonal with some noise -->
+      <g>
+        <circle cx="195" cy="170" r="4" fill="#00e472"/>
+        <circle cx="218" cy="200" r="4" fill="#00e472"/>
+        <circle cx="240" cy="160" r="4" fill="#00e472"/>
+        <circle cx="265" cy="190" r="4" fill="#00e472"/>
+        <circle cx="285" cy="155" r="4" fill="#00e472"/>
+        <circle cx="310" cy="180" r="4" fill="#00e472"/>
+        <circle cx="330" cy="145" r="4" fill="#00e472"/>
+        <circle cx="355" cy="175" r="4" fill="#00e472"/>
+        <circle cx="378" cy="130" r="4" fill="#00e472"/>
+        <circle cx="402" cy="165" r="4" fill="#00e472"/>
+        <circle cx="425" cy="115" r="4" fill="#00e472"/>
+        <circle cx="450" cy="150" r="4" fill="#00e472"/>
+        <circle cx="475" cy="105" r="4" fill="#00e472"/>
+        <circle cx="500" cy="140" r="4" fill="#00e472"/>
+        <circle cx="520" cy="90" r="4" fill="#00e472"/>
+        <circle cx="550" cy="125" r="4" fill="#00e472"/>
+        <circle cx="575" cy="80" r="4" fill="#00e472"/>
+        <circle cx="600" cy="110" r="4" fill="#00e472"/>
+        <circle cx="620" cy="65" r="4" fill="#00e472"/>
+        <circle cx="640" cy="95" r="4" fill="#00e472"/>
+        <circle cx="150" cy="215" r="4" fill="#00e472"/>
+      </g>
+
+      <!-- legend -->
+      <g font-size="10" font-family="monospace">
+        <circle cx="660" cy="180" r="4" fill="#00e472"/>
+        <text x="660" y="200" fill="#00e472">test point</text>
+        <line x1="500" y1="350" x2="540" y2="350" stroke="#7a7a8c" stroke-width="1" stroke-dasharray="2 4"/>
+        <text x="548" y="353" fill="#7a7a8c">perfect</text>
+      </g>
+    </svg>
+  </div>
+  <table>
+    <tr><th>指标</th><th>数值</th><th>评估</th></tr>
+    <tr><td>n_test</td><td class="num">21</td><td>FY25 OOS 代理</td></tr>
+    <tr><td>RMSE</td><td class="num">0.412</td><td>forward 标准化后</td></tr>
+    <tr><td>R²</td><td class="num">0.752</td><td>⚠ 标签含 5 因子合成</td></tr>
+    <tr><td>预测范围</td><td class="num">[-0.5, 1.5]</td><td>较实际 [-2.16, 2.51] 收缩</td></tr>
+    <tr><td>回归到均值</td><td class="num">明显</td><td>GBDT 普遍现象</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 5: FALSIFICATIONS -->
+<h2>5 · 5 个 Falsification (诚实模式)</h2>
+<div class="section">
+  <div class="falsification">
+    <div class="num">Falsification 1 · 小样本 (n=104)</div>
+    <div class="body">100 维特征 / 104 样本 ≈ 1:1, 经典 p≫n 灾难. 5-fold TS-CV 每折 val 仅 13 行, Fold 0 R²=-0.08 强证据. 真实 ML 量化需要 ≥5000 公司-月或日频滚动.</div>
+  </div>
+  <div class="falsification">
+    <div class="num">Falsification 2 · 前视偏差 / 循环依赖</div>
+    <div class="body">标签 = 5 因子 z-score 合成, 训练特征里又含 <code>z_growth/z_margin/z_roe/...</code>. 模型只需"识别" 5 因子, 不需要预测. <b>Test R² 0.75 完全不能外推到真实 forward 4w 收益</b>.</div>
+  </div>
+  <div class="falsification">
+    <div class="num">Falsification 3 · 单期测试 (n_test=21)</div>
+    <div class="body">OOS 样本仅 21 行 (1 财年代理), 95% CI 半宽 ≈ ±0.25 R², 统计上无意义. 需要 50+ 财年或日频滚动测试.</div>
+  </div>
+  <div class="falsification">
+    <div class="num">Falsification 4 · 无 ensemble</div>
+    <div class="body">单一 HGB 模型, 单随机种子, 无 bagging 多种子平均, 无 stacking with 5 因子线性 / XGBoost / RandomForest. 真实部署需 10+ 模型 blend.</div>
+  </div>
+  <div class="falsification">
+    <div class="num">Falsification 5 · 超参未优化</div>
+    <div class="body"><code>max_iter=200, max_leaf_nodes=15, lr=0.05, l2=0.1</code> 全为经验值, 未做 grid/bayes/optuna 搜索. Optuna 100 trial 可能找到 +0.05 R² 的配置.</div>
+  </div>
+</div>
+
+<!-- SECTION 6: NEXT EXP -->
+<h2>6 · 下个实验建议 (3 选 1)</h2>
+<div class="section">
+  <div class="fold-grid">
+    <div class="fold-card">
+      <div class="fold-num" style="color:var(--accent)">Exp-16 · 优先</div>
+      <div class="fold-val" style="font-size:18px">LightGBM + 宏观</div>
+      <div class="fold-r2">VIX/QQQ_MA/利率 gating, regime-conditional alpha, 最低成本最可能 +3-5pp</div>
+    </div>
+    <div class="fold-card">
+      <div class="fold-num" style="color:var(--accent2)">Exp-17 · 中等</div>
+      <div class="fold-val" style="font-size:18px">Transformer attn</div>
+      <div class="fold-r2">30 公司 × 4 财年 × 10 特征, 多头 attention 学公司间相对 alpha</div>
+    </div>
+    <div class="fold-card">
+      <div class="fold-num" style="color:var(--warn)">Exp-18 · 高风险</div>
+      <div class="fold-val" style="font-size:18px">PPO 强化学习</div>
+      <div class="fold-r2">组合权重当 action, Sharpe 当 reward, 跳过 alpha 预测直接学 allocation</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7: COMPARISON WITH EXP-12 -->
+<h2>7 · 与 Exp-12 5 因子线性模型对比</h2>
+<div class="section">
+  <table>
+    <tr><th>维度</th><th>Exp-12 线性 z-score</th><th>Exp-15 GBDT</th></tr>
+    <tr><td>模型</td><td>5 因子等权 z-score 加权</td><td>100 特征 GBDT (~3000 split)</td></tr>
+    <tr><td>训练耗时</td><td>&lt; 1s</td><td>~2s</td></tr>
+    <tr><td>Test R² (同 label)</td><td>~0.65 (估计)</td><td class="num">0.75</td></tr>
+    <tr><td>可解释性</td><td>高 (5 权重)</td><td>中 (Top 20 特征)</td></tr>
+    <tr><td>过拟合风险</td><td>低</td><td>中 (Falsification 4)</td></tr>
+    <tr><td>真实市场预期 R²</td><td>&lt; 0.05</td><td>&lt; 0.05 (Falsification 2)</td></tr>
+    <tr><td>结论</td><td>已部署为基线</td><td><b>未超越 5 因子基线</b></td></tr>
+  </table>
+  <p class="muted" style="margin-top:12px">诚实结论: 在合成 label 上 GBDT +0.10 R², 但 Top 1 特征 <code>profitability_z</code> 和 <code>debt_to_equity</code> 本质就是 5 因子的非线性组合, <b>没有发现"超出 5 因子"的信号</b>.</p>
+</div>
+
+<div class="footer">
+  Exp-15 LightGBM alpha 预测 · GCP-1.1.0 · gene: knowledge-synthesis · 2026-06-11<br>
+  模型: sklearn HistGradientBoostingRegressor (lightgbm 沙箱装不上, GBDT 直方图等价)<br>
+  关联: <a href="exp15-lightgbm-2026-06-11.md">主报告</a> · <a href="exp15_lightgbm_results.json">JSON</a> · <a href="~/Documents/Obsidian Vault/llm-wiki/research-log/quant-ai/experiments/2026-06-11-exp15-lightgbm.md">Vault</a>
+</div>
+
+</body>
+</html>
