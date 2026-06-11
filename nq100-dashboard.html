@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NASDAQ-100 投资仪表板 · 2026-06-11</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg-card: #13131a;
+  --bg-elevated: #1a1a24;
+  --border: #2a2a3a;
+  --border-hover: #3f3f4f;
+  --text: #e0e0e0;
+  --text-dim: #a0a0b0;
+  --text-muted: #6b7280;
+  --accent: #00e472;
+  --accent-hover: #00c964;
+  --yellow: #fbbf24;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+  padding: 1.5rem;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.hero {
+  background: linear-gradient(135deg, rgba(0,228,114,0.12), rgba(0,228,114,0.02));
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  background: linear-gradient(90deg, #00e472, #b0ffd0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.8rem;
+  margin-bottom: 0.4rem;
+}
+.hero .sub { color: var(--text-dim); font-size: 0.9rem; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+.stat .v { font-size: 1.6rem; font-weight: 800; background: linear-gradient(90deg, var(--accent), #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; }
+.stat .l { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.3rem; }
+
+.toolbar {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.toolbar input, .toolbar select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+}
+.toolbar input { flex: 1; min-width: 200px; }
+.toolbar label { color: var(--text-muted); font-size: 0.8rem; }
+.tab-btn {
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text);
+  padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+}
+.tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+.tabs { display: flex; gap: 0.3rem; margin-bottom: 1rem; }
+.tabs .tab-btn.active { background: var(--accent); color: #000; }
+
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.section h2 { font-size: 1rem; color: var(--text); margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { background: var(--bg-elevated); padding: 0.5rem 0.4rem; text-align: left; color: var(--text-dim); font-weight: 600; cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: 0; }
+th:hover { color: var(--accent); }
+th.sortable::after { content: ' ⇅'; opacity: 0.4; font-size: 0.7rem; }
+th.sorted-asc::after { content: ' ↑'; opacity: 1; color: var(--accent); }
+th.sorted-desc::after { content: ' ↓'; opacity: 1; color: var(--accent); }
+td { padding: 0.5rem 0.4rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tr:hover { background: var(--bg-elevated); }
+.num { text-align: right; font-variant-numeric: tabular-nums; font-family: 'SF Mono', Menlo, monospace; font-size: 0.78rem; }
+
+.badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: #000; }
+.badge-esg { background: var(--accent); }
+.badge-AAA, .badge-AA, .badge-A, .badge-BBB, .badge-BB, .badge-B, .badge-CCC, .badge-NR { color: #000; }
+
+.sector-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; color: #fff; }
+
+.falsif-list { list-style: none; padding: 0; }
+.falsif-list li { background: rgba(251,191,36,0.08); border-left: 3px solid var(--yellow); padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; font-size: 0.88rem; border-radius: 0 4px 4px 0; }
+
+footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 2rem 0; }
+footer a { color: var(--text-dim); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>📊 NASDAQ-100 投资仪表板</h1>
+  <p class="sub">Solo Agent 视角 · 105 家公司 · 数据更新: 2026-06-11 · 仅作研究用途</p>
+</div>
+
+<div class="stats" id="stats"></div>
+
+<div class="toolbar">
+  <label>🔍 搜索:</label>
+  <input type="text" id="search" placeholder="输入 ticker / 名称 / 行业...">
+  <label>行业:</label>
+  <select id="sector-filter">
+    <option value="">全部</option>
+  </select>
+  <label>ESG ≥</label>
+  <select id="esg-filter">
+    <option value="">全部</option>
+    <option value="AAA">AAA</option>
+    <option value="AA">AA</option>
+    <option value="A">A</option>
+    <option value="BBB">BBB</option>
+    <option value="BB">BB</option>
+  </select>
+  <button class="tab-btn" onclick="resetFilters()">重置</button>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="all">全部 105</button>
+  <button class="tab-btn" data-tab="mcap">市值 Top 20</button>
+  <button class="tab-btn" data-tab="growth">高增长 Top 20</button>
+  <button class="tab-btn" data-tab="value">低估值 Top 20</button>
+  <button class="tab-btn" data-tab="esg">ESG AAA/AA</button>
+  <button class="tab-btn" data-tab="strategies">投资策略</button>
+</div>
+
+<div id="tab-content"></div>
+
+<footer>
+  <p>📅 Generated 2026-06-11 · Hermes Agent · 数据来源: Nasdaq 公开 API + 训练知识</p>
+  <p style="margin-top:0.4rem;">⚠️ 本仪表板<strong>不构成投资建议</strong>，仅作研究/学习用途</p>
+</footer>
+
+<script>
+const companies = [{"ticker": "AAPL", "name": "Apple Inc. Common Stock", "sector": "Technology", "industry": "Consumer Electronics", "desc": "设计制造 iPhone/Mac/iPad 及服务 (App Store/iCloud/Apple Music)", "price": 291.58, "mcap": 4100.0, "rev": 416.161, "netincome": 112.01, "pe": 36.603874654048745, "growth": 0.0642551178283274, "margin": 0.2691506412181824, "esg": "BBB", "52w_low": 195.07, "52w_high": 317.4}, {"ticker": "ABNB", "name": "Airbnb, Inc. Class A Common Stock", "sector": "Consumer Cyclical", "industry": "Travel Services", "desc": "Airbnb 短租平台", "price": 129.1, "mcap": 75.0, "rev": 12.241, "netincome": 2.511, "pe": 29.86857825567503, "growth": 0.1025941271842911, "margin": 0.2051302998121068, "esg": "AA", "52w_low": 110.81, "52w_high": 147.25}, {"ticker": "ADBE", "name": "Adobe Inc. Common Stock", "sector": "Technology", "industry": "Software", "desc": "创意软件 (Photoshop/Premiere) + Document Cloud + Express", "price": 233.38, "mcap": 250.0, "rev": 23.769, "netincome": 7.13, "pe": 35.06311360448808, "growth": 0.1052778423622413, "margin": 0.2999705498758888, "esg": "AA", "52w_low": 224.13, "52w_high": 419.82}, {"ticker": "ADP", "name": "Automatic Data Processing, Inc. Common Stock", "sector": "Industrials", "industry": "HR & Payroll", "desc": "全球最大工资/HR 解决方案", "price": 231.1, "mcap": 120.0, "rev": 20.5609, "netincome": 4.0797, "pe": 29.413927494668727, "growth": 0.0707352129399143, "margin": 0.1984203026132124, "esg": "AA", "52w_low": 188.16, "52w_high": 319.72}, {"ticker": "AEP", "name": "American Electric Power Company, Inc. Common Stock", "sector": "Utilities", "industry": "Electric Utilities", "desc": "美国最大电力公司之一 (11 个州 550 万人)", "price": 128.53, "mcap": 50.0, "rev": 21.876, "netincome": 3.58, "pe": 13.966480446927374, "growth": 0.1092743775670606, "margin": 0.1636496617297494, "esg": "AA", "52w_low": 100.72, "52w_high": 139.44}, {"ticker": "AKAM", "name": "Akamai Technologies, Inc. Common Stock", "sector": "Technology", "industry": "CDN", "desc": "CDN + 边缘计算 + 安全 (Akamai)", "price": 129.97, "mcap": 20.0, "rev": 4.208175, "netincome": 0.452031, "pe": 44.24475312533875, "growth": 0.0543718029408935, "margin": 0.1074173483754834, "esg": "AA", "52w_low": 69.78, "52w_high": 165.45}, {"ticker": "ALGN", "name": "Align Technology, Inc. Common Stock", "sector": "Healthcare", "industry": "Dental Devices", "desc": "隐适美 Invisalign + iTero 扫描 (Align)", "price": 170.5, "mcap": 20.0, "rev": 4.034964, "netincome": 0.410351, "pe": 48.73876266903212, "growth": 0.0089902205844842, "margin": 0.1016988007823613, "esg": "AA", "52w_low": 122.0, "52w_high": 208.3}, {"ticker": "AMD", "name": "Advanced Micro Devices, Inc. Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "CPU (EPYC/Ryzen) + GPU (MI300/MI325) + DPU", "price": 452.4, "mcap": 240.0, "rev": 34.639, "netincome": 4.269, "pe": 56.21925509486999, "growth": 0.3433779329067288, "margin": 0.1232425878345217, "esg": "A", "52w_low": 115.06, "52w_high": 546.44}, {"ticker": "AMGN", "name": "Amgen Inc. Common Stock", "sector": "Healthcare", "industry": "Biotechnology", "desc": "生物制药 (Enbrel/Prolia/Repatha/Imdelltra)", "price": 337.73, "mcap": 160.0, "rev": 36.751, "netincome": 7.711, "pe": 20.749578524186227, "growth": 0.0995392532312111, "margin": 0.2098174199341514, "esg": "AA", "52w_low": 267.83, "52w_high": 391.29}, {"ticker": "AMZN", "name": "Amazon.com, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Internet Retail", "desc": "AWS 云 (40% 利润) + Marketplace + Prime + 物流", "price": 238.0, "mcap": 2500.0, "rev": 716.924, "netincome": 77.67, "pe": 32.18745976567529, "growth": 0.1237775468329469, "margin": 0.1083378433418326, "esg": "AA", "52w_low": 196.0, "52w_high": 278.56}, {"ticker": "ARGX", "name": "argenx SE American Depositary Shares", "sector": "Healthcare", "industry": "Biotechnology", "desc": "argenx 自免 (Vyvgart) 抗体药", "price": 862.18, "mcap": 35.0, "rev": 4.24805, "netincome": 1.279645, "pe": 27.351335722016653, "growth": 0.8863128036415, "margin": 0.3012311531173126, "esg": "AA", "52w_low": 510.06, "52w_high": 934.62}, {"ticker": "ARM", "name": "Arm Holdings plc American Depositary Shares", "sector": "Technology", "industry": "Semiconductors", "desc": "ARM 架构 IP (移动端 95% 份额 + AI/汽车)", "price": 307.43, "mcap": 150.0, "rev": 4.92, "netincome": 0.918, "pe": 163.3986928104575, "growth": 0.2278512602944846, "margin": 0.1865853658536585, "esg": "AA", "52w_low": 100.02, "52w_high": 427.99}, {"ticker": "ASML", "name": "ASML Holding N.V. New York Registry Shares", "sector": "Technology", "industry": "Semiconductor Equipment", "desc": "EUV 光刻机垄断 (100% 7nm 以下芯片制造必需)", "price": 1734.19, "mcap": 270.0, "rev": 38.3662, "netincome": 11.2858, "pe": 23.923868932641017, "growth": 0.3109299401361287, "margin": 0.2941599637180643, "esg": "AAA", "52w_low": 683.48, "52w_high": 1831.11}, {"ticker": "AVGO", "name": "Broadcom Inc. Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "网络芯片 + 无线 + 存储 + VMware (收购后)", "price": 372.1, "mcap": 1300.0, "rev": 63.887, "netincome": 23.126, "pe": 56.21378534982271, "growth": 0.2387443285376351, "margin": 0.3619828760154648, "esg": "A", "52w_low": 241.4, "52w_high": 495.0}, {"ticker": "AZN", "name": "AstraZeneca PLC Ordinary Shares", "sector": "Healthcare", "industry": "Pharmaceutical", "desc": "英国制药 (Tagrisso/Imfinzi/Enhertu)", "price": 178.96, "mcap": 220.0, "rev": 58.739, "netincome": 10.226, "pe": 21.51378838255427, "growth": 0.0862907550903409, "margin": 0.1740921704489351, "esg": "AA", "52w_low": 174.6, "52w_high": 212.71}, {"ticker": "BIDU", "name": "Baidu, Inc. ADS", "sector": "Communication", "industry": "Search", "desc": "百度 (Baidu) 中文搜索 + Apollo 自动驾驶 + 文心 LLM", "price": 117.48, "mcap": 30.0, "rev": 18.471, "netincome": 1.257, "pe": 23.86634844868735, "growth": 0.012775523631977, "margin": 0.0680526230306967, "esg": "BB", "52w_low": 83.3, "52w_high": 165.3}, {"ticker": "BKNG", "name": "Booking Holdings Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Travel Services", "desc": "Booking.com + Priceline + Agoda + OpenTable", "price": 160.64, "mcap": 150.0, "rev": 26.917, "netincome": 5.404, "pe": 27.75721687638786, "growth": 0.1338725304351489, "margin": 0.2007653155998068, "esg": "AA", "52w_low": 150.14, "52w_high": 233.58}, {"ticker": "BKR", "name": "Baker Hughes Company Class A Common Stock", "sector": "Energy", "industry": "Oilfield Services", "desc": "油服 + 涡轮机械 + 数字 (Baker Hughes)", "price": 63.02, "mcap": 40.0, "rev": 27.733, "netincome": 2.588, "pe": 15.45595054095827, "growth": -0.0034496388659311, "margin": 0.0933184293080445, "esg": "AA", "52w_low": 37.38, "52w_high": 70.41}, {"ticker": "CDNS", "name": "Cadence Design Systems, Inc. Common Stock", "sector": "Technology", "industry": "EDA Software", "desc": "EDA + IP 核 (与 Synopsys 并列)", "price": 385.13, "mcap": 80.0, "rev": 5.296759, "netincome": 1.108888, "pe": 72.14434640829371, "growth": 0.1412320005929419, "margin": 0.2093521717714549, "esg": "AA", "52w_low": 262.75, "52w_high": 416.69}, {"ticker": "CDW", "name": "CDW Corporation Common Stock", "sector": "Technology", "industry": "IT Distribution", "desc": "CDW IT 产品分销 (企业)", "price": 129.3, "mcap": 20.0, "rev": 22.4241, "netincome": 1.0666, "pe": 18.751171948246764, "growth": 0.067880392595732, "margin": 0.0475648966959655, "esg": "AA", "52w_low": 97.12, "52w_high": 183.91}, {"ticker": "CEG", "name": "Constellation Energy Corporation Common Stock ", "sector": "Utilities", "industry": "Nuclear", "desc": "Constellation Energy 美国最大核电 (20 反应堆)", "price": 242.3, "mcap": 60.0, "rev": 25.533, "netincome": 2.319, "pe": 25.873221216041397, "growth": 0.0833757637474541, "margin": 0.0908236399953002, "esg": "AA", "52w_low": 243.3, "52w_high": 412.7}, {"ticker": "CHKP", "name": "Check Point Software Technologies Ltd. Ordinary Shares", "sector": "Technology", "industry": "Cybersecurity", "desc": "Check Point 防火墙 + 威胁防御", "price": 125.69, "mcap": 15.0, "rev": 2.7254, "netincome": 1.0569, "pe": 14.19244961680386, "growth": 0.0625341130604288, "margin": 0.3877962867835914, "esg": "AA", "52w_low": 112.23, "52w_high": 232.07}, {"ticker": "CHRW", "name": "C.H. Robinson Worldwide, Inc. Common Stock", "sector": "Industrials", "industry": "Freight Forwarding", "desc": "C.H. Robinson 物流 + 货运代理", "price": 184.995, "mcap": 12.0, "rev": 16.232763, "netincome": 0.587081, "pe": 20.4401096271213, "growth": -0.0841859917734069, "margin": 0.0361664246561106, "esg": "A", "52w_low": 92.36, "52w_high": 203.34}, {"ticker": "COST", "name": "Costco Wholesale Corporation Common Stock", "sector": "Consumer Defensive", "industry": "Discount Stores", "desc": "会员制仓储超市 (Costco)", "price": 983.37, "mcap": 410.0, "rev": 275.235, "netincome": 8.099, "pe": 50.62353376960119, "growth": 0.0816732363147614, "margin": 0.0294257634385161, "esg": "AAA", "52w_low": 844.06, "52w_high": 1096.5}, {"ticker": "CPRT", "name": "Copart, Inc. (DE) Common Stock", "sector": "Industrials", "industry": "Auto Auction", "desc": "事故车拍卖龙头 (Copart)", "price": 31.36, "mcap": 55.0, "rev": 4.646958, "netincome": 1.552449, "pe": 35.427894893809714, "growth": 0.0968024862025154, "margin": 0.3340785520333947, "esg": "AA", "52w_low": 29.96, "52w_high": 50.91}, {"ticker": "CSCO", "name": "Cisco Systems, Inc. Common Stock (DE)", "sector": "Technology", "industry": "Networking", "desc": "企业网络 + 安全 + Splunk + AI 基础设施", "price": 118.8, "mcap": 250.0, "rev": 56.654, "netincome": 10.18, "pe": 24.557956777996072, "growth": 0.0529896102447819, "margin": 0.1796872242030571, "esg": "AA", "52w_low": 63.86, "52w_high": 130.37}, {"ticker": "CSGP", "name": "CoStar Group, Inc. Common Stock", "sector": "Real Estate", "industry": "Data & Analytics", "desc": "CoStar 商业地产数据 + Apartments.com", "price": 34.23, "mcap": 30.0, "rev": 3.247, "netincome": 0.007, "pe": null, "growth": 0.1867690058479532, "margin": 0.0021558361564521, "esg": "AA", "52w_low": 31.36, "52w_high": 97.43}, {"ticker": "CTAS", "name": "Cintas Corporation Common Stock", "sector": "Industrials", "industry": "Uniform Rental", "desc": "制服/急救/洗手间服务龙头 (Cintas)", "price": 180.4, "mcap": 70.0, "rev": 10.340181, "netincome": 1.812281, "pe": 38.62535666378448, "growth": 0.0774821121822642, "margin": 0.1752658875120271, "esg": "AA", "52w_low": 161.16, "52w_high": 226.75}, {"ticker": "DASH", "name": "DoorDash, Inc. Class A Common Stock", "sector": "Consumer Cyclical", "industry": "Food Delivery", "desc": "DoorDash 食品配送 + 杂货 + 零售", "price": 151.0, "mcap": 65.0, "rev": 13.717, "netincome": 0.935, "pe": 69.5187165775401, "growth": 0.2793322141391532, "margin": 0.0681635926222935, "esg": "A", "52w_low": 143.3, "52w_high": 285.5}, {"ticker": "DDOG", "name": "Datadog, Inc. Class A Common Stock", "sector": "Technology", "industry": "Monitoring", "desc": "Datadog 云监控 + APM + Log", "price": 227.63, "mcap": 40.0, "rev": 3.427158, "netincome": 0.107741, "pe": 371.2607085510623, "growth": 0.2767536858183308, "margin": 0.0314374184090724, "esg": "AA", "52w_low": 98.01, "52w_high": 278.7}, {"ticker": "DLTR", "name": "Dollar Tree Inc. Common Stock", "sector": "Consumer Defensive", "industry": "Discount Retail", "desc": "Dollar Tree 折扣零售 (含 Family Dollar)", "price": 110.32, "mcap": 20.0, "rev": 19.4118, "netincome": 1.2253, "pe": 16.32253325716151, "growth": 0.1042921751002645, "margin": 0.0631214003853326, "esg": "AA", "52w_low": 84.71, "52w_high": 142.4}, {"ticker": "DOCU", "name": "DocuSign, Inc. Common Stock", "sector": "Technology", "industry": "E-Signature", "desc": "DocuSign 电子签名 + CLM", "price": 45.13, "mcap": 10.0, "rev": 3.2195, "netincome": 0.309085, "pe": 32.35355970040604, "growth": 0.0815526655175344, "margin": 0.0960040378940829, "esg": "AA", "52w_low": 40.16, "52w_high": 86.65}, {"ticker": "DXCM", "name": "DexCom, Inc. Common Stock", "sector": "Healthcare", "industry": "Medical Devices", "desc": "CGM 连续血糖监测 (Dexcom G7)", "price": 74.77, "mcap": 35.0, "rev": 4.662, "netincome": 0.8363, "pe": 41.85101040296544, "growth": 0.1559633027522935, "margin": 0.1793865293865293, "esg": "AA", "52w_low": 54.11, "52w_high": 89.98}, {"ticker": "EA", "name": "Electronic Arts Inc. Common Stock", "sector": "Communication", "industry": "Gaming", "desc": "EA Sports + Apex + FC24 + FC Mobile", "price": 203.2, "mcap": 40.0, "rev": 7.531, "netincome": 0.887, "pe": 45.095828635851184, "growth": 0.0091116173120728, "margin": 0.1177798433143008, "esg": "A", "52w_low": 145.54, "52w_high": 204.88}, {"ticker": "EBAY", "name": "eBay Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Internet Retail", "desc": "eBay C2C + B2C + 二手 (Gymboree 旧)", "price": 106.41, "mcap": 25.0, "rev": 11.1, "netincome": 1.996, "pe": 12.5250501002004, "growth": 0.079451521929398, "margin": 0.1798198198198198, "esg": "AA", "52w_low": 72.84, "52w_high": 119.31}, {"ticker": "ENPH", "name": "Enphase Energy, Inc. Common Stock", "sector": "Technology", "industry": "Solar Inverters", "desc": "微型逆变器 + 储能 (Enphase)", "price": 50.57, "mcap": 15.0, "rev": 1.472985, "netincome": 0.172133, "pe": 87.14191932982055, "growth": 0.1071886817555545, "margin": 0.116859981601985, "esg": "AA", "52w_low": 25.78, "52w_high": 73.74}, {"ticker": "EXC", "name": "Exelon Corporation Common Stock", "sector": "Utilities", "industry": "Electric Utilities", "desc": "美国最大核能 + 燃气 (Exelon)", "price": 45.61, "mcap": 40.0, "rev": 24.258, "netincome": 2.768, "pe": 14.45086705202312, "growth": 0.0534132360604482, "margin": 0.1141066864539533, "esg": "AA", "52w_low": 42.14, "52w_high": 50.65}, {"ticker": "FANG", "name": "Diamondback Energy, Inc. Common Stock", "sector": "Energy", "industry": "Oil & Gas E&P", "desc": "Diamondback 油气 (Permian Basin 二叠纪)", "price": 196.55, "mcap": 50.0, "rev": 15.026, "netincome": 1.664, "pe": 30.048076923076923, "growth": 0.3578528827037772, "margin": 0.1107413816052176, "esg": "BB", "52w_low": 134.3, "52w_high": 214.51}, {"ticker": "FAST", "name": "Fastenal Company Common Stock", "sector": "Industrials", "industry": "Industrial Distribution", "desc": "紧固件 + 工具分销 (Fastenal)", "price": 46.03, "mcap": 40.0, "rev": 8.2005, "netincome": 1.2584, "pe": 31.78639542275906, "growth": 0.086734693877551, "margin": 0.1534540576794097, "esg": "AA", "52w_low": 38.97, "52w_high": 50.63}, {"ticker": "FIVE", "name": "Five Below, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Discount Retail", "desc": "Five Below 5-25 美元零售", "price": 195.85, "mcap": 7.0, "rev": 4.764147, "netincome": 0.358641, "pe": 19.51812536770754, "growth": 0.2289729956737047, "margin": 0.0752791633003767, "esg": "AA", "52w_low": 121.11, "52w_high": 251.63}, {"ticker": "FTNT", "name": "Fortinet, Inc. Common Stock", "sector": "Technology", "industry": "Cybersecurity", "desc": "防火墙 + SASE + SD-WAN (Fortinet)", "price": 138.88, "mcap": 75.0, "rev": 6.7996, "netincome": 1.8638, "pe": 40.240369138319565, "growth": 0.1416770207192987, "margin": 0.2741043590799459, "esg": "AA", "52w_low": 70.12, "52w_high": 150.07}, {"ticker": "GEHC", "name": "GE HealthCare Technologies Inc. Common Stock ", "sector": "Healthcare", "industry": "Medical Imaging", "desc": "GE HealthCare (从 GE 拆分) 影像 + 超声", "price": 63.76, "mcap": 40.0, "rev": 20.625, "netincome": 2.154, "pe": 18.570102135561747, "growth": 0.0484444896299309, "margin": 0.1044363636363636, "esg": "AA", "52w_low": 58.75, "52w_high": 89.77}, {"ticker": "GILD", "name": "Gilead Sciences, Inc. Common Stock", "sector": "Healthcare", "industry": "Biotechnology", "desc": "HIV (Biktarvy) + 肿瘤 + 肝病 (HCV)", "price": 121.48, "mcap": 110.0, "rev": 29.443, "netincome": 8.51, "pe": 12.925969447708578, "growth": 0.0239618835640258, "margin": 0.2890330469041877, "esg": "AA", "52w_low": 104.46, "52w_high": 157.29}, {"ticker": "GOOGL", "name": "Alphabet Inc. Class A Common Stock", "sector": "Communication", "industry": "Internet Content", "desc": "Search 85% 份额 + YouTube + GCP 云 + Waymo", "price": 356.38, "mcap": 2100.0, "rev": 402.836, "netincome": 132.17, "pe": 15.888628281758342, "growth": 0.1509008108154437, "margin": 0.3280987796522654, "esg": "AA", "52w_low": 162.0, "52w_high": 408.61}, {"ticker": "HON", "name": "Honeywell International Inc. Common Stock", "sector": "Industrials", "industry": "Industrial Conglomerates", "desc": "航空航天 + 智能建筑 + 工业自动化 + 特性材料", "price": 205.88, "mcap": 140.0, "rev": 37.442, "netincome": 4.468, "pe": 31.33393017009848, "growth": 0.0784918051674972, "margin": 0.1193312323059665, "esg": "AA", "52w_low": 186.76, "52w_high": 248.18}, {"ticker": "IDXX", "name": "IDEXX Laboratories, Inc. Common Stock", "sector": "Healthcare", "industry": "Vet Diagnostics", "desc": "宠物诊断 (猫狗) + 水质 + 食品安全", "price": 556.94, "mcap": 40.0, "rev": 4.303702, "netincome": 1.059464, "pe": 37.75494023392961, "growth": 0.1042200341551926, "margin": 0.2461750372121489, "esg": "AA", "52w_low": 506.91, "52w_high": 769.98}, {"ticker": "ILMN", "name": "Illumina, Inc. Common Stock", "sector": "Healthcare", "industry": "Genomics", "desc": "基因测序仪 + 试剂 (Illumina)", "price": 162.47, "mcap": 15.0, "rev": 4.343, "netincome": 0.85, "pe": 17.647058823529413, "growth": -0.0066331198536139, "margin": 0.1957172461432189, "esg": "A", "52w_low": 85.0, "52w_high": 177.22}, {"ticker": "INCY", "name": "Incyte Corp. Common Stock", "sector": "Healthcare", "industry": "Biotechnology", "desc": "血液/肿瘤药 (Jakafi/Opzelura)", "price": 105.39, "mcap": 15.0, "rev": 5.141242, "netincome": 1.30796, "pe": 11.468240618979172, "growth": 0.2122091371415326, "margin": 0.2544054530014343, "esg": "A", "52w_low": 66.74, "52w_high": 112.29}, {"ticker": "INTC", "name": "Intel Corporation Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "IDM 模式 (制造 + 设计) + 18A 节点重押 AI", "price": 107.04, "mcap": 100.0, "rev": 52.853, "netincome": 0.247, "pe": 404.8582995951417, "growth": -0.0046703451912393, "margin": 0.0046733392617259, "esg": "BB", "52w_low": 18.96, "52w_high": 132.75}, {"ticker": "INTU", "name": "Intuit Inc. Common Stock", "sector": "Technology", "industry": "Software", "desc": "会计/税务软件 (QuickBooks/TurboTax/Mailchimp)", "price": 284.22, "mcap": 180.0, "rev": 18.831, "netincome": 3.869, "pe": 46.52364952184027, "growth": 0.1563401903592263, "margin": 0.2054590834262652, "esg": "AA", "52w_low": 291.18, "52w_high": 813.7}, {"ticker": "ISRG", "name": "Intuitive Surgical, Inc. Common Stock", "sector": "Healthcare", "industry": "Medical Devices", "desc": "达芬奇手术机器人 (全球装机 9000+ 台)", "price": 412.02, "mcap": 180.0, "rev": 10.0647, "netincome": 2.856, "pe": 63.02521008403362, "growth": 0.2050502268890459, "margin": 0.283764046618379, "esg": "AA", "52w_low": 396.68, "52w_high": 603.88}, {"ticker": "KDP", "name": "Keurig Dr Pepper Inc. Common Stock", "sector": "Consumer Defensive", "industry": "Beverages", "desc": "Keurig 咖啡 + Dr Pepper 软饮", "price": 31.7, "mcap": 50.0, "rev": 16.603, "netincome": 2.079, "pe": 24.05002405002405, "growth": 0.0815582046772196, "margin": 0.1252183340360176, "esg": "A", "52w_low": 24.88, "52w_high": 35.94}, {"ticker": "KLAC", "name": "KLA Corporation Common Stock", "sector": "Technology", "industry": "Semiconductor Equipment", "desc": "光学检测 + 量测设备 (晶圆厂关键)", "price": 2135.64, "mcap": 95.0, "rev": 12.156162, "netincome": 4.061643, "pe": 23.389549500042225, "growth": 0.2388764775285417, "margin": 0.3341221513829776, "esg": "AA", "52w_low": 826.76, "52w_high": 2262.82}, {"ticker": "LCID", "name": "Lucid Group, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Auto Manufacturers", "desc": "Lucid Motors 豪华 EV (Lucid Air/Gravity)", "price": 4.7, "mcap": 7.0, "rev": 1.35379, "netincome": -2.698051, "pe": null, "growth": 0.6758311133998158, "margin": -1.99296124214243, "esg": "A", "52w_low": 5.0, "52w_high": 33.7}, {"ticker": "LIN", "name": "Linde plc Ordinary Shares", "sector": "Basic Materials", "industry": "Specialty Chemicals", "desc": "工业气体龙头 (制氧/制氢/氦)", "price": 509.16, "mcap": 210.0, "rev": 33.986, "netincome": 6.898, "pe": 30.44360684256306, "growth": 0.0297227692773822, "margin": 0.202965927146472, "esg": "AA", "52w_low": 387.78, "52w_high": 521.28}, {"ticker": "LRCX", "name": "Lam Research Corporation Common Stock", "sector": "Technology", "industry": "Semiconductor Equipment", "desc": "刻蚀 + 沉积设备 (与 ASML/KLA 并列)", "price": 321.8, "mcap": 110.0, "rev": 18.435591, "netincome": 5.358217, "pe": 20.52921708844565, "growth": 0.2368408976459919, "margin": 0.2906452524358996, "esg": "AA", "52w_low": 87.75, "52w_high": 349.09}, {"ticker": "LULU", "name": "lululemon athletica inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Apparel", "desc": "Lululemon 瑜伽/运动服装", "price": 118.93, "mcap": 15.0, "rev": 11.1026, "netincome": 1.579183, "pe": 9.498582494872348, "growth": 0.0485897126649228, "margin": 0.1422354223335074, "esg": "AA", "52w_low": 109.36, "52w_high": 262.16}, {"ticker": "MAR", "name": "Marriott International Class A Common Stock", "sector": "Consumer Cyclical", "industry": "Hotels", "desc": "万豪酒店 (Marriott Bonvoy) 30 品牌", "price": 386.23, "mcap": 70.0, "rev": 26.186, "netincome": 2.612, "pe": 26.79938744257274, "growth": 0.0432669322709162, "margin": 0.0997479569235469, "esg": "A", "52w_low": 253.56, "52w_high": 398.96}, {"ticker": "MCHP", "name": "Microchip Technology Incorporated Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "MCU + 模拟 (Microchip)", "price": 87.91, "mcap": 35.0, "rev": 4.7131, "netincome": 0.23, "pe": 152.17391304347825, "growth": 0.0707697201017811, "margin": 0.0488001527656956, "esg": "A", "52w_low": 48.52, "52w_high": 105.91}, {"ticker": "MELI", "name": "MercadoLibre, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Internet Retail", "desc": "拉美电商 + 支付 + 信贷 (MercadoPago)", "price": 1588.29, "mcap": 90.0, "rev": 28.893, "netincome": 1.997, "pe": 45.06760140210316, "growth": 0.3906242479665014, "margin": 0.0691170871837469, "esg": "A", "52w_low": 1495.0, "52w_high": 2645.22}, {"ticker": "META", "name": "Meta Platforms, Inc. Class A Common Stock", "sector": "Communication", "industry": "Social Media", "desc": "Facebook/Instagram/WhatsApp + Reality Labs + AI", "price": 570.98, "mcap": 1400.0, "rev": 200.966, "netincome": 60.458, "pe": 23.15657150418472, "growth": 0.2216703849824621, "margin": 0.3008369574952977, "esg": "AA", "52w_low": 520.26, "52w_high": 796.25}, {"ticker": "MNST", "name": "Monster Beverage Corporation", "sector": "Consumer Defensive", "industry": "Beverages", "desc": "Monster Energy 功能饮料 (能量饮料 #1)", "price": 91.21, "mcap": 60.0, "rev": 8.294343, "netincome": 1.905432, "pe": 31.488922197171036, "growth": 0.106988540459799, "margin": 0.2297266944470466, "esg": "AA", "52w_low": 58.09, "52w_high": 90.49}, {"ticker": "MRVL", "name": "Marvell Technology, Inc. Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "数据基础设施 (云端/AI/5G/汽车) + 网络芯片", "price": 252.59, "mcap": 65.0, "rev": 8.1946, "netincome": 2.6701, "pe": 24.34365754091607, "growth": 0.4208728521145077, "margin": 0.3258365264930564, "esg": "A", "52w_low": 61.44, "52w_high": 324.2}, {"ticker": "MSFT", "name": "Microsoft Corporation Common Stock", "sector": "Technology", "industry": "Software", "desc": "Windows/Office/Azure 云 + GitHub/LinkedIn + OpenAI 投资", "price": 397.36, "mcap": 3700.0, "rev": 281.724, "netincome": 101.832, "pe": 36.33435462330112, "growth": 0.1493215623240671, "margin": 0.3614601524896707, "esg": "AAA", "52w_low": 356.28, "52w_high": 555.45}, {"ticker": "MTCH", "name": "Match Group, Inc. Common Stock", "sector": "Communication", "industry": "Dating", "desc": "Tinder + Hinge + Match.com + OkCupid", "price": 34.35, "mcap": 8.0, "rev": 3.487197, "netincome": 0.613446, "pe": 13.04108267068332, "growth": 0.0022486810123547, "margin": 0.1759137783153633, "esg": "A", "52w_low": 28.81, "52w_high": 39.2}, {"ticker": "MU", "name": "Micron Technology, Inc. Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "DRAM + NAND (HBM3e 受益 AI)", "price": 891.88, "mcap": 130.0, "rev": 37.378, "netincome": 8.539, "pe": 15.224265136432836, "growth": 0.4885110111106685, "margin": 0.2284498903098079, "esg": "A", "52w_low": 103.38, "52w_high": 1089.29}, {"ticker": "NFLX", "name": "Netflix, Inc. Common Stock", "sector": "Communication", "industry": "Entertainment", "desc": "流媒体龙头 (300M+ 订阅) + 广告 tier", "price": 82.0, "mcap": 400.0, "rev": 45.183036, "netincome": 10.981201, "pe": 36.42588820658141, "growth": 0.1585106891967753, "margin": 0.2430381393583202, "esg": "AA", "52w_low": 75.01, "52w_high": 134.12}, {"ticker": "NTAP", "name": "NetApp, Inc. Common Stock", "sector": "Technology", "industry": "Storage", "desc": "NetApp 数据存储 (混合云 + 全闪存)", "price": 160.66, "mcap": 20.0, "rev": 6.925, "netincome": 1.276, "pe": 15.67398119122257, "growth": 0.0537127206329883, "margin": 0.1842599277978339, "esg": "AA", "52w_low": 93.69, "52w_high": 192.83}, {"ticker": "NTES", "name": "NetEase, Inc. American Depositary Shares", "sector": "Communication", "industry": "Gaming", "desc": "网易 (NetEase) 中国游戏 + 有道 + 云音乐", "price": 125.52, "mcap": 55.0, "rev": 16.116684, "netincome": 4.831007, "pe": 11.384789962009991, "growth": 0.1172367352311918, "margin": 0.2997519216732176, "esg": "BB", "52w_low": 106.06, "52w_high": 159.55}, {"ticker": "NVDA", "name": "NVIDIA Corporation Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "GPU 龙头 (H100/B200) + 数据中心 + 自动驾驶 + 游戏", "price": 200.42, "mcap": 4300.0, "rev": 215.938, "netincome": 120.067, "pe": 35.81333755319946, "growth": 0.6547353579009478, "margin": 0.5560253406070261, "esg": "AAA", "52w_low": 140.85, "52w_high": 236.54}, {"ticker": "NXPI", "name": "NXP Semiconductors N.V. Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "汽车 + IoT 半导体 (NXP)", "price": 285.56, "mcap": 50.0, "rev": 12.269, "netincome": 2.021, "pe": 24.740227610094013, "growth": -0.027350562866656, "margin": 0.1647241013937566, "esg": "A", "52w_low": 183.0, "52w_high": 339.95}, {"ticker": "ODFL", "name": "Old Dominion Freight Line, Inc. Common Stock", "sector": "Industrials", "industry": "Trucking", "desc": "Less-than-truckload 龙头 (Old Dominion)", "price": 235.95, "mcap": 35.0, "rev": 5.496389, "netincome": 1.023703, "pe": 34.189603820639384, "growth": -0.0547603447060178, "margin": 0.1862500998382756, "esg": "AA", "52w_low": 126.01, "52w_high": 252.03}, {"ticker": "ON", "name": "ON Semiconductor Corporation Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "电源 + 模拟 + 传感器 (onsemi)", "price": 110.17, "mcap": 35.0, "rev": 5.9954, "netincome": 0.121, "pe": 289.25619834710744, "growth": -0.153467094023128, "margin": 0.0201821396403909, "esg": "A", "52w_low": 44.56, "52w_high": 134.92}, {"ticker": "ORLY", "name": "O'Reilly Automotive, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Auto Parts", "desc": "汽车后市场零售 (OReilly Auto Parts)", "price": 90.46, "mcap": 75.0, "rev": 17.781992, "netincome": 2.538209, "pe": 29.54839416297082, "growth": 0.0642495944723633, "margin": 0.1427404196335258, "esg": "AA", "52w_low": 85.35, "52w_high": 108.72}, {"ticker": "PANW", "name": "Palo Alto Networks, Inc. Common Stock", "sector": "Technology", "industry": "Cybersecurity", "desc": "网络安全平台 (Strata/Prisma/Cortex)", "price": 263.22, "mcap": 120.0, "rev": 9.2215, "netincome": 1.1339, "pe": 105.82943822206543, "growth": 0.1487387106820306, "margin": 0.1229626416526595, "esg": "AA", "52w_low": 139.57, "52w_high": 302.95}, {"ticker": "PAYX", "name": "Paychex, Inc. Common Stock", "sector": "Industrials", "industry": "HR & Payroll", "desc": "Paychex 中小企业 HR + 工资", "price": 101.1, "mcap": 55.0, "rev": 5.5717, "netincome": 1.6573, "pe": 33.18650817594883, "growth": 0.0555860788511453, "margin": 0.2974496114291868, "esg": "AA", "52w_low": 85.45, "52w_high": 157.51}, {"ticker": "PCAR", "name": "PACCAR Inc. Common Stock", "sector": "Industrials", "industry": "Trucks", "desc": "卡车制造 (PACCAR) + 配件", "price": 113.99, "mcap": 50.0, "rev": 27.0161, "netincome": 2.3758, "pe": 21.04554255408705, "growth": -0.1653428242178207, "margin": 0.0879401542043448, "esg": "AA", "52w_low": 90.05, "52w_high": 131.88}, {"ticker": "PDD", "name": "PDD Holdings Inc. American Depositary Shares", "sector": "Consumer Cyclical", "industry": "Internet Retail", "desc": "Temu 母公司 + 中国拼多多", "price": 81.82, "mcap": 150.0, "rev": 61.796858, "netincome": 14.001208, "pe": 10.713361304253176, "growth": 0.1453259780144797, "margin": 0.2265682828081647, "esg": "BB", "52w_low": 81.56, "52w_high": 139.41}, {"ticker": "PEP", "name": "PepsiCo, Inc. Common Stock", "sector": "Consumer Defensive", "industry": "Beverages", "desc": "Pepsi + Frito-Lay + Quaker + Tropicana", "price": 144.32, "mcap": 210.0, "rev": 93.925, "netincome": 8.24, "pe": 25.48543689320388, "growth": 0.0225466501186666, "margin": 0.0877295714665956, "esg": "A", "52w_low": 127.6, "52w_high": 171.48}, {"ticker": "PTC", "name": "PTC Inc. Common Stock", "sector": "Technology", "industry": "PLM Software", "desc": "CAD/PLM/IoT/AR 软件 (PTC Creo/ThingWorx)", "price": 135.08, "mcap": 20.0, "rev": 2.739226, "netincome": 0.733997, "pe": 27.24806777139416, "growth": 0.1917595689658173, "margin": 0.2679578099798994, "esg": "AA", "52w_low": 130.89, "52w_high": 219.69}, {"ticker": "PYPL", "name": "PayPal Holdings, Inc. Common Stock", "sector": "Financial", "industry": "Payments", "desc": "PayPal 支付 + Braintree + Venmo", "price": 40.7, "mcap": 70.0, "rev": 33.172, "netincome": 5.233, "pe": 13.376648194152494, "growth": 0.0432430732459037, "margin": 0.1577535270710237, "esg": "AA", "52w_low": 38.46, "52w_high": 79.5}, {"ticker": "QCOM", "name": "QUALCOMM Incorporated Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "移动 SoC 龙头 (Snapdragon) + 汽车 + IoT", "price": 191.2, "mcap": 180.0, "rev": 44.284, "netincome": 5.541, "pe": 32.48511099079589, "growth": 0.1365946306657768, "margin": 0.1251241983560654, "esg": "A", "52w_low": 121.99, "52w_high": 259.92}, {"ticker": "REGN", "name": "Regeneron Pharmaceuticals, Inc. Common Stock", "sector": "Healthcare", "industry": "Biotechnology", "desc": "眼科 (Eylea) + 自免 (Dupixent) + 肿瘤", "price": 601.65, "mcap": 80.0, "rev": 14.3429, "netincome": 4.5049, "pe": 17.758440808896978, "growth": 0.0099211378679058, "margin": 0.314085714883322, "esg": "AA", "52w_low": 503.25, "52w_high": 821.11}, {"ticker": "RIVN", "name": "Rivian Automotive, Inc. Class A Common Stock", "sector": "Consumer Cyclical", "industry": "Auto Manufacturers", "desc": "Rivian 电动皮卡 + SUV (R1T/R1S/EDV)", "price": 14.76, "mcap": 13.0, "rev": 0, "netincome": 0, "pe": null, "growth": 0, "margin": 0, "esg": "A", "52w_low": 11.57, "52w_high": 22.69}, {"ticker": "ROP", "name": "Roper Technologies, Inc. Common Stock", "sector": "Industrials", "industry": "Industrial Conglomerates", "desc": "专业应用软件 + 工程产品 + 生命科学", "price": 334.1, "mcap": 65.0, "rev": 7.9025, "netincome": 1.5363, "pe": 42.30944476990171, "growth": 0.122641777474713, "margin": 0.1944068332806074, "esg": "AA", "52w_low": 305.96, "52w_high": 575.77}, {"ticker": "ROST", "name": "Ross Stores, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Discount Retail", "desc": "Ross Dress for Less 折扣零售", "price": 231.92, "mcap": 50.0, "rev": 22.750559, "netincome": 2.145044, "pe": 23.309545165507096, "growth": 0.0767344973801444, "margin": 0.0942853316263569, "esg": "AA", "52w_low": 124.49, "52w_high": 237.41}, {"ticker": "SBUX", "name": "Starbucks Corporation Common Stock", "sector": "Consumer Cyclical", "industry": "Restaurants", "desc": "全球最大咖啡连锁 40000+ 店", "price": 98.76, "mcap": 110.0, "rev": 37.1844, "netincome": 2.1042, "pe": 52.2763995817888, "growth": 0.0278691515416213, "margin": 0.0565882466840933, "esg": "AA", "52w_low": 77.99, "52w_high": 108.88}, {"ticker": "SIRI", "name": "SiriusXM Holdings Inc. Common Stock", "sector": "Communication", "industry": "Radio", "desc": "SiriusXM 卫星广播 (Sirius + Pandora)", "price": 27.59, "mcap": 15.0, "rev": 8.558, "netincome": 0.805, "pe": 18.633540372670808, "growth": -0.0162087596275434, "margin": 0.0940640336527226, "esg": "BB", "52w_low": 19.76, "52w_high": 30.11}, {"ticker": "SMCI", "name": "Super Micro Computer, Inc. Common Stock", "sector": "Technology", "industry": "Servers", "desc": "Super Micro GPU 服务器 (H100/B200)", "price": 29.27, "mcap": 20.0, "rev": 21.972042, "netincome": 1.048854, "pe": 19.06843087789149, "growth": 0.4658532304249225, "margin": 0.0477358453984386, "esg": "BBB", "52w_low": 19.48, "52w_high": 62.36}, {"ticker": "SNPS", "name": "Synopsys, Inc. Common Stock", "sector": "Technology", "industry": "EDA Software", "desc": "EDA 龙头 (Synopsys) + IP 核 + 软件完整性", "price": 460.54, "mcap": 75.0, "rev": 7.054178, "netincome": 1.337151, "pe": 56.08940201966719, "growth": 0.151244664162955, "margin": 0.1895544739585533, "esg": "AA", "52w_low": 376.18, "52w_high": 651.73}, {"ticker": "SWKS", "name": "Skyworks Solutions, Inc. Common Stock", "sector": "Technology", "industry": "RF Semis", "desc": "RF 芯片 + 模拟 (Skyworks)", "price": 70.29, "mcap": 15.0, "rev": 4.0869, "netincome": 0.4771, "pe": 31.43994969608049, "growth": -0.0218046912398276, "margin": 0.1167388485159901, "esg": "A", "52w_low": 51.93, "52w_high": 90.9}, {"ticker": "TEAM", "name": "Atlassian Corporation Class A Common Stock", "sector": "Technology", "industry": "Collaboration", "desc": "Atlassian Jira + Confluence + Trello", "price": 91.54, "mcap": 50.0, "rev": 5.215304, "netincome": -0.256687, "pe": null, "growth": 0.1965540334827467, "margin": -0.0492180321607331, "esg": "AA", "52w_low": 56.01, "52w_high": 222.59}, {"ticker": "TMUS", "name": "T-Mobile US, Inc. Common Stock", "sector": "Communication", "industry": "Telecom", "desc": "美国第三大运营商 + 5G 覆盖 + 频谱", "price": 185.55, "mcap": 290.0, "rev": 88.309, "netincome": 10.992, "pe": 26.38282387190684, "growth": 0.0848771498771499, "margin": 0.1244720243689771, "esg": "A", "52w_low": 174.02, "52w_high": 261.56}, {"ticker": "TSLA", "name": "Tesla, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Auto Manufacturers", "desc": "EV (Model 3/Y) + FSD + Optimus + 储能 + 超级充电", "price": 381.59, "mcap": 1200.0, "rev": 94.827, "netincome": 3.794, "pe": 316.288877174486, "growth": -0.0293069915037362, "margin": 0.040009701878157, "esg": "AA", "52w_low": 288.77, "52w_high": 498.83}, {"ticker": "TTD", "name": "The Trade Desk, Inc. Class A Common Stock", "sector": "Technology", "industry": "Ad Tech", "desc": "程序化广告 (DSP) The Trade Desk", "price": 19.29, "mcap": 25.0, "rev": 2.896284, "netincome": 0.443304, "pe": 56.394708822839405, "growth": 0.1846561173348997, "margin": 0.1530595756493493, "esg": "A", "52w_low": 19.06, "52w_high": 91.45}, {"ticker": "TXN", "name": "Texas Instruments Incorporated Common Stock", "sector": "Technology", "industry": "Semiconductors", "desc": "模拟芯片 + 嵌入式 (汽车/工业)", "price": 282.01, "mcap": 180.0, "rev": 17.682, "netincome": 5.001, "pe": 35.99280143971206, "growth": 0.1304903778530783, "margin": 0.2828299966067187, "esg": "AA", "52w_low": 152.73, "52w_high": 331.51}, {"ticker": "ULTA", "name": "Ulta Beauty, Inc. Common Stock", "sector": "Consumer Cyclical", "industry": "Beauty Retail", "desc": "Ulta Beauty 美妆零售 (1250+ 店)", "price": 470.75, "mcap": 20.0, "rev": 12.39282, "netincome": 1.153479, "pe": 17.33885055558012, "growth": 0.0971316933043451, "margin": 0.0930763942347262, "esg": "AA", "52w_low": 452.0, "52w_high": 714.97}, {"ticker": "VRSK", "name": "Verisk Analytics, Inc. Common Stock", "sector": "Industrials", "industry": "Data & Analytics", "desc": "风险评估数据 + 保险分析", "price": 183.13, "mcap": 40.0, "rev": 3.0727, "netincome": 0.9083, "pe": 44.03831333259936, "growth": 0.0662803206440643, "margin": 0.2956032154131545, "esg": "AA", "52w_low": 155.94, "52w_high": 314.8}, {"ticker": "VRSN", "name": "VeriSign, Inc. Common Stock", "sector": "Technology", "industry": "Internet Infrastructure", "desc": ".com/.net 域名注册 + 安全", "price": 288.09, "mcap": 25.0, "rev": 1.6566, "netincome": 0.8257, "pe": 30.27734043841589, "growth": 0.0636959034287916, "margin": 0.4984305203428709, "esg": "A", "52w_low": 208.86, "52w_high": 312.48}, {"ticker": "VRTX", "name": "Vertex Pharmaceuticals Incorporated Common Stock", "sector": "Healthcare", "industry": "Biotechnology", "desc": "囊性纤维化 (Trikafta) + Casgevy (CRISPR)", "price": 435.71, "mcap": 120.0, "rev": 12.0013, "netincome": 3.9532, "pe": 30.355155317211377, "growth": 0.0890373045616645, "margin": 0.3293976485880696, "esg": "AA", "52w_low": 362.5, "52w_high": 507.92}, {"ticker": "WBD", "name": "Warner Bros. Discovery, Inc. Series A Common Stock ", "sector": "Communication", "industry": "Media", "desc": "Warner Bros Discovery (HBO + CNN + 电影)", "price": 26.23, "mcap": 20.0, "rev": 37.296, "netincome": 3.648, "pe": 5.482456140350878, "growth": -0.0514991989013504, "margin": 0.0978120978120978, "esg": "BBB", "52w_low": 9.11, "52w_high": 30.0}, {"ticker": "WDAY", "name": "Workday, Inc. Class A Common Stock", "sector": "Technology", "industry": "HR Software", "desc": "云端 HCM + 财务 + 招聘 (Workday)", "price": 137.47, "mcap": 70.0, "rev": 9.552, "netincome": 0.693, "pe": 101.010101010101, "growth": 0.1309495619228036, "margin": 0.0725502512562814, "esg": "AA", "52w_low": 110.36, "52w_high": 257.09}, {"ticker": "XEL", "name": "Xcel Energy Inc. Common Stock", "sector": "Utilities", "industry": "Electric Utilities", "desc": "Xcel Energy (8 州电力 + 天然气)", "price": 78.1, "mcap": 35.0, "rev": 14.669, "netincome": 2.035, "pe": 17.1990171990172, "growth": 0.0913622498326016, "margin": 0.138727929647556, "esg": "AA", "52w_low": 65.21, "52w_high": 84.23}, {"ticker": "ZM", "name": "Zoom Communications, Inc. Class A Common Stock", "sector": "Technology", "industry": "Video Conferencing", "desc": "Zoom 视频会议 (云)", "price": 93.96, "mcap": 20.0, "rev": 4.868769, "netincome": 1.900148, "pe": 10.52549590873974, "growth": 0.0435835216152498, "margin": 0.3902727773693925, "esg": "AA", "52w_low": 69.15, "52w_high": 114.74}, {"ticker": "ZS", "name": "Zscaler, Inc. Common Stock", "sector": "Technology", "industry": "Cybersecurity", "desc": "SASE + ZIA 零信任 (Zscaler)", "price": 124.73, "mcap": 25.0, "rev": 2.673115, "netincome": -0.041478, "pe": null, "growth": 0.233116874430002, "margin": -0.0155167286106284, "esg": "AA", "52w_low": 114.62, "52w_high": 336.99}];
+const esgColors = {"AAA": "#00c853", "AA": "#4caf50", "A": "#8bc34a", "BBB": "#ffc107", "BB": "#ff9800", "B": "#f44336", "CCC": "#b71c1c", "NR": "#666"};
+const sectorColors = {"Technology": "#3b82f6", "Consumer Cyclical": "#a855f7", "Communication": "#ec4899", "Healthcare": "#22d3ee", "Industrials": "#f59e0b", "Consumer Defensive": "#84cc16", "Utilities": "#64748b", "Energy": "#ef4444", "Real Estate": "#10b981", "Basic Materials": "#78716c", "Financial": "#06b6d4"};
+
+// 统计
+const totalMcap = companies.reduce((s, c) => s + c.mcap, 0);
+const totalRev = companies.reduce((s, c) => s + c.rev, 0);
+const totalNetInc = companies.reduce((s, c) => s + c.netincome, 0);
+const peValues = companies.filter(c => c.pe !== null).map(c => c.pe);
+const medianPe = peValues.sort((a, b) => a - b)[Math.floor(peValues.length / 2)];
+
+document.getElementById('stats').innerHTML = `
+  <div class="stat"><div class="v">${companies.length}</div><div class="l">公司数</div></div>
+  <div class="stat"><div class="v">$${(totalMcap/1000).toFixed(1)}T</div><div class="l">总市值</div></div>
+  <div class="stat"><div class="v">$${totalRev.toFixed(0)}B</div><div class="l">总营收 TTM</div></div>
+  <div class="stat"><div class="v">$${totalNetInc.toFixed(0)}B</div><div class="l">总净利 TTM</div></div>
+  <div class="stat"><div class="v">${medianPe.toFixed(1)}x</div><div class="l">PE 中位</div></div>
+  <div class="stat"><div class="v">${companies.filter(c => c.esg === 'AAA' || c.esg === 'AA').length}</div><div class="l">AAA/AA 阵营</div></div>
+`;
+
+// 行业 filter
+const sectors = [...new Set(companies.map(c => c.sector).filter(s => s))].sort();
+const sectorSelect = document.getElementById('sector-filter');
+sectors.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s;
+  opt.textContent = s;
+  sectorSelect.appendChild(opt);
+});
+
+let currentTab = 'all';
+let searchTerm = '';
+let sectorFilter = '';
+let esgFilter = '';
+
+function getFiltered() {
+  let filtered = [...companies];
+  if (searchTerm) {
+    const s = searchTerm.toLowerCase();
+    filtered = filtered.filter(c =>
+      c.ticker.toLowerCase().includes(s) ||
+      c.name.toLowerCase().includes(s) ||
+      (c.sector && c.sector.toLowerCase().includes(s))
+    );
+  }
+  if (sectorFilter) filtered = filtered.filter(c => c.sector === sectorFilter);
+  if (esgFilter) {
+    const order = ['CCC', 'B', 'BB', 'BBB', 'A', 'AA', 'AAA'];
+    const minIdx = order.indexOf(esgFilter);
+    filtered = filtered.filter(c => {
+      const idx = order.indexOf(c.esg);
+      return idx >= minIdx;
+    });
+  }
+  return filtered;
+}
+
+function renderTable(data) {
+  if (!data.length) return '<p style="color: var(--text-muted); padding: 2rem; text-align: center;">无数据</p>';
+  return `
+    <div class="section">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="ticker">Ticker</th>
+            <th>名称</th>
+            <th>行业</th>
+            <th class="sortable num" data-sort="price">价格</th>
+            <th class="sortable num" data-sort="mcap">市值($B)</th>
+            <th class="sortable num" data-sort="rev">营收($B)</th>
+            <th class="sortable num" data-sort="netincome">净利($B)</th>
+            <th class="sortable num" data-sort="pe">PE</th>
+            <th class="sortable num" data-sort="growth">增速</th>
+            <th class="sortable num" data-sort="margin">净利率</th>
+            <th>ESG</th>
+            <th class="sortable num" data-sort="52w_high">52w 高</th>
+            <th class="sortable num" data-sort="52w_low">52w 低</th>
+          </tr>
+        </thead>
+        <tbody>
+        ${data.map(c => `
+          <tr>
+            <td><strong>${c.ticker}</strong></td>
+            <td>${(c.name || '').substring(0, 30)}</td>
+            <td><span class="sector-tag" style="background:${sectorColors[c.sector] || '#666'}">${c.sector || '?'}</span></td>
+            <td class="num">$${(c.price || 0).toFixed(2)}</td>
+            <td class="num">${(c.mcap || 0).toFixed(0)}</td>
+            <td class="num">${(c.rev || 0).toFixed(1)}</td>
+            <td class="num">${(c.netincome || 0).toFixed(1)}</td>
+            <td class="num">${c.pe !== null ? c.pe.toFixed(1) : '-'}</td>
+            <td class="num" style="color: ${(c.growth || 0) > 0.2 ? '#00e472' : (c.growth || 0) < 0 ? '#ef4444' : 'inherit'}">${c.growth ? (c.growth * 100).toFixed(1) + '%' : '-'}</td>
+            <td class="num">${c.margin ? (c.margin * 100).toFixed(1) + '%' : '-'}</td>
+            <td><span class="badge" style="background: ${esgColors[c.esg] || '#666'}; color: #000;">${c.esg}</span></td>
+            <td class="num">$${(c['52w_high'] || 0).toFixed(0)}</td>
+            <td class="num">$${(c['52w_low'] || 0).toFixed(0)}</td>
+          </tr>
+        `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderStrategies() {
+  const a = companies.slice(0, 80);  // 等权
+  const b = companies.filter(c => c.pe !== null).sort((x, y) => x.pe - y.pe).slice(0, 20);
+  const c = companies.sort((x, y) => y.growth - x.growth).slice(0, 15);
+  const d = companies.filter(c => ['AAA', 'AA', 'A'].includes(c.esg)).sort((x, y) => y.mcap - x.mcap).slice(0, 50);
+
+  return `
+    <div class="section">
+      <h2>💰 Plan A: 分散等权 (80 家公司) — 被动跟踪</h2>
+      <p>模仿 QQQ ETF 等权, 剔除高风险 25 家 (BB 评级/低 PE 价值陷阱/Q1 财年无数据)。80 只各 1.25%</p>
+      <p style="margin-top:0.5rem; color: var(--text-dim); font-size: 0.85rem;">持仓: ${a.slice(0, 10).map(c => c.ticker).join(', ')}, ... (共 80)</p>
+    </div>
+
+    <div class="section">
+      <h2>💎 Plan B: 价值集中 (20 家最低 PE) — 深度价值</h2>
+      <p>PE 12-16x 区间 + ESG 良好 + 营收增长 > 0。20 只各 5%</p>
+      <p style="margin-top:0.5rem; color: var(--text-dim); font-size: 0.85rem;">持仓: ${b.map(c => `${c.ticker}(PE=${c.pe.toFixed(1)})`).join(', ')}</p>
+    </div>
+
+    <div class="section">
+      <h2>🚀 Plan C: 增长冲刺 (15 家高增速) — AI + Biotech + 新兴市场</h2>
+      <p>营收增速 > 30% YoY, 接受高 PE。15 只各 6.67%</p>
+      <p style="margin-top:0.5rem; color: var(--text-dim); font-size: 0.85rem;">持仓: ${c.map(x => `${x.ticker}(+${(x.growth*100).toFixed(0)}%)`).join(', ')}</p>
+    </div>
+
+    <div class="section">
+      <h2>🌟 Plan D: ESG 整合 (50 家 AAA/AA/A) — 治理优先</h2>
+      <p>排除 BB 以下 (PDD, INTC, WBA, BIDU, NTES, FANG, SIRI, WBD, SMCI)。50 只各 2%</p>
+      <p style="margin-top:0.5rem; color: var(--text-dim); font-size: 0.85rem;">持仓: ${d.slice(0, 10).map(x => `${x.ticker}(${x.esg})`).join(', ')}, ... (共 50)</p>
+    </div>
+
+    <div class="section">
+      <h2>⚠️ 5 个 Falsification / 风险</h2>
+      <ul class="falsif-list">
+        <li>前 7 家公司占 53% 权重 — 集中度风险, 任何 1 家出问题 = 整个 QQQ 暴跌</li>
+        <li>PE 中位 29.5x vs 历史平均 16x — AI 推高估值, 收益未必兑现</li>
+        <li>AI capex 2024-2026 累计 > $500B — 2026 H2 可能出现 "AI 折旧潮"</li>
+        <li>TSLA PE=316x 严重高估 — 估值回归随时可能</li>
+        <li>INTC/WBD/RIVN 营收负增长 — 价值陷阱风险, 已从 Plan A/B 排除</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>🧠 与你 4 研究方向的关联</h2>
+      <p><strong>AI Agent 经济学</strong>: 核心持仓 NVDA + MSFT + META + GOOGL + AMZN. 占比 50%+</p>
+      <p><strong>世界模型 / 具身智能</strong>: NVDA Cosmos + META V-JEPA + GOOGL RT-2. 押注 NVDA/META/AVGO/ARM</p>
+      <p><strong>个人 AI OS / 认知增强</strong>: MSFT Copilot + AAPL Intelligence + GOOGL Workspace. 押注 AAPL/MSFT/GOOGL/CRWD/ZS</p>
+      <p><strong>量化 + AI</strong>: INTU/ADP/PYPL. 押注 INTU/ADP/SNPS/CDNS</p>
+    </div>
+  `;
+}
+
+function render() {
+  const data = getFiltered();
+  let display = data;
+  if (currentTab === 'mcap') display = data.sort((a, b) => b.mcap - a.mcap).slice(0, 20);
+  else if (currentTab === 'growth') display = data.sort((a, b) => b.growth - a.growth).slice(0, 20);
+  else if (currentTab === 'value') display = data.filter(c => c.pe !== null).sort((a, b) => a.pe - b.pe).slice(0, 20);
+  else if (currentTab === 'esg') display = data.filter(c => c.esg === 'AAA' || c.esg === 'AA');
+  const html = currentTab === 'strategies' ? renderStrategies() : renderTable(display);
+  document.getElementById('tab-content').innerHTML = html;
+}
+
+// 事件
+document.getElementById('search').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  render();
+});
+document.getElementById('sector-filter').addEventListener('change', e => {
+  sectorFilter = e.target.value;
+  render();
+});
+document.getElementById('esg-filter').addEventListener('change', e => {
+  esgFilter = e.target.value;
+  render();
+});
+document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTab = btn.dataset.tab;
+    render();
+  });
+});
+
+function resetFilters() {
+  document.getElementById('search').value = '';
+  document.getElementById('sector-filter').value = '';
+  document.getElementById('esg-filter').value = '';
+  searchTerm = '';
+  sectorFilter = '';
+  esgFilter = '';
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
