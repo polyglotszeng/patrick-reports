@@ -4,6 +4,69 @@
 <meta charset="utf-8">
 <title>Hermes Status — 2026-06-12</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- JSON-LD 结构化数据: 让浏览器/devtools/爬虫能解析状态 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Hermes Status — 2026-06-12",
+  "description": "6 个 cron + 6 份公网 HTML 状态页",
+  "url": "https://patrick-reports.patrick-l-zeng.workers.dev/status-2026-06-12.html",
+  "dateModified": "2026-06-12T17:26:29.156688",
+  "healthStatus": "OK",
+  "uptime24h": "100%",
+  "crons": [
+    {
+      "@type": "Action",
+      "name": "Router Bench (周日 7:00)",
+      "identifier": "856e2de542b2",
+      "status": "ok",
+      "lastRun": "2026-06-12T15:18:46"
+    },
+    {
+      "@type": "Action",
+      "name": "Bench 健康检查 (5min)",
+      "identifier": "43b5d7e08701",
+      "status": "ok",
+      "lastRun": "2026-06-12T17:25:03"
+    },
+    {
+      "@type": "Action",
+      "name": "Gateway 自身检查 (30min)",
+      "identifier": "42a4068e5ba0",
+      "status": "never_run",
+      "lastRun": null
+    },
+    {
+      "@type": "Action",
+      "name": "Email on Failure (10min)",
+      "identifier": "c02b3cc1bc0d",
+      "status": "ok",
+      "lastRun": "2026-06-12T17:20:02"
+    },
+    {
+      "@type": "Action",
+      "name": "Storage Watch (9:00+18:00)",
+      "identifier": "ee148a67cef3",
+      "status": "never_run",
+      "lastRun": null
+    },
+    {
+      "@type": "Action",
+      "name": "Publish Status (7:30)",
+      "identifier": "e41b4838d0e7",
+      "status": "never_run",
+      "lastRun": null
+    }
+  ]
+}
+</script>
+
+<!-- 动态 favicon: JS 根据整体状态切换 ok.svg / warn.svg / err.svg -->
+<link id="favicon-ok" rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%2381c784'/><text x='50' y='62' font-size='50' text-anchor='middle' fill='white' font-family='Arial'>✓</text></svg>" disabled>
+<link id="favicon-warn" rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23ffb74d'/><text x='50' y='62' font-size='50' text-anchor='middle' fill='white' font-family='Arial'>!</text></svg>" disabled>
+<link id="favicon-err" rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23ff5252'/><text x='50' y='62' font-size='50' text-anchor='middle' fill='white' font-family='Arial'>✗</text></svg>" disabled>
 <style>
 :root {
   --bg: #0a0a0a; --bg-card: #131316; --bg-elevated: #1a1a1f;
@@ -80,6 +143,29 @@ code { background: var(--bg-elevated); padding: 1px 6px; border-radius: 3px; col
 
 footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85em; }
 </style>
+
+<!-- 动态 favicon 切换 JS + theme color (深色浏览器 tab) -->
+<meta name="theme-color" content="#81c784">
+<script>
+(function() {
+  const allOk = true;
+  const healthPct = 75.0;
+  let activeId = 'favicon-ok';
+  if (!allOk && healthPct < 50) activeId = 'favicon-err';
+  else if (!allOk) activeId = 'favicon-warn';
+  // 启用 active link, 禁用其他
+  for (const id of ['favicon-ok', 'favicon-warn', 'favicon-err']) {
+    const el = document.getElementById(id);
+    if (el) el.disabled = (id !== activeId);
+  }
+  // 标题加 emoji (避免 f-string emoji 解析报错, 用 ASCII 符号)
+  var mapping = Object.create(null);
+  mapping['favicon-ok'] = 'OK';
+  mapping['favicon-warn'] = '!';
+  mapping['favicon-err'] = 'X';
+  document.title = '[' + mapping[activeId] + '] ' + document.title;
+})();
+</script>
 </head>
 <body>
 <header>
@@ -95,11 +181,11 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border
 
 <div class="stat-grid">
   <div class="stat">
-    <div class="num">13</div>
+    <div class="num">15</div>
     <div class="label">Healthcheck 总数</div>
   </div>
   <div class="stat">
-    <div class="num">13</div>
+    <div class="num">15</div>
     <div class="label">24h 检查数</div>
   </div>
   <div class="stat">
@@ -135,7 +221,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border
   </div>
   <div class="cron-role">检测 STUCK / OVERDUE, 写 SQLite</div>
   <div class="cron-meta">
-    <code>43b5d7e08701</code> · 上次跑: 2026-06-12T17:15:02
+    <code>43b5d7e08701</code> · 上次跑: 2026-06-12T17:25:03
   </div>
   <div class="cron-detail">上次跑成功</div>
 </div>
@@ -159,7 +245,7 @@ footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border
   </div>
   <div class="cron-role">STUCK/OVERDUE 触发 HTML 邮件</div>
   <div class="cron-meta">
-    <code>c02b3cc1bc0d</code> · 上次跑: 2026-06-12T17:11:01
+    <code>c02b3cc1bc0d</code> · 上次跑: 2026-06-12T17:20:02
   </div>
   <div class="cron-detail">上次跑成功</div>
 </div>

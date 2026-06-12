@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>Hermes Cron Snapshot — 2026-06-12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root {
+  --bg: #0a0a0a; --bg-card: #131316; --bg-elevated: #1a1a1f;
+  --fg: #e8e8e8; --muted: #888;
+  --ok: #81c784; --warn: #ffb74d; --err: #ff5252; --neutral: #6b7280;
+  --accent: #4fc3f7; --border: #2a2a2a;
+}
+* { box-sizing: border-box; }
+body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--fg); padding: 24px 16px; max-width: 1200px; margin: 0 auto; line-height: 1.6; }
+h1 { color: var(--accent); margin: 0 0 4px 0; font-size: 1.8em; }
+h2 { color: var(--accent); margin-top: 32px; border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 1.3em; }
+.meta { color: var(--muted); font-size: 0.88em; margin-bottom: 16px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; text-align: center; }
+.stat .num { font-size: 1.8em; font-weight: 700; font-family: "SF Mono", monospace; }
+.stat .label { font-size: 0.78em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.stat.ok .num { color: var(--ok); }
+.stat.warn .num { color: var(--warn); }
+.stat.err .num { color: var(--err); }
+.stat.neutral .num { color: var(--muted); }
+
+/* 搜索框 */
+.search-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.search-box input {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: "SF Mono", monospace;
+  font-size: 0.9em;
+}
+.search-box input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.search-box label { color: var(--muted); font-size: 0.85em; }
+
+/* 状态 pill */
+.status-pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 600;
+}
+.status-pill.ok { color: var(--ok); border: 1px solid rgba(129, 199, 132, 0.3); background: rgba(129, 199, 132, 0.1); }
+.status-pill.delivery_noise { color: var(--warn); border: 1px solid rgba(255, 183, 77, 0.3); background: rgba(255, 183, 77, 0.1); }
+.status-pill.real_error, .status-pill.timeout { color: var(--err); border: 1px solid rgba(255, 82, 82, 0.3); background: rgba(255, 82, 82, 0.1); }
+.status-pill.never_run, .status-pill.unknown { color: var(--muted); border: 1px solid var(--border); }
+
+/* details/summary */
+details { margin: 12px 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.95em;
+  user-select: none;
+}
+summary:hover { background: var(--bg-elevated); }
+summary::marker { color: var(--accent); }
+
+table { border-collapse: collapse; width: 100%; margin: 0; font-size: 0.85em; }
+th, td { padding: 6px 12px; text-align: left; border-top: 1px solid var(--border); }
+th { background: var(--bg-elevated); color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 0.72em; letter-spacing: 0.05em; }
+tr:hover { background: var(--bg-elevated); }
+tr.hidden { display: none; }
+
+/* 状态色行 */
+.status-cell {
+  font-size: 0.78em;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.status-cell.ok { color: var(--ok); }
+.status-cell.delivery_noise { color: var(--warn); }
+.status-cell.real_error, .status-cell.timeout { color: var(--err); }
+.status-cell.never_run, .status-cell.unknown { color: var(--muted); }
+
+.detail-cell {
+  font-family: "SF Mono", monospace;
+  font-size: 0.78em;
+  color: var(--err);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+code { background: var(--bg-elevated); padding: 1px 6px; border-radius: 3px; color: #ce93d8; font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; }
+
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85em; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 Hermes Cron 快照</h1>
+  <div class="meta">2026-06-12 · 自动生成 · 41 个 cron · 5 状态色码 · 实时搜索</div>
+</header>
+
+
+<div class="stat-grid">
+  <div class="stat ok"><div class="num">35</div><div class="label">✅ OK</div></div>
+  <div class="stat warn"><div class="num">0</div><div class="label">🟡 WeChat 限流</div></div>
+  <div class="stat err"><div class="num">1</div><div class="label">❌ 真错/超时</div></div>
+  <div class="stat neutral"><div class="num">5</div><div class="label">⚪ 从未跑</div></div>
+  <div class="stat neutral"><div class="num">41</div><div class="label">总计</div></div>
+</div>
+
+
+<div class="search-box">
+  <label>🔍</label>
+  <input type="text" id="searchInput" placeholder="搜索 cron 名字 / ID / 错误信息..." autofocus>
+  <span id="resultCount" class="meta" style="margin: 0;"></span>
+</div>
+
+<div id="snapshot">
+
+<details >
+<summary><span class="status-pill ok">✅ OK</span> 35 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+<tr class="status-ok" data-search="email on failure 10min 故障邮件 c02b3cc1bc0d ">
+  <td><code>c02b3cc1bc0d</code></td>
+  <td>Email on Failure 10min 故障邮件</td>
+  <td><code>*/10 * * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T17:40:04</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="router bench 5min 健康检查 43b5d7e08701 ">
+  <td><code>43b5d7e08701</code></td>
+  <td>Router Bench 5min 健康检查</td>
+  <td><code>*/5 * * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T17:40:04</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="gateway self-monitor 30min 42a4068e5ba0 ">
+  <td><code>42a4068e5ba0</code></td>
+  <td>Gateway Self-Monitor 30min</td>
+  <td><code>*/30 * * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T17:30:04</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="git auto-sync 每小时 2baae225d50b ">
+  <td><code>2baae225d50b</code></td>
+  <td>Git Auto-Sync 每小时</td>
+  <td><code>0 * * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T17:01:03</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="sessionstore auto-indexer 74f84615d433 ">
+  <td><code>74f84615d433</code></td>
+  <td>SessionStore Auto-Indexer</td>
+  <td><code>every 120m</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T16:05:49</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="cron→notebooklm→emai loop 349b3ea066ea ">
+  <td><code>349b3ea066ea</code></td>
+  <td>Cron→NotebookLM→EMAI Loop</td>
+  <td><code>every 720m</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T15:19:50</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="router bench 每周漂移检测 (timeout 300s) 856e2de542b2 ">
+  <td><code>856e2de542b2</code></td>
+  <td>Router Bench 每周漂移检测 (timeout 300s)</td>
+  <td><code>0 7 * * 0</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T15:18:46</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="架构师 周技术评审 6218eff7344e ">
+  <td><code>6218eff7344e</code></td>
+  <td>架构师 周技术评审</td>
+  <td><code>0 14 * * 5</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T14:02:55</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="exp18-panel-checker a6db66abe5f4 ">
+  <td><code>a6db66abe5f4</code></td>
+  <td>exp18-panel-checker</td>
+  <td><code>0 9 * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T13:57:35</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="obsidian os dashboard - vault + world model collector e382b377bdf3 ">
+  <td><code>e382b377bdf3</code></td>
+  <td>Obsidian OS Dashboard - Vault + World Model Collector</td>
+  <td><code>0 */6 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T12:01:20</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="arcraider - 每日游戏情报 0a7f8ce142c4 ">
+  <td><code>0a7f8ce142c4</code></td>
+  <td>ArcRaider - 每日游戏情报</td>
+  <td><code>20 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:21:01</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="pai daily memory auto a720e6f33ec1 ">
+  <td><code>a720e6f33ec1</code></td>
+  <td>PAI Daily Memory Auto</td>
+  <td><code>15 9 * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T09:15:57</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="情感顾问 - 每日情感tips ba1362fc731b ">
+  <td><code>ba1362fc731b</code></td>
+  <td>情感顾问 - 每日情感tips</td>
+  <td><code>5 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:06:00</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="emai /today - 每日晨间计划 ecc85e7d2f77 ">
+  <td><code>ecc85e7d2f77</code></td>
+  <td>EMAI /today - 每日晨间计划</td>
+  <td><code>0 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:03:07</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="daily brief — pptx + imessage a9490a6fac24 ">
+  <td><code>a9490a6fac24</code></td>
+  <td>Daily Brief — PPTX + iMessage</td>
+  <td><code>0 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:01:52</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="基金排名每日监控 e0cdf6324fd4 ">
+  <td><code>e0cdf6324fd4</code></td>
+  <td>基金排名每日监控</td>
+  <td><code>0 9 * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T09:01:25</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="youtube agi/web3/arc raider/code 每周资讯 de5657c5b393 ">
+  <td><code>de5657c5b393</code></td>
+  <td>YouTube AGI/Web3/Arc Raider/Code 每周资讯</td>
+  <td><code>0 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:01:17</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="biography 日报 7f8241291919 ">
+  <td><code>7f8241291919</code></td>
+  <td>Biography 日报</td>
+  <td><code>0 9 * * *</code></td>
+  <td>no_agent</td>
+  <td>2026-06-12T09:00:54</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="ai daily research — 3-agent parallel 2c5c3a9b4a1e ">
+  <td><code>2c5c3a9b4a1e</code></td>
+  <td>AI Daily Research — 3-Agent Parallel</td>
+  <td><code>0 8 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T08:03:37</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="hacker news 每日 top5 3b4832454f40 ">
+  <td><code>3b4832454f40</code></td>
+  <td>Hacker News 每日 Top5</td>
+  <td><code>0 8 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T08:01:13</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="每日 html 报告自动同步到公网 9bbb4c3109a0 ">
+  <td><code>9bbb4c3109a0</code></td>
+  <td>每日 HTML 报告自动同步到公网</td>
+  <td><code>30 23 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T23:34:45</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="model usage report 每晚 45fd9cdfabfe ">
+  <td><code>45fd9cdfabfe</code></td>
+  <td>Model Usage Report 每晚</td>
+  <td><code>0 21 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T21:01:20</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="自我成长复盘 d36a399077b0 ">
+  <td><code>d36a399077b0</code></td>
+  <td>自我成长复盘</td>
+  <td><code>0 20 */2 * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T20:03:55</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="emai /closeday - 每日复盘 fad79f0817bb ">
+  <td><code>fad79f0817bb</code></td>
+  <td>EMAI /closeday - 每日复盘</td>
+  <td><code>0 18 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T18:02:41</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="ai safety 双日新闻 799eca6ffd1f ">
+  <td><code>799eca6ffd1f</code></td>
+  <td>AI Safety 双日新闻</td>
+  <td><code>0 10 */2 * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T10:01:02</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="arxiv quantum computing 每周论文追踪 6ba7877f8ec8 ">
+  <td><code>6ba7877f8ec8</code></td>
+  <td>arXiv Quantum Computing 每周论文追踪</td>
+  <td><code>0 9 * * 4</code></td>
+  <td>LLM</td>
+  <td>2026-06-11T09:16:49</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="文案小妹 每周内容规划 cbe2393d8a96 ">
+  <td><code>cbe2393d8a96</code></td>
+  <td>文案小妹 每周内容规划</td>
+  <td><code>30 12 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T12:38:01</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="prophet 预言家每周追踪 1ef51ccd744c ">
+  <td><code>1ef51ccd744c</code></td>
+  <td>Prophet 预言家每周追踪</td>
+  <td><code>0 12 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T12:06:57</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="ai ethics 周报 59edf5af8c05 ">
+  <td><code>59edf5af8c05</code></td>
+  <td>AI Ethics 周报</td>
+  <td><code>30 11 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T11:37:51</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="数据控 周数据分析 09e8e70d640b ">
+  <td><code>09e8e70d640b</code></td>
+  <td>数据控 周数据分析</td>
+  <td><code>30 10 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T10:30:31</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="arxiv fusion 每周论文追踪 16817fabf8ca ">
+  <td><code>16817fabf8ca</code></td>
+  <td>arXiv Fusion 每周论文追踪</td>
+  <td><code>0 10 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T10:08:18</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="life wiki 每周 story prompt 77ae288b6fcf ">
+  <td><code>77ae288b6fcf</code></td>
+  <td>Life Wiki 每周 Story Prompt</td>
+  <td><code>0 9 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T09:12:45</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="星座大师 周运势 4fac02fc3c57 ">
+  <td><code>4fac02fc3c57</code></td>
+  <td>星座大师 周运势</td>
+  <td><code>0 8 * * 1</code></td>
+  <td>LLM</td>
+  <td>2026-06-08T08:07:06</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="ai ethics 月报 dc5a5a995c53 ">
+  <td><code>dc5a5a995c53</code></td>
+  <td>AI Ethics 月报</td>
+  <td><code>0 9 1 * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-01T09:02:25</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-ok" data-search="life wiki 每月 nas 照片同步 d6b496146203 ">
+  <td><code>d6b496146203</code></td>
+  <td>Life Wiki 每月 NAS 照片同步</td>
+  <td><code>0 9 1 * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-01T09:01:40</td>
+  <td class="status-cell ok">✅ OK</td>
+  <td class="detail-cell"></td>
+</tr>
+</table>
+</details>
+
+<details >
+<summary><span class="status-pill delivery_noise">🟡 微信限流 (实际成功)</span> 0 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+
+</table>
+</details>
+
+<details open>
+<summary><span class="status-pill real_error">❌ 真错误</span> 1 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+<tr class="status-real_error" data-search="world model 每日追踪 14ea3bc81f6c runtimeerror: # world model tracking — daily report (2026-06-12)
+
+## summary
+
+| metric | count |
+|---|---|
+| papers found today (within 72h) | 20 |
+| notes generated | 5 |
+| notes saved | 4 |
+| notes skipped (duplicate) | 1 |
+| errors | 1 (recovered) |
+
+## papers found
+
+20 papers in the last 72h on arxiv matching "world model". top 5 picked for relevance to patrick's tracked entities (v-jepa/lecun, sora/vdm, video diffusion world models, jepa theory):
+
+1. **2606.12979 — epm-jepa** (v-jepa family; lora-style experience modulation)
+2. **2606.12987 — dit world-action model for av** (v-jepa 2 × dit; perception-distortion frontier)
+3. **2606.13376 — moverse** (single-image → 360° interactive at 8 fps, panoramic gaussian scaffold)
+4. **2606.12072 — world model self-distillation** (demonstrator→executor + vlm judge, rl from vlm feedback)
+5. **2606.12471 — identifiability without gaussianity** (pgsa theory refuting klindt-lecun-balestriero; lean 4 formalized)
+
+honorable mentions noted in `/tmp/arxiv_recent.json` for tomorrow's run: visa, navwam, world pilot, ea-wm, worldolympiad, agra/wam, "a tutorial on world models", "topical phase transitions" (which explicitly flags *world models* as a topic to monitor 2026-2028).
+
+## notes saved (4 new, 1 deduplicated)
+
+saved to `~/documents/obsidian vault/llm-wiki/knowledge/`:
+- `2606-12979-epm-jepa.md` + `.html` (609 words, 8.7/10)
+- `2606-12987-dit-world-action-av.md` + `.html` (699 words, 8.7/10)
+- `2606-13376-moverse.md` + `.html` (707 words, 8.7/10)
+- `2606-12471-identifiability-symbolic-wm.md` + `.html` (825 words, 8.7/10)
+
+**skipped:** 2606-12072 — yesterday's run (2026-06-11) produced `2606-12072-wmsd.md` with a much more detailed numerical table (task 0.285→0.605, navigation 31.1%→75.6%, full dreamgen breakdown, etc.). the note i generated was redundant and was removed to avoid duplicate coverage.
+
+## quality gate results (evaluation-mastery)
+
+all 5 generated notes passed the **completeness** checklist (frontmatter, abstract, method with architecture details, key results with numbers, limitations, relevance to patrick) and the **ai slop** check (1 occurrence in 825-word note; 0 in the others — well under the 10/1% threshold). weakest dimension for all 5: **accuracy** at 8/10 (limited by not fetching the full pdf, only abstracts). gate: good — minor fixes allowed for all.
+
+## error handling (structured-diagnosis)
+
+**symptom:** http 429 "rate exceeded." on both `arxiv.org/search` (html) and `export.arxiv.org/api/query` (atom api).
+
+**hypothesis 1 (rejected):** per-endpoint rate limits (the original audit-gap note). **rejected because** both endpoints failed simultaneously, contradicting the "independent counters" claim.
+
+**hypothesis 2 (verified):** ip-level rate limit at the arxiv egress for this host. **confirmed by:** 60-second backoff recovered both endpoints; subsequent requests returned 200 within 300 ms.
+
+**fix applied:** slept 60s, retried with a smaller query (max_results=3) to test, then scaled to the full query (max_results=20). total diagnosis time: ~90 s.
+
+**learnings logged to** `/tmp/diagnosis_learnings.md` (62 lines, covers diagnosis + completeness-gate failure mode + duplicate detection + eval script bug).
+
+## notable findings for patrick
+
+1. **the gaussian boundary on jepas is now under formal attack.** paper #5 (pgsa) uses lean 4 with zero sorry placeholders to prove that the klindt-lecun-balestriero gaussianity requirement is an artifact of statistical alignment, not a property of world models in general. this is the most theoretically significant paper in the batch for the lecun tracking axis.
+
+2. **v-jepa 2 is becoming the default encoder for downstream world models.** paper #2 (dit × av) shows v-jepa 2 with temporal context cuts steering rmse 40% over single-frame encoders — pretrained world-model latents are increasingly the input space, not just a research curiosity.
+
+3. **the asymmetric judge-generator pattern now works for video world models.** paper #4 (wmsd) shows rl-from-vlm-feedback on flow-matching video generators, with the executor surpassing the demonstrator under the paper's vlm evaluation. the 8-step ltx-2 numbers (task 0.285→0.605) are non-trivial.
+
+4. **real-time interactive video world models are now a single-gpu product.** paper #3 (moverse) hits 8 fps on an rtx 4090 for full single-image-to-360°-interactive-scene, by separating persistent 3d structure (gaussian scaffold) from per-frame video synthesis. worth comparing directly to world labs' public demos.
+
+5. **the "world model" topic is being formally flagged for monitoring.** "topical phase transitions in ai research" (2606.12828, not picked for notes but in the queue) names world models alongside reasoning, agentic ai, multimodal llms, and rag as topics to watch 2026-2028, based on a 80,814-paper analysis.
+
+## audit trail
+
+- audit log: `/tmp/evaluation_audit.json` (5 new entries appended)
+- learnings: `/tmp/diagnosis_learnings.md`
+- raw paper json: `/tmp/arxiv_recent.json`
+- raw arxiv xml: `/tmp/arxiv_full.xml`, `/tmp/arxiv_supp.xml`">
+  <td><code>14ea3bc81f6c</code></td>
+  <td>World Model 每日追踪</td>
+  <td><code>0 9 * * *</code></td>
+  <td>LLM</td>
+  <td>2026-06-12T09:18:24</td>
+  <td class="status-cell real_error">❌ 真错误</td>
+  <td class="detail-cell">RuntimeError: # World Model Tracking — Daily Report (2026-06-12)
+
+## Summary
+
+| </td>
+</tr>
+</table>
+</details>
+
+<details open>
+<summary><span class="status-pill timeout">⏱️  超时</span> 0 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+
+</table>
+</details>
+
+<details >
+<summary><span class="status-pill never_run">⚪ 从未跑过</span> 5 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+<tr class="status-never_run" data-search="周度项目状态报告 5c3abdec77cb ">
+  <td><code>5c3abdec77cb</code></td>
+  <td>周度项目状态报告</td>
+  <td><code>0 21 * * 0</code></td>
+  <td>LLM</td>
+  <td>从未跑过</td>
+  <td class="status-cell never_run">⚪ 从未跑过</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-never_run" data-search="publish status 每日 7:30 监控 e41b4838d0e7 ">
+  <td><code>e41b4838d0e7</code></td>
+  <td>Publish Status 每日 7:30 监控</td>
+  <td><code>30 7 * * *</code></td>
+  <td>no_agent</td>
+  <td>从未跑过</td>
+  <td class="status-cell never_run">⚪ 从未跑过</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-never_run" data-search="storage watch 每日 9:00 + 18:00 ee148a67cef3 ">
+  <td><code>ee148a67cef3</code></td>
+  <td>Storage Watch 每日 9:00 + 18:00</td>
+  <td><code>0 9,18 * * *</code></td>
+  <td>no_agent</td>
+  <td>从未跑过</td>
+  <td class="status-cell never_run">⚪ 从未跑过</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-never_run" data-search="push cron config 周日 8:00 备份 bc4c909624ab ">
+  <td><code>bc4c909624ab</code></td>
+  <td>Push Cron Config 周日 8:00 备份</td>
+  <td><code>0 8 * * 0</code></td>
+  <td>no_agent</td>
+  <td>从未跑过</td>
+  <td class="status-cell never_run">⚪ 从未跑过</td>
+  <td class="detail-cell"></td>
+</tr>
+<tr class="status-never_run" data-search="nas 健康检查 每 6h 57a258e94664 ">
+  <td><code>57a258e94664</code></td>
+  <td>NAS 健康检查 每 6h</td>
+  <td><code>0 */6 * * *</code></td>
+  <td>no_agent</td>
+  <td>从未跑过</td>
+  <td class="status-cell never_run">⚪ 从未跑过</td>
+  <td class="detail-cell"></td>
+</tr>
+</table>
+</details>
+
+<details >
+<summary><span class="status-pill unknown">❓ 未知</span> 0 个</summary>
+<table>
+<tr><th>Cron ID</th><th>Name</th><th>Schedule</th><th>Mode</th><th>Last Run</th><th>Status</th><th>Detail</th></tr>
+
+</table>
+</details>
+
+</div>
+
+<h2>📅 Schedule 分布</h2>
+<table>
+<tr><th>Schedule 表达式</th><th>Job 数</th></tr>
+<tr><td><code>0 9 * * *</code></td><td>7</td></tr>
+<tr><td><code>0 9 1 * *</code></td><td>2</td></tr>
+<tr><td><code>0 8 * * *</code></td><td>2</td></tr>
+<tr><td><code>0 */6 * * *</code></td><td>2</td></tr>
+<tr><td><code>0 10 * * 1</code></td><td>1</td></tr>
+<tr><td><code>0 9 * * 4</code></td><td>1</td></tr>
+<tr><td><code>0 9 * * 1</code></td><td>1</td></tr>
+<tr><td><code>0 20 */2 * *</code></td><td>1</td></tr>
+<tr><td><code>0 12 * * 1</code></td><td>1</td></tr>
+<tr><td><code>30 12 * * 1</code></td><td>1</td></tr>
+<tr><td><code>30 10 * * 1</code></td><td>1</td></tr>
+<tr><td><code>5 9 * * *</code></td><td>1</td></tr>
+<tr><td><code>20 9 * * *</code></td><td>1</td></tr>
+<tr><td><code>30 11 * * 1</code></td><td>1</td></tr>
+<tr><td><code>0 * * * *</code></td><td>1</td></tr>
+<tr><td><code>0 21 * * *</code></td><td>1</td></tr>
+<tr><td><code>0 14 * * 5</code></td><td>1</td></tr>
+<tr><td><code>15 9 * * *</code></td><td>1</td></tr>
+<tr><td><code>0 18 * * *</code></td><td>1</td></tr>
+<tr><td><code>every 120m</code></td><td>1</td></tr>
+<tr><td><code>every 720m</code></td><td>1</td></tr>
+<tr><td><code>0 10 */2 * *</code></td><td>1</td></tr>
+<tr><td><code>0 8 * * 1</code></td><td>1</td></tr>
+<tr><td><code>0 21 * * 0</code></td><td>1</td></tr>
+<tr><td><code>30 23 * * *</code></td><td>1</td></tr>
+<tr><td><code>0 7 * * 0</code></td><td>1</td></tr>
+<tr><td><code>30 7 * * *</code></td><td>1</td></tr>
+<tr><td><code>*/5 * * * *</code></td><td>1</td></tr>
+<tr><td><code>0 9,18 * * *</code></td><td>1</td></tr>
+<tr><td><code>*/10 * * * *</code></td><td>1</td></tr>
+<tr><td><code>*/30 * * * *</code></td><td>1</td></tr>
+<tr><td><code>0 8 * * 0</code></td><td>1</td></tr>
+</table>
+
+<footer>
+<p>🤖 自动生成 by <code>cron_snapshot.py</code></p>
+<p>数据源: <code>~/.hermes/cron/jobs.json</code> · 生成时机: publish-status 7:30 (cron e41b4838d0e7)</p>
+<p>公网 URL: <a href="https://patrick-reports.patrick-l-zeng.workers.dev/cron-snapshot-2026-06-12.html" style="color: var(--accent);">cron-snapshot-2026-06-12.html</a></p>
+</footer>
+
+<script>
+// 实时搜索
+(function() {
+  const input = document.getElementById('searchInput');
+  const count = document.getElementById('resultCount');
+  const rows = document.querySelectorAll('tr[data-search]');
+  const details = document.querySelectorAll('details');
+
+  function filter() {
+    const q = input.value.toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const match = !q || row.dataset.search.includes(q);
+      row.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+
+    // 如果搜索, 自动展开所有 details; 否则维持原样
+    details.forEach(d => {
+      if (q) d.open = true;
+    });
+
+    count.textContent = visible > 0 ? `{visible} / 41 可见` : '无匹配';
+  }
+
+  input.addEventListener('input', filter);
+})();
+</script>
+</body>
+</html>
