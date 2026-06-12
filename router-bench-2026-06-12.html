@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hermes Router Bench — 2026-06-12</title>
+<meta name="generator" content="hermes-publish">
+
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg-card: #131316;
+  --bg-elevated: #1a1a1f;
+  --fg: #e8e8e8;
+  --fg-dim: #a0a0a8;
+  --muted: #6a6a72;
+  --accent: #4fc3f7;
+  --accent-2: #7c4dff;
+  --warn: #ffb74d;
+  --err: #ff5252;
+  --ok: #81c784;
+  --border: #2a2a32;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC", "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 24px 16px;
+  max-width: 980px;
+  margin: 0 auto;
+  line-height: 1.65;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+h1 { color: var(--accent); margin: 0 0 4px 0; font-size: 1.9em; font-weight: 700; letter-spacing: -0.02em; }
+h2 { color: var(--accent); margin-top: 36px; border-bottom: 1px solid var(--border); padding-bottom: 8px; font-size: 1.35em; font-weight: 600; }
+h3 { color: var(--warn); margin-top: 20px; font-size: 1.05em; font-weight: 600; }
+p { margin: 12px 0; }
+.meta { color: var(--muted); font-size: 0.88em; font-family: "SF Mono", Menlo, monospace; }
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  backdrop-filter: blur(8px);
+}
+.card.warn { border-left: 3px solid var(--warn); }
+.card.err { border-left: 3px solid var(--err); }
+.card.ok { border-left: 3px solid var(--ok); }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.93em; background: var(--bg-card); border-radius: 8px; overflow: hidden; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: var(--bg-elevated); color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: 0.78em; letter-spacing: 0.05em; }
+tr:last-child td { border-bottom: none; }
+tr:hover { background: var(--bg-elevated); }
+td:first-child { font-weight: 600; color: var(--fg); }
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 10px 18px;
+  background: var(--bg-elevated);
+  color: var(--fg-dim);
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+  margin: 16px 0;
+}
+ul, ol { padding-left: 24px; }
+li { margin: 6px 0; }
+code {
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #ce93d8;
+  font-family: "SF Mono", Menlo, monospace;
+  font-size: 0.9em;
+}
+pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 0.88em;
+}
+details {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0;
+  margin: 12px 0;
+  overflow: hidden;
+}
+details > summary {
+  cursor: pointer;
+  padding: 12px 18px;
+  font-weight: 600;
+  list-style: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::before { content: "▸"; color: var(--accent); transition: transform 0.2s; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > summary:hover { background: var(--bg-elevated); }
+details > .content { padding: 0 18px 14px 18px; color: var(--fg-dim); }
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  color: var(--fg-dim);
+  font-size: 0.78em;
+  font-weight: 600;
+  margin-right: 6px;
+  border: 1px solid var(--border);
+}
+.tag.ok { color: var(--ok); border-color: rgba(129, 199, 132, 0.3); }
+.tag.warn { color: var(--warn); border-color: rgba(255, 183, 77, 0.3); }
+.tag.err { color: var(--err); border-color: rgba(255, 82, 82, 0.3); }
+.tag.accent { color: var(--accent); border-color: rgba(79, 195, 247, 0.3); }
+footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.82em;
+}
+footer a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.stat .num {
+  font-size: 1.6em;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: "SF Mono", Menlo, monospace;
+  line-height: 1.1;
+}
+.stat .label {
+  font-size: 0.78em;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+.item-list { list-style: none; padding: 0; }
+.item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 10px 0;
+  border-left: 3px solid var(--accent);
+  transition: border-color 0.2s, transform 0.2s;
+}
+.item:hover {
+  border-left-color: var(--accent-2);
+  transform: translateX(2px);
+}
+.item .rank {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  background: var(--accent);
+  color: #0a0a0a;
+  border-radius: 50%;
+  font-weight: 700;
+  font-family: "SF Mono", monospace;
+  margin-right: 12px;
+  font-size: 0.85em;
+}
+.item .title { font-weight: 600; color: var(--fg); }
+.item .meta { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+.item a { color: var(--accent); text-decoration: none; }
+.item a:hover { text-decoration: underline; }
+@media (max-width: 600px) {
+  body { padding: 16px 12px; font-size: 15px; }
+  h1 { font-size: 1.5em; }
+  table { font-size: 0.85em; }
+  th, td { padding: 8px 10px; }
+}
+</style>
+
+</head>
+<body>
+<header>
+  <h1>🔬 Hermes Router Bench</h1>
+  <div class="meta">2026-06-12 · Subagent LLM 路由决策表 · 3 次历史样本</div>
+  <div style="margin-top: 12px;">
+    <span class="tag accent">4 tasks</span>
+    <span class="tag accent">4 providers</span>
+    <span class="tag">on-device优先</span>
+  </div>
+</header>
+
+<details open>
+<summary>📊 Benchmark 决策表</summary>
+<div class="content">
+<section class="card"><h3>综合分 (0-100, 高=好)</h3>
+<tr><td>Task \ Provider</td><td>minimax</td><td>ollama_hermes3</td><td>ollama_qwen3</td><td>ollama_gemma4</td><td>ollama_qwen35_TRAP</td><td>Winner</td></tr>
+<table><thead><tr><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th></tr></thead><tbody>
+<tr><td>simple_typo</td><td>❌</td><td>100 (2.44s)</td><td>100 (7.22s)</td><td>100 (9.27s)</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>test_generation</td><td>❌</td><td>100 (8.95s)</td><td>0 (32.68s)</td><td>100 (26.61s)</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>self_review</td><td>❌</td><td>100 (4.13s)</td><td>100 (22.09s)</td><td>100 (21.31s)</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>multi_file_refactor</td><td>❌</td><td>100 (6.86s)</td><td>0 (65.04s)</td><td>77 (22.08s)</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+</tbody></table>
+</section>
+<section class="card"><h3>延迟 (秒, 低=好)</h3>
+<tr><td>Task \ Provider</td><td>minimax</td><td>ollama_hermes3</td><td>ollama_qwen3</td><td>ollama_gemma4</td><td>ollama_qwen35_TRAP</td><td>Fastest</td></tr>
+<table><thead><tr><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th><th>---</th></tr></thead><tbody>
+<tr><td>simple_typo</td><td>❌</td><td>2.44s</td><td>7.22s</td><td>9.27s</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>test_generation</td><td>❌</td><td>8.95s</td><td>32.68s</td><td>26.61s</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>self_review</td><td>❌</td><td>4.13s</td><td>22.09s</td><td>21.31s</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+<tr><td>multi_file_refactor</td><td>❌</td><td>6.86s</td><td>65.04s</td><td>22.08s</td><td>❌</td><td>**ollama_hermes3**</td></tr>
+</tbody></table>
+</section>
+<section class="card"><h3>决策建议</h3>
+<p>**simple_typo**:</p>
+<p>首选: `ollama_hermes3` (100 分, 2.44s)</p>
+<p>备选: `ollama_qwen3` (100 分, 7.22s)</p>
+<p>理由: 短文本 + 单一改动, 端侧 qwen3/hermes3 速度快够用, 云端浪费</p>
+<p>**test_generation**:</p>
+<p>首选: `ollama_hermes3` (100 分, 8.95s)</p>
+<p>备选: `ollama_gemma4` (100 分, 26.61s)</p>
+<p>理由: 需要语法正确 + XCTest API 知识, hermes3 验证 codegen 之王</p>
+<p>**self_review**:</p>
+<p>首选: `ollama_hermes3` (100 分, 4.13s)</p>
+<p>备选: `ollama_qwen3` (100 分, 22.09s)</p>
+<p>理由: 评分要确定性, temperature=0 + JSON 强制的端侧最稳</p>
+<p>**multi_file_refactor**:</p>
+<p>首选: `ollama_hermes3` (100 分, 6.86s)</p>
+<p>备选: `ollama_gemma4` (77 分, 22.08s)</p>
+<p>理由: 长上下文 + 多文件理解, 云端大模型优势明显, 端侧易丢上下文</p>
+</section>
+</div>
+</details>
+
+<details>
+<summary>🚨 漂移检测结果</summary>
+<div class="content">
+<pre>[2026-06-12 15:30:07] ✓ History appended: /Users/patrick/.hermes/router-bench/history.jsonl (       3 entries total)
+[2026-06-12 15:30:07] === Drift Detection ===
+Comparing 3 runs (3 entries)
+✅ 无显著漂移
+[2026-06-12 15:30:08] === Done ===
+[2026-06-12 15:30:08] 📨 通知已写到 /Users/patrick/.hermes/router-bench/notification.txt
+[2026-06-12 15:30:08]     (cron deliver=origin 会自动推到当前 CLI)</pre>
+<p class="meta">阈值: 综合分变化 ±15 即告警</p>
+</div>
+</details>
+
+<details>
+<summary>📖 选型依据 & 已知问题</summary>
+<div class="content">
+<h3>当前最佳 (本次跑)</h3>
+<ul>
+<li><span class="tag ok">hermes3:latest</span> 4 任务全胜, 3-9s 极快</li>
+<li><span class="tag warn">minimax</span> 4/4 SSL 失败 (当日 API 不稳)</li>
+<li><span class="tag warn">qwen3:latest</span> 长 prompt 答非所问 (test_gen/multi_file score=0)</li>
+<li><span class="tag ok">gemma4:e4b</span> 稳定但慢, 9.6GB 备选</li>
+</ul>
+<h3>已知坑 (2026-06-11)</h3>
+<ul>
+<li>minimax API 偶发 SSL → 触发 fallback 链 (不影响 weekly 报告)</li>
+<li>ollama 同时跑 2 个大模型争抢 → 未来考虑 concurrent.futures 串行化</li>
+<li>Cloudflare cache 偶尔 stale → empty commit 经常无效, 改 v2 文件名</li>
+</ul>
+</div>
+</details>
+
+<footer>
+<p>🤖 自动生成 by <code>hermes-publish</code> · Skill: <code>hermes-model-router</code></p>
+<p>📡 公网 URL: <a href="https://patrick-reports.patrick-l-zeng.workers.dev/router-bench-2026-06-12.html">https://patrick-reports.patrick-l-zeng.workers.dev/router-bench-2026-06-12.html</a></p>
+<p>🔗 源 cron: <code>856e2de542b2</code> · 同步: <code>9bbb4c3109a0</code> (每日 23:30)</p>
+<p>📊 推送规则: <code>~/.hermes/scripts/publish-*.sh</code> → Desktop → sync-daily-reports.sh → Cloudflare Pages</p>
+</footer>
+</body>
+</html>
