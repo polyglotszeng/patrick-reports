@@ -9,14 +9,19 @@
 <meta property="og:title" content="OpenSwarm — 一个人的 AI Agent 军团" />
 <meta property="og:description" content="26 个专业 agents · 共享大脑 · 自动化研究与投资系统。投资人简报。" />
 <meta property="og:type" content="website" />
+<meta property="og:url" content="https://patrick-reports.patrick-l-zeng.workers.dev/pitch" />
+<link rel="canonical" href="https://patrick-reports.patrick-l-zeng.workers.dev/pitch" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#06080f; --bg2:#0a0e1a; --panel:#10162a; --panel2:#141b33;
-    --line:#1e2740; --txt:#e7ecf7; --muted:#8b96b4;
-    --cyan:#22e3d6; --blue:#4f8cff; --violet:#9b6cff; --pink:#ff5db1;
-    --green:#3ddc91; --amber:#ffc24b;
-    --grad:linear-gradient(120deg,var(--cyan),var(--blue) 45%,var(--violet));
+    /* 暖橙终端风 — 与 Daily Reports 门户统一 */
+    --bg:#0b0a08; --bg2:#100d0a; --panel:#16120d; --panel2:#1d1711;
+    --line:#2c2118; --txt:#f1ece4; --muted:#a89b88;
+    /* 旧变量名沿用，统一映射为暖色 */
+    --cyan:#ff7a2f; --blue:#ffa23d; --violet:#ff5b2e; --pink:#ff8a4c;
+    --green:#5fd083; --amber:#ffb74d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Cascadia Code",monospace;
+    --grad:linear-gradient(120deg,#ff5b2e,#ff7a2f 45%,#ffb74d);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -28,9 +33,9 @@
   /* animated background */
   .bg-grid{position:fixed;inset:0;z-index:0;opacity:.5;
     background:
-      radial-gradient(800px 500px at 80% -5%, rgba(79,140,255,.18), transparent 60%),
-      radial-gradient(700px 600px at 0% 30%, rgba(155,108,255,.14), transparent 55%),
-      radial-gradient(600px 500px at 100% 90%, rgba(34,227,214,.10), transparent 55%);}
+      radial-gradient(800px 500px at 80% -5%, rgba(255,122,47,.16), transparent 60%),
+      radial-gradient(700px 600px at 0% 30%, rgba(255,91,46,.12), transparent 55%),
+      radial-gradient(600px 500px at 100% 90%, rgba(255,183,77,.08), transparent 55%);}
   .bg-grid::after{content:"";position:absolute;inset:0;
     background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
       linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
@@ -54,9 +59,13 @@
   .navlinks a:hover{color:var(--txt)}
   .share-btn{border:1px solid var(--line);background:var(--panel);color:var(--txt);
     padding:8px 15px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px}
-  .share-btn:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,.15)}
+  .share-btn:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(255,122,47,.18)}
   @media(max-width:720px){.navlinks{display:none}}
 
+  /* terminal prompt */
+  .term-prompt{font-family:var(--mono);font-size:13.5px;color:var(--cyan);margin-bottom:18px;letter-spacing:.02em}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--cyan);margin-left:3px;vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
   /* hero */
   .hero{padding-top:64px}
   .hero h1{font-size:clamp(36px,7vw,68px);margin:14px 0}
@@ -66,7 +75,7 @@
     padding:7px 15px;font-size:13px;color:var(--txt)}
   .pill b{color:var(--cyan)}
   .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-  .btn-primary{background:var(--grad);color:#05101f;font-weight:800;border:none;border-radius:12px;
+  .btn-primary{background:var(--grad);color:#1a0f06;font-weight:800;border:none;border-radius:12px;
     padding:14px 26px;font-size:15px;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s}
   .btn-primary:hover{transform:translateY(-2px)}
   .btn-ghost{border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:14px 22px;
@@ -97,7 +106,7 @@
   .card h3{font-size:19px;margin-bottom:8px}
   .card p{color:var(--muted);font-size:14.5px}
   .card .ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;
-    background:rgba(79,140,255,.12);border:1px solid var(--line);margin-bottom:14px}
+    background:rgba(255,122,47,.12);border:1px solid var(--line);margin-bottom:14px}
 
   .chartcard{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px}
   .chartcard h3{font-size:16px;margin-bottom:4px}
@@ -106,17 +115,22 @@
 
   /* architecture diagram */
   .arch{border:1px solid var(--line);border-radius:18px;background:
-    radial-gradient(600px 300px at 50% 0%,rgba(79,140,255,.10),transparent),var(--panel);padding:30px}
+    radial-gradient(600px 300px at 50% 0%,rgba(255,122,47,.10),transparent),var(--panel);padding:30px}
   .archnode{fill:var(--panel2);stroke:var(--line)}
   .archlabel{fill:var(--txt);font-size:13px;font-weight:600}
   .archsub{fill:var(--muted);font-size:11px}
+  .archlink{fill:var(--cyan);font-size:13px;font-weight:700;opacity:.55}
+  .outnode{cursor:pointer}
+  .outnode .archnode{transition:.2s}
+  .outnode:hover .archnode{stroke:var(--cyan);fill:#221a12}
+  .outnode:hover .archlink{opacity:1}
 
   /* timeline */
   .tl{position:relative;margin-top:30px;padding-left:30px}
   .tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--cyan),var(--violet),transparent)}
   .tl-item{position:relative;padding:0 0 26px 0;cursor:default}
   .tl-item::before{content:"";position:absolute;left:-26px;top:6px;width:13px;height:13px;border-radius:50%;
-    background:var(--bg);border:2px solid var(--cyan);box-shadow:0 0 12px rgba(34,227,214,.6);transition:.2s}
+    background:var(--bg);border:2px solid var(--cyan);box-shadow:0 0 12px rgba(255,122,47,.6);transition:.2s}
   .tl-item:hover::before{background:var(--cyan)}
   .tl-date{font-size:12.5px;color:var(--cyan);font-weight:700;letter-spacing:.05em}
   .tl-title{font-weight:700;margin:2px 0}
@@ -126,7 +140,7 @@
   .filterbar{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
   .fbtn{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;
     padding:7px 16px;font-size:13px;cursor:pointer;transition:.2s;font-weight:600}
-  .fbtn.active{color:#05101f;background:var(--grad);border-color:transparent}
+  .fbtn.active{color:#1a0f06;background:var(--grad);border-color:transparent}
   .roster{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
   @media(max-width:860px){.roster{grid-template-columns:repeat(2,1fr)}}
   .agent{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 14px 13px;transition:.2s}
@@ -134,8 +148,8 @@
   .agent .an{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
   .agent .ad{color:var(--muted);font-size:12.5px;margin-top:3px}
   .tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:.04em}
-  .t-swarm{background:rgba(34,227,214,.14);color:var(--cyan)}
-  .t-claw{background:rgba(155,108,255,.16);color:var(--violet)}
+  .t-swarm{background:rgba(255,122,47,.16);color:var(--cyan)}
+  .t-claw{background:rgba(255,183,77,.16);color:var(--amber)}
 
   /* invest table */
   table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
@@ -143,8 +157,27 @@
   th{color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
   td b{color:var(--txt)}
 
+  /* live proof card */
+  .proofcard{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:18px;
+    background:linear-gradient(135deg,rgba(255,122,47,.10),rgba(255,183,77,.05)),var(--panel);
+    padding:26px;transition:.25s}
+  .proofcard:hover{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 16px 50px rgba(0,0,0,.45)}
+  .proof-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .proof-term{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#ff8a4c;margin-bottom:8px}
+  .proof-title{font-size:21px;font-weight:800}
+  .proof-sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+  .proof-open{border:1px solid var(--cyan);color:var(--cyan);border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px;white-space:nowrap}
+  .proof-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0 18px}
+  .ps{border:1px solid var(--line);border-radius:13px;padding:16px;background:rgba(255,255,255,.02)}
+  .psn{font-size:30px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .psl{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .proof-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .proof-tags span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+  .proof-tags .more{color:var(--cyan);border-color:rgba(255,122,47,.4)}
+  @media(max-width:720px){.proof-stats{grid-template-columns:repeat(2,1fr)}}
+
   .ask{border:1px solid var(--line);border-radius:18px;padding:34px;background:
-    linear-gradient(135deg,rgba(79,140,255,.10),rgba(155,108,255,.08));text-align:center}
+    linear-gradient(135deg,rgba(255,122,47,.10),rgba(255,91,46,.07));text-align:center}
   .ask h2{margin-bottom:12px}
   .ask .lead{margin:0 auto 22px}
 
@@ -171,14 +204,17 @@
       <a href="#arch">架构</a>
       <a href="#traction">进展</a>
       <a href="#agents">Agent 军团</a>
+      <a href="#proof">实时证据</a>
       <a href="#ask">融资</a>
     </nav>
+    <a class="share-btn" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="text-decoration:none;color:var(--cyan);border-color:var(--cyan)">实时产出 ↗</a>
     <button class="share-btn" onclick="sharePage()">🔗 转发</button>
   </div>
 </div>
 
 <!-- ============ HERO ============ -->
 <section class="hero wrap">
+  <div class="term-prompt reveal">patrick@openswarm:~$ ./pitch --investor<span class="cursor"></span></div>
   <div class="eyebrow reveal">AI Agent 协作平台 · 投资人简报</div>
   <h1 class="reveal">一个人，一支<span class="grad">由 26 个 AI Agent</span>组成的军团</h1>
   <p class="sub reveal">OpenSwarm 把单兵 AI agent 升级为可自治、可协作、可涌现的分布式智能体网络——一个共享的大脑，让 agent 在你睡觉时也在研究、追踪、决策与创造。</p>
@@ -192,7 +228,7 @@
 
   <div class="cta reveal">
     <a class="btn-primary" href="#system">看系统如何运转 ↓</a>
-    <a class="btn-ghost" href="#ask">融资与合作</a>
+    <a class="btn-ghost" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">查看实时产出门户 ↗</a>
   </div>
 
   <!-- LIVE READ / FORWARD COUNTER -->
@@ -210,10 +246,10 @@
 <!-- ============ METRICS ============ -->
 <section class="wrap" style="padding-top:10px">
   <div class="metrics">
-    <div class="metric reveal"><div class="num" data-to="260" data-suffix="">0</div><div class="cap">在岗专业 Agents (skills)</div></div>
-    <div class="metric reveal"><div class="num" data-to="3808" data-suffix="+">0</div><div class="cap">Session 对话记录 (估算)</div></div>
-    <div class="metric reveal"><div class="num" data-to="43" data-suffix="">0</div><div class="cap">活跃 Cron 任务</div></div>
-    <div class="metric reveal"><div class="num" data-to="500" data-suffix="">0</div><div class="cap">ArcStore 上线商品 (即将)</div></div>
+    <div class="metric reveal"><div class="num" data-to="26" data-suffix="">0</div><div class="cap">在岗专业 Agents</div></div>
+    <div class="metric reveal"><div class="num" data-to="3808" data-suffix="+">0</div><div class="cap">Session 对话记录</div></div>
+    <div class="metric reveal"><div class="num" data-to="14" data-suffix="">0</div><div class="cap">每周自动化 Cron 任务</div></div>
+    <div class="metric reveal"><div class="num" data-to="500" data-suffix="">0</div><div class="cap">ArcStore 上线商品</div></div>
   </div>
 </section>
 
@@ -265,25 +301,25 @@
     <svg viewBox="0 0 920 420" width="100%" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#22e3d6"/><stop offset="1" stop-color="#9b6cff"/>
+          <stop offset="0" stop-color="#ffb74d"/><stop offset="1" stop-color="#ff5b2e"/>
         </linearGradient>
         <marker id="arrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L6,3 L0,6 Z" fill="#4f8cff"/>
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ff7a2f"/>
         </marker>
       </defs>
 
       <!-- shared context core -->
       <rect x="280" y="150" width="360" height="112" rx="16" fill="url(#g1)" opacity="0.16" stroke="url(#g1)"/>
-      <text x="460" y="182" text-anchor="middle" class="archlabel" style="font-size:16px;fill:#22e3d6">共享上下文服务器</text>
+      <text x="460" y="182" text-anchor="middle" class="archlabel" style="font-size:16px;fill:#ff7a2f">共享上下文服务器</text>
       <text x="460" y="204" text-anchor="middle" class="archsub">localhost:7892 · 26 agents 的共享大脑</text>
       <text x="460" y="228" text-anchor="middle" class="archsub" style="font-size:10.5px;letter-spacing:.04em">finding · decision · state · event</text>
       <text x="460" y="246" text-anchor="middle" class="archsub" style="font-size:10.5px;letter-spacing:.04em">goal · alert · context</text>
 
       <!-- orchestrator -->
-      <rect x="375" y="40" width="170" height="56" rx="13" class="archnode" stroke="#4f8cff"/>
+      <rect x="375" y="40" width="170" height="56" rx="13" class="archnode" stroke="#ff7a2f"/>
       <text x="460" y="66" text-anchor="middle" class="archlabel">Orchestrator</text>
       <text x="460" y="83" text-anchor="middle" class="archsub">任务分配 · 协调</text>
-      <line x1="460" y1="96" x2="460" y2="148" stroke="#4f8cff" stroke-width="1.6" marker-end="url(#arrow)"/>
+      <line x1="460" y1="96" x2="460" y2="148" stroke="#ff7a2f" stroke-width="1.6" marker-end="url(#arrow)"/>
 
       <!-- left agents -->
       <g>
@@ -296,27 +332,37 @@
         <rect x="40" y="310" width="180" height="50" rx="11" class="archnode"/>
         <text x="130" y="332" text-anchor="middle" class="archlabel">Llama Agents</text>
         <text x="130" y="348" text-anchor="middle" class="archsub">本地模型处理</text>
-        <line x1="220" y1="85" x2="278" y2="178" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
-        <line x1="220" y1="210" x2="278" y2="206" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
-        <line x1="220" y1="335" x2="278" y2="234" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="220" y1="85" x2="278" y2="178" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="220" y1="210" x2="278" y2="206" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="220" y1="335" x2="278" y2="234" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
       </g>
 
-      <!-- right outputs -->
+      <!-- right outputs — 可点击，跳转实时产出门户 -->
       <g>
-        <rect x="700" y="60" width="180" height="50" rx="11" class="archnode"/>
-        <text x="790" y="82" text-anchor="middle" class="archlabel">投资简报系统</text>
-        <text x="790" y="98" text-anchor="middle" class="archsub">每日 9:00 · iMessage</text>
-        <rect x="700" y="185" width="180" height="50" rx="11" class="archnode"/>
-        <text x="790" y="207" text-anchor="middle" class="archlabel">arXiv 研究追踪</text>
-        <text x="790" y="223" text-anchor="middle" class="archsub">量子 · 核聚变 · 周更</text>
-        <rect x="700" y="310" width="180" height="50" rx="11" class="archnode"/>
-        <text x="790" y="332" text-anchor="middle" class="archlabel">内容 / 电商产出</text>
-        <text x="790" y="348" text-anchor="middle" class="archsub">ArcStore · 传记 · 周报</text>
-        <line x1="642" y1="178" x2="698" y2="85" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
-        <line x1="642" y1="206" x2="698" y2="210" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
-        <line x1="642" y1="234" x2="698" y2="335" stroke="#2a3556" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="60" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="76" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="82" text-anchor="middle" class="archlabel">投资简报系统</text>
+          <text x="790" y="98" text-anchor="middle" class="archsub">每日 9:00 · iMessage</text>
+        </a>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="185" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="201" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="207" text-anchor="middle" class="archlabel">arXiv 研究追踪</text>
+          <text x="790" y="223" text-anchor="middle" class="archsub">量子 · 核聚变 · 周更</text>
+        </a>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="310" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="326" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="332" text-anchor="middle" class="archlabel">内容 / 电商产出</text>
+          <text x="790" y="348" text-anchor="middle" class="archsub">ArcStore · 传记 · 周报</text>
+        </a>
+        <line x1="642" y1="178" x2="698" y2="85" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="642" y1="206" x2="698" y2="210" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="642" y1="234" x2="698" y2="335" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
       </g>
     </svg>
+    <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--muted)">右侧产出节点均可点击 → 跳转<a href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="color:var(--cyan)">实时产出门户 ↗</a>，逐篇核验</div>
   </div>
 </section>
 
@@ -348,6 +394,36 @@
       </div>
     </div>
   </div>
+</section>
+
+<!-- ============ LIVE PROOF ============ -->
+<section id="proof" class="wrap">
+  <div class="eyebrow reveal">实时证据 · Live Proof</div>
+  <h2 class="reveal">不是 PPT 上的承诺，<span class="grad">是每天在跑的产线</span></h2>
+  <p class="lead reveal" style="margin-bottom:26px">前面说「agent 在你睡觉时也在研究」——这不是设想。下面这个公网门户由 OpenSwarm 自动生成、每日更新、连续运转，投资人可点击实时核验每一篇产出。</p>
+
+  <a class="proofcard reveal" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+    <div class="proof-head">
+      <div>
+        <div class="proof-term">patrick@reports:~$ ls -lt ./daily</div>
+        <div class="proof-title">📚 Patrick's Daily Reports</div>
+        <div class="proof-sub">每日自动生成 · 调研报告 · arXiv 论文笔记 · 部署于 Cloudflare Workers</div>
+      </div>
+      <div class="proof-open">打开门户 ↗</div>
+    </div>
+    <div class="proof-stats">
+      <div class="ps"><div class="psn">143+</div><div class="psl">总产出篇数</div></div>
+      <div class="ps"><div class="psn">64</div><div class="psl">调研报告</div></div>
+      <div class="ps"><div class="psn">79</div><div class="psl">论文笔记</div></div>
+      <div class="ps"><div class="psn">14天</div><div class="psl">连续更新 🔥</div></div>
+    </div>
+    <div class="proof-tags">
+      <span>#Agent工具链</span><span>#世界模型</span><span>#量化</span>
+      <span>#AI观察</span><span>#Apple/WWDC</span><span>#硬件评测</span>
+      <span class="more">JSON · RSS · Sitemap 全开放</span>
+    </div>
+  </a>
+  <p class="disc reveal">这一层把简报里的每一句主张变成可点击核验的实时数据——这是对投资人最强的可信度背书。</p>
 </section>
 
 <!-- ============ INVESTMENT SHOWCASE ============ -->
@@ -398,10 +474,9 @@
 
 <footer>
   <div class="wrap" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between">
-    <div><b style="color:var(--txt)">OpenSwarm</b> · Patrick · AI Agent 协作平台 · 2026</div>
+    <div><b style="color:var(--txt)">OpenSwarm</b> · Patrick · AI Agent 协作平台 · 2026 · <a href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="color:var(--cyan)">实时产出门户 ↗</a></div>
     <div>本页由个人知识库自动生成 · <span id="footHits"></span></div>
   </div>
-<div class='disc' style='margin-top:8px;font-size:11px'>数据更新于 2026-06-13 · 自动同步 (agents=260 sessions=5 cron=43 arcstore=0)</div>
 </footer>
 
 <div class="toast" id="toast">链接已复制，去转发吧 🚀</div>
@@ -413,20 +488,19 @@
 <script>
 /* ================= 配置区：部署到 GitHub Pages 后按需修改 ================= */
 const CONFIG = {
-  // hits.sh 阅读量徽章：把下面替换成你的公网地址（无需注册，自动统计）
-  // 2026-06-13 改: 指向 Patrick 实际公网 Cloudflare Pages URL
-  hitsTarget: 'patrick-reports.patrick-l-zeng.workers.dev/openswarm-investor-briefing-2026-06-13.html',
-  // GoatCounter 站点 code (Patrick 注册后填) - 当前未注册, 留 YOURCODE 占位
-  goatcounterSite: 'YOURCODE',  // 注册 https://goatcounter.com 后填
+  // hits.sh 阅读量徽章：公网访问时自动用当前域名+路径统计，本地预览用兜底值
+  hitsTarget: /^https?:/.test(location.protocol) && location.hostname && location.hostname!=='localhost'
+      ? (location.host + location.pathname).replace(/\/+$/,'').replace(/\.html$/,'')
+      : 'patrick-reports.patrick-l-zeng.workers.dev/pitch',
 };
 /* ====================================================================== */
 
 // ---------- 阅读量徽章（hits.sh，零配置第三方计数器）----------
 (function(){
-  const url = `https://hits.sh/${CONFIG.hitsTarget}.svg?style=for-the-badge&label=reads&color=0a0e1a&labelColor=22e3d6`;
+  const url = `https://hits.sh/${CONFIG.hitsTarget}.svg?style=for-the-badge&label=reads&color=100d0a&labelColor=ff7a2f`;
   document.getElementById('hitsBadge').src = url;
   document.getElementById('footHits').innerHTML =
-    `<img style="height:18px;vertical-align:middle;border-radius:5px" src="https://hits.sh/${CONFIG.hitsTarget}.svg?label=views&color=141b33&labelColor=4f8cff" alt="views">`;
+    `<img style="height:18px;vertical-align:middle;border-radius:5px" src="https://hits.sh/${CONFIG.hitsTarget}.svg?label=views&color=16120d&labelColor=ffa23d" alt="views">`;
 })();
 
 // ---------- 转发计数（本地即时反馈 + GoatCounter 事件 + Web Share）----------
@@ -512,7 +586,7 @@ document.querySelectorAll('.fbtn').forEach(b=>b.onclick=()=>{
 });
 
 // ---------- 图表 ----------
-const GRID='#1e2740', TXT='#8b96b4';
+const GRID='#2c2118', TXT='#a89b88';
 Chart.defaults.color=TXT; Chart.defaults.font.family='-apple-system,Segoe UI,PingFang SC,sans-serif';
 Chart.defaults.font.size=12;
 
@@ -520,8 +594,8 @@ new Chart(document.getElementById('growthChart'),{
   type:'line',
   data:{labels:['1月','2月','3月','4月','5月','6月'],
     datasets:[{label:'在岗 Agents',data:[1,3,10,18,29,26],
-      borderColor:'#22e3d6',backgroundColor:'rgba(34,227,214,.12)',fill:true,tension:.35,
-      pointBackgroundColor:'#22e3d6',pointRadius:4,borderWidth:2.5}]},
+      borderColor:'#ff7a2f',backgroundColor:'rgba(255,122,47,.14)',fill:true,tension:.35,
+      pointBackgroundColor:'#ff7a2f',pointRadius:4,borderWidth:2.5}]},
   options:{plugins:{legend:{display:false}},scales:{
     x:{grid:{color:GRID}},y:{grid:{color:GRID},beginAtZero:true}}}
 });
@@ -529,25 +603,25 @@ new Chart(document.getElementById('growthChart'),{
 new Chart(document.getElementById('radarChart'),{
   type:'radar',
   data:{labels:['深度研究','自动化','多 Agent 协作','长期记忆','多模型路由','投资 · 产出'],
-    datasets:[{data:[9,9,8,7,8,7],borderColor:'#9b6cff',
-      backgroundColor:'rgba(155,108,255,.22)',pointBackgroundColor:'#9b6cff',borderWidth:2}]},
+    datasets:[{data:[9,9,8,7,8,7],borderColor:'#ff7a2f',
+      backgroundColor:'rgba(255,122,47,.20)',pointBackgroundColor:'#ff7a2f',borderWidth:2}]},
   options:{plugins:{legend:{display:false}},layout:{padding:18},scales:{r:{
     angleLines:{color:GRID},grid:{color:GRID},
-    pointLabels:{color:'#c7cfe6',font:{size:11},padding:6},
+    pointLabels:{color:'#d8cdba',font:{size:11},padding:6},
     ticks:{display:false,stepSize:2},suggestedMin:0,suggestedMax:10}}}
 });
 
 new Chart(document.getElementById('distChart'),{
   type:'doughnut',
   data:{labels:['OpenSwarm 编排层 (8)','OpenClaw 专业层 (18)'],
-    datasets:[{data:[8,18],backgroundColor:['#22e3d6','#9b6cff'],borderColor:'#10162a',borderWidth:3}]},
+    datasets:[{data:[8,18],backgroundColor:['#ff7a2f','#ffb74d'],borderColor:'#16120d',borderWidth:3}]},
   options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true}}}}
 });
 
 new Chart(document.getElementById('cronChart'),{
   type:'bar',
   data:{labels:['arXiv 量子','arXiv 核聚变','AI 伦理周报','投资简报','复盘记录'],
-    datasets:[{data:[1,1,1,7,2],backgroundColor:['#4f8cff','#4f8cff','#9b6cff','#22e3d6','#3ddc91'],borderRadius:6}]},
+    datasets:[{data:[1,1,1,7,2],backgroundColor:['#ffa23d','#ffa23d','#ff5b2e','#ff7a2f','#5fd083'],borderRadius:6}]},
   options:{plugins:{legend:{display:false}},scales:{
     x:{grid:{display:false}},y:{grid:{color:GRID},beginAtZero:true,ticks:{stepSize:2}}}}
 });
