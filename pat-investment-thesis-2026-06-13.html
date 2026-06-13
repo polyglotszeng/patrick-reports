@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAT 投资分析 — AI Agent 经济学 4 玩家 + 12-18 月窗口 (2026-06-13)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+    color: #e4e4e7;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 3rem; padding: 2rem 0; border-bottom: 1px solid #2a2a3e; }
+  h1 { font-size: 2.4rem; font-weight: 700; background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+  .subtitle { color: #a1a1aa; font-size: 1.1rem; }
+  .meta { color: #71717a; font-size: 0.9rem; margin-top: 1rem; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin: 2rem 0; }
+  .stat-card { background: rgba(255,255,255,0.05); border: 1px solid #2a2a3e; border-radius: 12px; padding: 1.25rem; }
+  .stat-num { font-size: 2rem; font-weight: 700; color: #fbbf24; }
+  .stat-label { color: #a1a1aa; font-size: 0.9rem; margin-top: 0.25rem; }
+  .verdict { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.08)); border: 2px solid #fbbf24; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; text-align: center; }
+  .verdict-title { color: #fbbf24; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th { background: rgba(251, 191, 36, 0.15); color: #fbbf24; padding: 0.75rem; text-align: left; font-weight: 600; }
+  td { padding: 0.75rem; border-top: 1px solid #2a2a3e; color: #d4d4d8; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .insight { background: rgba(34, 197, 94, 0.1); border-left: 4px solid #22c55e; padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+  .insight-title { color: #22c55e; font-weight: 600; margin-bottom: 0.5rem; }
+  .warning { background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+  .warning-title { color: #ef4444; font-weight: 600; margin-bottom: 0.5rem; }
+  .section { margin: 2rem 0; }
+  .section h2 { color: #fbbf24; font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .section h3 { color: #f59e0b; font-size: 1.15rem; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+  details { background: rgba(255,255,255,0.03); border: 1px solid #2a2a3e; border-radius: 10px; padding: 1rem; margin: 0.75rem 0; }
+  details summary { cursor: pointer; font-weight: 600; color: #fbbf24; }
+  details[open] { padding-bottom: 1.5rem; }
+  details p { margin-top: 0.75rem; color: #d4d4d8; }
+  .quote { background: rgba(251, 191, 36, 0.1); border-left: 4px solid #fbbf24; padding: 0.75rem 1rem; margin: 0.75rem 0; font-style: italic; border-radius: 0 8px 8px 0; }
+  ul { padding-left: 1.5rem; margin: 0.5rem 0; }
+  li { margin: 0.25rem 0; color: #d4d4d8; }
+  li strong { color: #fbbf24; }
+  footer { margin-top: 4rem; padding: 2rem 0; border-top: 1px solid #2a2a3e; text-align: center; color: #71717a; font-size: 0.9rem; }
+  .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-right: 0.25rem; }
+  .badge-5 { background: #dc2626; color: white; }
+  .badge-4 { background: #f59e0b; color: white; }
+  .badge-3 { background: #eab308; color: white; }
+  @media (max-width: 640px) {
+    h1 { font-size: 1.75rem; }
+    .container { padding: 1rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>PAT 投资分析 — AI Agent 经济学</h1>
+  <p class="subtitle">4 玩家 12-18 月窗口 + 个人仓位 (NQ-100 Plan E + 7 标的)</p>
+  <p class="meta">2026-06-13 12:30 CST · Patrick via Hermes · NQ-100 7+2 实验收官延伸</p>
+</header>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-num">4</div>
+    <div class="stat-label">玩家洗牌</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">60%</div>
+    <div class="stat-label">Anthropic visual UI 概率</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">7</div>
+    <div class="stat-label">PAT 机会性标的</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">15%</div>
+    <div class="stat-label">机会性仓位</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">25%</div>
+    <div class="stat-label">现金留底</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">3</div>
+    <div class="stat-label">场景预测 (A/B/C)</div>
+  </div>
+</div>
+
+<div class="verdict">
+  <div class="verdict-title">🎯 1 句话投资哲学</div>
+  <p style="color: #f4f4f5;">不直接入股 4 玩家 (都未上市), 走 NQ-100 Plan E 60% + 7 标的 15% 间接持有 AI agent 浪潮红利. 25% 现金保留逆向机会.</p>
+</div>
+
+<!-- ===== 4 玩家 ===== -->
+<div class="section">
+  <h2>1. 4 玩家 12-18 月窗口</h2>
+  
+  <h3>🏢 Anthropic (Routines + Managed Agents + 视觉 UI 待发)</h3>
+  <table>
+    <tr><th>维度</th><th>数据</th></tr>
+    <tr><td>当前估值</td><td>$40B+ (2025-09)</td></tr>
+    <tr><td>12-18 月预期</td><td>$80-150B (visual UI 出 → Kill n8n)</td></tr>
+    <tr><td>投资路径</td><td>未上市, 间接: Microsoft (49% OpenAI 关联) / Google (TPU 供应)</td></tr>
+  </table>
+  <div class="quote">"Anthropic is going to build in a visual sort of accompaniment to this sort of communication tool that we have here. Because the big issue right now is we're sort of limited by our own ability to understand systems that are laid out as text bullet points."<br><span class="badge badge-4">Nick Saraev 视频 3 段 204-206</span></div>
+
+  <h3>🔧 n8n (visual drag-drop 主流)</h3>
+  <table>
+    <tr><th>维度</th><th>数据</th></tr>
+    <tr><td>当前估值</td><td>$1B+ (2024-12 $200M 融资)</td></tr>
+    <tr><td>12-18 月预期</td><td>估值砍 30-50%, 客户流失 30%</td></tr>
+    <tr><td>投资路径</td><td>未上市, 无公开市场 exposure</td></tr>
+  </table>
+  <div class="warning">
+    <div class="warning-title">⚠️ 关键风险</div>
+    <p>2024 high watermark $1B, 2026 H2 大概率砍半. <strong>无对冲</strong>, 唯一保护是 25% 现金 + 4 玩家外标的.</p>
+  </div>
+
+  <h3>🤖 Lindy (托管 AI agent)</h3>
+  <table>
+    <tr><th>维度</th><th>数据</th></tr>
+    <tr><td>价格</td><td>$49-299/月</td></tr>
+    <tr><td>ARR</td><td>未公开, 估 &lt; 50 员工</td></tr>
+    <tr><td>12-18 月预期</td><td>跟 Routines 直接竞争, 价格压 5-10x</td></tr>
+  </table>
+
+  <h3>💼 Artisan AI (卖实施服务)</h3>
+  <table>
+    <tr><th>维度</th><th>数据</th></tr>
+    <tr><td>ARR</td><td>$5M (2025-04 TechCrunch)</td></tr>
+    <tr><td>客户</td><td>250</td></tr>
+    <tr><td>团队</td><td>57 人</td></tr>
+    <tr><td>融资</td><td>$36.5M</td></tr>
+    <tr><td>12-18 月预期</td><td>visual UI 出 = 客户自服务, 模式不可持续</td></tr>
+  </table>
+  <div class="quote">"either service providers like ourselves, or companies that have the know how and the technical ability to build stuff like that, will basically be able to use this managed infrastructure to do all of their knowledge process automation."<br><span class="badge badge-4">Nick Saraev 视频 3 段 215-217</span></div>
+</div>
+
+<!-- ===== PAT 仓位 ===== -->
+<div class="section">
+  <h2>2. PAT 投资框架 (NQ-100 Plan E 60% + 7 标的 15% + 25% 现金)</h2>
+  
+  <h3>核心 60% — Plan E 5 因子化 (已 NQ-100 验证)</h3>
+  <table>
+    <tr><th>标的</th><th>权重</th><th>逻辑</th></tr>
+    <tr><td>NVDA</td><td>8%</td><td>AI 算力王, Plan E Top 1</td></tr>
+    <tr><td>META</td><td>7%</td><td>广告 AI + 开源 LLM 双引擎</td></tr>
+    <tr><td>GOOGL</td><td>7%</td><td>间接持 Anthropic + TPU</td></tr>
+    <tr><td>MSFT</td><td>6%</td><td>49% OpenAI + Azure + M365 Copilot</td></tr>
+    <tr><td>AMZN</td><td>6%</td><td>Bedrock + AWS 算力</td></tr>
+    <tr><td>AVGO</td><td>5%</td><td>ASIC + 网络</td></tr>
+    <tr><td>AAPL</td><td>5%</td><td>Apple Intelligence + 设备端 AI</td></tr>
+    <tr><td>LRCX</td><td>4%</td><td>半导体设备</td></tr>
+    <tr><td>ASML</td><td>4%</td><td>EUV 光刻机垄断</td></tr>
+    <tr><td>PDD</td><td>4%</td><td>中国电商 + Temu AI</td></tr>
+    <tr><td>MU</td><td>4%</td><td>HBM 内存</td></tr>
+    <tr><td>QQQ</td><td>15%</td><td>市场 beta</td></tr>
+  </table>
+
+  <h3>机会性 15% — 7 标的 AI Agent 经济学方向 (新增)</h3>
+  <table>
+    <tr><th>标的</th><th>比例</th><th>逻辑</th><th>12-18 月预期</th></tr>
+    <tr><td><strong>SMH</strong></td><td>5%</td><td>25 半导体 ETF, 跟着 AI 算力走</td><td>BULL +20-40%</td></tr>
+    <tr><td><strong>GOOGL</strong> (重复到 10%)</td><td>3%</td><td>间接 Anthropic + TPU</td><td>+30%</td></tr>
+    <tr><td><strong>MSFT</strong> (重复到 8%)</td><td>2%</td><td>49% OpenAI ($150B 隐含价值)</td><td>+25%</td></tr>
+    <tr><td><strong>CRWD</strong></td><td>2%</td><td>AI agent 安全新蓝海</td><td>+30-50%</td></tr>
+    <tr><td><strong>PLTR</strong></td><td>3%</td><td>AIP 数据集成, 政府 + 商业双客</td><td>+40-80% (波动大)</td></tr>
+  </table>
+
+  <div class="insight">
+    <div class="insight-title">✅ 6-7 标的分散原则</div>
+    <p>5 标的覆盖 AI agent 浪潮 4 层: 算力 (SMH/NVDA) + 模型 (GOOGL/MSFT) + 集成 (PLTR) + 安全 (CRWD). 5% 单标的最大值, 避免 PLTR 黑天鹅.</p>
+  </div>
+
+  <h3>现金 25% — 应急 + 逆向</h3>
+  <ul>
+    <li><strong>10% 灵活加仓</strong>: VIX > 25 加 5-10% Plan E 60% 标的</li>
+    <li><strong>10% 黑天鹅抄底</strong>: 4 玩家某家崩盘逆向 (如 Lindy 客户流失 → 接 Artisan 转型)</li>
+    <li><strong>5% 应急 / 个人机会</strong>: 紧急资金 / 其他行业轮动</li>
+  </ul>
+</div>
+
+<!-- ===== 3 场景 ===== -->
+<div class="section">
+  <h2>3. 12-18 月 3 场景预测</h2>
+  
+  <details open>
+    <summary>📈 Plan A: Anthropic visual UI 6-12 月出 (60% 概率)</summary>
+    <p><strong>触发</strong>: Nick 推断正确, 2026 H2 看到 drag-drop UI demo</p>
+    <p><strong>影响</strong>: n8n 客户 30% 流失, Lindy 客户 20% 流失, Artisan 客户自服务</p>
+    <p><strong>赢家</strong>: Anthropic ($40B → $80-150B), Microsoft (OpenAI 49%), Google (TPU + Gemini 同步发力)</p>
+    <p><strong>Patrick 仓位调整</strong>:
+      <ul>
+        <li>加仓 GOOGL +3% (重复权重到 13%)</li>
+        <li>减仓 PLTR 1% (从 3% → 2%) = Anthropic 自家数据集成更强</li>
+        <li>维持 SMH/CRWD = 不变</li>
+      </ul>
+    </p>
+  </details>
+
+  <details>
+    <summary>📊 Plan B: Anthropic visual UI 12-18 月未出 (30% 概率)</summary>
+    <p><strong>触发</strong>: 内部优先级低, 或视觉 UI 技术难度大</p>
+    <p><strong>影响</strong>: n8n 估值持平, Lindy 估值上行, Artisan 客户流微跌</p>
+    <p><strong>Patrick 仓位调整</strong>:
+      <ul>
+        <li>加仓 CRWD +2% (Lindy 估值上行 → AI 安全需求涨)</li>
+        <li>加仓 PLTR +2%</li>
+        <li>减仓 SMH 2% (从 5% → 3%) = 算力需求增速放缓</li>
+      </ul>
+    </p>
+  </details>
+
+  <details>
+    <summary>🛡️ Plan C: 黑天鹅 (10% 概率)</summary>
+    <p><strong>触发</strong>: Anthropic API 出大事 (DDoS/合规危机/核心团队离职), 估值砍半</p>
+    <p><strong>影响</strong>: 4 玩家全盘受影响, AI agent 板块 1 月 -30%</p>
+    <p><strong>Patrick 仓位保护</strong>: 25% 现金 + Plan E 60% 分散, 5-10% 损失上限</p>
+    <p><strong>加仓机会</strong>: 现金 25% → 10% 抄底, 12 月后回弹 30-50%</p>
+  </details>
+</div>
+
+<!-- ===== 5 Falsification ===== -->
+<div class="warning">
+  <div class="warning-title">⚠️ 5 Falsification (Patrick 必读)</div>
+  <ul>
+    <li><strong>1. 错过 Anthropic IPO 5-10x 收益</strong> — 风险中: 2026 H2 可能 IPO. 应对: 25% 现金 + Microsoft 间接持有</li>
+    <li><strong>2. SMH 5% 配置太重</strong> — 风险低: 25 只分散, 但 2024 涨 60% 透支部分预期. 应对: 5% 而非 10%</li>
+    <li><strong>3. PLTR 3% 黑天鹅</strong> — 风险中: PE 240x 高, 2025 跌 30%. 应对: 3% 而非 5%, Regime Filter 触发减仓</li>
+    <li><strong>4. Nick Saraev 商业立场偏颇</strong> — 风险高: 卖 Claude 实施服务, "Kills n8n" 帮他拉客户. 应对: Plan B 30% 概率反向, 不全押 Plan A</li>
+    <li><strong>5. Patrick 个人风险偏好</strong> — 风险高: "稳 + 持续" 而非 "高 alpha". 15% 7 标的 = 增加波动. 应对: 周六先跑 6 月 backtest 验证</li>
+  </ul>
+</div>
+
+<!-- ===== 行动清单 ===== -->
+<div class="section">
+  <h2>4. 行动清单 (周末)</h2>
+  <ul>
+    <li>✅ <strong>周六</strong>: NQ-100 Plan E 真实数据 (Mac + IBKR TWS 抓 4 财年) 校准 + 6 月 backtest 验证 7 标的</li>
+    <li>✅ <strong>周六</strong>: 决定 Plan E 60% 5 因子 + 7 标的 15% + 25% 现金 实际仓位</li>
+    <li>✅ <strong>周日</strong>: 装 Umami 自托管 + 拿真 UUID + 136 HTML 注入</li>
+    <li>✅ <strong>周日</strong>: 跟踪 Anthropic 公告 (订阅 changelog) + Lindy 估值变化 (用 Crustdata API 查)</li>
+    <li>✅ <strong>2026 H2 (7-12 月)</strong>: Regime Filter 触发减仓 (BULL → 加 SMH 1-2%, BEAR → 减 PLTR 1-2%)</li>
+    <li>✅ <strong>季度复盘</strong>: 12-18 月窗口结束, 4 玩家实际表现 vs 预测, 调 Plan</li>
+  </ul>
+</div>
+
+<div class="insight">
+  <div class="insight-title">💡 跟 NQ-100 7+2 实验关联</div>
+  <p>本 PAT 投资分析 = <strong>GCP-2.0 路线第 4 方向 (AI 增强) 实操</strong>:
+    <ul>
+      <li>Exp-12 5 因子 +30.9pp → 7 标的 5% 基础</li>
+      <li>Exp-13 FF5 分解 → 解释 META/GOOGL/MSFT/AMZN 是 AI agent 浪潮最稳 (RMW/HML 高)</li>
+      <li>Exp-14 Regime Filter +12.3pp → Plan A/B/C 触发用</li>
+      <li>Exp-15/16/17 GBDT 失败 → 提醒 AI 投资不能用 ML 预测 (太多黑天鹅)</li>
+      <li>Exp-18 IBKR 抓数据 → 周末真实季度 panel 验证 7 标的</li>
+      <li>Exp-20 GCP-2.0 → 本分析是第 4 方向实操</li>
+    </ul>
+  </p>
+</div>
+
+<footer>
+  <p>📊 数据来源: Nick Saraev 3 视频 (672K views) + memory 旧记 + TechCrunch 2025-04 + 公开估值</p>
+  <p>📝 详细 .md: ~/Documents/Obsidian Vault/llm-wiki/research-log/agent-economics/2026-06-13-pat-investment-thesis.md</p>
+  <p>🪟 HTML mirror: ~/Desktop/pat-investment-thesis-2026-06-13.html</p>
+  <p>🕐 生成时间: 2026-06-13 12:30 CST</p>
+  <p>📈 公网: patrick-reports.patrick-l-zeng.workers.dev/pat-investment-thesis-2026-06-13.html</p>
+</footer>
+
+</div>
+</body>
+</html>
