@@ -1,490 +1,630 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Patrick's Daily Reports — 每日报告 / 论文笔记</title>
-<link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="https://patrick-reports.patrick-l-zeng.workers.dev/rss.xml">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpenSwarm · Patrick — AI Agent 协作平台 · 投资人简报</title>
+<meta name="description" content="一个人 + 26 个 AI agents 的协作军团。OpenSwarm 把单兵 agent 升级为可自治、可涌现的分布式智能体网络。" />
+<!-- Open Graph for 转发预览 -->
+<meta property="og:title" content="OpenSwarm — 一个人的 AI Agent 军团" />
+<meta property="og:description" content="26 个专业 agents · 共享大脑 · 自动化研究与投资系统。投资人简报。" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://patrick-reports.patrick-l-zeng.workers.dev/pitch" />
+<link rel="canonical" href="https://patrick-reports.patrick-l-zeng.workers.dev/pitch" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{
-  --bg:#0a0c10; --bg2:#0e1117; --panel:#12161e; --panel2:#171c26;
-  --border:#222936; --border2:#2e3848;
-  --txt:#e8ecf2; --txt2:#9aa5b5; --txt3:#5d6878;
-  --orange:#ff7a45; --orange2:#ffb86c; --cyan:#4dd0e1; --green:#5eead4;
-  --mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','微软雅黑',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg);color:var(--txt);font-family:var(--sans);line-height:1.6;
-  background-image:radial-gradient(circle at 1px 1px, #ffffff08 1px, transparent 0);
-  background-size:28px 28px;
-}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  :root{
+    /* 暖橙终端风 — 与 Daily Reports 门户统一 */
+    --bg:#0b0a08; --bg2:#100d0a; --panel:#16120d; --panel2:#1d1711;
+    --line:#2c2118; --txt:#f1ece4; --muted:#a89b88;
+    /* 旧变量名沿用，统一映射为暖色 */
+    --cyan:#ff7a2f; --blue:#ffa23d; --violet:#ff5b2e; --pink:#ff8a4c;
+    --green:#5fd083; --amber:#ffb74d;
+    --mono:ui-monospace,SFMono-Regular,Menlo,"Cascadia Code",monospace;
+    --grad:linear-gradient(120deg,#ff5b2e,#ff7a2f 45%,#ffb74d);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Roboto,sans-serif;
+    line-height:1.7; overflow-x:hidden;
+  }
+  /* animated background */
+  .bg-grid{position:fixed;inset:0;z-index:0;opacity:.5;
+    background:
+      radial-gradient(800px 500px at 80% -5%, rgba(255,122,47,.16), transparent 60%),
+      radial-gradient(700px 600px at 0% 30%, rgba(255,91,46,.12), transparent 55%),
+      radial-gradient(600px 500px at 100% 90%, rgba(255,183,77,.08), transparent 55%);}
+  .bg-grid::after{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+    background-size:42px 42px; mask:radial-gradient(circle at 50% 30%,#000,transparent 80%);}
+  .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 22px}
+  section{padding:78px 0;position:relative}
+  .eyebrow{font-size:13px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:14px}
+  h1,h2,h3{line-height:1.2;font-weight:800;letter-spacing:-.01em}
+  h2{font-size:clamp(26px,4vw,40px);margin-bottom:10px}
+  .lead{color:var(--muted);font-size:17px;max-width:680px}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 
-/* ---------- header ---------- */
-header{padding:56px 0 28px;position:relative;overflow:hidden}
-header::before{content:'';position:absolute;top:-180px;left:50%;transform:translateX(-50%);
-  width:720px;height:360px;background:radial-gradient(ellipse, #ff7a4518, transparent 70%);pointer-events:none}
-.prompt{font-family:var(--mono);font-size:13px;color:var(--txt3);margin-bottom:14px}
-.prompt .u{color:var(--orange)}
-.prompt .cursor{display:inline-block;width:8px;height:15px;background:var(--orange);vertical-align:-2px;
-  animation:blink 1.1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-h1{font-size:clamp(30px,5vw,44px);letter-spacing:-.02em;line-height:1.15}
-h1 .grad{background:linear-gradient(92deg,var(--orange),var(--orange2));
-  -webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--txt2);margin-top:10px;font-size:15px}
-.sub .sep{color:var(--txt3);margin:0 6px}
+  /* top bar */
+  .topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(6,8,15,.72);border-bottom:1px solid var(--line)}
+  .topbar .row{max-width:1080px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:18px}
+  .brand{font-weight:800;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--grad);box-shadow:0 0 16px var(--cyan)}
+  .navlinks{margin-left:auto;display:flex;gap:20px;font-size:14px}
+  .navlinks a{color:var(--muted);text-decoration:none;transition:.2s}
+  .navlinks a:hover{color:var(--txt)}
+  .share-btn{border:1px solid var(--line);background:var(--panel);color:var(--txt);
+    padding:8px 15px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px}
+  .share-btn:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(255,122,47,.18)}
+  @media(max-width:720px){.navlinks{display:none}}
 
-/* stat counters */
-.stats{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
-.stat{background:var(--panel);border:1px solid var(--border);border-radius:10px;
-  padding:12px 18px;min-width:118px;position:relative;overflow:hidden}
-.stat::after{content:'';position:absolute;inset:0;border-radius:10px;
-  background:linear-gradient(135deg,#ffffff05, transparent 40%);pointer-events:none}
-.stat b{display:block;font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.2}
-.stat span{font-size:12px;color:var(--txt3);letter-spacing:.06em}
-.stat.s-all b{color:var(--orange)} .stat.s-r b{color:var(--orange2)}
-.stat.s-p b{color:var(--cyan)} .stat.s-d b{color:var(--green)}
+  /* terminal prompt */
+  .term-prompt{font-family:var(--mono);font-size:13.5px;color:var(--cyan);margin-bottom:18px;letter-spacing:.02em}
+  .cursor{display:inline-block;width:8px;height:15px;background:var(--cyan);margin-left:3px;vertical-align:-2px;animation:blink 1.1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  /* hero */
+  .hero{padding-top:64px}
+  .hero h1{font-size:clamp(36px,7vw,68px);margin:14px 0}
+  .hero .sub{font-size:clamp(17px,2.4vw,21px);color:var(--muted);max-width:660px;margin-bottom:30px}
+  .pillrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px}
+  .pill{border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:999px;
+    padding:7px 15px;font-size:13px;color:var(--txt)}
+  .pill b{color:var(--cyan)}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn-primary{background:var(--grad);color:#1a0f06;font-weight:800;border:none;border-radius:12px;
+    padding:14px 26px;font-size:15px;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-ghost{border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:14px 22px;
+    font-size:15px;text-decoration:none;transition:.2s}
+  .btn-ghost:hover{border-color:var(--violet)}
 
-/* ---------- heatmap ---------- */
-.heatcard{background:var(--panel);border:1px solid var(--border);border-radius:12px;
-  padding:18px 20px;margin-top:18px}
-.heatcard h3{font-size:13px;font-family:var(--mono);color:var(--txt2);font-weight:600;margin-bottom:12px}
-.heatcard h3 em{color:var(--orange);font-style:normal}
-.heatwrap{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
-.heatmap{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,13px);gap:3px;overflow-x:auto;padding-bottom:4px}
-.cell{width:13px;height:13px;border-radius:3px;background:#1a202b;cursor:default;transition:transform .1s}
-.cell:hover{transform:scale(1.35);outline:1px solid var(--orange2)}
-.cell.l1{background:#5a2e14}.cell.l2{background:#94491f}.cell.l3{background:#d3662b}.cell.l4{background:var(--orange2)}
-.legend{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt3);font-family:var(--mono)}
-.legend .cell{width:11px;height:11px;cursor:default}
-.legend .cell:hover{transform:none;outline:none}
-.typebar{flex:1;min-width:220px}
-.typebar .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;border:1px solid var(--border2)}
-.typebar .bar i{display:block;height:100%}
-.typebar .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--txt3);margin-top:6px}
+  /* live stats badge */
+  .livebar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-top:34px;
+    padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);width:fit-content;max-width:100%}
+  .livebar .lab{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .livebar img{height:24px;border-radius:6px;vertical-align:middle}
+  .fwd-count{font-weight:800;color:var(--green)}
 
-/* ---------- featured ---------- */
-.sec-label{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--txt3);
-  margin:40px 0 14px;display:flex;align-items:center;gap:10px}
-.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
-.featured{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.fcard{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:14px;
-  padding:20px;transition:transform .18s,border-color .18s,box-shadow .18s;overflow:hidden;display:block}
-.fcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,var(--c1,#ff7a45),var(--c2,#ffb86c))}
-.fcard:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 10px 30px #00000066}
-.fcard .ico{font-size:26px}
-.fcard h4{margin-top:10px;font-size:16px}
-.fcard p{font-size:13px;color:var(--txt2);margin-top:6px;line-height:1.55}
-.fcard .go{font-family:var(--mono);font-size:12px;color:var(--orange);margin-top:12px;display:inline-block}
-.fcard:hover .go{text-decoration:underline}
+  /* metric cards */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+  .metric{border:1px solid var(--line);border-radius:16px;padding:22px;background:
+    linear-gradient(180deg,var(--panel),var(--bg2));position:relative;overflow:hidden}
+  .metric::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);opacity:.8}
+  .metric .num{font-size:40px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+  .metric .cap{color:var(--muted);font-size:13px;margin-top:4px}
+  @media(max-width:720px){.metrics{grid-template-columns:repeat(2,1fr)}}
 
-/* ---------- toolbar ---------- */
-.toolbar{position:sticky;top:0;z-index:50;background:#0a0c10d9;backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);margin-top:34px;padding:12px 0}
-.toolrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--panel);
-  border:1px solid var(--border);border-radius:8px;padding:8px 12px;transition:border-color .15s}
-.search:focus-within{border-color:var(--orange)}
-.search svg{flex:none;opacity:.45}
-.search input{flex:1;background:none;border:0;outline:0;color:var(--txt);font-size:14px;font-family:var(--sans)}
-.search kbd{font-family:var(--mono);font-size:11px;color:var(--txt3);border:1px solid var(--border2);
-  border-radius:4px;padding:1px 6px}
-.tabs{display:flex;gap:6px}
-.tab{font-size:13px;font-family:var(--mono);padding:7px 14px;border-radius:8px;border:1px solid var(--border);
-  background:var(--panel);color:var(--txt2);cursor:pointer;transition:all .15s}
-.tab:hover{border-color:var(--border2);color:var(--txt)}
-.tab.on{background:var(--orange);border-color:var(--orange);color:#13100d;font-weight:700}
-.tab.on.t-p{background:var(--cyan);border-color:var(--cyan)}
-.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.chip{font-size:12px;font-family:var(--mono);padding:4px 11px;border-radius:99px;cursor:pointer;
-  border:1px solid var(--border);color:var(--txt2);background:transparent;transition:all .15s}
-.chip:hover{border-color:var(--orange);color:var(--orange)}
-.chip.on{background:#ff7a4522;border-color:var(--orange);color:var(--orange2)}
-.chip b{opacity:.55;font-weight:400;margin-left:4px}
-.resinfo{font-family:var(--mono);font-size:12px;color:var(--txt3);margin-left:auto;white-space:nowrap}
-.resinfo em{color:var(--orange);font-style:normal}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
 
-/* ---------- timeline ---------- */
-.timeline{margin-top:28px;padding-bottom:60px;position:relative}
-.tl-day{display:grid;grid-template-columns:150px 1fr;gap:24px;margin-bottom:6px}
-.tl-date{position:relative;padding:14px 0 0}
-.tl-date .d{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--txt);position:sticky;top:118px}
-.tl-date .d small{display:block;font-size:11px;font-weight:400;color:var(--txt3);margin-top:2px}
-.tl-date .d .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
-  background:var(--orange);margin-right:8px;box-shadow:0 0 8px #ff7a4588}
-.tl-items{border-left:1px solid var(--border);padding:10px 0 22px 22px;display:flex;flex-direction:column;gap:8px}
-.item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px 16px;
-  display:block;transition:border-color .15s,background .15s,transform .15s;position:relative}
-.item:hover{border-color:var(--border2);background:var(--panel2);transform:translateX(3px)}
-.item::before{content:'';position:absolute;left:-27px;top:21px;width:9px;height:9px;border-radius:50%;
-  background:var(--bg);border:2px solid var(--tcol,var(--orange))}
-.item .row1{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.item h5{font-size:14.5px;font-weight:600;letter-spacing:.01em}
-.item:hover h5{color:var(--orange2)}
-.badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:5px;letter-spacing:.08em;flex:none}
-.badge.b-r{color:var(--orange2);background:#ff7a4518;border:1px solid #ff7a4533}
-.badge.b-p{color:var(--cyan);background:#4dd0e114;border:1px solid #4dd0e133}
-.item .desc{font-size:12.5px;color:var(--txt2);margin-top:5px;line-height:1.55}
-.item .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
-.item .tg{font-family:var(--mono);font-size:10.5px;color:var(--txt3);border:1px solid var(--border);
-  border-radius:4px;padding:1px 7px}
-.empty{display:none;text-align:center;color:var(--txt3);font-family:var(--mono);padding:60px 0}
-.empty.show{display:block}
+  .card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:24px}
+  .card h3{font-size:19px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:14.5px}
+  .card .ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;
+    background:rgba(255,122,47,.12);border:1px solid var(--line);margin-bottom:14px}
 
-/* ---------- footer ---------- */
-footer{border-top:1px solid var(--border);padding:28px 0 44px;color:var(--txt3);
-  font-size:12.5px;font-family:var(--mono);display:flex;gap:18px;flex-wrap:wrap}
-footer a{color:var(--txt2)} footer a:hover{color:var(--orange)}
+  .chartcard{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px}
+  .chartcard h3{font-size:16px;margin-bottom:4px}
+  .chartcard .sm{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .canvas-box{position:relative;height:260px}
 
-@media(max-width:640px){
-  .tl-day{grid-template-columns:1fr;gap:0}
-  .tl-date .d{position:static}
-  .tl-items{border-left:0;padding-left:0}
-  .item::before{display:none}
-  .resinfo{margin-left:0;width:100%}
-}
+  /* architecture diagram */
+  .arch{border:1px solid var(--line);border-radius:18px;background:
+    radial-gradient(600px 300px at 50% 0%,rgba(255,122,47,.10),transparent),var(--panel);padding:30px}
+  .archnode{fill:var(--panel2);stroke:var(--line)}
+  .archlabel{fill:var(--txt);font-size:13px;font-weight:600}
+  .archsub{fill:var(--muted);font-size:11px}
+  .archlink{fill:var(--cyan);font-size:13px;font-weight:700;opacity:.55}
+  .outnode{cursor:pointer}
+  .outnode .archnode{transition:.2s}
+  .outnode:hover .archnode{stroke:var(--cyan);fill:#221a12}
+  .outnode:hover .archlink{opacity:1}
+
+  /* timeline */
+  .tl{position:relative;margin-top:30px;padding-left:30px}
+  .tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--cyan),var(--violet),transparent)}
+  .tl-item{position:relative;padding:0 0 26px 0;cursor:default}
+  .tl-item::before{content:"";position:absolute;left:-26px;top:6px;width:13px;height:13px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--cyan);box-shadow:0 0 12px rgba(255,122,47,.6);transition:.2s}
+  .tl-item:hover::before{background:var(--cyan)}
+  .tl-date{font-size:12.5px;color:var(--cyan);font-weight:700;letter-spacing:.05em}
+  .tl-title{font-weight:700;margin:2px 0}
+  .tl-desc{color:var(--muted);font-size:14px}
+
+  /* agent roster */
+  .filterbar{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
+  .fbtn{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;
+    padding:7px 16px;font-size:13px;cursor:pointer;transition:.2s;font-weight:600}
+  .fbtn.active{color:#1a0f06;background:var(--grad);border-color:transparent}
+  .roster{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:860px){.roster{grid-template-columns:repeat(2,1fr)}}
+  .agent{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 14px 13px;transition:.2s}
+  .agent:hover{transform:translateY(-3px);border-color:var(--blue);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .agent .an{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .agent .ad{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:.04em}
+  .t-swarm{background:rgba(255,122,47,.16);color:var(--cyan)}
+  .t-claw{background:rgba(255,183,77,.16);color:var(--amber)}
+
+  /* invest table */
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+  td b{color:var(--txt)}
+
+  /* live proof card */
+  .proofcard{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:18px;
+    background:linear-gradient(135deg,rgba(255,122,47,.10),rgba(255,183,77,.05)),var(--panel);
+    padding:26px;transition:.25s}
+  .proofcard:hover{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 16px 50px rgba(0,0,0,.45)}
+  .proof-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .proof-term{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#ff8a4c;margin-bottom:8px}
+  .proof-title{font-size:21px;font-weight:800}
+  .proof-sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+  .proof-open{border:1px solid var(--cyan);color:var(--cyan);border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px;white-space:nowrap}
+  .proof-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0 18px}
+  .ps{border:1px solid var(--line);border-radius:13px;padding:16px;background:rgba(255,255,255,.02)}
+  .psn{font-size:30px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .psl{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .proof-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .proof-tags span{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+  .proof-tags .more{color:var(--cyan);border-color:rgba(255,122,47,.4)}
+  @media(max-width:720px){.proof-stats{grid-template-columns:repeat(2,1fr)}}
+
+  .ask{border:1px solid var(--line);border-radius:18px;padding:34px;background:
+    linear-gradient(135deg,rgba(255,122,47,.10),rgba(255,91,46,.07));text-align:center}
+  .ask h2{margin-bottom:12px}
+  .ask .lead{margin:0 auto 22px}
+
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--muted);font-size:13px}
+  .reveal{opacity:0;transform:translateY(24px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(40px);
+    background:var(--panel2);border:1px solid var(--blue);color:var(--txt);padding:12px 20px;border-radius:12px;
+    font-size:14px;opacity:0;transition:.3s;z-index:100;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .disc{color:var(--muted);font-size:12px;margin-top:10px}
 </style>
 </head>
 <body>
+<div class="bg-grid"></div>
 
-<header>
-  <div class="wrap">
-    <div class="prompt"><span class="u">patrick@reports</span>:~$ ls -lt ./daily <span class="cursor"></span></div>
-    <h1>📚 Patrick's <span class="grad">Daily Reports</span></h1>
-    <p class="sub">每日自动生成<span class="sep">·</span>调研报告<span class="sep">·</span>数据可视化<span class="sep">·</span>arXiv 论文笔记</p>
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="row">
+    <div class="brand"><span class="dot"></span> OpenSwarm</div>
+    <nav class="navlinks">
+      <a href="#problem">机会</a>
+      <a href="#system">系统</a>
+      <a href="#arch">架构</a>
+      <a href="#traction">进展</a>
+      <a href="#agents">Agent 军团</a>
+      <a href="#proof">实时证据</a>
+      <a href="#ask">融资</a>
+    </nav>
+    <a class="share-btn" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="text-decoration:none;color:var(--cyan);border-color:var(--cyan)">实时产出 ↗</a>
+    <button class="share-btn" onclick="sharePage()">🔗 转发</button>
+  </div>
+</div>
 
-    <div class="stats">
-      <div class="stat s-all"><b data-cnt="all">0</b><span>TOTAL 总篇数</span></div>
-      <div class="stat s-r"><b data-cnt="r">0</b><span>REPORTS 报告</span></div>
-      <div class="stat s-p"><b data-cnt="p">0</b><span>PAPERS 论文</span></div>
-      <div class="stat s-d"><b data-cnt="d">0</b><span>ACTIVE DAYS 更新日</span></div>
+<!-- ============ HERO ============ -->
+<section class="hero wrap">
+  <div class="term-prompt reveal">patrick@openswarm:~$ ./pitch --investor<span class="cursor"></span></div>
+  <div class="eyebrow reveal">AI Agent 协作平台 · 投资人简报</div>
+  <h1 class="reveal">一个人，一支<span class="grad">由 26 个 AI Agent</span>组成的军团</h1>
+  <p class="sub reveal">OpenSwarm 把单兵 AI agent 升级为可自治、可协作、可涌现的分布式智能体网络——一个共享的大脑，让 agent 在你睡觉时也在研究、追踪、决策与创造。</p>
+
+  <div class="pillrow reveal">
+    <span class="pill"><b>26+</b> 专业 Agents</span>
+    <span class="pill"><b>3,808+</b> Session 记录</span>
+    <span class="pill"><b>3</b> 模型层 Web · Dolphin · Llama</span>
+    <span class="pill"><b>7×24</b> Cron 自动化</span>
+  </div>
+
+  <div class="cta reveal">
+    <a class="btn-primary" href="#system">看系统如何运转 ↓</a>
+    <a class="btn-ghost" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">查看实时产出门户 ↗</a>
+  </div>
+
+  <!-- LIVE READ / FORWARD COUNTER -->
+  <div class="livebar reveal">
+    <span class="lab">实时阅读量</span>
+    <img id="hitsBadge" alt="阅读量" src="" />
+    <span style="color:var(--line)">|</span>
+    <span class="lab">本页转发</span>
+    <span class="fwd-count" id="fwdCount">0</span>
+    <button class="share-btn" onclick="sharePage()">转发并 +1</button>
+  </div>
+  <div class="disc">阅读量由 hits.sh 第三方计数器实时统计；转发通过 Web Share / GoatCounter 事件记录。部署到公网后自动生效。</div>
+</section>
+
+<!-- ============ METRICS ============ -->
+<section class="wrap" style="padding-top:10px">
+  <div class="metrics">
+    <div class="metric reveal"><div class="num" data-to="26" data-suffix="">0</div><div class="cap">在岗专业 Agents</div></div>
+    <div class="metric reveal"><div class="num" data-to="3808" data-suffix="+">0</div><div class="cap">Session 对话记录</div></div>
+    <div class="metric reveal"><div class="num" data-to="14" data-suffix="">0</div><div class="cap">每周自动化 Cron 任务</div></div>
+    <div class="metric reveal"><div class="num" data-to="500" data-suffix="">0</div><div class="cap">ArcStore 上线商品</div></div>
+  </div>
+</section>
+
+<!-- ============ PROBLEM / OPPORTUNITY ============ -->
+<section id="problem" class="wrap">
+  <div class="eyebrow reveal">机会</div>
+  <h2 class="reveal">单个 Agent 已是天花板，<span class="grad">协作才是下一条曲线</span></h2>
+  <p class="lead reveal" style="margin-bottom:28px">2026 年的现实：每个人都能调用强大的单兵 AI，但当任务跨领域、需要长期记忆与并行执行时，单 agent 迅速触顶。真正的杠杆来自一个能让多 agent 共享上下文、分工协作、彼此涌现的操作系统。</p>
+  <div class="grid3">
+    <div class="card reveal"><div class="ico">🧩</div><h3>专业化</h3><p>每个 agent 只在一个领域做深度研究——投资、量子、核聚变、法律、游戏设计，胜过一个什么都懂一点的通用助手。</p></div>
+    <div class="card reveal"><div class="ico">⚡</div><h3>并行化</h3><p>多个 agent 同时工作。一周的研究量被压缩进一夜的 cron 任务，人只做最终决策。</p></div>
+    <div class="card reveal"><div class="ico">✨</div><h3>涌现</h3><p>10 个 agent 的圆桌讨论，产生单兵做不到的洞察。共享上下文让协作产生 1+1&gt;2 的认知增量。</p></div>
+  </div>
+</section>
+
+<!-- ============ SYSTEM ============ -->
+<section id="system" class="wrap">
+  <div class="eyebrow reveal">系统</div>
+  <h2 class="reveal">OpenSwarm：一个共享大脑驱动的 <span class="grad">Agent 操作系统</span></h2>
+  <p class="lead reveal" style="margin-bottom:30px">不是中央指挥，是分布式协作（swarm，蜂群）。所有 agent 读写同一个共享上下文，配合六层记忆体系与多模型路由，构成一个能自我演化的智能体网络。</p>
+
+  <div class="grid2">
+    <div class="chartcard reveal">
+      <h3>Agent 军团增长</h3>
+      <div class="sm">从单兵到 26+ agents 的扩张曲线（2026）</div>
+      <div class="canvas-box"><canvas id="growthChart"></canvas></div>
     </div>
+    <div class="chartcard reveal">
+      <h3>能力覆盖雷达</h3>
+      <div class="sm">系统在六个维度的能力分布</div>
+      <div class="canvas-box"><canvas id="radarChart"></canvas></div>
+    </div>
+  </div>
 
-    <div class="heatcard">
-      <h3>$ git log --oneline · 近 12 周更新热力 <em id="streak"></em></h3>
-      <div class="heatwrap">
-        <div class="heatmap" id="heatmap"></div>
-        <div>
-          <div class="legend">少 <i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l4"></i> 多</div>
-        </div>
-        <div class="typebar">
-          <div class="bar" id="typebar"></div>
-          <div class="lbl"><span style="color:var(--orange2)">■ 报告</span><span style="color:var(--cyan)">论文 ■</span></div>
-        </div>
+  <div class="grid3" style="margin-top:18px">
+    <div class="card reveal"><div class="ico">🧠</div><h3>六层记忆体系</h3><p>L1 日志 → L2 周摘要 → L3 长期 → L4 休眠 → L5 角色 → L6 工具。让 agent 拥有可沉淀、可召回的长期记忆。</p></div>
+    <div class="card reveal"><div class="ico">🕸️</div><h3>SAGE 动态记忆图</h3><p>GNN 语义聚类 + 强化学习边管理 + OpenSwarm 共享图，把零散记忆组织成可推理的知识网络。</p></div>
+    <div class="card reveal"><div class="ico">🔀</div><h3>多模型路由</h3><p>Multi-Model Router 支持 scatter / ensemble / pipe 三种模式，按任务把请求分发到最合适的模型。</p></div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="arch" class="wrap">
+  <div class="eyebrow reveal">架构</div>
+  <h2 class="reveal">共享上下文服务器 = <span class="grad">26 个 Agent 的同一个大脑</span></h2>
+  <p class="lead reveal" style="margin-bottom:24px">Orchestrator 协调任务分配，所有 sub-agent 通过 <code style="color:var(--cyan)">ReadSharedContext / WriteSharedContext</code> 读写共享状态。七种 entry 类型让协作有统一语言。</p>
+
+  <div class="arch reveal">
+    <svg viewBox="0 0 920 420" width="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffb74d"/><stop offset="1" stop-color="#ff5b2e"/>
+        </linearGradient>
+        <marker id="arrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#ff7a2f"/>
+        </marker>
+      </defs>
+
+      <!-- shared context core -->
+      <rect x="280" y="150" width="360" height="112" rx="16" fill="url(#g1)" opacity="0.16" stroke="url(#g1)"/>
+      <text x="460" y="182" text-anchor="middle" class="archlabel" style="font-size:16px;fill:#ff7a2f">共享上下文服务器</text>
+      <text x="460" y="204" text-anchor="middle" class="archsub">localhost:7892 · 26 agents 的共享大脑</text>
+      <text x="460" y="228" text-anchor="middle" class="archsub" style="font-size:10.5px;letter-spacing:.04em">finding · decision · state · event</text>
+      <text x="460" y="246" text-anchor="middle" class="archsub" style="font-size:10.5px;letter-spacing:.04em">goal · alert · context</text>
+
+      <!-- orchestrator -->
+      <rect x="375" y="40" width="170" height="56" rx="13" class="archnode" stroke="#ff7a2f"/>
+      <text x="460" y="66" text-anchor="middle" class="archlabel">Orchestrator</text>
+      <text x="460" y="83" text-anchor="middle" class="archsub">任务分配 · 协调</text>
+      <line x1="460" y1="96" x2="460" y2="148" stroke="#ff7a2f" stroke-width="1.6" marker-end="url(#arrow)"/>
+
+      <!-- left agents -->
+      <g>
+        <rect x="40" y="60" width="180" height="50" rx="11" class="archnode"/>
+        <text x="130" y="82" text-anchor="middle" class="archlabel">Web Agents</text>
+        <text x="130" y="98" text-anchor="middle" class="archsub">联网搜索 · 研究 · 追踪</text>
+        <rect x="40" y="185" width="180" height="50" rx="11" class="archnode"/>
+        <text x="130" y="207" text-anchor="middle" class="archlabel">Dolphin Agents</text>
+        <text x="130" y="223" text-anchor="middle" class="archsub">中文深度分析</text>
+        <rect x="40" y="310" width="180" height="50" rx="11" class="archnode"/>
+        <text x="130" y="332" text-anchor="middle" class="archlabel">Llama Agents</text>
+        <text x="130" y="348" text-anchor="middle" class="archsub">本地模型处理</text>
+        <line x1="220" y1="85" x2="278" y2="178" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="220" y1="210" x2="278" y2="206" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="220" y1="335" x2="278" y2="234" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- right outputs — 可点击，跳转实时产出门户 -->
+      <g>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="60" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="76" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="82" text-anchor="middle" class="archlabel">投资简报系统</text>
+          <text x="790" y="98" text-anchor="middle" class="archsub">每日 9:00 · iMessage</text>
+        </a>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="185" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="201" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="207" text-anchor="middle" class="archlabel">arXiv 研究追踪</text>
+          <text x="790" y="223" text-anchor="middle" class="archsub">量子 · 核聚变 · 周更</text>
+        </a>
+        <a class="outnode" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+          <rect x="700" y="310" width="180" height="50" rx="11" class="archnode"/>
+          <text x="868" y="326" text-anchor="end" class="archlink">↗</text>
+          <text x="790" y="332" text-anchor="middle" class="archlabel">内容 / 电商产出</text>
+          <text x="790" y="348" text-anchor="middle" class="archsub">ArcStore · 传记 · 周报</text>
+        </a>
+        <line x1="642" y1="178" x2="698" y2="85" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="642" y1="206" x2="698" y2="210" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <line x1="642" y1="234" x2="698" y2="335" stroke="#4a3826" stroke-width="1.4" marker-end="url(#arrow)"/>
+      </g>
+    </svg>
+    <div style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--muted)">右侧产出节点均可点击 → 跳转<a href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="color:var(--cyan)">实时产出门户 ↗</a>，逐篇核验</div>
+  </div>
+</section>
+
+<!-- ============ TRACTION ============ -->
+<section id="traction" class="wrap">
+  <div class="eyebrow reveal">进展</div>
+  <h2 class="reveal">90 天，从单兵到 <span class="grad">自治军团</span></h2>
+  <div class="grid2" style="margin-top:24px;align-items:start">
+    <div class="reveal">
+      <div class="tl">
+        <div class="tl-item"><div class="tl-date">2026-03-12</div><div class="tl-title">Agent 网络正式运转</div><div class="tl-desc">首个多 agent 协作系统上线。</div></div>
+        <div class="tl-item"><div class="tl-date">2026-03-13</div><div class="tl-title">10 个 Agents 首次圆桌</div><div class="tl-desc">「AI 时代的机遇与挑战」多 agent 讨论，验证涌现式洞察。</div></div>
+        <div class="tl-item"><div class="tl-date">2026-04-06</div><div class="tl-title">六层记忆体系 + Cron 全线修复</div><div class="tl-desc">14 个自动化任务恢复，长期记忆架构成型。</div></div>
+        <div class="tl-item"><div class="tl-date">2026-04-25</div><div class="tl-title">ArcStore 500 商品上线</div><div class="tl-desc">Agent 驱动的电商验证，闲鱼代购项目持续运行。</div></div>
+        <div class="tl-item"><div class="tl-date">2026-05-14</div><div class="tl-title">29 个 Agent 全面审计</div><div class="tl-desc">Skills 安装率从 0 提升到 14/agent，能力标准化。</div></div>
+        <div class="tl-item"><div class="tl-date">2026-05-19</div><div class="tl-title">SAGE 记忆图 + 多模型路由</div><div class="tl-desc">动态记忆图引擎与 scatter/ensemble/pipe 路由验证完成。</div></div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="chartcard" style="margin-bottom:18px">
+        <h3>Agent 分层分布</h3>
+        <div class="sm">OpenSwarm 编排层 vs OpenClaw 专业层</div>
+        <div class="canvas-box" style="height:230px"><canvas id="distChart"></canvas></div>
+      </div>
+      <div class="chartcard">
+        <h3>每周自动化任务节奏</h3>
+        <div class="sm">Cron 驱动的研究与简报产出（次/周）</div>
+        <div class="canvas-box" style="height:200px"><canvas id="cronChart"></canvas></div>
       </div>
     </div>
   </div>
-</header>
+</section>
 
-<div class="wrap">
-  <div class="sec-label">⭐ FEATURED / 精选项目</div>
-  <div class="featured">
-    <a class="fcard" style="--c1:#ff7a45;--c2:#ffb86c" href="https://patrick-reports.patrick-l-zeng.workers.dev/bench-dashboard-2026-06-12.html">
-      <div class="ico">🔬</div>
-      <h4>Router Bench 漂移检测</h4>
-      <p>每周日 7:00 自动跑 · 4 task × 4 provider · 漂移检测 + 公网 HTML · Skill 跨过 253-skill top 10</p>
-      <span class="go">launch →</span>
-    </a>
-    <a class="fcard" style="--c1:#4dd0e1;--c2:#5eead4" href="https://patrick-reports.patrick-l-zeng.workers.dev/spacex-ipo-investor-guide-2026-06-12.html">
-      <div class="ico">🚀</div>
-      <h4>SpaceX IPO 投资人指南</h4>
-      <p>$135 价格贵不贵？5 类投资人 × 5 价位区间 · 何时买入 · 10 大漏洞 · 投资人 10 分钟决策</p>
-      <span class="go">launch →</span>
-    </a>
-    <a class="fcard" style="--c1:#a78bfa;--c2:#4dd0e1" href="https://patrick-reports.patrick-l-zeng.workers.dev/cron-snapshot-2026-06-12.html">
-      <div class="ico">📋</div>
-      <h4>Cron 快照 — 41 个任务全状态</h4>
-      <p>4 状态色码 (OK / 微信限流 / 真错 / 超时) · 实时搜索 · 按 schedule 分组 · 90+ 天 stale 检测</p>
-      <span class="go">launch →</span>
-    </a>
-  </div>
-</div>
+<!-- ============ LIVE PROOF ============ -->
+<section id="proof" class="wrap">
+  <div class="eyebrow reveal">实时证据 · Live Proof</div>
+  <h2 class="reveal">不是 PPT 上的承诺，<span class="grad">是每天在跑的产线</span></h2>
+  <p class="lead reveal" style="margin-bottom:26px">前面说「agent 在你睡觉时也在研究」——这不是设想。下面这个公网门户由 OpenSwarm 自动生成、每日更新、连续运转，投资人可点击实时核验每一篇产出。</p>
 
-<div class="toolbar">
-  <div class="wrap">
-    <div class="toolrow">
-      <label class="search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="text" placeholder="搜索 130+ 篇报告与论文…" autocomplete="off">
-        <kbd>/</kbd>
-      </label>
-      <div class="tabs">
-        <button class="tab on" data-type="all">全部</button>
-        <button class="tab" data-type="r">报告</button>
-        <button class="tab t-p" data-type="p">论文</button>
+  <a class="proofcard reveal" href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener">
+    <div class="proof-head">
+      <div>
+        <div class="proof-term">patrick@reports:~$ ls -lt ./daily</div>
+        <div class="proof-title">📚 Patrick's Daily Reports</div>
+        <div class="proof-sub">每日自动生成 · 调研报告 · arXiv 论文笔记 · 部署于 Cloudflare Workers</div>
       </div>
-      <div class="resinfo" id="resinfo"></div>
+      <div class="proof-open">打开门户 ↗</div>
     </div>
-    <div class="tagrow" id="tagrow"></div>
-  </div>
-</div>
+    <div class="proof-stats">
+      <div class="ps"><div class="psn">143+</div><div class="psl">总产出篇数</div></div>
+      <div class="ps"><div class="psn">64</div><div class="psl">调研报告</div></div>
+      <div class="ps"><div class="psn">79</div><div class="psl">论文笔记</div></div>
+      <div class="ps"><div class="psn">14天</div><div class="psl">连续更新 🔥</div></div>
+    </div>
+    <div class="proof-tags">
+      <span>#Agent工具链</span><span>#世界模型</span><span>#量化</span>
+      <span>#AI观察</span><span>#Apple/WWDC</span><span>#硬件评测</span>
+      <span class="more">JSON · RSS · Sitemap 全开放</span>
+    </div>
+  </a>
+  <p class="disc reveal">这一层把简报里的每一句主张变成可点击核验的实时数据——这是对投资人最强的可信度背书。</p>
+</section>
 
-<div class="wrap">
-  <div class="timeline" id="timeline"></div>
-  <div class="empty" id="empty">_ 没有匹配结果 · 换个关键词试试?</div>
-</div>
+<!-- ============ INVESTMENT SHOWCASE ============ -->
+<section class="wrap">
+  <div class="eyebrow reveal">应用样例</div>
+  <h2 class="reveal">投资追踪系统：<span class="grad">把研究 cron 化，用系统对抗情绪</span></h2>
+  <p class="lead reveal" style="margin-bottom:18px">一个 agent 持续追踪「预言家」们的最新观点，一个 agent 监控基金池，每天 9:00 自动生成投资简报推送到 iMessage——这是 OpenSwarm 在真实场景的落地之一。</p>
+  <div class="card reveal" style="padding:18px 22px">
+    <table>
+      <thead><tr><th>预言家</th><th>代表领域</th><th>关注信号</th></tr></thead>
+      <tbody>
+        <tr><td><b>Ray Dalio</b></td><td>桥水基金</td><td>经济周期 · 债务危机</td></tr>
+        <tr><td><b>Cathie Wood</b></td><td>ARK Invest</td><td>颠覆性创新</td></tr>
+        <tr><td><b>Nouriel Roubini</b></td><td>末日博士</td><td>金融危机预言 · 边缘信号</td></tr>
+        <tr><td><b>Peter Schiff</b></td><td>黄金 / 美元</td><td>法币信用风险</td></tr>
+        <tr><td><b>Sam Altman · Elon Musk</b></td><td>AI / 能源 / 太空</td><td>第一性原理 · AI 路径</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="disc reveal">注：以上为系统追踪对象示例，非投资建议。本页所有数据来自创始人个人知识库整理。</p>
+</section>
+
+<!-- ============ AGENT ROSTER ============ -->
+<section id="agents" class="wrap">
+  <div class="eyebrow reveal">Agent 军团</div>
+  <h2 class="reveal">26 个专业 Agent，<span class="grad">各司其职</span></h2>
+  <p class="lead reveal">分散在 OpenSwarm 编排层与 OpenClaw 专业层，每个 agent 都有自己的角色定义、知识库与工具集。</p>
+  <div class="filterbar reveal">
+    <button class="fbtn active" data-f="all">全部</button>
+    <button class="fbtn" data-f="swarm">OpenSwarm 编排</button>
+    <button class="fbtn" data-f="claw">OpenClaw 专业</button>
+  </div>
+  <div class="roster" id="roster"></div>
+</section>
+
+<!-- ============ ASK ============ -->
+<section id="ask" class="wrap">
+  <div class="ask reveal">
+    <div class="eyebrow" style="justify-content:center">融资 · 合作</div>
+    <h2>把一个人的军团，变成<span class="grad">每个人的军团</span></h2>
+    <p class="lead">OpenSwarm 已在创始人本人身上验证了「单人 + agent 协作军团」的可行性——研究、投资、内容、电商全流程自动化。下一步：把这套共享大脑 + 多 agent 协作框架产品化，让任何专业个体都能拥有自己的 26 人团队。寻求天使轮投资人与早期共建伙伴。</p>
+    <div class="cta" style="justify-content:center">
+      <button class="btn-primary" onclick="sharePage()">🔗 转发这份简报</button>
+      <a class="btn-ghost" href="mailto:patrick.l.zeng@outlook.com?subject=OpenSwarm%20%E6%8A%95%E8%B5%84%E4%BA%A4%E6%B5%81">联系创始人</a>
+    </div>
+  </div>
+</section>
 
 <footer>
-  <div class="wrap" style="display:flex;gap:18px;flex-wrap:wrap">
-    <span>由 Patrick 自动生成</span><span>·</span>
-    <span>部署于 Cloudflare Workers</span><span>·</span>
-    <a href="https://patrick-reports.patrick-l-zeng.workers.dev/reports.json">JSON 数据</a>
-    <a href="https://patrick-reports.patrick-l-zeng.workers.dev/rss.xml">RSS</a>
-    <a href="https://patrick-reports.patrick-l-zeng.workers.dev/sitemap.xml">Sitemap</a>
-    <span style="margin-left:auto">⌨ 按 <b>/</b> 快速搜索</span>
+  <div class="wrap" style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between">
+    <div><b style="color:var(--txt)">OpenSwarm</b> · Patrick · AI Agent 协作平台 · 2026 · <a href="https://patrick-reports.patrick-l-zeng.workers.dev" target="_blank" rel="noopener" style="color:var(--cyan)">实时产出门户 ↗</a></div>
+    <div>本页由个人知识库自动生成 · <span id="footHits"></span></div>
   </div>
 </footer>
 
+<div class="toast" id="toast">链接已复制，去转发吧 🚀</div>
+
+<!-- ============ GoatCounter（部署后把 data-goatcounter 改成你的站点） ============ -->
+<script data-goatcounter="https://YOURCODE.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+
 <script>
-/* ===== 数据 (从 reports.json 真实 133 entries + 10 历史) ===== */
-const D=[
-["2026-06-13","r","Hermes Skill Catalog","","hermes-skill-catalog.html"],
-["2026-06-13","r","Matt Pocock Skills 笔记","","matt-pocock-skills.html"],
-["2026-06-13","r","数学练习 题目与图形","","数学练习-题目与图形.html"],
-["2026-06-12","r","exp18_ibkr_setup","","exp18_ibkr_setup.html"],
-["2026-06-12","r","gcp2 roadmap dashboard","","gcp2-roadmap-dashboard.html"],
-["2026-06-12","r","Hacker News Top 5 (AI)","","hackernews-top5-2026-06-12.html"],
-["2026-06-12","p","World Model 每日追踪","","world-model-2026-06-12.html"],
-["2026-06-12","r","Hermes Router Bench 漂移检测","","router-bench-2026-06-12.html"],
-["2026-06-12","r","bench dashboard 2026 06 12","","bench-dashboard-2026-06-12.html"],
-["2026-06-12","r","gcp 1.2.0 launch digest v2 2026 06 12","","gcp-1.2.0-launch-digest-v2-2026-06-12.html"],
-["2026-06-12","r","cron config 2026 06 12","","cron-config-2026-06-12.html"],
-["2026-06-12","r","Cron 快照","","cron-snapshot-2026-06-12.html"],
-["2026-06-12","r","EMAI /closeday 日复盘","","emai-closeday-2026-06-12-eod.html"],
-["2026-06-12","r","EOD 报告","","eod-2026-06-12-summary.html"],
-["2026-06-12","r","HermesMac 状态","","hermesmac-status-2026-06-12.html"],
-["2026-06-12","r","SpaceX IPO 解析","","spacex-ipo-analysis-2026-06-12.html"],
-["2026-06-12","r","SpaceX IPO 解析","","spacex-ipo-investor-guide-2026-06-12.html"],
-["2026-06-12","r","Hermes 状态页","","status-2026-06-12.html"],
-["2026-06-12","r","Router Bench 周报","","weekly-router-bench-2026-06-12.html"],
-["2026-06-11","r","22 Hack 评估: 对 Patrick / Hermes 的可用性","","claude-code-22-hacks-evaluation-for-hermes.html"],
-["2026-06-11","r","22 Hack 实施: voice-to-text + pre-commit-active + skill-run","","22-hacks-implementation-voice-commit-skill.html"],
-["2026-06-11","r","claude_fable_usecases","","claude_fable_usecases.html"],
-["2026-06-11","r","exp14 regime dashboard v2","","exp14-regime-dashboard-v2.html"],
-["2026-06-11","r","exp14 regime dashboard","","exp14-regime-dashboard.html"],
-["2026-06-11","r","exp15 lightgbm dashboard","","exp15-lightgbm-dashboard.html"],
-["2026-06-11","r","exp16 regime dashboard","","exp16-regime-dashboard.html"],
-["2026-06-11","r","exp17 quarterly dashboard","","exp17-quarterly-dashboard.html"],
-["2026-06-11","r","fable 5 onredej workflow 2026 06 11","","fable-5-onredej-workflow-2026-06-11.html"],
-["2026-06-11","r","nq100 backtest dashboard v2","","nq100-backtest-dashboard-v2.html"],
-["2026-06-11","r","nq100 backtest dashboard","","nq100-backtest-dashboard.html"],
-["2026-06-11","r","nq100 dashboard v2","","nq100-dashboard-v2.html"],
-["2026-06-11","r","nq100 dashboard","","nq100-dashboard.html"],
-["2026-06-11","r","nq100 top10 dashboard v2","","nq100-top10-dashboard-v2.html"],
-["2026-06-11","r","nq100 top10 dashboard","","nq100-top10-dashboard.html"],
-["2026-06-11","r","nq100 top30 dashboard v2","","nq100-top30-dashboard-v2.html"],
-["2026-06-11","r","nq100 top30 dashboard","","nq100-top30-dashboard.html"],
-["2026-06-11","r","nq100 ultimate dashboard v3","","nq100-ultimate-dashboard-v3.html"],
-["2026-06-11","r","patrick handbook 2026 06 11","","patrick-handbook-2026-06-11.html"],
-["2026-06-11","r","plan e deep dive v2","","plan-e-deep-dive-v2.html"],
-["2026-06-11","r","plan e deep dive","","plan-e-deep-dive.html"],
-["2026-06-11","r","skill goldmine dashboard 2026 06 11","","skill-goldmine-dashboard-2026-06-11.html"],
-["2026-06-11","r","EMAI /closeday 日复盘","","emai-closeday-2026-06-11-eod.html"],
-["2026-06-11","r","Hermes Router Bench 漂移检测 v2 (历史)","","router-bench-2026-06-11-v2.html"],
-["2026-06-11","r","router bench 2026 06 11","","router-bench-2026-06-11.html"],
-["2026-06-11","r","7 lessons cheatsheet 2026 06 11","","7-lessons-cheatsheet-2026-06-11.html"],
-["2026-06-11","r","open design yihui 2026 06 11","","open-design-yihui-2026-06-11.html"],
-["2026-06-10","r","diary dashboard 2026 06 10","","diary-dashboard-2026-06-10.html"],
-["2026-06-10","r","mo gawdat ai future warning cn","","mo-gawdat-ai-future-warning-cn.html"],
-["2026-06-10","r","mo gawdat ai future warning","","mo-gawdat-ai-future-warning.html"],
-["2026-06-10","r","wwdc26_ml_group_lab_cn","","wwdc26_ml_group_lab_cn.html"],
-["2026-06-10","p","WWDC2026 4 嘉宾辩论 (AK、彭林、云飞、老代)","","wwdc2026-debate-ak-peng-lin-yunfei-laodai.html"],
-["2026-06-10","r","designcourse claude code framework 2026 06 10","","designcourse-claude-code-framework-2026-06-10.html"],
-["2026-06-09","r","insect learning platforms 2026","","insect-learning-platforms-2026.html"],
-["2026-06-09","r","wwdc26 summary","","wwdc26-summary.html"],
-["2026-06-09","p","steelseries-nova-pro-omni-elite-2review","","steelseries-nova-pro-omni-elite-2review.html"],
-["2026-06-09","p","steelseries-nova-pro-omni-elite-3review-zh","","steelseries-nova-pro-omni-elite-3review-zh.html"],
-["2026-06-09","p","steelseries-nova-pro-omni-elite-3review","","steelseries-nova-pro-omni-elite-3review.html"],
-["2026-06-09","p","steelseries-nova-pro-omni-elite-4review-zh","","steelseries-nova-pro-omni-elite-4review-zh.html"],
-["2026-06-09","p","Apple WWDC 2026 主题演讲汇总 — iOS 27 / Siri AI","","wwdc26-keynote-summary.html"],
-["2026-06-09","p","apple-wwdc26-mlx-local-agentic-ai-v2","","apple-wwdc26-mlx-local-agentic-ai-v2.html"],
-["2026-06-09","p","cyberpunk2077_summary","","cyberpunk2077_summary.html"],
-["2026-06-09","p","education_summary","","education_summary.html"],
-["2026-06-09","r","apple developer wwdc26 24h","","apple-developer-wwdc26-24h.html"],
-["2026-06-09","r","skills audit report","","skills-audit-report.html"],
-["2026-06-09","r","think quest","","think-quest.html"],
-["2026-06-09","r","wwdc26_mlx_summary","","wwdc26_mlx_summary.html"],
-["2026-06-09","r","yc ai native company","","yc-ai-native-company.html"],
-["2026-06-09","r","research log dashboard 2026 06 09","","research-log-dashboard-2026-06-09.html"],
-["2026-06-09","p","Apple Developer 24h 视频仪表板 (WWDC26)","","papers-wwdc26-24h-dashboard.html"],
-["2026-06-09","p","Latent Spatial Memory for Video World Models (Mirage)","","2606-09828-latent-spatial-memory-mirage.html"],
-["2026-06-09","p","BiWM: Bidirectional Autoregression for Open-Source Video World Models","","2606-10135-biwm-bidirectional-autoregression.html"],
-["2026-06-09","p","ReflectiChain: Supply Chain World Model with Epistemic Grounding","","2606-10359-reflectichain-supply-chain.html"],
-["2026-06-09","p","ImageTime: Spatiotemporal Consistency Benchmark for World Modeling","","2606-10620-imagetime-benchmark.html"],
-["2026-06-09","p","WorldKernel: World Model as Coupling Kernel of Admissible Possible Worlds","","2606-10934-worldkernel-coupling-kernel.html"],
-["2026-06-09","r","notebooklm ai agent 2026 06 09","","notebooklm-ai-agent-2026-06-09.html"],
-["2026-06-08","p","Claude Code 22个Hack: June创始人 MAT 的完整工作流","","claude-code-22-hacks-june-founder-mat.html"],
-["2026-06-07","p","FAWAM: Force-Aware World Action Models for Closed-Loop Contact-Rich Manipulation","","2606-08555-fawam.html"],
-["2026-06-06","p","DisCo: World Models with Discrete Camera Motion Control","","2606-07967-disco.html"],
-["2026-06-06","p","PRISM: PRior-guided Imagination Sampling in World Models","","2606-07974-prism.html"],
-["2026-06-06","p","Light-WAM: Efficient World Action Models with State-Fusion Action Decoding","","2606-08242-light-wam.html"],
-["2026-06-06","p","AI 時代怎麼創業？Anthropic Playbook 一次看懂四階段 workflow","","anthropic-playbook-ai-startup-4stage.html"],
-["2026-06-06","p","递归自我改进（RSI）AI知识库 — 公司·论文·播客·资源全景图","","recursive-self-improvement-companies.html"],
-["2026-06-05","p","GEM-4D: Geometry-Enhanced Video World Models for Robot Manipulation","","gem-4d-geometry-enhanced-video-world-models-2605.html"],
-["2026-06-04","p","PiL-World: A Chunk-Wise World Model for VLA Policy-in-the-Loop Evaluation","","2606-05773-pil-world.html"],
-["2026-06-04","p","World-Language-Action Model for Unified World Modeling, Language Reasoning, and Action Synthesis","","2606-05979-wla.html"],
-["2026-06-04","p","PLAN-S: Bridging Planning with Latent Style Dynamics for Autonomous Driving World Models","","2606-06014-plan-s.html"],
-["2026-06-04","p","Thinking with Imagination: Agentic Visual Spatial Reasoning with World Simulators","","astra-thinking-with-imagination.html"],
-["2026-06-04","p","Learning Geometric Representations from Videos for Spatial Intelligent Multimodal Large Language Models","","geovr-geometric-representations-videos-spatial-intelligent-mllms.html"],
-["2026-06-04","p","PiL-World: A Chunk-Wise World Model for VLA Policy-in-the-Loop Evaluation","","pil-world-chunk-wise-world-model-vla-evaluation.html"],
-["2026-06-04","p","Robots Need More than VLA and World Models","","robots-need-more-than-vla-and-world-models-2606.html"],
-["2026-06-04","p","World-Language-Action Model for Unified World Modeling, Language Reasoning, and Action Synthesis","","wla-world-language-action-model-2606.html"],
-["2026-06-03","p","Potential-Guided Flow Matching for Vision-Language-Action Policy Improvement","","2606-04968-foresightflow.html"],
-["2026-06-03","r","memgraph rag outperforms every rag 2026 06 03","","memgraph-rag-outperforms-every-rag-2026-06-03.html"],
-["2026-06-02","p","UniCanvas: A Diffusion-based Unified Model for Text-in-Image Joint Generation","","2606-04264-unicanvas.html"],
-["2026-06-02","p","A Cookbook of 3D Vision: Data, Learning Paradigms, and Application","","2606-04291-3d-vision-cookbook.html"],
-["2026-06-02","p","World Models Meet Language Models: On the Complementarity of Concrete and Abstract Reasoning","","world-models-meet-language-models-2606.html"],
-["2026-06-02","p","SteelSeries Arctis Nova Pro vs Omni vs Elite","","steelseries-arctis-nova-pro-vs-omni-vs-elite.html"],
-["2026-06-01","p","WWDC26: Run Local Agentic AI on the Mac using MLX","","apple-wwdc26-mlx-local-agentic-ai.html"],
-["2026-05-31","p","τ₀-WM: A Unified Video-Action World Model for Robotic Manipulation","","2606-01027-tau0-wm.html"],
-["2026-05-29","p","SlotMemory: Object-Centric KV Memory for Streaming Long-Video Generation","","2605-31033-slotmemory.html"],
-["2026-05-29","p","Subspace-Decomposed JEPAs: Disentangling Progression and Content in Latent World Models","","2605-31111-sd-jepa.html"],
-["2026-05-29","p","Light Interaction: Training-Free Inference Acceleration for Interactive Video World Models","","2605-31158-light-interaction.html"],
-["2026-05-29","p","StressDream: Steering Video World Models for Robust Policy Evaluation and Improvement","","2606-00267-stressdream.html"],
-["2026-05-28","p","MiraBench: Evaluating Action-Conditioned Reliability in Robotic World Models","","2605-29360-mira-bench.html"],
-["2026-05-28","p","World Models in Words: Auditing Physical State-Transition Commitments in VLMs","","2605-29585-world-models-in-words.html"],
-["2026-05-28","p","minWM: A Full-Stack Open-Source Framework for Real-Time Interactive Video World Models","","2605-30263-minwm.html"],
-["2026-05-28","p","Qwen-VLA: Unifying Vision-Language-Action Modeling Across Tasks, Environments, and Robot Embodiments","","2605-30280-qwen-vla.html"],
-["2026-05-28","p","REST3D: Reconstructing Physically Stable 3D Scenes from a Single Image","","2605-30338-rest3d.html"],
-["2026-05-28","p","YoCausal: How Far is Video Generation from World Model? A Causality Perspective","","2605-30346-yocausal.html"],
-["2026-05-28","p","NeuROK: Generative 4D Neural Object Kinematics","","2605-30347-neurok.html"],
-["2026-05-28","p","Anna\'s Archive Research (Research Note)","","annas-archive-research.html"],
-["2026-05-27","p","Hybrid Neural World Models","","2605-28317-hybrid-neural-world-models.html"],
-["2026-05-27","p","DriveWAM: Video Generative Priors Enable Scalable World-Action Modeling for Autonomous Driving","","2605-28544-drivewam.html"],
-["2026-05-27","p","Gamma-World: Generative Multi-Agent World Modeling Beyond Two Players","","2605-28816-gamma-world.html"],
-["2026-05-26","p","VERA: Video-to-Embodied Robot Action Model","","2605-27817-video-models-robot-policies.html"],
-["2026-05-25","p","CRONOS: Benchmarking Counterfactual Physical Consistency in Video","","cronos-counterfactual-physical-consistency.html"],
-["2026-05-25","p","GEM-4D: Geometry-Enhanced Video World Model","","gem-4d-video-world-model.html"],
-["2026-05-25","p","Learning a Particle Dynamics Model with Real-world Physics","","particle-dynamics-model-real-world.html"],
-["2026-05-25","p","E$^3$C: Video Generation with 3D Environmental Memory and Ego-Exo Human Pose Control","","e3c-egocentric-video-world-model.html"],
-["2026-05-25","p","AI 走向生成认知 (Enactive AI)","","papers-enactive-ai.html"],
-["2026-05-23","p","SpaceX\'s $2T Case, Nvidia\'s Shock Selloff, America Turns on AI, Bond Crisis?","","all-in-podcast-ep274-nvidia-ai-crisis-spacex.html"],
-["2026-05-23","p","AI Just Crossed The Line We Were Afraid Of: Continual Harness","","continual-harness-princeton-ai-self-improvement.html"],
-["2026-05-23","p","AI News: These Google Updates Are Dividing People","","google-io-2026-ai-news-matt-wolfe.html"],
-["2026-05-23","p","NVIDIA is Not a Loser | Abandoning the Personal Computer","","nvidia-not-loser-abandoning-personal-computer-gamers-nexus.html"],
-["2026-05-23","p","This is AGI: Sequoia AI Ascent 2026 Keynote","","sequoia-ai-ascent-2026-keynote.html"],
-["2026-05-22","p","Task Decomposition 任务拆解 (Gary Chen)","","papers-task-decomposition.html"],
-["2026-05-18","p","Claude Code 动态工作流","","papers-claude-code-dynamic-workflows.html"],
-["2026-05-15","p","Hermes Agent 6 大应用场景","","papers-hermes-agent-6-use-cases.html"],
-["2026-05-11","r","基金追踪系统","","dashboard.html"],
-["2026-05-11","r","基金模型路由","","model-routing.html"],
-["2026-03-25","p","我的 AI agent 連續跑了 27 個小時，/goal 功能怎麼用？","","gary-chen-ai-agent-goal-function-tutorial.html"],
-["2025-05-20","p","Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices","","microsoft-build-2025-keynote.html"],
-["2025","p","AI时代，\"精英阶层\"正在如何重构教育？","","ai-era-elite-education-reconstruction.html"],
-["2026-06-11","r","22 Hack 评估: 对 Patrick / Hermes 的可用性","MAT 22 hack 框架逐条评估 — 21/22 已实现或强推, 1 个部分适用, 3 个新机会 (语音输入 / DANGEROUS safety net / Skill-to-skill API)",""],
-["2026-06-11","r","22 Hack 实施: voice-to-text + pre-commit-active + skill-run","基于 22 Hack 评估的 3 个新工具实施 — voice-to-text (3.8KB macOS Dictation) + pre-commit-active (4.2KB 主动 commit) + skill-run (3.6KB Skill-to-skill API 4 mode)",""],
-["2026-06-08","p","Claude Code 22个Hack: June创始人 MAT 的完整工作流","MAT 22个 Claude Code Hack — 工具应消失 思维应留下。Laster 30 Days (30964 stars) + PrintingPress + Compound Engineering 插件",""],
-["2026-06-10","p","WWDC2026 4 嘉宾辩论 (AK、彭林、云飞、老代)","AK 电丸科技 4 嘉宾 90 分钟辩论: 苹果 AI 架构转向、Foundation Models 路径、iOS 27 AI OS、Liquid Glass 设计、芯片路线图",""],
-["2026-06-09","p","Apple WWDC 2026 主题演讲汇总 — iOS 27 / Siri AI","WWDC 2026 keynote — iOS 27 AI OS + Foundation Models + Siri 重做",""],
-["2026-06-09","p","Latent Spatial Memory for Video World Models (Mirage)","arXiv 2606.09828: 用 Latent Spatial Memory 让智能体在长时间交互中保持空间一致性",""],
-["2026-06-06","p","AI 時代怎麼創業? Anthropic Playbook 一次看懂四階段 workflow","Anthropic startup playbook: 4 阶段 (Idea → Design → Build → Grow) + AI-native 工作流",""],
-["2026-06-02","p","SteelSeries Arctis Nova Pro vs Omni vs Elite","硬件评测: SteelSeries 3 系游戏耳机对比",""],
-["2025-05-20","p","Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices","Build 2025",""],
-["2025-01-01","p","AI 时代, \"精英阶层\"正在如何重构教育?","教育 + AI",""]
-];
+/* ================= 配置区：部署到 GitHub Pages 后按需修改 ================= */
+const CONFIG = {
+  // hits.sh 阅读量徽章：公网访问时自动用当前域名+路径统计，本地预览用兜底值
+  hitsTarget: /^https?:/.test(location.protocol) && location.hostname && location.hostname!=='localhost'
+      ? (location.host + location.pathname).replace(/\/+$/,'').replace(/\.html$/,'')
+      : 'patrick-reports.patrick-l-zeng.workers.dev/pitch',
+};
+/* ====================================================================== */
 
-/* ===== 自动标签 ===== */
-const RULES=[
-  [/arxiv/i,"arXiv"],
-  [/world|video|wam\b|vla|robot|manip|driving|4d|3d|jepa|kinematic|spatial|diffusion|canvas|物理|世界模型/i,"世界模型"],
-  [/nq100|基金|backtest|regime|lightgbm|quarterly|ibkr|plan e|量化/i,"量化"],
-  [/wwdc|apple|mlx|ios|siri|cyberpunk/i,"Apple/WWDC"],
-  [/claude|agent|skill|hack|hermes|goal|fable|gcp|router|notebooklm|rag|memgraph|workflow|emai|spacex|ip|ipo/i,"Agent工具链"],
-  [/steelseries|nova/i,"硬件评测"],
-  [/nvidia|sequoia|agi|gawdat|google|yc |anthropic|rsi|教育|education|创业|build 2025|hacker news/i,"AI观察"]
-];
-const tagsOf=(t,d)=>{const s=t+" "+(d||"");const r=[];for(const[re,tg]of RULES)if(re.test(s))r.push(tg);return r.length?r.slice(0,3):["其他"]};
+// ---------- 阅读量徽章（hits.sh，零配置第三方计数器）----------
+(function(){
+  const url = `https://hits.sh/${CONFIG.hitsTarget}.svg?style=for-the-badge&label=reads&color=100d0a&labelColor=ff7a2f`;
+  document.getElementById('hitsBadge').src = url;
+  document.getElementById('footHits').innerHTML =
+    `<img style="height:18px;vertical-align:middle;border-radius:5px" src="https://hits.sh/${CONFIG.hitsTarget}.svg?label=views&color=16120d&labelColor=ffa23d" alt="views">`;
+})();
 
-/* ===== 状态 ===== */
-let fType="all",fTag=null,fQ="";
-const items=D.map(([date,t,title,desc,file])=>({date,t,title,desc:desc||"",file:file||"",tags:tagsOf(title,desc)}));
+// ---------- 转发计数（本地即时反馈 + GoatCounter 事件 + Web Share）----------
+let fwd = parseInt(localStorage.getItem('os_fwd')||'0',10);
+document.getElementById('fwdCount').textContent = fwd;
 
-/* ===== 统计 ===== */
-const nR=items.filter(i=>i.t=="r").length,nP=items.length-nR;
-const days=[...new Set(items.map(i=>i.date))];
-const countUp=(el,to)=>{let s=performance.now();const f=n=>{const p=Math.min((n-s)/700,1);
-  el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)};
-countUp(document.querySelector('[data-cnt=all]'),items.length);
-countUp(document.querySelector('[data-cnt=r]'),nR);
-countUp(document.querySelector('[data-cnt=p]'),nP);
-countUp(document.querySelector('[data-cnt=d]'),days.length);
-
-/* ===== 热力图 (近12周) ===== */
-const byDay={};items.forEach(i=>byDay[i.date]=(byDay[i.date]||0)+1);
-const hm=document.getElementById('heatmap');
-const end=new Date(),start=new Date(end);start.setDate(end.getDate()-7*12+1);
-for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-  const k=d.toISOString().slice(0,10),n=byDay[k]||0;
-  const lv=n==0?0:n<=2?1:n<=5?2:n<=12?3:4;
-  const c=document.createElement('i');c.className='cell'+(lv?' l'+lv:'');
-  c.title=k+' · '+n+' 篇';hm.appendChild(c);
+function bumpForward(){
+  fwd++; localStorage.setItem('os_fwd', fwd);
+  document.getElementById('fwdCount').textContent = fwd;
+  // GoatCounter 自定义事件（部署后在后台可见真实跨设备转发数）
+  if(window.goatcounter && goatcounter.count){
+    goatcounter.count({path:'forward-click', title:'Forward', event:true});
+  }
 }
-/* streak */
-let st=0,cur=new Date();
-while(byDay[cur.toISOString().slice(0,10)]){st++;cur.setDate(cur.getDate()-1)}
-document.getElementById('streak').textContent=st>1?`· 🔥 连续更新 ${st} 天`:"";
-/* type bar */
-document.getElementById('typebar').innerHTML=
- `<i style="width:${nR/items.length*100}%;background:linear-gradient(90deg,var(--orange),var(--orange2))"></i>`+
- `<i style="width:${nP/items.length*100}%;background:linear-gradient(90deg,#2aa6b5,var(--cyan))"></i>`;
-document.querySelector('.typebar .lbl').innerHTML=
- `<span style="color:var(--orange2)">■ 报告 ${nR}</span><span style="color:var(--cyan)">论文 ${nP} ■</span>`;
 
-/* ===== 标签 chips ===== */
-const tagCnt={};items.forEach(i=>i.tags.forEach(t=>tagCnt[t]=(tagCnt[t]||0)+1));
-const tagrow=document.getElementById('tagrow');
-Object.entries(tagCnt).sort((a,b)=>b[1]-a[1]).forEach(([t,n])=>{
-  const b=document.createElement('button');b.className='chip';b.innerHTML=`#${t}<b>${n}</b>`;
-  b.onclick=()=>{fTag=fTag===t?null:t;
-    tagrow.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-    if(fTag)b.classList.add('on');render()};
-  tagrow.appendChild(b);
+function sharePage(){
+  const data = {
+    title: 'OpenSwarm — 一个人的 AI Agent 军团',
+    text: '26 个专业 agents · 共享大脑 · 自动化研究与投资系统。投资人简报：',
+    url: location.href
+  };
+  if(navigator.share){
+    navigator.share(data).then(bumpForward).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(location.href).then(()=>{
+      bumpForward(); showToast('链接已复制，去转发吧 🚀');
+    }).catch(()=>showToast('请手动复制地址栏链接'));
+  }
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ---------- 数字滚动动画 ----------
+function animateNum(el){
+  const to=+el.dataset.to, suf=el.dataset.suffix||''; const dur=1400; const t0=performance.now();
+  function step(t){ const p=Math.min((t-t0)/dur,1); const e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(to*e).toLocaleString()+suf; if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+
+// ---------- 滚动揭示 + 触发 ----------
+const io=new IntersectionObserver((ents)=>{
+  ents.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in');
+    en.target.querySelectorAll?.('.num[data-to]').forEach(n=>{ if(!n.dataset.done){n.dataset.done=1;animateNum(n);} });
+    if(en.target.classList.contains('num')&&!en.target.dataset.done){en.target.dataset.done=1;animateNum(en.target);}
+    io.unobserve(en.target);} });
+},{threshold:.2});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+document.querySelectorAll('.metric .num').forEach(el=>io.observe(el));
+
+// ---------- AGENT 名册 ----------
+const AGENTS=[
+  ['orchestrator','协调全局任务分配','swarm'],['virtual_assistant','日常事务助理','swarm'],
+  ['deep_research','深度研究','swarm'],['data_analyst','数据分析','swarm'],
+  ['slides_agent','幻灯片生成','swarm'],['docs_agent','文档生成','swarm'],
+  ['image_generation','图像生成','swarm'],['video_generation','视频生成','swarm'],
+  ['analyst','分析师','claw'],['architect','系统架构','claw'],
+  ['investor','投资追踪','claw'],['science','科学研究','claw'],
+  ['lawyer','法律','claw'],['educator','教育导师','claw'],
+  ['writer','写作','claw'],['vision3d','三维视觉','claw'],
+  ['arcraider','Arc Raiders 代购','claw'],['ebaytrader','跨境交易','claw'],
+  ['shopagent','电商运营','claw'],['discordmanager','社区管理','claw'],
+  ['ai_native_thinking','AI 原生思维导师','claw'],['biography','个人传记','claw'],
+  ['emotion','情绪洞察','claw'],['diviner','趋势占卜','claw'],
+  ['astrologer','星象','claw'],['data','数据工程','claw'],
+];
+const roster=document.getElementById('roster');
+function renderRoster(f){
+  roster.innerHTML='';
+  AGENTS.filter(a=>f==='all'||a[2]===f).forEach(a=>{
+    const tag=a[2]==='swarm'?'<span class="tag t-swarm">SWARM</span>':'<span class="tag t-claw">CLAW</span>';
+    const d=document.createElement('div'); d.className='agent';
+    d.innerHTML=`<div class="an">${a[0]} ${tag}</div><div class="ad">${a[1]}</div>`;
+    roster.appendChild(d);
+  });
+}
+renderRoster('all');
+document.querySelectorAll('.fbtn').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); renderRoster(b.dataset.f);
 });
 
-/* ===== 时间线渲染 ===== */
-const WD=["周日","周一","周二","周三","周四","周五","周六"];
-const tl=document.getElementById('timeline');
-function render(){
-  const q=fQ.trim().toLowerCase();
-  const ok=i=>(fType==="all"||i.t==fType)&&(!fTag||i.tags.includes(fTag))
-    &&(!q||(i.title+i.desc).toLowerCase().includes(q));
-  const vis=items.filter(ok);
-  const groups={};vis.forEach(i=>(groups[i.date]=groups[i.date]||[]).push(i));
-  tl.innerHTML=Object.keys(groups).sort().reverse().map(d=>{
-    const dt=new Date(d+"T00:00:00");
-    const label=d.startsWith("2025-01")?"2025":d;
-    const wd=d.startsWith("2025-01")?"":WD[dt.getDay()];
-    return `<div class="tl-day">
-      <div class="tl-date"><div class="d"><span class="dot"></span>${label}<small>${wd} · ${groups[d].length} 篇</small></div></div>
-      <div class="tl-items">${groups[d].map(i=>{
-        const href = i.file ? `https://patrick-reports.patrick-l-zeng.workers.dev/${i.file}` : '#';
-        return `<a class="item" href="${href}" style="--tcol:${i.t=='r'?'var(--orange)':'var(--cyan)'}" target="_blank">
-          <div class="row1"><h5>${i.title}</h5>
-            <span class="badge ${i.t=='r'?'b-r':'b-p'}">${i.t=='r'?'报告 REPORT':'论文 PAPER'}</span></div>
-          ${i.desc?`<div class="desc">${i.desc}</div>`:""}
-          <div class="tags">${i.tags.map(t=>`<span class="tg">#${t}</span>`).join("")}</div>
-        </a>`}).join("")}</div>
-    </div>`}).join("");
-  document.getElementById('empty').classList.toggle('show',!vis.length);
-  document.getElementById('resinfo').innerHTML=`<em>${vis.length}</em> / ${items.length} 篇`;
-}
-render();
+// ---------- 图表 ----------
+const GRID='#2c2118', TXT='#a89b88';
+Chart.defaults.color=TXT; Chart.defaults.font.family='-apple-system,Segoe UI,PingFang SC,sans-serif';
+Chart.defaults.font.size=12;
 
-/* ===== 交互 ===== */
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');fType=b.dataset.type;render()});
-const q=document.getElementById('q');
-q.addEventListener('input',()=>{fQ=q.value;render()});
-document.addEventListener('keydown',e=>{
-  if(e.key=='/'&&document.activeElement!=q){e.preventDefault();q.focus()}
-  if(e.key=='Escape'){q.value='';fQ='';render();q.blur()}});
+new Chart(document.getElementById('growthChart'),{
+  type:'line',
+  data:{labels:['1月','2月','3月','4月','5月','6月'],
+    datasets:[{label:'在岗 Agents',data:[1,3,10,18,29,26],
+      borderColor:'#ff7a2f',backgroundColor:'rgba(255,122,47,.14)',fill:true,tension:.35,
+      pointBackgroundColor:'#ff7a2f',pointRadius:4,borderWidth:2.5}]},
+  options:{plugins:{legend:{display:false}},scales:{
+    x:{grid:{color:GRID}},y:{grid:{color:GRID},beginAtZero:true}}}
+});
+
+new Chart(document.getElementById('radarChart'),{
+  type:'radar',
+  data:{labels:['深度研究','自动化','多 Agent 协作','长期记忆','多模型路由','投资 · 产出'],
+    datasets:[{data:[9,9,8,7,8,7],borderColor:'#ff7a2f',
+      backgroundColor:'rgba(255,122,47,.20)',pointBackgroundColor:'#ff7a2f',borderWidth:2}]},
+  options:{plugins:{legend:{display:false}},layout:{padding:18},scales:{r:{
+    angleLines:{color:GRID},grid:{color:GRID},
+    pointLabels:{color:'#d8cdba',font:{size:11},padding:6},
+    ticks:{display:false,stepSize:2},suggestedMin:0,suggestedMax:10}}}
+});
+
+new Chart(document.getElementById('distChart'),{
+  type:'doughnut',
+  data:{labels:['OpenSwarm 编排层 (8)','OpenClaw 专业层 (18)'],
+    datasets:[{data:[8,18],backgroundColor:['#ff7a2f','#ffb74d'],borderColor:'#16120d',borderWidth:3}]},
+  options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{padding:14,usePointStyle:true}}}}
+});
+
+new Chart(document.getElementById('cronChart'),{
+  type:'bar',
+  data:{labels:['arXiv 量子','arXiv 核聚变','AI 伦理周报','投资简报','复盘记录'],
+    datasets:[{data:[1,1,1,7,2],backgroundColor:['#ffa23d','#ffa23d','#ff5b2e','#ff7a2f','#5fd083'],borderRadius:6}]},
+  options:{plugins:{legend:{display:false}},scales:{
+    x:{grid:{display:false}},y:{grid:{color:GRID},beginAtZero:true,ticks:{stepSize:2}}}}
+});
 </script>
 </body>
 </html>
