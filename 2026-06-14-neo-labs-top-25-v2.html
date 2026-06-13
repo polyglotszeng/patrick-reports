@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>硅谷 Top 25 Neo Labs · 投资全景</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>tailwind.config = { darkMode: 'class' };</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; }
+  .card { transition: transform .25s ease, box-shadow .25s ease; }
+  .card:hover { transform: translateY(-4px); }
+  .flip { perspective: 1400px; }
+  .flip-inner { transition: transform .55s cubic-bezier(.2,.7,.2,1); transform-style: preserve-3d; }
+  .flip:hover .flip-inner { transform: rotateY(180deg); }
+  .flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flip-back { transform: rotateY(180deg); }
+  .fade-up { opacity: 0; transform: translateY(16px); animation: fadeUp .5s ease forwards; }
+  @keyframes fadeUp { to { opacity: 1; transform: none; } }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(120,120,140,.35); border-radius: 8px; }
+  .chip { font-size: 11px; line-height: 1; }
+  select, input { outline: none; }
+  @media (hover: none) { .flip:active .flip-inner { transform: rotateY(180deg); } }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+
+<header class="relative overflow-hidden border-b border-slate-200 dark:border-slate-800">
+  <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-sky-50 dark:from-indigo-950/40 dark:via-slate-950 dark:to-sky-950/30"></div>
+  <div class="relative max-w-7xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-indigo-600/10 text-indigo-700 dark:text-indigo-300 text-xs font-semibold tracking-wide">
+          <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+          私募投资视角 · 数据更新 <span id="updatedAt">—</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+          硅谷 Top 25 <span class="bg-gradient-to-r from-indigo-600 to-sky-500 bg-clip-text text-transparent">Neo Labs</span>
+        </h1>
+        <p class="mt-4 max-w-2xl text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+          一批精悍、专注前沿命题的新兴 AI 研究实验室正掀起资本军备竞赛——
+          <span class="font-semibold text-slate-800 dark:text-slate-100">10 家新兴 Neo Labs 中有 9 家种子轮估值已达 10 亿美元</span>，
+          赛道总市值逼近 3,000 亿美元。
+        </p>
+      </div>
+      <button id="themeBtn" class="shrink-0 mt-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 text-sm hover:scale-105 transition" title="切换深浅色">
+        <span class="dark:hidden">🌙 深色</span><span class="hidden dark:inline">☀️ 浅色</span>
+      </button>
+    </div>
+
+    <div class="mt-9 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div class="card rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+        <div class="text-xs font-medium text-slate-500">赛道总市值</div>
+        <div class="mt-1 text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">≈ $3,000<span class="text-base font-bold">亿</span></div>
+        <div class="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400">▲ 历史峰值 · 资本/人才密度双高</div>
+      </div>
+      <div class="card rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+        <div class="text-xs font-medium text-slate-500">收录实验室</div>
+        <div class="mt-1 text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400" id="kpiCount">25<span class="text-base font-bold"> 家</span></div>
+        <div class="mt-1 text-[11px] text-slate-500" id="kpiSplit">报告 10 + 网络检索补充 15</div>
+      </div>
+      <div class="card rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+        <div class="text-xs font-medium text-slate-500">最高种子轮</div>
+        <div class="mt-1 text-2xl sm:text-3xl font-black text-fuchsia-600 dark:text-fuchsia-400">$20<span class="text-base font-bold">亿</span></div>
+        <div class="mt-1 text-[11px] text-slate-500">Thinking Machines Lab · 刷新硅谷纪录</div>
+      </div>
+      <div class="card rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+        <div class="text-xs font-medium text-slate-500">最高估值标的</div>
+        <div class="mt-1 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">$3,000<span class="text-base font-bold">亿</span></div>
+        <div class="mt-1 text-[11px] text-slate-500">OpenAI（企业级）· 初创最高 Prometheus $410亿</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-5 sm:px-8 py-10 space-y-10">
+
+  <section class="grid lg:grid-cols-2 gap-5">
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h3 class="font-bold text-lg flex items-center gap-2">📊 估值对比</h3>
+        <div id="valLegend" class="flex items-center gap-3 text-[11px] text-slate-500"></div>
+      </div>
+      <p class="text-xs text-slate-500 mt-1 mb-3">单位：亿美元（对数轴）。未公开估值未入图（DeepMind、Cartesia、EvolutionaryScale、Inception、Prime Intellect）。</p>
+      <div class="relative h-[560px]"><canvas id="valChart"></canvas></div>
+    </div>
+    <div class="rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h3 class="font-bold text-lg flex items-center gap-2">🕒 融资轮次时间线</h3>
+        <div id="timeLegend" class="flex items-center gap-3 text-[11px] text-slate-500"></div>
+      </div>
+      <p class="text-xs text-slate-500 mt-1 mb-3">气泡大小 ∝ 单轮融资额（亿美元）。横轴时间，仅含有公开轮次的初创实验室。</p>
+      <div class="relative h-[560px]"><canvas id="timeChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- Controls -->
+  <section class="rounded-2xl bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[180px]">
+        <label class="block text-[11px] text-slate-400 mb-1">搜索（名称 / 赛道 / 创始人 / 理论）</label>
+        <input id="q" type="text" placeholder="输入关键词…" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm" />
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">数据来源</label>
+        <select id="fSource" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+          <option value="all">全部来源</option>
+          <option value="report">报告原始</option>
+          <option value="web">网络检索补充</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">赛道</label>
+        <select id="fTrack" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm"></select>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">阶段</label>
+        <select id="fStage" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+          <option value="all">全部阶段</option>
+          <option value="product">已有产品</option>
+          <option value="research">研究阶段</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">排序</label>
+        <select id="fSort" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm">
+          <option value="default">默认（按赛道分组）</option>
+          <option value="valDesc">估值 高 → 低</option>
+          <option value="fundDesc">累计融资 高 → 低</option>
+          <option value="foundedDesc">成立年份 新 → 旧</option>
+          <option value="foundedAsc">成立年份 旧 → 新</option>
+          <option value="nameAsc">名称 A → Z</option>
+        </select>
+      </div>
+      <button id="resetBtn" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm hover:bg-slate-100 dark:hover:bg-slate-700">重置</button>
+    </div>
+    <div class="mt-3 text-xs text-slate-500" id="resultCount">—</div>
+  </section>
+
+  <div id="trackContainer" class="space-y-10"></div>
+
+</main>
+
+<footer class="border-t border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40">
+  <div class="max-w-7xl mx-auto px-5 sm:px-8 py-8 text-sm text-slate-500 space-y-3">
+    <div>
+      <span class="font-semibold text-slate-700 dark:text-slate-300">数据来源声明：</span>
+      标注 <span class="font-semibold text-indigo-600 dark:text-indigo-400">报告原始</span> 的 10 家严格依据《硅谷 Top 20 Neo Labs 深度研究报告》（截至 2026 年 6 月）；标注
+      <span class="font-semibold text-rose-600 dark:text-rose-400">网络检索补充</span> 的 15 家为基于公开报道（TechCrunch、Bloomberg、CNBC、公司官网、Sacra/PitchBook 等）补充检索，非原报告内容。估值/融资以披露口径为准，未披露处标「暂未公开 / 不公开」。
+    </div>
+    <div class="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/30 text-sky-800 dark:text-sky-300 text-xs leading-relaxed">
+      <span class="font-bold">🔄 实时更新：</span>
+      页面数据来自同目录下的 <code class="px-1 rounded bg-sky-100 dark:bg-sky-900/50">labs.json</code>。需要更新某家估值/融资时，只需编辑该 JSON 文件（无需改动 HTML），刷新页面即生效；离线打开时自动回退到内置数据。
+    </div>
+    <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 text-xs leading-relaxed">
+      <span class="font-bold">⚠️ 风险提示：</span>
+      当前 Neo Labs 估值普遍处于历史高位，多数实验室尚无商业化收入、依赖持续融资；安全超级智能 / AGI 等核心命题实现时间表高度不确定，人才流失与知识产权竞争激烈。本页仅为信息整理，不构成任何投资建议。
+    </div>
+    <div class="text-[11px] text-slate-400">Loop Engineering 迭代版 v3 · 25 家 · 数据外置 + 排序筛选</div>
+  </div>
+</footer>
+
+<script>
+/* ===== 内置回退数据（当无法 fetch labs.json，如本地 file:// 直接打开时使用） ===== */
+const FALLBACK_DATA = {
+  "updated": "2026-06-13",
+  "note": "本文件是页面的实时数据源。修改后无需改 index.html，刷新页面即可生效。report=报告原始数据；web=网络检索补充（非原报告）。valNum/fundNum 单位为亿美元，用于排序与图表；null 表示未公开。",
+  "tracks": [
+    { "id": "safety",     "name": "纯安全超级智能派",       "emoji": "🛡️", "accent": "from-violet-500 to-indigo-500", "tag": "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300", "desc": "高估值、无商业产品，依赖创始人口碑吸引长期资本的「pure play」纯研究机构。" },
+    { "id": "embodied",   "name": "具身智能与世界模型",     "emoji": "🤖", "accent": "from-sky-500 to-cyan-500",      "tag": "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300",          "desc": "让 AI 通过与真实/三维世界互动来学习物理规律——已多有初步产品落地。" },
+    { "id": "foundation", "name": "基础模型 · 新架构 · 开源", "emoji": "🧠", "accent": "from-indigo-500 to-blue-500",  "tag": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300", "desc": "以新架构（SSM、扩散、液态网络）或去中心化训练挑战 Transformer 与中心化范式。" },
+    { "id": "voice",      "name": "语音与实时交互",         "emoji": "🎙️", "accent": "from-fuchsia-500 to-pink-500",  "tag": "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-300", "desc": "实时、情感化的语音与多模态交互，并向 AI 硬件延伸。" },
+    { "id": "science",    "name": "AI 驱动的科学发现",      "emoji": "🧪", "accent": "from-emerald-500 to-teal-500",  "tag": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", "desc": "用「AI 科学家」与自主机器人实验室加速材料、生物等领域的研究与发现。" },
+    { "id": "agents",     "name": "编程与自主智能体",       "emoji": "💻", "accent": "from-rose-500 to-orange-500",   "tag": "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",       "desc": "面向编程与企业流程的自主智能体，已普遍跑出可观收入。" },
+    { "id": "corporate",  "name": "科技巨头内部前沿实验室", "emoji": "🏛️", "accent": "from-amber-500 to-orange-500",  "tag": "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",   "desc": "巨头内部的「深度研究 + 产品转化」机器，是私募间接参与前沿 AI 的窗口。" }
+  ],
+  "labs": [
+    { "name": "Safe Superintelligence (SSI)", "trackId": "safety", "source": "report", "founded": 2024, "track": "AI 安全",
+      "val": "$300 亿+", "valNum": 300, "valTrend": "up", "valNote": "2024.09 估值>$50亿 → 2025.04 估值>$300亿",
+      "funding": "≈ $30 亿", "fundNum": 30, "theory": ["安全超级智能", "Straight Shot", "安全=能力"],
+      "stage": "research", "highlights": ["不设商业产品 / 不发布公开 API", "帕洛阿尔托 + 特拉维夫双办公室"],
+      "founders": "Ilya Sutskever（前 OpenAI 首席科学家）、Daniel Gross（前 YC 合伙人）、Daniel Levy（前 OpenAI）",
+      "quote": "“最纯粹的实验室模式——估值极高、商业化路径极不明确，投资者表现出极大耐心。”",
+      "site": "https://ssi.inc", "rounds": [ {"date":"2024-09","amt":10,"label":"首轮 $10亿"}, {"date":"2025-04","amt":20,"label":"新一轮 $20亿"} ] },
+
+    { "name": "Thinking Machines Lab", "trackId": "safety", "source": "report", "founded": 2025, "track": "多模态 AI",
+      "val": "$100–120 亿", "valNum": 110, "valTrend": "up", "valNote": "2025.02 成立，数月内种子轮估值即达此区间",
+      "funding": "≈ $20 亿（种子轮）", "fundNum": 20, "theory": ["多模态基础模型", "协作型通用智能", "可定制 AI"],
+      "stage": "research", "highlights": ["历史最大规模种子轮", "全明星创始团队", "产品尚未面世"],
+      "founders": "Mira Murati（前 OpenAI CTO，主导 GPT-3/4、DALL·E、ChatGPT）、Barret Zoph、John Schulman",
+      "quote": "“全明星阵容是核心投资价值，但估值已达成熟科技公司水平，存在高估值风险。”",
+      "site": "https://thinkingmachines.ai", "rounds": [ {"date":"2025-02","amt":20,"label":"种子 $20亿"} ] },
+
+    { "name": "Project Prometheus", "trackId": "embodied", "source": "report", "founded": 2025, "track": "物理 AI",
+      "val": "$410 亿", "valNum": 410, "valTrend": "up", "valNote": "A轮$62亿(2025.11) → B轮$120亿(2026.06)，投后≈$410亿",
+      "funding": "≈ $182 亿", "fundNum": 182, "theory": ["物理 AI", "人工通用工程师", "从真实世界学习"],
+      "stage": "research", "highlights": ["硅谷史上最大 A 轮之一", "Bezos 卸任后最重要个人赌注"],
+      "founders": "Jeff Bezos（亚马逊创始人）、Vik Bajaj（前谷歌工程师）",
+      "quote": "“Bezos 个人品牌 + 巨额资本形成护城河，但物理 AI 难度远超语言模型，商业化周期更长。”",
+      "site": null, "rounds": [ {"date":"2025-11","amt":62,"label":"A轮 $62亿"}, {"date":"2026-06","amt":120,"label":"B轮 $120亿"} ] },
+
+    { "name": "Physical Intelligence (PI)", "trackId": "embodied", "source": "report", "founded": 2024, "track": "机器人大脑",
+      "val": "$56 亿", "valNum": 56, "valTrend": "up", "valNote": "$24亿(2024.03) → $20亿+(2024.11) → $56亿(2025.11-12)",
+      "funding": "$10 亿+", "fundNum": 10, "theory": ["跨实体学习", "机器人通用大脑", "软件优先"],
+      "stage": "product", "product": "π0 通用机器人基础模型",
+      "highlights": ["2024 年底发布首个通用机器人基础模型 π0", "可折叠衣物、削蔬菜等日常任务"],
+      "founders": "Lachy Groom（前 Stripe 员工）· 自称「机器人领域的 OpenAI」",
+      "quote": "“具身智能赛道领跑者之一，已有初步产品发布，估值增长路径清晰。”",
+      "site": "https://www.pi.website", "rounds": [ {"date":"2024-03","amt":0.7,"label":"种子 $0.7亿"}, {"date":"2024-11","amt":4,"label":"$4亿"}, {"date":"2025-12","amt":6,"label":"$6亿"} ] },
+
+    { "name": "Skild AI", "trackId": "embodied", "source": "report", "founded": 2023, "track": "具身智能",
+      "val": "$140 亿+", "valNum": 140, "valTrend": "up", "valNote": "A轮(2024) → C轮$14亿/投后>$140亿(2026.01)，不足两年",
+      "funding": "≈ $20 亿", "fundNum": 20, "theory": ["通用机器人大脑", "看视频学习", "边实践边学"],
+      "stage": "product", "revenue": "2025 年内约 $3000 万收入（指数增长）",
+      "highlights": ["2026 初硅谷最大单笔融资之一", "软银领投、英伟达参投——风向标意义"],
+      "founders": "2023.05 成立 · 软银（SoftBank）领投，参投含 NVentures、Bezos Expeditions、三星、LG、施耐德、Salesforce",
+      "quote": "“软银与英伟达同时入场极具风向标意义，估值近两年从数亿跃升至 140 亿美元。”",
+      "site": "https://www.skild.ai", "rounds": [ {"date":"2024-06","amt":3,"label":"A轮 $3亿"}, {"date":"2026-01","amt":14,"label":"C轮 $14亿"} ] },
+
+    { "name": "World Labs", "trackId": "embodied", "source": "report", "founded": 2024, "track": "世界模型",
+      "val": "数十亿美元级", "valNum": 50, "valTrend": "up", "valNote": "$2.3亿(2024.09) → $10亿新一轮，估值或暴涨约5倍（下限示意）",
+      "funding": "$12 亿+", "fundNum": 12, "theory": ["世界模型", "3D 感知 / 生成 / 互动", "理解三维物理"],
+      "stage": "product", "product": "Marble 世界模型（2025.11 发布）",
+      "highlights": ["可从文本/图像/视频/3D 布局生成可交互 3D 世界", "英伟达、AMD 等芯片巨头入局"],
+      "founders": "李飞飞（斯坦福 AI 学者、前谷歌云 AI 首席科学家），2024 年创立",
+      "quote": "“Marble 标志着从研究转向产品化，有先发优势；但 DeepMind 的 Genie 在推进类似技术。”",
+      "site": "https://www.worldlabs.ai", "rounds": [ {"date":"2024-09","amt":2.3,"label":"$2.3亿"}, {"date":"2026-01","amt":10,"label":"新一轮 $10亿"} ] },
+
+    { "name": "Decart", "trackId": "embodied", "source": "web", "founded": 2023, "track": "实时世界模型",
+      "val": "$40 亿", "valNum": 40, "valTrend": "up", "valNote": "$5亿(2024.12) → $31亿(2025.08) → $40亿（B轮$1亿、后续$3亿，约18个月8倍）",
+      "funding": "≈ $4.5 亿", "fundNum": 4.5, "theory": ["实时世界模型", "直播扩散生成", "GPU 极致优化"],
+      "stage": "product", "product": "Oasis / Mirage / Lucy 实时世界模型（Oasis 为首个实时视频模型）",
+      "highlights": ["Oasis 上线 3 天破百万用户", "Sequoia、Benchmark、英伟达、亚马逊背书"],
+      "founders": "团队源自以色列特拉维夫（红杉、Benchmark、Radical、英伟达、亚马逊投资）",
+      "quote": "公开信息：主攻可实时交互的世界模型，把生成式视频跑在亚马逊芯片上。",
+      "site": "https://decart.ai", "rounds": [ {"date":"2025-08","amt":1,"label":"B轮 $1亿/估$31亿"}, {"date":"2026-02","amt":3,"label":"$3亿/估$40亿"} ] },
+
+    { "name": "Luma AI", "trackId": "embodied", "source": "web", "founded": 2021, "track": "多模态世界模型",
+      "val": "$40 亿", "valNum": 40, "valTrend": "up", "valNote": "C轮 $9亿/估值$40亿(2025.11，沙特 HUMAIN 领投)",
+      "funding": "≈ $9.8 亿", "fundNum": 9.8, "theory": ["多模态世界模型", "推理视频模型", "3D 神经渲染"],
+      "stage": "product", "product": "Ray3「推理视频模型」/ Dream Machine",
+      "highlights": ["从文本/视频/音频/图像学习以模拟现实", "AMD、a16z、Amplify、Matrix 参投"],
+      "founders": "Amit Jain、Alex Yu、Alberto Taiuti（旧金山，2021 年创立）",
+      "quote": "公开信息：以多模态世界模型切入影视级视频生成，2025 跻身独角兽。",
+      "site": "https://lumalabs.ai", "rounds": [ {"date":"2025-11","amt":9,"label":"C轮 $9亿"} ] },
+
+    { "name": "Essential AI", "trackId": "foundation", "source": "web", "founded": 2023, "track": "企业基础模型",
+      "val": "$10 亿", "valNum": 10, "valTrend": "up", "valNote": "A轮$5650万(2023.12) → B轮$1.75亿/估值$10亿(2026.05)",
+      "funding": "≈ $2.4 亿", "fundNum": 2.4, "theory": ["企业大脑", "开源权重模型", "Transformer 基因"],
+      "stage": "product", "product": "Rnj-1 (Ramanujan) 开源权重模型系列",
+      "highlights": ["Google、英伟达、AMD 战略入股", "面向企业的语言模型软件"],
+      "founders": "Ashish Vaswani、Niki Parmar（Transformer 架构共同作者，前 Google）",
+      "quote": "公开信息：由 Transformer 原作者创立，2026.05 完成 B 轮跻身独角兽。",
+      "site": "https://www.essential.ai", "rounds": [ {"date":"2023-12","amt":0.565,"label":"A轮 $0.57亿"}, {"date":"2026-05","amt":1.75,"label":"B轮 $1.75亿"} ] },
+
+    { "name": "Liquid AI", "trackId": "foundation", "source": "web", "founded": 2023, "track": "高效基础模型",
+      "val": "$23.5 亿", "valNum": 23.5, "valTrend": "up", "valNote": "A轮 $2.5亿 / 估值≈$23.5亿（AMD 领投）",
+      "funding": "≈ $2.9 亿", "fundNum": 2.9, "theory": ["液态基础模型 LFM", "液态神经网络", "非 Transformer 架构"],
+      "stage": "product", "product": "Liquid Foundation Models（轻量通用模型）",
+      "highlights": ["MIT 衍生（剑桥/波士顿）", "AMD、红杉、a16z、Tiger 背书"],
+      "founders": "Ramin Hasani、Mathias Lechner、Alexander Amini、Daniela Rus（MIT）",
+      "quote": "公开信息：以液态神经网络替代 Transformer，主打高效轻量企业模型。",
+      "site": "https://www.liquid.ai", "rounds": [ {"date":"2024-12","amt":2.5,"label":"A轮 $2.5亿"} ] },
+
+    { "name": "Inception Labs", "trackId": "foundation", "source": "web", "founded": 2024, "track": "扩散式 LLM",
+      "val": "暂未公开", "valNum": null, "valTrend": "up", "valNote": "$0.5亿(2025.11，Menlo 领投)；早期种子约 $0.2亿+（Khosla）",
+      "funding": "≈ $0.7 亿", "fundNum": 0.7, "theory": ["扩散式 LLM", "并行生成", "5–10x 低延迟"],
+      "stage": "product", "product": "Mercury / Mercury Coder（首个商用扩散 LLM，128K 上下文）",
+      "highlights": ["速度较优化模型快 5–10 倍", "CEO 为 Sora/Midjourney 扩散技术共同发明人"],
+      "founders": "Stefano Ermon、Aditya Grover、Volodymyr Kuleshov（帕洛阿尔托，源自斯坦福/UCLA/康奈尔）",
+      "quote": "公开信息：用扩散模型重做 LLM，主打极低延迟的实时 AI。",
+      "site": "https://www.inceptionlabs.ai", "rounds": [ {"date":"2025-11","amt":0.5,"label":"$0.5亿"} ] },
+
+    { "name": "Nous Research", "trackId": "foundation", "source": "web", "founded": 2023, "track": "开源模型",
+      "val": "$10 亿", "valNum": 10, "valTrend": "up", "valNote": "A轮 $0.5亿/代币估值$10亿(2025.04，Paradigm 领投)",
+      "funding": "≈ $0.65 亿", "fundNum": 0.65, "theory": ["开源语言模型", "去中心化训练", "以人为本"],
+      "stage": "product", "product": "Hermes 模型系列 / Psyche 去中心化训练网络",
+      "highlights": ["挑战中心化大厂的开源路线", "由 Discord/Twitter 研究者社群正式化而来"],
+      "founders": "Jeffrey Quesnelle、Karan Malhotra、Teknium、Shivani Mitra（纽约，2023 年创立）",
+      "quote": "公开信息：以开源、去中心化方式训练世界级语言模型。",
+      "site": "https://nousresearch.com", "rounds": [ {"date":"2025-04","amt":0.5,"label":"A轮 $0.5亿"} ] },
+
+    { "name": "Prime Intellect", "trackId": "foundation", "source": "web", "founded": 2024, "track": "去中心化训练",
+      "val": "暂未公开", "valNum": null, "valTrend": "up", "valNote": "种子$0.055亿(2024.04) → $0.15亿(2025初，Founders Fund 领投)",
+      "funding": "≈ $0.7 亿", "fundNum": 0.7, "theory": ["去中心化训练", "点对点算力", "开源协作"],
+      "stage": "product", "product": "INTELLECT 系列分布式训练模型",
+      "highlights": ["全球分布式算力协作训练", "Peter Thiel 的 Founders Fund、Menlo 入场"],
+      "founders": "Vincent Weisser（联合创始人）、Johannes Hagemann（CTO，前 Aleph Alpha）",
+      "quote": "公开信息：构建点对点的去中心化算力与训练协议，为开源 AI 提供新路径。",
+      "site": "https://www.primeintellect.ai", "rounds": [ {"date":"2024-04","amt":0.055,"label":"种子 $0.06亿"}, {"date":"2025-01","amt":0.15,"label":"$0.15亿"} ] },
+
+    { "name": "Cartesia", "trackId": "voice", "source": "web", "founded": 2023, "track": "实时语音",
+      "val": "暂未公开", "valNum": null, "valTrend": "up", "valNote": "A轮$0.27亿(2024.12) → B轮$1亿(2025.10，Kleiner/英伟达)，估值未披露",
+      "funding": "≈ $1.27 亿", "fundNum": 1.27, "theory": ["状态空间模型 SSM", "Mamba 架构", "实时低延迟"],
+      "stage": "product", "product": "Sonic 实时语音模型（支持 42 种语言）",
+      "highlights": ["源自斯坦福 AI Lab，SSM 的发明团队", "90+ 位知名创始人天使入股"],
+      "founders": "Karan Goel（CEO）、Albert Gu（首席科学家，Mamba 作者、TIME AI 100）等",
+      "quote": "公开信息：用状态空间模型实现更快、更自然的实时多模态交互。",
+      "site": "https://cartesia.ai", "rounds": [ {"date":"2024-12","amt":0.27,"label":"A轮 $0.27亿"}, {"date":"2025-10","amt":1,"label":"B轮 $1亿"} ] },
+
+    { "name": "Sesame AI", "trackId": "voice", "source": "web", "founded": 2024, "track": "情感语音 / 硬件",
+      "val": "$10 亿+", "valNum": 10, "valTrend": "up", "valNote": "A轮$4750万(2025.02) → B轮$2.5亿(2025.10，红杉/Spark)，跨入独角兽",
+      "funding": "≈ $3 亿", "fundNum": 3, "theory": ["情感共鸣语音", "实时对话", "语音 AI 眼镜"],
+      "stage": "product", "product": "Maya / Miles 语音助手 + 全天候 AI 智能眼镜",
+      "highlights": ["可中断、会笑、句中变调的拟真语音", "前 Oculus 高管团队"],
+      "founders": "Brendan Iribe（Oculus 创始人）、Ankit Kumar（Ubiquity6）",
+      "quote": "公开信息：主打情感拟真语音助手，并向语音 AI 可穿戴硬件延伸。",
+      "site": "https://www.sesame.com", "rounds": [ {"date":"2025-02","amt":0.475,"label":"A轮 $0.48亿"}, {"date":"2025-10","amt":2.5,"label":"B轮 $2.5亿"} ] },
+
+    { "name": "Periodic Labs", "trackId": "science", "source": "report", "founded": 2025, "track": "AI + 材料科学",
+      "val": "$70 亿（目标）", "valNum": 70, "valTrend": "up", "valNote": "种子轮$13亿(2025.09) → 在谈新一轮，目标$70亿，半年增超5倍",
+      "funding": "≈ $3 亿", "fundNum": 3, "theory": ["AI 科学家", "自主机器人实验室", "新材料发现"],
+      "stage": "research", "highlights": ["应用横跨电子到能源工业领域", "总部位于旧金山"],
+      "founders": "Liam Fedus（前 OpenAI 研究副总裁）、Ekin Dogus Cubuk（前谷歌 DeepMind 研究科学家）",
+      "quote": "“兼具 OpenAI 与 DeepMind 双重基因，但科学发现商业化转化周期通常较长。”",
+      "site": "https://periodic.com", "rounds": [ {"date":"2025-09","amt":3,"label":"种子 $3亿"} ] },
+
+    { "name": "FutureHouse / Edison Scientific", "trackId": "science", "source": "report", "founded": 2025, "track": "AI for Science",
+      "val": "≈ $2.5 亿（Edison）", "valNum": 2.5, "valTrend": "up", "valNote": "Edison 种子轮 $7000 万 / 估值≈$2.5亿(2025.12)；FutureHouse 慈善资助不融资",
+      "funding": "$7000 万", "fundNum": 0.7, "theory": ["AI 科学家平台", "文献搜索代理", "完整科研循环"],
+      "stage": "product", "customer": "六家全球前十制药公司主动寻求合作",
+      "highlights": ["首个独立完成完整科研循环的 AI：48 小时 / $200 成本", "首个击败人类的 AI 文献搜索代理"],
+      "founders": "FutureHouse 由前谷歌 CEO Eric Schmidt 等支持；天使含 Jeff Dean、Dmitri Alperovitch；Edison 由 Spark Capital、Triatomic 领投",
+      "quote": "“已进入商业化早期，产品-市场契合度已验证，种子轮投资者回报可期。”",
+      "site": "https://www.futurehouse.org", "rounds": [ {"date":"2025-12","amt":0.7,"label":"种子 $0.7亿"} ] },
+
+    { "name": "EvolutionaryScale", "trackId": "science", "source": "web", "founded": 2023, "track": "蛋白质 AI",
+      "val": "暂未公开", "valNum": null, "valTrend": "up", "valNote": "种子轮 $1.42亿+（Nat Friedman、Daniel Gross、Lux 领投）",
+      "funding": "≈ $1.42 亿", "fundNum": 1.42, "theory": ["蛋白质语言模型", "生成式生物学", "序列-结构-功能"],
+      "stage": "product", "product": "ESM3（最大蛋白质语言模型，生成全新 GFP）",
+      "highlights": ["ESM3 在 2.78 亿蛋白质上训练", "Amazon、NVentures 参投"],
+      "founders": "Alex Rives（前 Meta ESM 团队）、Tom Sercu 等，总部纽约",
+      "quote": "公开信息：以蛋白质语言模型让生物学「可编程」，对标 AI+生物前沿。",
+      "site": "https://www.evolutionaryscale.ai", "rounds": [ {"date":"2024-06","amt":1.42,"label":"种子 $1.42亿"} ] },
+
+    { "name": "Reflection AI", "trackId": "agents", "source": "web", "founded": 2024, "track": "编程超级智能",
+      "val": "$80 亿", "valNum": 80, "valTrend": "up", "valNote": "种子+A轮 $1.3亿(2025.03) → $20亿/估值$80亿(2025.10)，七个月跳升约15倍",
+      "funding": "≈ $21.3 亿", "fundNum": 21.3, "theory": ["开源前沿模型", "编程超级智能", "自主代码代理"],
+      "stage": "product", "product": "Asimov 代码研究代理（理解大型代码库）",
+      "highlights": ["英伟达领投 $20 亿", "对标 DeepSeek 的「美国开源前沿实验室」"],
+      "founders": "Misha Laskin（前 DeepMind，主导 Gemini 奖励建模）、Ioannis Antonoglou（AlphaGo 共同缔造者）",
+      "quote": "公开信息：定位为美国开源前沿 AI 实验室，已发布 Asimov，模型尚在打磨中。",
+      "site": "https://reflection.ai", "rounds": [ {"date":"2025-03","amt":1.3,"label":"种子+A $1.3亿"}, {"date":"2025-10","amt":20,"label":"$20亿"} ] },
+
+    { "name": "Magic.dev (Magic AI)", "trackId": "agents", "source": "web", "founded": 2022, "track": "编程基础模型",
+      "val": "$15 亿", "valNum": 15, "valTrend": "up", "valNote": "C轮$3.2亿(2024.08，Eric Schmidt 领投)/估值$15亿",
+      "funding": "≈ $4.66 亿", "fundNum": 4.66, "theory": ["软件工程 AGI", "超长上下文", "代码基础模型"],
+      "stage": "product", "product": "面向编程优化的前沿模型（超长上下文）",
+      "highlights": ["Eric Schmidt、CapitalG、Jane Street 背书", "对标 AI 软件工程师方向"],
+      "founders": "Eric Steinberger、Sebastian De Ro，旧金山",
+      "quote": "公开信息：研发专为编程优化、具超长上下文的代码基础模型。",
+      "site": "https://magic.dev", "rounds": [ {"date":"2024-08","amt":3.2,"label":"C轮 $3.2亿"} ] },
+
+    { "name": "Cognition AI", "trackId": "agents", "source": "web", "founded": 2023, "track": "软件工程智能体",
+      "val": "$260 亿", "valNum": 260, "valTrend": "up", "valNote": "$10.2亿估值(2025.09，$4亿) → $26亿估值(2026.05，$10亿+)",
+      "funding": "≈ $14 亿", "fundNum": 14, "theory": ["自主软件工程师", "编程智能体", "端到端开发"],
+      "stage": "product", "product": "Devin（AI 软件工程师），并购 Windsurf", "revenue": "营收年化由 $0.37亿(2025.05) 增至 ≈$4.92亿",
+      "highlights": ["Devin ARR 一年增 13 倍", "Founders Fund、Lux、8VC 等领投"],
+      "founders": "创始团队以编程竞赛背景著称；Founders Fund、Lux Capital、8VC 等投资",
+      "quote": "公开信息：旗舰 Devin 为自主 AI 软件工程师，收入高速增长。",
+      "site": "https://cognition.ai", "rounds": [ {"date":"2025-09","amt":4,"label":"$4亿/估$10.2亿"}, {"date":"2026-05","amt":10,"label":"$10亿/估$26亿"} ] },
+
+    { "name": "Sierra", "trackId": "agents", "source": "web", "founded": 2023, "track": "企业 AI 智能体",
+      "val": "$158 亿", "valNum": 158, "valTrend": "up", "valNote": "$100亿估值(2025.09，$3.5亿) → $158亿估值(2026.05，$9.5亿)",
+      "funding": "≈ $13 亿", "fundNum": 13, "theory": ["企业 AI 智能体", "客服自动化", "行业落地"],
+      "stage": "product", "product": "面向客户服务的企业级 AI 智能体平台",
+      "highlights": ["40%+ 财富 50 强为客户", "Greenoaks、Tiger Global、GV 领投"],
+      "founders": "Bret Taylor（前 Salesforce 联席 CEO、OpenAI 董事会主席）等，旧金山",
+      "quote": "公开信息：为企业构建与部署客服 AI 智能体，需求激增推动估值跃升。",
+      "site": "https://sierra.ai", "rounds": [ {"date":"2025-09","amt":3.5,"label":"$3.5亿/估$100亿"}, {"date":"2026-05","amt":9.5,"label":"$9.5亿/估$158亿"} ] },
+
+    { "name": "Imbue", "trackId": "agents", "source": "web", "founded": 2022, "track": "推理智能体",
+      "val": "$10 亿+", "valNum": 10, "valTrend": "up", "valNote": "A轮$0.2亿(2022.10) → B轮$2亿(2023.09，Astera 领投)，估值超$10亿",
+      "funding": "≈ $2.32 亿", "fundNum": 2.32, "theory": ["推理模型", "自主智能体", "推理为核心"],
+      "stage": "research", "highlights": ["前身 Generally Intelligent", "极少数女性主导的 AI 独角兽"],
+      "founders": "Kanjun Qiu（联合创始人兼 CEO），旧金山；投资方含 Astera、英伟达、Eric Schmidt",
+      "quote": "公开信息：聚焦以推理为核心的自主智能体，主张「推理是 agent 的核心瓶颈」。",
+      "site": "https://imbue.com", "rounds": [ {"date":"2023-09","amt":2,"label":"B轮 $2亿"} ] },
+
+    { "name": "Google DeepMind", "trackId": "corporate", "source": "report", "founded": 2010, "track": "全领域",
+      "val": "不公开", "valNum": null, "valTrend": "flat", "valNote": "2024 年获约 $37 亿研发资金支持",
+      "funding": "≈ $37 亿 / 年（研发）", "fundNum": 37, "theory": ["嵌套学习 (Nested Learning)", "AI for Science", "世界模型"],
+      "stage": "product", "product": "C2S-Scale 27B · Co-Scientist · Project Genie",
+      "highlights": ["C2S-Scale 27B 验证全新抗癌假说（冷肿瘤变热）", "计划 2026 在英建成首个全自动化研究实验室"],
+      "founders": "谷歌核心 AI 研究部门；创始人 Shane Legg 称嵌套学习是通往 AGI 的关键路径",
+      "quote": "“『深度研究+产品转化』模式在 Neo Labs 生态中尚未被任何初创公司超越。”",
+      "site": "https://deepmind.google", "rounds": [] },
+
+    { "name": "OpenAI（企业级）", "trackId": "corporate", "source": "report", "founded": 2015, "track": "全领域",
+      "val": "≈ $3000 亿", "valNum": 3000, "valTrend": "up", "valNote": "营利性重组估值≈$1300亿 → 软银约$400亿投资后≈$3000亿(2025末)",
+      "funding": "$400 亿+", "fundNum": 400, "theory": ["全领域 AGI", "公共利益公司 (PBC)", "股权换服务"],
+      "stage": "product", "product": "GPT 系列 · ChatGPT · DALL·E",
+      "highlights": ["硅谷最大 AI 研究与产品综合体", "2025.12「股权换服务」模式创新（不涉现金）"],
+      "founders": "Neo Labs 生态「母体」——大量顶尖实验室创始人来自 OpenAI",
+      "quote": "“跟踪其人才流出方向，能为投资新兴 Neo Labs 提供关键线索。”",
+      "site": "https://openai.com", "rounds": [] }
+  ]
+};
+
+let DATA = FALLBACK_DATA;
+let trackMap = {};
+
+async function boot(){
+  try{
+    const res = await fetch('labs.json', { cache: 'no-store' });
+    if(res.ok){ DATA = await res.json(); }
+  }catch(e){ /* 离线 / file:// → 用内置回退 */ }
+  if(!DATA){ document.getElementById('trackContainer').innerHTML =
+    '<div class="p-6 rounded-xl bg-amber-50 text-amber-800 text-sm">未能加载 labs.json，且无内置数据。请通过网站/本地服务器访问。</div>'; return; }
+  trackMap = Object.fromEntries(DATA.tracks.map(t => [t.id, t]));
+  document.getElementById('updatedAt').textContent = DATA.updated || '—';
+  const rep = DATA.labs.filter(l=>l.source==='report').length;
+  const web = DATA.labs.filter(l=>l.source==='web').length;
+  document.getElementById('kpiCount').innerHTML = DATA.labs.length + '<span class="text-base font-bold"> 家</span>';
+  document.getElementById('kpiSplit').textContent = `报告 ${rep} + 网络检索补充 ${web}`;
+  buildTrackFilter();
+  wireControls();
+  render();
+  applyTheme(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+
+/* ===================== HELPERS ===================== */
+function isDark(){ return document.documentElement.classList.contains('dark'); }
+function gridColor(){ return isDark() ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)'; }
+function tickColor(){ return isDark() ? '#cbd5e1' : '#475569'; }
+function srcColor(src){ // 报告 = 靛蓝；网络补充 = 玫红
+  if(src==='report') return isDark() ? '#818cf8' : '#6366f1';
+  return isDark() ? '#fb7185' : '#f43f5e';
+}
+const stageBadge = (lab) => lab.stage === 'product'
+  ? '<span class="chip px-2 py-1 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 font-semibold">✓ 已有产品</span>'
+  : '<span class="chip px-2 py-1 rounded-md bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-semibold">研究阶段</span>';
+const trendArrow = (t) => t === 'up'
+  ? '<span class="text-emerald-500 font-bold">▲</span>'
+  : '<span class="text-slate-400 font-bold">—</span>';
+const sourcePill = (src) => src==='report'
+  ? '<span class="chip px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 font-semibold">报告原始</span>'
+  : '<span class="chip px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 font-semibold">网络补充</span>';
+
+function achievementHTML(lab){
+  const items=[];
+  if(lab.product)  items.push(`<div class="flex gap-1.5"><span class="text-emerald-500">●</span><span><b>产品:</b> ${lab.product}</span></div>`);
+  if(lab.customer) items.push(`<div class="flex gap-1.5"><span class="text-sky-500">●</span><span><b>客户:</b> ${lab.customer}</span></div>`);
+  if(lab.revenue)  items.push(`<div class="flex gap-1.5"><span class="text-amber-500">●</span><span><b>收入:</b> ${lab.revenue}</span></div>`);
+  (lab.highlights||[]).slice(0,2).forEach(h=>items.push(`<div class="flex gap-1.5"><span class="text-indigo-400">›</span><span>${h}</span></div>`));
+  return items.join('');
+}
+function linksHTML(lab, dark){
+  const yt = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(lab.name + ' AI lab');
+  const base = dark ? 'border-white/30 text-white/90 hover:bg-white/15'
+                    : 'border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800';
+  const site = lab.site
+    ? `<a href="${lab.site}" target="_blank" rel="noopener" class="chip inline-flex items-center gap-1 px-2 py-1 rounded-md border ${base} font-medium">🔗 官网</a>`
+    : `<span class="chip inline-flex items-center gap-1 px-2 py-1 rounded-md border ${base} opacity-60">🔗 官网暂未公开</span>`;
+  const vid = `<a href="${yt}" target="_blank" rel="noopener" class="chip inline-flex items-center gap-1 px-2 py-1 rounded-md border ${base} font-medium">▶ 介绍视频</a>`;
+  return site + vid;
+}
+function cardHTML(lab){
+  const track = trackMap[lab.trackId] || {tag:'', accent:'from-slate-500 to-slate-600'};
+  const theoryChips = (lab.theory||[]).map(t=>`<span class="chip px-2 py-1 rounded-full ${track.tag} font-medium">${t}</span>`).join('');
+  const backLabel = lab.source==='web' ? '公开信息摘要' : '报告投资评估';
+  return `
+  <div class="flip card h-[388px]">
+    <div class="flip-inner relative w-full h-full">
+      <div class="flip-face absolute inset-0 rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-md ring-1 ring-black/5 dark:ring-white/5 flex flex-col">
+        <div class="flex items-start justify-between gap-2 min-h-[44px]">
+          <h4 class="font-bold text-[15px] leading-snug">${lab.name}</h4>
+          <div class="shrink-0">${stageBadge(lab)}</div>
+        </div>
+        <div class="mt-2">${sourcePill(lab.source)}</div>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div class="min-w-0">
+            <div class="text-[11px] text-slate-400 mb-1">最新估值</div>
+            <div class="text-lg font-black leading-tight tracking-tight">${lab.val}<span class="text-xs align-middle ml-1">${trendArrow(lab.valTrend)}</span></div>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[11px] text-slate-400 mb-1">累计融资</div>
+            <div class="text-lg font-black leading-tight tracking-tight">${lab.funding}</div>
+          </div>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400">成立 ${lab.founded} · ${lab.track}</div>
+        <div class="mt-3"><div class="text-[11px] text-slate-400 mb-1.5">理论基础</div>
+          <div class="flex flex-wrap gap-1.5">${theoryChips}</div></div>
+        <div class="mt-3 text-xs text-slate-600 dark:text-slate-300 space-y-1">${achievementHTML(lab)}</div>
+        <div class="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-1.5 items-center">
+          ${linksHTML(lab,false)}
+          <span class="chip text-slate-300 dark:text-slate-600 ml-auto">悬浮看团队 ↻</span>
+        </div>
+      </div>
+      <div class="flip-face flip-back absolute inset-0 rounded-2xl bg-gradient-to-br ${track.accent} p-5 shadow-lg text-white flex flex-col">
+        <h4 class="font-bold text-[15px]">${lab.name}</h4>
+        <div class="mt-3 text-[11px] uppercase tracking-wide opacity-80">团队背景</div>
+        <p class="mt-1 text-[13px] leading-relaxed">${lab.founders}</p>
+        <div class="mt-3 text-[11px] uppercase tracking-wide opacity-80">估值演变</div>
+        <p class="mt-1 text-[12px] leading-relaxed opacity-95">${lab.valNote}</p>
+        <div class="mt-auto pt-3 border-t border-white/25">
+          <p class="text-[13px] italic leading-relaxed">${lab.quote}</p>
+          <div class="text-[10px] opacity-70 mt-1">— ${backLabel}</div>
+          <div class="mt-2 flex flex-wrap gap-1.5">${linksHTML(lab,true)}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ===================== FILTER / SORT / RENDER ===================== */
+function buildTrackFilter(){
+  const sel = document.getElementById('fTrack');
+  sel.innerHTML = '<option value="all">全部赛道</option>' +
+    DATA.tracks.map(t=>`<option value="${t.id}">${t.emoji} ${t.name}</option>`).join('');
+}
+function getFiltered(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const fs = document.getElementById('fSource').value;
+  const ft = document.getElementById('fTrack').value;
+  const fst = document.getElementById('fStage').value;
+  return DATA.labs.filter(l=>{
+    if(fs!=='all' && l.source!==fs) return false;
+    if(ft!=='all' && l.trackId!==ft) return false;
+    if(fst!=='all' && l.stage!==fst) return false;
+    if(q){
+      const hay = [l.name, l.track, l.founders, (l.theory||[]).join(' '), (trackMap[l.trackId]||{}).name].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function sortLabs(labs, mode){
+  const num = (v)=> (v==null ? -Infinity : v);
+  const a = labs.slice();
+  if(mode==='valDesc') a.sort((x,y)=>num(y.valNum)-num(x.valNum));
+  else if(mode==='fundDesc') a.sort((x,y)=>num(y.fundNum)-num(x.fundNum));
+  else if(mode==='foundedDesc') a.sort((x,y)=>y.founded-x.founded);
+  else if(mode==='foundedAsc') a.sort((x,y)=>x.founded-y.founded);
+  else if(mode==='nameAsc') a.sort((x,y)=>x.name.localeCompare(y.name));
+  return a;
+}
+function render(){
+  const c = document.getElementById('trackContainer');
+  const sort = document.getElementById('fSort').value;
+  const labs = getFiltered();
+  document.getElementById('resultCount').textContent = `显示 ${labs.length} / ${DATA.labs.length} 家`;
+  c.innerHTML = '';
+  if(labs.length===0){ c.innerHTML='<div class="p-8 text-center text-slate-400">没有符合条件的实验室，试试放宽筛选。</div>'; return; }
+
+  if(sort==='default'){
+    DATA.tracks.forEach(track=>{
+      const inT = labs.filter(l=>l.trackId===track.id);
+      if(!inT.length) return;
+      const sec=document.createElement('section'); sec.className='fade-up';
+      sec.innerHTML = `
+        <div class="flex items-center gap-3 mb-1 flex-wrap">
+          <span class="text-2xl">${track.emoji}</span>
+          <h2 class="text-2xl font-extrabold">${track.name}</h2>
+          <span class="chip px-2 py-1 rounded-full ${track.tag} font-semibold">${inT.length} 家</span>
+        </div>
+        <p class="text-sm text-slate-500 mb-5 ml-9">${track.desc}</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${inT.map(cardHTML).join('')}</div>`;
+      c.appendChild(sec);
+    });
+  } else {
+    const sorted = sortLabs(labs, sort);
+    const sec=document.createElement('section'); sec.className='fade-up';
+    sec.innerHTML = `<div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">${sorted.map(cardHTML).join('')}</div>`;
+    c.appendChild(sec);
+  }
+}
+function wireControls(){
+  ['q','fSource','fTrack','fStage','fSort'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.addEventListener(id==='q'?'input':'change', render);
+  });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    document.getElementById('q').value='';
+    ['fSource','fTrack','fStage','fSort'].forEach(id=>document.getElementById(id).value = id==='fTrack'||id==='fSource'||id==='fStage'?'all':'default');
+    document.getElementById('fSort').value='default';
+    render();
+  });
+}
+
+/* ===================== CHARTS ===================== */
+let valChart, timeChart;
+function legendHTML(){
+  const dot=(c)=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c};margin-right:4px"></span>`;
+  return `${dot(srcColor('report'))}报告原始 &nbsp; ${dot(srcColor('web'))}网络补充`;
+}
+function buildVal(){
+  const ctx=document.getElementById('valChart'); if(valChart) valChart.destroy();
+  const rows = DATA.labs.filter(l=>l.valNum!=null).sort((a,b)=>b.valNum-a.valNum);
+  document.getElementById('valLegend').innerHTML = legendHTML();
+  valChart=new Chart(ctx,{ type:'bar',
+    data:{ labels:rows.map(d=>d.name),
+      datasets:[{ label:'最新估值（亿美元）', data:rows.map(d=>d.valNum),
+        backgroundColor:rows.map(d=>srcColor(d.source)), borderRadius:5, maxBarThickness:22 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        label:c=>` $${c.parsed.x} 亿`, afterLabel:c=>rows[c.dataIndex].source==='report'?'报告原始':'网络补充' } } },
+      scales:{ x:{ type:'logarithmic', grid:{color:gridColor()}, ticks:{ color:tickColor(), callback:v=>'$'+v } },
+        y:{ grid:{display:false}, ticks:{ color:tickColor(), font:{size:10} } } } }
+  });
+}
+function mIdx(dstr){ const [y,m]=dstr.split('-').map(Number); return (y-2024)*12 + (m-1); }
+function buildTime(){
+  const ctx=document.getElementById('timeChart'); if(timeChart) timeChart.destroy();
+  const rows = DATA.labs.filter(l=>l.rounds && l.rounds.length);
+  rows.sort((a,b)=> mIdx(a.rounds[0].date) - mIdx(b.rounds[0].date));
+  const labelByY = ['']; const pts=[];
+  rows.forEach((lab,i)=>{ const y=i+1; labelByY.push(lab.name);
+    lab.rounds.forEach(r=>pts.push({ x:mIdx(r.date), y, r:Math.max(4,Math.sqrt(r.amt)*3), src:lab.source, name:lab.name, lbl:r.label, date:r.date }));
+  });
+  document.getElementById('timeLegend').innerHTML = legendHTML();
+  const xs=pts.map(p=>p.x); const minX=Math.min(...xs)-1, maxX=Math.max(...xs)+1;
+  timeChart=new Chart(ctx,{ type:'bubble',
+    data:{ datasets:[{ data:pts,
+      backgroundColor:pts.map(p=>srcColor(p.src)+'b3'),
+      borderColor:pts.map(p=>srcColor(p.src)), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        title:c=>c[0].raw.name,
+        label:c=>{ const p=c.raw; const [y,m]=p.date.split('-'); return ` ${y}.${Number(m)} · ${p.lbl}`; } } } },
+      scales:{
+        x:{ min:minX, max:maxX, grid:{color:gridColor()},
+            ticks:{ color:tickColor(), stepSize:3, callback:v=>{ if(v<minX||v>maxX) return ''; const yr=2024+Math.floor(v/12); const mo=((v%12)+12)%12+1; return `${yr}.${mo}`; } } },
+        y:{ min:0.5, max:rows.length+0.5, grid:{color:gridColor()},
+            ticks:{ color:tickColor(), stepSize:1, callback:v=>labelByY[v]||'', font:{size:9} } } } }
+  });
+}
+function ensureCharts(){ if(!DATA) return; buildVal(); buildTime(); }
+
+/* ===================== THEME ===================== */
+function applyTheme(dark){ document.documentElement.classList.toggle('dark', dark); ensureCharts(); }
+document.getElementById('themeBtn').addEventListener('click', ()=> applyTheme(!isDark()));
+
+boot();
+</script>
+</body>
+</html>
