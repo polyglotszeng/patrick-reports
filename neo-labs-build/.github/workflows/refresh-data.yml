@@ -1,0 +1,51 @@
+name: Refresh Neo Labs Data
+
+on:
+  schedule:
+    # 每周一 UTC 06:00 刷新（Patrick 香港时间 14:00）
+    - cron: '0 6 * * 1'
+  workflow_dispatch:  # 允许手动触发
+  push:
+    paths:
+      - 'neo-labs-labs.json'  # 如果源数据更新也触发
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 校验 + 同步数据
+        run: |
+          node scripts/refresh-data.mjs
+      
+      - name: 构建 + 部署
+        run: |
+          npm ci
+          npm run build
+        env:
+          NEXT_PUBLIC_BASE_PATH: /neo-labs
+      
+      - name: 部署到 Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: patrick-reports
+          directory: out
+          
+      - name: 部署成功通知
+        if: success()
+        run: |
+          echo "✅ Neo Labs 数据已更新并部署"
+          echo "🌐 https://2017zyl.xyz/neo-labs/"
+          
+      - name: 部署失败告警
+        if: failure()
+        run: |
+          echo "❌ 部署失败！请检查 logs"

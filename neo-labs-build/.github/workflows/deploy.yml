@@ -1,0 +1,47 @@
+name: Deploy Neo Labs to Cloudflare Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build static site
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BASE_PATH: /neo-labs
+      
+      - name: Copy data files to out
+        run: cp -r public/neo-labs out/neo-labs/
+      
+      # === Deploy 方式 1: Cloudflare Pages Direct Upload (推荐 Patrick 当前 setup) ===
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: patrick-reports
+          directory: out
+          # 不指定 gitBranch，使用 main
+          # monorepo: out 目录对应 /neo-labs/ 路径
+          
+      # === Deploy 方式 2: Wrangler CLI (本地或 CI) ===
+      # - name: Deploy via Wrangler
+      #   run: npx wrangler pages deploy out --project-name=patrick-reports
+      #   env:
+      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      #     CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
