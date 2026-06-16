@@ -1,0 +1,21 @@
+# HTTP response headers for patrick-reports static assets.
+# NOTE: cache-control and security headers belong HERE, not in _redirects
+# (which only accepts redirect rules: `source destination [status]`).
+
+# Hashed Next.js build assets — safe to cache forever (filename changes on rebuild)
+/neo-labs/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML — never cache, so new deploys are picked up immediately and never
+# reference deleted asset hashes (this is what caused the stale-page outage)
+/neo-labs/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# JSON data — short cache
+/neo-labs/*.json
+  Cache-Control: public, max-age=300, must-revalidate
+
+# Security headers (applied site-wide)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
