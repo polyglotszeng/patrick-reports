@@ -15,14 +15,14 @@ export default function ComparePage() {
     const ids = params.get('ids')?.split(',') || [];
     setSelected(ids);
     
-    fetch(window.location.pathname.replace(/\/compare\/?$/, '/neo-labs/labs.json').replace(/^.*?\/neo-labs/, '/neo-labs'))
+    fetch(`${window.location.origin}/neo-labs/labs.json`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data) { setLabs(data.labs); setLoaded(true); }
       })
       .catch(() => {
         // 备用：硬编码基础 URL
-        fetch('/neo-labs/labs.json').then(r => r.json()).then(data => {
+        fetch(`${window.location.origin}/neo-labs/labs.json`).then(r => r.json()).then(data => {
           setLabs(data.labs); setLoaded(true);
         });
       });
