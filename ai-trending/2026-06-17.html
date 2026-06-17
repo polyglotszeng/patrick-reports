@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 热门追踪 · 2026-06-17</title>
+<meta name="description" content="每日 AI 热门 — Hacker News + GitHub + arXiv">
+<meta name="theme-color" content="#0a0e1a">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --card: rgba(20, 25, 40, 0.7);
+  --card-border: rgba(120, 140, 200, 0.18);
+  --text: #e6ecff;
+  --muted: #8a96b8;
+  --accent: #5b8def;
+  --ok: #5dd39e;
+  --warn: #f0b048;
+  --err: #ff6b6b;
+  --code-bg: rgba(255,255,255,0.06);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+               "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(at 20% 0%, rgba(91,141,239,0.15) 0%, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(93,211,158,0.10) 0%, transparent 50%);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+header { margin-bottom: 32px; }
+h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.5px; }
+.subtitle { color: var(--muted); font-size: 14px; }
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px; margin: 24px 0;
+}
+.stat {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+.stat .num { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.section { margin-top: 36px; }
+.section h2 {
+  font-size: 18px; margin: 0 0 16px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--card-border);
+}
+.bucket-h3 {
+  font-size: 14px; margin: 20px 0 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+details { margin-top: 24px; }
+details summary {
+  cursor: pointer; padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  font-weight: 600;
+  list-style: none;
+}
+details summary::-webkit-details-marker { display: none; }
+details summary::before { content: "▸ "; color: var(--accent); }
+details[open] summary::before { content: "▾ "; }
+.item {
+  display: flex; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(120, 140, 200, 0.08);
+}
+.item:last-child { border-bottom: none; }
+.rank {
+  flex: 0 0 36px; text-align: right;
+  color: var(--muted); font-weight: 600; font-size: 14px;
+  padding-top: 2px;
+}
+.content { flex: 1; min-width: 0; }
+.title-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.title {
+  color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px;
+  flex: 1; min-width: 0;
+}
+.title:hover { color: var(--accent); text-decoration: underline; }
+.desc { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.abstract { color: var(--text); opacity: 0.85; font-size: 13px; margin-top: 8px; line-height: 1.5;
+  padding: 8px 12px; background: rgba(91,141,239,0.06); border-left: 2px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+}
+.tag.full-abs { background: rgba(91,141,239,0.2); color: #5b8def; font-size: 9px; }
+.authors { color: var(--muted); font-size: 11px; margin-top: 4px; font-style: italic; }
+.cats { color: var(--accent); font-size: 11px; margin-top: 2px; opacity: 0.8; }
+.meta { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.meta code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+.tag {
+  font-size: 10px; padding: 2px 8px; border-radius: 999px;
+  font-weight: 600; letter-spacing: 0.5px;
+  background: rgba(120, 140, 200, 0.15); color: var(--muted);
+  flex: 0 0 auto;
+}
+.tag.accent { background: rgba(245, 166, 35, 0.18); color: #f5a623; }
+.tag.ok { background: rgba(93, 211, 158, 0.18); color: #5dd39e; }
+.tag.warn { background: rgba(240, 176, 72, 0.18); color: #f0b048; }
+footer {
+  margin-top: 60px; padding-top: 20px;
+  border-top: 1px solid var(--card-border);
+  color: var(--muted); font-size: 12px; text-align: center;
+}
+@media (max-width: 600px) {
+  .wrap { padding: 20px 14px 60px; }
+  h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧠 AI 热门追踪</h1>
+    <div class="subtitle">2026-06-17 · 自动收集 Hacker News + GitHub + arXiv · 生成于 2026-06-17T00:01:04.393850Z</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="num">0</div><div class="label">Hacker News</div></div>
+      <div class="stat"><div class="num">35</div><div class="label">GitHub</div></div>
+      <div class="stat"><div class="num">10</div><div class="label">arXiv</div></div>
+      <div class="stat"><div class="num">15</div><div class="label">Top 20</div></div>
+    </div>
+  </header>
+
+  <div class="section">
+    <h2>🔥 综合 Top 20 (按影响力打分)</h2>
+    <div class="item">
+  <div class="rank">#01</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/omnigent-ai/omnigent" target="_blank" rel="noopener" class="title">omnigent-ai/omnigent</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check</div>
+    
+    
+    <div class="meta">★ 2,763 · ⑂ 321 forks · <code>Python</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#02</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/nolangz/pixel2motion" target="_blank" rel="noopener" class="title">nolangz/pixel2motion</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">AI logo animation skill: turn raster logos into smooth SVG animation, animated HTML demos, GIF/video previews, and motion QA evidence.</div>
+    
+    
+    <div class="meta">★ 595 · ⑂ 52 forks · <code>Python</code> · 📅 2026-06-12</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#03</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/alchaincyf/fanbox" target="_blank" rel="noopener" class="title">alchaincyf/fanbox</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">vibe coding 的驾驶舱：左边文件，右边/下边终端，中间看清每一次改动。 / The cockpit for vibe coding: browse files on the left, command agents on the right, watch every change in between.</div>
+    
+    
+    <div class="meta">★ 604 · ⑂ 86 forks · <code>JavaScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#04</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/fivetaku/fablize" target="_blank" rel="noopener" class="title">fivetaku/fablize</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A Claude Code plugin that makes Opus behave like Fable — completion, evidence, and verification enforced as procedure. Ships only what a Fable-vs-Opus comparison proved transferable.</div>
+    
+    
+    <div class="meta">★ 342 · ⑂ 63 forks · <code>Shell</code> · 📅 2026-06-14</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#05</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/itsinseong/value-for-fable" target="_blank" rel="noopener" class="title">itsinseong/value-for-fable</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Opus에 근접한 품질을 Sonnet 단가에 — 가성비 AI 운영 모델을 직접 구축한 Claude Code 프로젝트</div>
+    
+    
+    <div class="meta">★ 193 · ⑂ 46 forks · <code>Python</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#06</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/Nanako0129/coralline" target="_blank" rel="noopener" class="title">Nanako0129/coralline</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">🪸 Powerlevel10k-inspired statusline for Claude Code — paste one prompt and your AI interviews you, then installs it</div>
+    
+    
+    <div class="meta">★ 318 · ⑂ 25 forks · <code>Shell</code> · 📅 2026-06-12</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#07</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/vinayaklatthe/microsoft-security-skills" target="_blank" rel="noopener" class="title">vinayaklatthe/microsoft-security-skills</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Curated Microsoft Security skills for AI agents - Defender, Sentinel, Entra, Purview, Intune, Security Copilot</div>
+    
+    
+    <div class="meta">★ 109 · ⑂ 28 forks · <code>JavaScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#08</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/ruvnet/agent-harness-generator" target="_blank" rel="noopener" class="title">ruvnet/agent-harness-generator</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">🛠️ The meta-harness for AI agents — scaffold your own focused, branded agent harness with its own npx CLI, MCP server, memory, learning loop, and witness-signed releases. Works with Claude Code, Codex</div>
+    
+    
+    <div class="meta">★ 118 · ⑂ 10 forks · <code>TypeScript</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#09</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/SihyeonJeon/why-was-fable-banned" target="_blank" rel="noopener" class="title">SihyeonJeon/why-was-fable-banned</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Spec-first, evidence-gated engineering-procedure enforcement for AI coding agents (Claude Code + Codex). The agent can&#x27;t edit until it writes a passing spec.</div>
+    
+    
+    <div class="meta">★ 44 · ⑂ 10 forks · <code>Python</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#10</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/dongshuyan/compass-skills" target="_blank" rel="noopener" class="title">dongshuyan/compass-skills</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">司南：个性化 AI 任务总控 Skills 系统 /COMPASS: Personal Alignment Skills OS for AI Agents</div>
+    
+    
+    <div class="meta">★ 183 · ⑂ 18 forks · <code>Python</code> · 📅 2026-06-15</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#11</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17016v1" target="_blank" rel="noopener" class="title">TokenPilot: Cache-Efficient Context Management for LLM Agents</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">As LLM agents are deployed in long-horizon sessions, context accumulation drives up inference costs. Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation. This reveals a critical trade-off between text sparsity and prompt cache continuity. To address this, we present TokenPilot, a dual-granularity context management framework. Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate. Locally, Lifecycle-Aware Eviction monitors the ongoing residual utility of context segments, enforcing a conservative batch-turn schedule to offload content segments only when task relevance expires. Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems. TokenPilot has been integrated into LightMem2 at this https URL .</div>
+    <div class="authors">👥 Buqiang Xu, Zirui Xue, Dianmou Chen 等</div>
+    <div class="cats">🏷️ cs.CL · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17016v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#12</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17005v1" target="_blank" rel="noopener" class="title">Bayesian Inference and Decision Audits for Public Archives of Frontier AI Evaluations</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Public AI evaluations are often read as terminal leaderboards, yet the underlying evidence is a selective time series shaped by reporting rules, benchmark revisions, and missingness. Repeated public archives for LiveBench and Open LLM Leaderboard v2 serve as the primary longitudinal record; LMArena provides a preference stress test; and GAIA and tau-bench contribute limited agentic pilots. Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model. In synthetic posterior comparisons, action-facing diagnostics differ across observation regimes. The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims. An archive-and-adjudication protocol reconstructs public evaluation histories, isolates a verified timing boundary, and falsifies unsupported frontier claims.</div>
+    <div class="authors">👥 Yanan Long</div>
+    <div class="cats">🏷️ cs.AI · stat.ME</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17005v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#13</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.16996v1" target="_blank" rel="noopener" class="title">ActiveSAM: Image-Conditional Class Pruning for Fast and Accurate Open-Vocabulary Segmentation</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes. We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter. ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview. Only the retained classes are decoded at full resolution, using bucketed prompt multiplexing with the frozen SAM 3 decoder. The preview stage uses only class-presence evidence and skips unnecessary segmentation-head computation, while the final stage applies margin-aware background calibration to suppress low-confidence pixels. ActiveSAM requires no target-dataset training, no weight updates, and no oracle class-presence labels. Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets. ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input</div>
+    <div class="authors">👥 Tran Dinh Tien, Zhiqiang Shen</div>
+    <div class="cats">🏷️ cs.CV · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.16996v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#14</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17028v1" target="_blank" rel="noopener" class="title">HAMON: Passive Optical Sequence Mixing for Long-Horizon Forecasting</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains. This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing? We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field. At inference, prediction is performed by a single passive optical propagation pass with no trainable digital sequence-mixing layer. Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\% and doing so consistently across horizons rather than at isolated points. It is competitive on Weather and trails the strongest baselines on the remaining ETT settings and on the high-channel-count Traffic and Electricity datasets. Phase encoding, intensity-compatible readout, and phase-scrambling ablations, together with a TorchOptics cross-simulator check, indicate that the forecasts arise from the data-bearing op</div>
+    <div class="authors">👥 Alper Yıldırım</div>
+    <div class="cats">🏷️ cs.LG · cs.AI · cs.AR</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17028v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#15</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17006v1" target="_blank" rel="noopener" class="title">TuneJury: An Open Metric for Improving Music Generation Preference Alignment</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip. The released checkpoint is trained on publicly available human-preference labels covering arena-style (A vs. B) votes, metric-alignment preference pairs, crowdsourced pairwise comparisons, and expert aesthetic ratings. The predicted score margin between two clips is well calibrated on our held-out test split, supporting data filtering via a simple score threshold. TuneJury generalizes to both held-out test pairs and out-of-distribution benchmarks, remaining competitive with prior baselines on the latter. For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining. The same frozen reward drives consistent reward-axis gains across three downstream applications: inference-time best-of-N selection, DITTO-style latent optimization, and expert-iteration post-training. TuneJury is available at this https URL .</div>
+    <div class="authors">👥 Yonghyun Kim, Junwon Lee, Haiwen Xia 等</div>
+    <div class="cats">🏷️ cs.SD · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17006v1</div>
+  </div>
+</div>
+  </div>
+
+  <details open>
+    <summary>📰 Hacker News (0 条 — 按时间分桶)</summary>
+    <div class="section">
+      
+    </div>
+  </details>
+
+  <details>
+    <summary>💻 GitHub (35 个新仓 + 30d 趋势)</summary>
+    <div class="section">
+      <div class="item">
+  <div class="rank">#01</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/omnigent-ai/omnigent" target="_blank" rel="noopener" class="title">omnigent-ai/omnigent</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check</div>
+    
+    
+    <div class="meta">★ 2,763 · ⑂ 321 forks · <code>Python</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#02</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/nolangz/pixel2motion" target="_blank" rel="noopener" class="title">nolangz/pixel2motion</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">AI logo animation skill: turn raster logos into smooth SVG animation, animated HTML demos, GIF/video previews, and motion QA evidence.</div>
+    
+    
+    <div class="meta">★ 595 · ⑂ 52 forks · <code>Python</code> · 📅 2026-06-12</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#03</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/alchaincyf/fanbox" target="_blank" rel="noopener" class="title">alchaincyf/fanbox</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">vibe coding 的驾驶舱：左边文件，右边/下边终端，中间看清每一次改动。 / The cockpit for vibe coding: browse files on the left, command agents on the right, watch every change in between.</div>
+    
+    
+    <div class="meta">★ 604 · ⑂ 86 forks · <code>JavaScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#04</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/fivetaku/fablize" target="_blank" rel="noopener" class="title">fivetaku/fablize</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A Claude Code plugin that makes Opus behave like Fable — completion, evidence, and verification enforced as procedure. Ships only what a Fable-vs-Opus comparison proved transferable.</div>
+    
+    
+    <div class="meta">★ 342 · ⑂ 63 forks · <code>Shell</code> · 📅 2026-06-14</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#05</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/itsinseong/value-for-fable" target="_blank" rel="noopener" class="title">itsinseong/value-for-fable</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Opus에 근접한 품질을 Sonnet 단가에 — 가성비 AI 운영 모델을 직접 구축한 Claude Code 프로젝트</div>
+    
+    
+    <div class="meta">★ 193 · ⑂ 46 forks · <code>Python</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#06</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/Nanako0129/coralline" target="_blank" rel="noopener" class="title">Nanako0129/coralline</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">🪸 Powerlevel10k-inspired statusline for Claude Code — paste one prompt and your AI interviews you, then installs it</div>
+    
+    
+    <div class="meta">★ 318 · ⑂ 25 forks · <code>Shell</code> · 📅 2026-06-12</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#07</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/vinayaklatthe/microsoft-security-skills" target="_blank" rel="noopener" class="title">vinayaklatthe/microsoft-security-skills</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Curated Microsoft Security skills for AI agents - Defender, Sentinel, Entra, Purview, Intune, Security Copilot</div>
+    
+    
+    <div class="meta">★ 109 · ⑂ 28 forks · <code>JavaScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#08</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/ruvnet/agent-harness-generator" target="_blank" rel="noopener" class="title">ruvnet/agent-harness-generator</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">🛠️ The meta-harness for AI agents — scaffold your own focused, branded agent harness with its own npx CLI, MCP server, memory, learning loop, and witness-signed releases. Works with Claude Code, Codex</div>
+    
+    
+    <div class="meta">★ 118 · ⑂ 10 forks · <code>TypeScript</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#09</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/SihyeonJeon/why-was-fable-banned" target="_blank" rel="noopener" class="title">SihyeonJeon/why-was-fable-banned</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Spec-first, evidence-gated engineering-procedure enforcement for AI coding agents (Claude Code + Codex). The agent can&#x27;t edit until it writes a passing spec.</div>
+    
+    
+    <div class="meta">★ 44 · ⑂ 10 forks · <code>Python</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#10</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/dongshuyan/compass-skills" target="_blank" rel="noopener" class="title">dongshuyan/compass-skills</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">司南：个性化 AI 任务总控 Skills 系统 /COMPASS: Personal Alignment Skills OS for AI Agents</div>
+    
+    
+    <div class="meta">★ 183 · ⑂ 18 forks · <code>Python</code> · 📅 2026-06-15</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#11</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/001TMF/harness-forge" target="_blank" rel="noopener" class="title">001TMF/harness-forge</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Turn Claude Code into its own Meta-Harness — a skill that evolves the scaffolding around a fixed model (memory, retrieval, context, prompts) via a native propose→score→Pareto loop. Native reimplementa</div>
+    
+    
+    <div class="meta">★ 60 · ⑂ 5 forks · <code>Python</code> · 📅 2026-06-14</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#12</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/EvoLinkAI/awesome-claude-fable-5" target="_blank" rel="noopener" class="title">EvoLinkAI/awesome-claude-fable-5</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Curated Claude Fable 5 use cases, tutorials, integrations, demos, and benchmark evidence with source links and multilingual README files.</div>
+    
+    
+    <div class="meta">★ 45 · ⑂ 4 forks · <code>Python</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#13</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/fxa3bah/OneBrain" target="_blank" rel="noopener" class="title">fxa3bah/OneBrain</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Unify every AI agent on ONE local shared memory over MCP. Obsidian vault + gbrain (by Garry Tan) + Ollama. 100% offline, $0 API. Orchestrate with OpenClaw or Hermes.</div>
+    
+    
+    <div class="meta">★ 25 · ⑂ 4 forks · <code>Shell</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#14</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/michaljerzylew/openfusion" target="_blank" rel="noopener" class="title">michaljerzylew/openfusion</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A council of rival frontier-model CLIs (GPT-5.5, Gemini 3.1 Pro, Grok 4.3, Claude) plans your task claim-by-claim — self-votes excluded, every claim verified — then builds it. A Claude Code skill.</div>
+    
+    
+    <div class="meta">★ 5 · ⑂ 4 forks · <code>Python</code> · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#15</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/vstorm-co/agentcanvas" target="_blank" rel="noopener" class="title">vstorm-co/agentcanvas</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Visualize Pydantic AI agent workflows from Logfire traces as an interactive HTML diagram — tools, nested sub-agents, tokens and exact cost.</div>
+    
+    
+    <div class="meta">★ 54 · ⑂ 3 forks · <code>Python</code> · 📅 2026-06-12</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#16</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/THU-Team-Eureka/EurekAgent" target="_blank" rel="noopener" class="title">THU-Team-Eureka/EurekAgent</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">EurekAgent: an autonomous research system for metric-driven tasks, built with Claude Code. Define the problem and metric. Get breakthrough results.</div>
+    
+    
+    <div class="meta">★ 53 · ⑂ 3 forks · <code>Python</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#17</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/jtaoufik/tiger" target="_blank" rel="noopener" class="title">jtaoufik/tiger</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Free, open source, git-native API client. A local-first, account-free Postman alternative with a built-in MCP server, SOAP/GraphQL, request chaining and performance runs.</div>
+    
+    
+    <div class="meta">★ 49 · ⑂ 2 forks · <code>TypeScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#18</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/ucsahinn/codex-chef" target="_blank" rel="noopener" class="title">ucsahinn/codex-chef</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Codex Chef: Windows-first Codex setup kit with agents, skills, MCP connectors, safe installers, validation gates, and multilingual docs.</div>
+    
+    
+    <div class="meta">★ 6 · ⑂ 1 forks · <code>JavaScript</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#19</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/Elomami1976/vexi" target="_blank" rel="noopener" class="title">Elomami1976/vexi</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">VEXI is an open-source AI coding agent for the terminal. Bring your own API keys, work with OpenAI, Anthropic, and other providers, and code faster with a lightweight, multilingual, privacy-friendly C</div>
+    
+    
+    <div class="meta">★ 6 · ⑂ 1 forks · <code>TypeScript</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#20</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/iohub/codexray" target="_blank" rel="noopener" class="title">iohub/codexray</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A Repository-Aware,  Knowledge-Learning local MCP that understands your codebase in Real Time powered by Hybrid Semantic + Full-Text Engine, both supports claude code and codex</div>
+    
+    
+    <div class="meta">★ 35 · ⑂ 0 forks · <code>Rust</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#21</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/thousandflowers/skillreaper" target="_blank" rel="noopener" class="title">thousandflowers/skillreaper</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Evidence-based pruning for your AI-agent stack — scan, report, and safely prune unused skills/MCP servers/agents using real transcript evidence</div>
+    
+    
+    <div class="meta">★ 24 · ⑂ 0 forks · <code>Go</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#22</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/zetagao/LimitHUD" target="_blank" rel="noopener" class="title">zetagao/LimitHUD</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Floating macOS HUD for live Claude &amp; Codex usage quotas — menu-bar toggle, threshold/recovery reminders, custom hotkey, dark/light. Reads Chrome cookies locally.</div>
+    
+    
+    <div class="meta">★ 16 · ⑂ 0 forks · <code>Swift</code> · 📅 2026-06-10</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#23</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/ruhaankumar2013-debug/Practical-AI-engineering" target="_blank" rel="noopener" class="title">ruhaankumar2013-debug/Practical-AI-engineering</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">The complete open-source LLM curriculum — prompt engineering, RAG, fine-tuning, agents, and production deployment. Beginner to advanced. Python. Free forever.</div>
+    
+    
+    <div class="meta">★ 14 · ⑂ 0 forks · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#24</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/MD-Mushfiqur123/lychee" target="_blank" rel="noopener" class="title">MD-Mushfiqur123/lychee</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Lychee: Universal Local LLM Runtime with Anthropic API, Model Composer, Agent Sandbox, HuggingFace Pull, and Embedded Web Dashboard — built on top of Ollama</div>
+    
+    
+    <div class="meta">★ 14 · ⑂ 0 forks · <code>Go</code> · 📅 2026-06-11</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#25</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/wauputr4/skill-bansos" target="_blank" rel="noopener" class="title">wauputr4/skill-bansos</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Open Agent Skills for adding bansos.dev listings and developing the bansos.dev SvelteKit site.</div>
+    
+    
+    <div class="meta">★ 6 · ⑂ 0 forks · 📅 2026-06-13</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#26</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/cuolm/pi-sbx-mlx" target="_blank" rel="noopener" class="title">cuolm/pi-sbx-mlx</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Run Pi coding agent isolated in a Docker Sandbox microVM with a local mlx-lm inference backend.</div>
+    
+    
+    <div class="meta">★ 2 · ⑂ 0 forks · 📅 2026-06-15</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#27</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/alibaba/open-code-review" target="_blank" rel="noopener" class="title">alibaba/open-code-review</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Open-source &amp; free — Battle-tested at Alibaba&#x27;s scale. Hybrid architecture code review tool: deterministic pipelines + LLM Agent, precise line-level comments, built-in fine-tuned ruleset (NPE, thread-</div>
+    
+    
+    <div class="meta">★ 7,394 · ⑂ 447 forks · <code>Go</code> · 📅 2026-05-18</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#28</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/op7418/guizang-social-card-skill" target="_blank" rel="noopener" class="title">op7418/guizang-social-card-skill</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">🪧 Claude Code / Codex skill — generate Xiaohongshu carousels &amp; WeChat 21:9+1:1 cover pairs. Editorial × Swiss visual systems, 28 layouts, 10 themes, single-file HTML → PNG. 小红书图文 + 公众号封面对</div>
+    
+    
+    <div class="meta">★ 3,649 · ⑂ 322 forks · <code>HTML</code> · 📅 2026-05-27</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#29</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/OpenBMB/PilotDeck" target="_blank" rel="noopener" class="title">OpenBMB/PilotDeck</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Task-oriented AI Agent productivity platform</div>
+    
+    
+    <div class="meta">★ 3,432 · ⑂ 356 forks · <code>TypeScript</code> · 📅 2026-05-22</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#30</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/diffusionstudio/lottie" target="_blank" rel="noopener" class="title">diffusionstudio/lottie</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Generate production-ready Lottie animations with Claude Code or Codex</div>
+    
+    
+    <div class="meta">★ 3,266 · ⑂ 171 forks · <code>TypeScript</code> · 📅 2026-06-04</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#31</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/nexu-io/html-video" target="_blank" rel="noopener" class="title">nexu-io/html-video</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Programmatic video for coding agents — HTML to video on your laptop. Turn HTML, CSS &amp; data into real MP4s with pluggable render engines, 21 templates, AI soundtrack. Apache-2.0, no per-render fees. An</div>
+    
+    
+    <div class="meta">★ 3,212 · ⑂ 386 forks · <code>HTML</code> · 📅 2026-05-27</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#32</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/Panniantong/Agent-Reach" target="_blank" rel="noopener" class="title">Panniantong/Agent-Reach</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">Give your AI agent eyes to see the entire internet. Read &amp;amp; search Twitter, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu — one CLI, zero API fees.</div>
+    
+    
+    <div class="meta">★ 32,013 · ⑂ 0 forks · <code>python</code></div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#33</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/karpathy/autoresearch" target="_blank" rel="noopener" class="title">karpathy/autoresearch</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">AI agents running research on single-GPU nanochat training automatically</div>
+    
+    
+    <div class="meta">★ 87,187 · ⑂ 0 forks · <code>python</code></div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#34</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener" class="title">vllm-project/vllm</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A high-throughput and memory-efficient inference and serving engine for LLMs</div>
+    
+    
+    <div class="meta">★ 83,087 · ⑂ 0 forks · <code>python</code></div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#35</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://github.com/alibaba/zvec" target="_blank" rel="noopener" class="title">alibaba/zvec</a>
+      <span class="tag ok">GitHub</span>
+      
+    </div>
+    <div class="abstract">A lightweight, lightning-fast, in-process vector database</div>
+    
+    
+    <div class="meta">★ 10,438 · ⑂ 0 forks · <code>any</code></div>
+  </div>
+</div>
+    </div>
+  </details>
+
+  <details>
+    <summary>📄 arXiv (10 篇新论文)</summary>
+    <div class="section">
+      <div class="item">
+  <div class="rank">#01</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17028v1" target="_blank" rel="noopener" class="title">HAMON: Passive Optical Sequence Mixing for Long-Horizon Forecasting</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains. This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing? We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field. At inference, prediction is performed by a single passive optical propagation pass with no trainable digital sequence-mixing layer. Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\% and doing so consistently across horizons rather than at isolated points. It is competitive on Weather and trails the strongest baselines on the remaining ETT settings and on the high-channel-count Traffic and Electricity datasets. Phase encoding, intensity-compatible readout, and phase-scrambling ablations, together with a TorchOptics cross-simulator check, indicate that the forecasts arise from the data-bearing op</div>
+    <div class="authors">👥 Alper Yıldırım</div>
+    <div class="cats">🏷️ cs.LG · cs.AI · cs.AR</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17028v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#02</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17016v1" target="_blank" rel="noopener" class="title">TokenPilot: Cache-Efficient Context Management for LLM Agents</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">As LLM agents are deployed in long-horizon sessions, context accumulation drives up inference costs. Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation. This reveals a critical trade-off between text sparsity and prompt cache continuity. To address this, we present TokenPilot, a dual-granularity context management framework. Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate. Locally, Lifecycle-Aware Eviction monitors the ongoing residual utility of context segments, enforcing a conservative batch-turn schedule to offload content segments only when task relevance expires. Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems. TokenPilot has been integrated into LightMem2 at this https URL .</div>
+    <div class="authors">👥 Buqiang Xu, Zirui Xue, Dianmou Chen 等</div>
+    <div class="cats">🏷️ cs.CL · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17016v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#03</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17006v1" target="_blank" rel="noopener" class="title">TuneJury: An Open Metric for Improving Music Generation Preference Alignment</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip. The released checkpoint is trained on publicly available human-preference labels covering arena-style (A vs. B) votes, metric-alignment preference pairs, crowdsourced pairwise comparisons, and expert aesthetic ratings. The predicted score margin between two clips is well calibrated on our held-out test split, supporting data filtering via a simple score threshold. TuneJury generalizes to both held-out test pairs and out-of-distribution benchmarks, remaining competitive with prior baselines on the latter. For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining. The same frozen reward drives consistent reward-axis gains across three downstream applications: inference-time best-of-N selection, DITTO-style latent optimization, and expert-iteration post-training. TuneJury is available at this https URL .</div>
+    <div class="authors">👥 Yonghyun Kim, Junwon Lee, Haiwen Xia 等</div>
+    <div class="cats">🏷️ cs.SD · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17006v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#04</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.17005v1" target="_blank" rel="noopener" class="title">Bayesian Inference and Decision Audits for Public Archives of Frontier AI Evaluations</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Public AI evaluations are often read as terminal leaderboards, yet the underlying evidence is a selective time series shaped by reporting rules, benchmark revisions, and missingness. Repeated public archives for LiveBench and Open LLM Leaderboard v2 serve as the primary longitudinal record; LMArena provides a preference stress test; and GAIA and tau-bench contribute limited agentic pilots. Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model. In synthetic posterior comparisons, action-facing diagnostics differ across observation regimes. The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims. An archive-and-adjudication protocol reconstructs public evaluation histories, isolates a verified timing boundary, and falsifies unsupported frontier claims.</div>
+    <div class="authors">👥 Yanan Long</div>
+    <div class="cats">🏷️ cs.AI · stat.ME</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.17005v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#05</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.16996v1" target="_blank" rel="noopener" class="title">ActiveSAM: Image-Conditional Class Pruning for Fast and Accurate Open-Vocabulary Segmentation</a>
+      <span class="tag warn">arXiv</span>
+      <span class="tag full-abs">📄 全文</span>
+    </div>
+    <div class="abstract">Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes. We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter. ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview. Only the retained classes are decoded at full resolution, using bucketed prompt multiplexing with the frozen SAM 3 decoder. The preview stage uses only class-presence evidence and skips unnecessary segmentation-head computation, while the final stage applies margin-aware background calibration to suppress low-confidence pixels. ActiveSAM requires no target-dataset training, no weight updates, and no oracle class-presence labels. Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets. ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input</div>
+    <div class="authors">👥 Tran Dinh Tien, Zhiqiang Shen</div>
+    <div class="cats">🏷️ cs.CV · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.16996v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#06</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.16969v1" target="_blank" rel="noopener" class="title">Probing Low Frame Rate Degradation in Neural Audio Codecs</a>
+      <span class="tag warn">arXiv</span>
+      
+    </div>
+    <div class="abstract">Low frame rates in neural audio codecs are attractive for autoregressive speech synthesis, where the generation cost scales linearly with the sequence length. Recent work has demonstrated that codecs can operate at 12.5 Hz and below, but the mechanisms underlying low frame rate degradation remain in</div>
+    <div class="authors">👥 Alex Gichamba, Moise Busogi</div>
+    <div class="cats">🏷️ cs.SD · cs.AI</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.16969v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#07</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.16952v1" target="_blank" rel="noopener" class="title">Phantoms and Disclosures: a Causal Framework for Auditing Synthetic Data</a>
+      <span class="tag warn">arXiv</span>
+      
+    </div>
+    <div class="abstract">The rapid adoption of generative AI and Large Language Models (LLMs) has spurred interest in synthetic data as a privacy-preserving alternative to sensitive real-world datasets. However, generating high-utility synthetic data often carries the risk of memorizing and regurgitating private information</div>
+    <div class="authors">👥 Kareem Amin, Rudrajit Das, Alessandro Epasto 等</div>
+    <div class="cats">🏷️ cs.LG · cs.AI · stat.AP</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.16952v1</div>
+  </div>
+</div>
+<div class="item">
+  <div class="rank">#08</div>
+  <div class="content">
+    <div class="title-row">
+      <a href="https://arxiv.org/abs/2606.16935v1" target="_blank" rel="noopener" class="title">CrossMaps: Confidence-Aware Open-Vocabulary Semantic Mapping for Rover Navigation</a>
+      <span class="tag warn">arXiv</span>
+      
+    </div>
+    <div class="abstract">Rovers rely on perception to maintain spatial maps that encode both objects and sensor quality (e.g., range reliability, lighting artifacts, data density), guiding data fusion, embedding updates, and navigation under partial observability. To study these coupled perception-navigation processes, we p</div>
+    <div class="authors">👥 Jan-Niklas Klein, Sona Ghahremani, Christian Medeiros Adriano 等</div>
+    <div class="cats">🏷️ cs.RO · cs.AI · cs.LG</div>
+    <div class="meta">📅 2026-06-15 · 🆔 2606.16935v1</div>
+  </div>
+</div>
+    </div>
+  </details>
+
+  <footer>
+    <p>每天 08:00 自动生成 · 影响分 = HN(▲+5×💬) / GitHub(★+50×⑂) / arXiv(基线 50)</p>
+    <p>Source: HN Algolia API · GitHub Search API · arXiv Atom feed</p>
+  </footer>
+</div>
+</body>
+</html>
