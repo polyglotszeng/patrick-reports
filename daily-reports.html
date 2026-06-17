@@ -4,7 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Patrick's Daily Reports — 每日报告 / 论文笔记</title>
-<link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="https://patrick-reports.patrick-l-zeng.workers.dev/rss.xml">
+<meta name="description" content="143+ 篇每日报告 + 论文笔记 · 自动生成 · 7 类目 · 公开 RSS · Patrick 知识库" />
+<meta property="og:title" content="Patrick's Daily Reports — 每日报告 / 论文笔记" />
+<meta property="og:description" content="143+ 篇每日报告 + 论文笔记 · 自动生成 · 7 类目 · 公开 RSS" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://2017zyl.xyz/daily-reports.html" />
+<meta property="og:site_name" content="OpenSwarm · Patrick" />
+<meta property="og:image" content="https://2017zyl.xyz/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@openswarm_patrick" />
+<meta name="twitter:title" content="Patrick's Daily Reports — 每日报告 / 论文笔记" />
+<meta name="twitter:description" content="143+ 篇每日报告 + 论文笔记 · 自动生成 · 7 类目 · 公开 RSS" />
+<meta name="twitter:image" content="https://2017zyl.xyz/og-image.png" />
+<meta name="theme-color" content="#ff7a2f" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link rel="canonical" href="https://2017zyl.xyz/daily-reports.html" />
+<link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="https://2017zyl.xyz/rss.xml" />
 <style>
 :root{
   --bg:#0a0c10; --bg2:#0e1117; --panel:#12161e; --panel2:#171c26;
@@ -149,12 +169,33 @@ footer a{color:var(--txt2)} footer a:hover{color:var(--orange)}
   .item::before{display:none}
   .resinfo{margin-left:0;width:100%}
 }
+.skip-nav{position:fixed;top:-100px;left:12px;z-index:9999;background:#ff7a2f;color:#1a0f06;padding:10px 16px;border-radius:8px;font-weight:700;text-decoration:none;transition:top .2s}
+.skip-nav:focus{top:12px;outline:2px solid #fff;outline-offset:2px}
+.scroll-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:200;background:transparent;pointer-events:none}
+.scroll-progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#ff5b2e,#ff7a2f,#ffb74d);transition:width .08s linear;box-shadow:0 0 8px #ff7a2f}
+.theme-toggle{position:fixed;bottom:24px;right:24px;z-index:90;width:46px;height:46px;border-radius:50%;background:#12161e;border:1px solid #222936;cursor:pointer;font-size:20px;display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:.2s}
+.theme-toggle:hover{transform:scale(1.08);border-color:#ff7a2f}
+.theme-icon-light{display:none}
+body.light-mode{background:#f8f5ee!important;color:#1a140a}
+body.light-mode .theme-icon-dark{display:none}
+body.light-mode .theme-icon-light{display:inline}
+body.light-mode .theme-toggle{background:#fff;border-color:#d4ccbf}
+body.light-mode .panel,body.light-mode header,body.light-mode .card{background:#fff!important;border-color:#d4ccbf!important;color:#1a140a}
+:focus-visible{outline:2px solid #ff7a2f;outline-offset:2px;border-radius:4px}
+.footer-links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:16px;font-size:13.5px}
+.footer-links a{color:var(--txt2);text-decoration:none;border:1px solid var(--border);padding:6px 14px;border-radius:8px;transition:.2s}
+.footer-links a:hover{color:#ff7a2f;border-color:#ff7a2f}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-nav">跳到主内容</a>
+<div class="scroll-progress" aria-hidden="true"><div class="scroll-progress-bar" id="scrollBar"></div></div>
+<button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换明暗主题">
+  <span class="theme-icon-dark">🌙</span><span class="theme-icon-light">☀️</span>
+</button>
 <a href="/" style="position:fixed;top:1.2rem;right:1.5rem;z-index:1000;background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#9aa5b5;text-decoration:none;padding:0.5rem 1rem;border-radius:8px;font-size:0.85rem;border:1px solid rgba(255,255,255,0.12);font-family:-apple-system,BlinkMacSystemFont,sans-serif;transition:all 0.2s">← 投资人简报</a>
 
-<header>
+<header id="main-content">
   <div class="wrap">
     <div class="prompt"><span class="u">patrick@reports</span>:~$ ls -lt ./daily <span class="cursor"></span></div>
     <h1>📚 Patrick's <span class="grad">Daily Reports</span></h1>
@@ -508,6 +549,30 @@ q.addEventListener('input',()=>{fQ=q.value;render()});
 document.addEventListener('keydown',e=>{
   if(e.key=='/'&&document.activeElement!=q){e.preventDefault();q.focus()}
   if(e.key=='Escape'){q.value='';fQ='';render();q.blur()}});
-</script> 
+
+// Scroll progress + theme toggle
+(function(){
+  var bar = document.getElementById('scrollBar');
+  if (bar) window.addEventListener('scroll', function(){
+    var h = document.documentElement;
+    bar.style.width = ((h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight)) * 100) + '%';
+  }, {passive:true});
+  var btn = document.getElementById('themeToggle');
+  if (btn) {
+    var saved = localStorage.getItem('theme');
+    if (saved === 'light') document.body.classList.add('light-mode');
+    btn.addEventListener('click', function(){
+      document.body.classList.toggle('light-mode');
+      localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+    });
+  }
+})();
+</script>
+<div class="footer-links">
+  <a href="https://2017zyl.xyz/rss.xml" rel="alternate" type="application/rss+xml">📡 RSS</a>
+  <a href="https://2017zyl.xyz/sitemap.xml">🗺️ Sitemap</a>
+  <a href="https://2017zyl.xyz/">← 投资人首页</a>
+  <a href="https://2017zyl.xyz/video-dashboard">视频笔记 →</a>
+</div> 
 </body>
 </html>

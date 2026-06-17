@@ -3,12 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <title>Video Notes Dashboard — Patrick 视频笔记知识库</title>
-<meta name="description" content="YouTube 视频深度提炼 · 9 份 AI / 编程 / 思维 笔记 · 多 Tab 仪表板 · 全部公开">
-<meta property="og:title" content="Patrick Video Notes Dashboard">
-<meta property="og:description" content="9 份 YouTube 视频深度笔记 + 1 篇 hybrid LLM routing 知识库">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://patrick-reports.patrick-l-zeng.workers.dev/video-dashboard.html">
-<link rel="canonical" href="https://patrick-reports.patrick-l-zeng.workers.dev/video-dashboard.html">
+<meta name="description" content="YouTube 视频深度提炼 · 9 份 AI / 编程 / 思维 笔记 · 多 Tab 仪表板 · 全部公开" />
+<meta property="og:title" content="Patrick 视频笔记 Dashboard — 9 份 YouTube 深度笔记" />
+<meta property="og:description" content="9 份 YouTube 视频深度笔记 + 1 篇 hybrid LLM routing 知识库" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://2017zyl.xyz/video-dashboard.html" />
+<meta property="og:site_name" content="OpenSwarm · Patrick" />
+<meta property="og:image" content="https://2017zyl.xyz/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@openswarm_patrick" />
+<meta name="twitter:title" content="Patrick 视频笔记 Dashboard — 9 份 YouTube 深度笔记" />
+<meta name="twitter:description" content="9 份 YouTube 视频深度笔记 + 1 篇 hybrid LLM routing 知识库" />
+<meta name="twitter:image" content="https://2017zyl.xyz/og-image.png" />
+<meta name="theme-color" content="#ff7a2f" />
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+<link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link rel="canonical" href="https://2017zyl.xyz/video-dashboard.html" />
+<link rel="alternate" type="application/rss+xml" title="Patrick's Daily Reports RSS" href="https://2017zyl.xyz/rss.xml" />
 <style>
 :root {
   --bg: #0a0c10; --bg2: #0e1117; --panel: #12161e; --panel2: #171c26;
@@ -141,9 +156,40 @@ footer a:hover{color:var(--orange)}
   .video-grid{grid-template-columns:1fr}
   .stat{min-width:100px}
 }
+.skip-nav{position:fixed;top:-100px;left:12px;z-index:9999;background:#ff7a2f;color:#1a0f06;padding:10px 16px;border-radius:8px;font-weight:700;text-decoration:none;transition:top .2s}
+.skip-nav:focus{top:12px;outline:2px solid #fff;outline-offset:2px}
+.scroll-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:200;background:transparent;pointer-events:none}
+.scroll-progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#ff5b2e,#ff7a2f,#ffb74d);transition:width .08s linear;box-shadow:0 0 8px #ff7a2f}
+.theme-toggle{position:fixed;bottom:24px;right:24px;z-index:90;width:46px;height:46px;border-radius:50%;background:#12161e;border:1px solid #222936;cursor:pointer;font-size:20px;display:grid;place-items:center;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:.2s}
+.theme-toggle:hover{transform:scale(1.08);border-color:#ff7a2f}
+.theme-icon-light{display:none}
+body.light-mode{background:#f8f5ee!important;color:#1a140a}
+body.light-mode .theme-icon-dark{display:none}
+body.light-mode .theme-icon-light{display:inline}
+body.light-mode .theme-toggle{background:#fff;border-color:#d4ccbf}
+body.light-mode .card,body.light-mode .panel,body.light-mode header,body.light-mode .topnav{background:#fff!important;border-color:#d4ccbf!important;color:#1a140a}
+:focus-visible{outline:2px solid #ff7a2f;outline-offset:2px;border-radius:4px}
+.vd-searchbar{display:flex;gap:10px;align-items:center;margin:18px 0 14px;flex-wrap:wrap}
+.vd-searchbar input[type=search]{flex:1;min-width:240px;padding:11px 16px;border:1px solid var(--border);background:var(--bg2);color:var(--txt);border-radius:10px;font-size:14px;outline:none;font-family:inherit}
+.vd-searchbar input[type=search]:focus{border-color:#ff7a2f;box-shadow:0 0 0 3px rgba(255,122,47,.18)}
+.vd-tagbar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.vd-tagbar button{border:1px solid var(--border);background:var(--bg2);color:var(--txt2);border-radius:999px;padding:6px 14px;font-size:12.5px;cursor:pointer;transition:.2s;font-weight:600;font-family:inherit}
+.vd-tagbar button:hover{color:var(--txt);border-color:#ff7a2f}
+.vd-tagbar button.active{color:#1a0f06;background:linear-gradient(120deg,#ff5b2e,#ff7a2f);border-color:transparent}
+.vd-count{color:var(--txt2);font-size:13px;margin-bottom:10px}
+.vd-count b{color:#ff7a2f}
+[data-vd-hidden=true]{display:none!important}
+.footer-links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:16px;font-size:13.5px}
+.footer-links a{color:var(--txt2);text-decoration:none;border:1px solid var(--border);padding:6px 14px;border-radius:8px;transition:.2s}
+.footer-links a:hover{color:#ff7a2f;border-color:#ff7a2f}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-nav">跳到主内容</a>
+<div class="scroll-progress" aria-hidden="true"><div class="scroll-progress-bar" id="scrollBar"></div></div>
+<button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换明暗主题">
+  <span class="theme-icon-dark">🌙</span><span class="theme-icon-light">☀️</span>
+</button>
 
 <div class="topnav">
   <div class="wrap row">
@@ -160,9 +206,9 @@ footer a:hover{color:var(--orange)}
 
 <div class="wrap">
 
-<header>
+<header id="main-content">
   <div class="prompt"><span class="u">patrick@notes</span>:~$ ls -lt ./video-notes/<span class="cursor"></span></div>
-  <h1>YouTube 视频笔记 <span class="grad">Dashboard</span></h1>
+    <h1>YouTube 视频笔记 <span class="grad">Dashboard</span></h1>
   <p class="sub">10 份深度提炼 <span class="sep">·</span> AI / 工具 / 思维 / 论文 <span class="sep">·</span> 每个含 8-10 Tab 多视角</p>
 
   <div class="stats">
