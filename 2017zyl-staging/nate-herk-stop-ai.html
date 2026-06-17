@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>我们可能真的需要停下 AI — Nate Herk 视角</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .nuke-table th, .nuke-table td { font-size: 0.88rem; }
+  .nuke-table .verdict {
+    font-weight: 600;
+  }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>我们可能真的需要停下 AI</h1>
+<p class="subtitle">OpenAI + Anthropic 同周呼吁放慢 — Nate Herk 视角</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=CvA8-aScqio" target="_blank">We Might Actually Need to Stop AI</a></span>
+  <span><strong>频道：</strong>Nate Herk | AI Automation</span>
+  <span><strong>时长：</strong>12:28（748s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2>核心论点</h2>
+  <p><b>2026 年 6 月，两家顶级 AI 实验室在同一周分别公开呼吁"放慢 AI 发展"。</b>但 Nate 的关键洞察：<b>"我们要求暂停" ≠ "我们愿意停"。</b>他们都在说<b>"我们停不下来，需要别人建个裁判机构强制所有人一起停"</b>。这是两回事。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">OpenAI 文章</div>
+    <div class="value">6/8</div>
+    <div class="sub">Built to Benefit Everyone</div>
+  </div>
+  <div class="stat">
+    <div class="label">Anthropic 报告</div>
+    <div class="value">几天前</div>
+    <div class="sub">可验证暂停方案</div>
+  </div>
+  <div class="stat">
+    <div class="label">AGI 预测</div>
+    <div class="value">2028.3</div>
+    <div class="sub">OpenAI 给的日期</div>
+  </div>
+  <div class="stat">
+    <div class="label">Cloud Mythos 下架</div>
+    <div class="value">6/12</div>
+    <div class="sub">US 政府命令</div>
+  </div>
+  <div class="stat">
+    <div class="label">Nate 社区</div>
+    <div class="value">40 万</div>
+    <div class="sub">AI 实践者</div>
+  </div>
+  <div class="stat">
+    <div class="label">两家 IPO</div>
+    <div class="value">同周</div>
+    <div class="sub">都在追同样的钱</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="timeline">📅 事件时间线</button>
+  <button class="tab" data-tab="openai">📋 OpenAI 三大目标</button>
+  <button class="tab" data-tab="trap">🪤 暂停陷阱</button>
+  <button class="tab" data-tab="nuke">☢️ 核武器式检查</button>
+  <button class="tab" data-tab="incentive">💰 真正难：激励翻转</button>
+  <button class="tab" data-tab="brand">📢 AI 品牌危机</button>
+  <button class="tab" data-tab="mythos">🚨 Mythos 下架</button>
+  <button class="tab" data-tab="you">👤 普通人怎么办</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: TIMELINE -->
+<div class="tab-content active" data-tab-content="timeline">
+  <h2 class="section">事件时间线（2026-06）</h2>
+
+  <table>
+    <thead>
+      <tr><th>日期</th><th>事件</th><th>Nate 解读</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>几天前</b></td>
+        <td><b>Anthropic</b> 发布报告：呼吁"可验证的暂停/放慢方案"</td>
+        <td>公开说"放慢 AI"</td>
+      </tr>
+      <tr>
+        <td><b>6/8</b></td>
+        <td><b>OpenAI</b> "Built to Benefit Everyone" + 申请上市</td>
+        <td>Sam Altman + 首席科学家联合署名</td>
+      </tr>
+      <tr>
+        <td>6/9-6/11</td>
+        <td>公开讨论 / 媒体分析</td>
+        <td>—</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>6/12</b></td>
+        <td><b>US 政府要求 Anthropic 暂停 Cloud Mythos + Cloud Fable</b></td>
+        <td>第一个实质政府介入</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "The two companies racing the hardest are also the two who have turned around and said, <b>'Hey world, we need to slow down.'</b> So what the heck is going on?"
+  </blockquote>
+</div>
+
+<!-- TAB 2: OPENAI -->
+<div class="tab-content" data-tab-content="openai">
+  <h2 class="section">OpenAI "Built to Benefit Everyone" 三大目标</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>目标</th><th>细节</th><th>Nate 评估</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><b>AI 自动化研究员</b></td>
+        <td>AI 做大部分 AI 研究</td>
+        <td>预测 <b>2028 年 3 月</b>前实现</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><b>加速经济 + 分享收益</b></td>
+        <td>给地球每个人一个 personal AGI</td>
+        <td>✅ 同意"不想自动化一切" / "权力不应集中"</td>
+      </tr>
+      <tr class="highlight">
+        <td>3</td>
+        <td><b>国际监管组织</b></td>
+        <td>原文：take coordinated action, including <b>slowing frontier development</b> when needed</td>
+        <td>⚠️ 真正 dramatic — 要求别人强制自己慢下来</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem;">
+    <h4>🎯 Nate 关键洞察</h4>
+    <p>目标 #3 才是真信号 — <b>AI 行业最头部的公司公开承认：单靠市场激励，他们自己停不下来</b>。这从 Sam Altman 嘴里说出来 = <b>真正开始严肃了</b>。</p>
+  </div>
+</div>
+
+<!-- TAB 3: TRAP -->
+<div class="tab-content" data-tab-content="trap">
+  <h2 class="section">🪤 暂停陷阱（核心洞察）</h2>
+
+  <blockquote>
+    "They're both saying <b>we can't stop on our own. We can't give up our lead.</b> So somebody needs to build some sort of group or like a referee that makes all of us stop together."
+  </blockquote>
+
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>❌ 他们要的"暂停"</h4>
+      <ul>
+        <li><b>不是</b>自己愿意停</li>
+        <li><b>不是</b>愿意放弃领先优势</li>
+        <li><b>不是</b>愿意付代价让对手追上</li>
+      </ul>
+    </div>
+    <div class="cmp yellow">
+      <h4>✅ 他们实际要的</h4>
+      <ul>
+        <li>一个 <b>国际组织 / 裁判</b></li>
+        <li>强制 <b>所有人</b> 一起停</li>
+        <li>verify 没人偷偷冲刺</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <h4>💡 Nate 灵魂拷问</h4>
+    <p style="font-size: 1.05rem; color: var(--text);">"<b>The break they're asking for isn't a break that they're willing to pull.</b> It's a break that they want somebody else to create and hold."</p>
+  </div>
+
+  <blockquote>
+    "Until somebody cracks that, I think that asking for a global pause button is either <b>a genuine cry for help</b> or just <b>the safest thing you can say when you already know you can't actually stop.</b> Maybe a little bit of both."
+  </blockquote>
+</div>
+
+<!-- TAB 4: NUKE -->
+<div class="tab-content" data-tab-content="nuke">
+  <h2 class="section">☢️ 核武器式检查：AI 反而比核武**更可见**</h2>
+
+  <table class="nuke-table">
+    <thead>
+      <tr><th>类比</th><th>核武器</th><th>AI 训练</th><th>可见度</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>原料</b></td>
+        <td>铀（mining 可查）</td>
+        <td><b>GPU 芯片</b>（单供应链：英伟达主导）</td>
+        <td><span class="badge green">✅ 高度可见</span></td>
+      </tr>
+      <tr>
+        <td><b>设施</b></td>
+        <td>离心机难隐藏</td>
+        <td><b>数据中心</b> = 城市级电力（footprint 可见）</td>
+        <td><span class="badge green">✅ 高度可见</span></td>
+      </tr>
+      <tr>
+        <td><b>信号</b></td>
+        <td>核试验</td>
+        <td><b>大规模电力消耗</b> + 芯片订单 + 建筑施工</td>
+        <td><span class="badge green">✅ 高度可见</span></td>
+      </tr>
+      <tr>
+        <td><b>供应链</b></td>
+        <td>多国可生产</td>
+        <td><b>单条供应链</b>（Anthropic 自承：bottleneck 是 compute）</td>
+        <td><span class="badge green">✅ 更可控</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--green);">
+    <h4>✅ Nate 反共识判断</h4>
+    <p>Training frontier model = <b>tens of thousands specialized chips</b> + <b>一个建筑 pull 一个 small city 的电</b></p>
+    <p><b>Footprint 难藏</b>：construction + power + massive chip orders = <b>都留 trail</b></p>
+    <p style="margin-top: 0.6rem; color: var(--accent-2); font-weight: 600;">Verification 难但<b>可解</b>。真正难的是激励翻转。</p>
+  </div>
+</div>
+
+<!-- TAB 5: INCENTIVE -->
+<div class="tab-content" data-tab-content="incentive">
+  <h2 class="section">💰 真正难：激励翻转</h2>
+
+  <blockquote>
+    "<b>A slowdown only holds if breaking it costs you more than winning ever could.</b>"
+  </blockquote>
+
+  <h3>Nate 的推演</h3>
+  <div class="phase-flow" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0;">
+    <div class="card" style="flex: 1; min-width: 200px; border-left: 3px solid var(--green);">
+      <h4>① 所有国家签条约</h4>
+      <p style="color: var(--green);">✅ 假设成立</p>
+    </div>
+    <div class="card" style="flex: 1; min-width: 200px; border-left: 3px solid var(--green);">
+      <h4>② 检查制度建成</h4>
+      <p style="color: var(--green);">✅ 难但可解</p>
+    </div>
+    <div class="card" style="flex: 1; min-width: 200px; border-left: 3px solid var(--red);">
+      <h4>③ 某国偷偷冲刺</h4>
+      <p style="color: var(--red);">❌ 整个条约崩溃</p>
+    </div>
+  </div>
+
+  <h3>合同类比</h3>
+  <div class="card">
+    <p style="font-size: 1.05rem;">"No matter how bulletproof a contract is, if it covers every single scenario, it's only as good as <b>the person on the other side of it.</b>"</p>
+  </div>
+
+  <h3>Nate 灵魂问题</h3>
+  <blockquote>
+    "How do you get to a world where <b>the winning move is to respect a slowdown</b> and you actually like think about society and like how can everyone be doing this AI thing together rather than competing?"
+  </blockquote>
+</div>
+
+<!-- TAB 6: BRAND -->
+<div class="tab-content" data-tab-content="brand">
+  <h2 class="section">📢 AI 品牌危机：公众 gap 巨大</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>👨‍🔬 Builder 看到</h4>
+      <ul>
+        <li>AGI 风险</li>
+        <li>经济颠覆</li>
+        <li>需要暂停</li>
+        <li>激励问题</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>👥 公众看到</h4>
+      <ul>
+        <li>失业威胁</li>
+        <li>机器人接管</li>
+        <li>毕业演讲被嘘</li>
+        <li>没用过</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--red);">
+    <h4>⚠️ Nate 评价</h4>
+    <p style="font-size: 1.05rem;">"The brand of AI right now is honestly <b>terrible.</b>"</p>
+    <p>"I don't understand how the gap got so wide."</p>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
+    <h4>📊 Gap 表现</h4>
+    <ul>
+      <li>顶级实验室：呼吁暂停 + 国际监管</li>
+      <li>普通公众：AI = 搞笑工具 / 升级 Google</li>
+      <li>毕业演讲：提 AI 被 booed</li>
+      <li>很多人没真用过 AI</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 7: MYTHOS -->
+<div class="tab-content" data-tab-content="mythos">
+  <h2 class="section">🚨 Cloud Mythos / Fable 下架（6/12）</h2>
+
+  <div class="warning-card" style="border-left: 3px solid var(--red); background: var(--bg-card); border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem; margin: 0.8rem 0;">
+    <h4 style="color: var(--red);">关键事件</h4>
+    <p><b>US 政府</b> 正式要求 Anthropic 暂停 <b>Cloud Mythos</b> + <b>Cloud Fable</b></p>
+    <p style="color: var(--text-dim); font-size: 0.9rem;">Anthropic 声明"会恢复" · 时间：6/12 · 视频录制时事件</p>
+  </div>
+
+  <h3>意义：跟主线对比</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>OpenAI/Anthropic 要求</th><th>Mythos 下架</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>性质</b></td>
+        <td>多边条约 / 国际组织</td>
+        <td><b>单边政府行为</b></td>
+      </tr>
+      <tr>
+        <td><b>主体</b></td>
+        <td>公司自己要求</td>
+        <td><b>政府</b>对公司的命令</td>
+      </tr>
+      <tr>
+        <td><b>难度</b></td>
+        <td>极高（所有国家同意）</td>
+        <td><b>相对低</b>（一个国家政府）</td>
+      </tr>
+      <tr>
+        <td><b>先例</b></td>
+        <td>无</td>
+        <td><b>第一个实质政府介入</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--accent);">
+    <h4>💡 Nate 暗示</h4>
+    <p>US 政府可以<b>单边停一个产品</b> → 比国际条约<b>容易</b></p>
+    <p>Nate 承诺：会做专门视频分析</p>
+  </div>
+</div>
+
+<!-- TAB 8: YOU -->
+<div class="tab-content" data-tab-content="you">
+  <h2 class="section">👤 普通人怎么办？Nate 的 3 个建议</h2>
+
+  <blockquote>
+    "The only thing that you fully control is <b>how good you get at this stuff and what you know about it.</b>"
+  </blockquote>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>① 赌自己，不赌公司</h4>
+      <p>"I wouldn't bet on a company. I just bet on yourself."</p>
+      <ul>
+        <li>OpenAI / Anthropic <b>都在 going public</b></li>
+        <li><b>都在追同样的钱</b></li>
+        <li>对你来说：你都是 <b>"a user to sell to"</b></li>
+        <li>消费向 vs 企业向的区分<b>正在模糊</b></li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>② 学什么技能</h4>
+      <ul>
+        <li><b>AI native</b></li>
+        <li>怎么用 AI</li>
+        <li>怎么<b>安全地用</b> AI</li>
+        <li>怎么<b>思考</b> AI</li>
+        <li>怎么<b>沟通</b> AI</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>③ 推动身边人</h4>
+      <p>Pick one thing you do over and over:</p>
+      <ul>
+        <li>📧 Email</li>
+        <li>📅 计划周</li>
+        <li>📊 写报告</li>
+        <li><b>Run it through AI</b></li>
+      </ul>
+      <p style="margin-top: 0.6rem; color: var(--accent-2); font-weight: 600;">不要发明新 workflow，就用 AI 做你已经在做的事</p>
+    </div>
+  </div>
+
+  <h3>OpenAI 自己的红线</h3>
+  <blockquote>
+    "The human role that stays valuable is <b>judgment, taste, deciding what's actually worth doing.</b>"
+  </blockquote>
+  <blockquote>
+    "Because the moment everybody's got a personal AGI, the <b>tool stops being the edge.</b>"
+  </blockquote>
+
+  <h3>Patrick 视角：3 个工作关联</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🔗 与 OpenSwarm / 本地 LLM</h4>
+      <p>Nate 说"renting intelligence"是问题 → <b>本地 LLM = 自有 intelligence</b> → 反垄断准备</p>
+    </div>
+    <div class="card">
+      <h4>🔗 与 hybrid-llm-router</h4>
+      <p>LiteLLM 多 provider 路由 = <b>降低 vendor lock-in 风险</b>（不仅是 cost，是 geopolitical）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 与 ai-engineer 学习路径</h4>
+      <p>自动化的是 "how"（执行）→ <b>不能自动化的是 "what"</b>（决定做什么）</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">完整时间线（21 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：Enthropic + OpenAI 同周要求放慢 AI</div>
+      <div class="note">"so what the heck is going on?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:27</div>
+      <div class="what">Nate 立场声明（无股票/无 payroll）</div>
+      <div class="note">"I just pay attention"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:29</div>
+      <div class="what">OpenAI "Built to Benefit Everyone"（6/8）</div>
+      <div class="note">Sam Altman + 首席科学家</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:25</div>
+      <div class="what">目标 #3：国际监管</div>
+      <div class="note">"slowing frontier development when needed"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:35</div>
+      <div class="what">Anthropic 报告呼应同诉求</div>
+      <div class="note">"verifiable way to slow or pause AI"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:29</div>
+      <div class="what">公众 vs 顶级实验室的 gap</div>
+      <div class="note">"brand of AI is honestly terrible"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:09</div>
+      <div class="what">🪤 "暂停陷阱"：他们要求暂停 ≠ 愿意停</div>
+      <div class="note">"break they want somebody else to create and hold"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:09</div>
+      <div class="what">☢️ 核武器式检查制度</div>
+      <div class="note">AI 比核武反而<b>更可见</b>（芯片 = uranium）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:26</div>
+      <div class="what">💰 真正难的是激励翻转</div>
+      <div class="note">"slowdown only holds if breaking costs more than winning"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:13</div>
+      <div class="what">合同类比</div>
+      <div class="note">"only as good as the person on the other side"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:33</div>
+      <div class="what">"cry for help or safe thing to say"</div>
+      <div class="note">"maybe a little bit of both"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:35</div>
+      <div class="what">OpenAI / Anthropic 同质化（都 going public）</div>
+      <div class="note">"you're a user to sell to"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:57</div>
+      <div class="what">不要赌公司，赌自己</div>
+      <div class="note">"bet on yourself"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:18</div>
+      <div class="what">个人 AGI 的"伪平等"陷阱</div>
+      <div class="note">renting intelligence = 别人控制你</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:18</div>
+      <div class="what">"Judgment / taste" 是 human role 真正价值</div>
+      <div class="note">"tool stops being the edge"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:18</div>
+      <div class="what">推动身边人学 AI</div>
+      <div class="note">"just run it through one of these tools"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:37</div>
+      <div class="what">🚨 Cloud Mythos / Fable 下架（6/12）</div>
+      <div class="note">US 政府命令 Anthropic 暂停</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:19</div>
+      <div class="what">Nate 免费社区（40 万人）</div>
+      <div class="note">"completely free"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/nate-herk-stop-ai/</code></p>
+  <p>Desktop: <code>~/Desktop/nate-herk-stop-ai-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=CvA8-aScqio">https://www.youtube.com/watch?v=CvA8-aScqio</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>

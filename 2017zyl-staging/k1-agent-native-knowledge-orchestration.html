@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>K1: Agent Native Knowledge Orchestration — Forget GraphRAG, 4B AI</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .schema-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .schema-card {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 1.1rem;
+  }
+  .schema-card .letter {
+    color: var(--accent); font-weight: 700; font-size: 1.1rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .schema-card .title { color: var(--text); font-weight: 600; margin: 0.3rem 0 0.4rem; }
+  .schema-card .content { color: var(--text-dim); font-size: 0.85rem; }
+  .schema-card ul { padding-left: 1.1rem; margin: 0.3rem 0; }
+
+  .phase-flow {
+    display: flex; align-items: stretch; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1.2rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text);
+    flex: 1; min-width: 150px;
+  }
+  .phase.green { border-color: var(--green); color: var(--green); }
+  .phase.blue { border-color: var(--blue); color: var(--blue); }
+  .phase.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .phase .num { color: var(--accent); font-weight: 700; }
+  .phase .name { font-size: 0.95rem; font-weight: 600; margin: 0.2rem 0; }
+  .phase .detail { font-size: 0.78rem; color: var(--text-dim); }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .perf-bar {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 0.6rem 0; padding: 0.6rem 0.8rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .perf-bar .label { color: var(--text-dim); font-size: 0.9rem; min-width: 180px; }
+  .perf-bar .bar-container {
+    flex: 1; height: 24px; background: var(--bg);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .perf-bar .bar {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 0.5rem; color: var(--bg); font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .perf-bar .bar.baseline { background: var(--gray); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>K1: Agent Native Knowledge Orchestration</h1>
+<p class="subtitle">Forget GraphRAG — A 4B AI does the work NOW</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=QuTcXMgPanw" target="_blank">Discover AI</a></span>
+  <span><strong>论文：</strong>K1, Shanghai AI Lab + ECNU + Fudan, 2026-06-11</span>
+  <span><strong>时长：</strong>35:29（2129s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>许可证：</strong>MIT</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2>核心论点</h2>
+  <p><b>GraphRAG 系统普遍建错图</b> — 5 大问题导致"科学结构在 retrieval 阶段被破坏"，AI agent 因此失败。<b>K1 (Agent Native Knowledge Orchestration)</b> 解决方案：(1) <b>5 schema 多模态 KG</b> · (2) <b>4B 专用 extraction LLM</b> · (3) <b>3 源 retrieval</b>（不用 vector DB） · (4) <b>17 MCP tools + CLI</b>。</p>
+  <p style="margin-top: 0.5rem;"><b>关键 insight</b>：4B 模型 + SOTA reasoning model 分离 = "less money less expensive"。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">性能提升</div>
+    <div class="value">+24.5%</div>
+    <div class="sub">41.8% → 66.3%</div>
+  </div>
+  <div class="stat">
+    <div class="label">Extraction 模型</div>
+    <div class="value">4B</div>
+    <div class="sub">专用 RL 训练</div>
+  </div>
+  <div class="stat">
+    <div class="label">Schemas</div>
+    <div class="value">5</div>
+    <div class="sub">A / B / C / D / E</div>
+  </div>
+  <div class="stat">
+    <div class="label">Retrieval Sources</div>
+    <div class="value">3</div>
+    <div class="sub">web + KG + traversal</div>
+  </div>
+  <div class="stat">
+    <div class="label">MCP Tools</div>
+    <div class="value">17</div>
+    <div class="sub">立即对接 agent</div>
+  </div>
+  <div class="stat">
+    <div class="label">训练 PDFs</div>
+    <div class="value">2.5M</div>
+    <div class="sub">全科学领域</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="problems">❌ GraphRAG 5 大问题</button>
+  <button class="tab" data-tab="arch">🏗️ 3 大组件</button>
+  <button class="tab" data-tab="schema">📐 5 Schemas 详细</button>
+  <button class="tab" data-tab="retrieval">🔍 3 源 Retrieval</button>
+  <button class="tab" data-tab="training">🎓 4B 模型训练</button>
+  <button class="tab" data-tab="workflow">⚙️ 完整工作流</button>
+  <button class="tab" data-tab="perf">📈 性能数据</button>
+  <button class="tab" data-tab="related">🔗 与 Patrick 工作关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战路线</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: PROBLEMS -->
+<div class="tab-content active" data-tab-content="problems">
+  <h2 class="section">❌ GraphRAG 5 大问题</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>问题</th><th>影响</th><th>例子</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><b>Flatten scientific structure</b></td>
+        <td>条件结构消失，依赖关系丢失</td>
+        <td>"improves the robustness <b>only when</b> X and Y" → 变成 "improves robustness"</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><b>Ignores multimodal</b></td>
+        <td>table / figure 数据全丢</td>
+        <td>table 3 / figure 3 的非文本数据无法 retrieve</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><b>Lacks abstractions</b></td>
+        <td>只取 metadata，缺科学抽象</td>
+        <td>有 dataset/method/metric，<b>没有</b> motivation/contribution/limitation</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><b>Citations as flat edges</b></td>
+        <td>丢失引用语义</td>
+        <td>"A cites B" → 没区分 <b>support/contradict/extend/benchmark/criticize/reuse</b></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><b>Retrieves only chunks</b></td>
+        <td>还是 text retrieval</td>
+        <td>拿不到 benchmark results / failure claims / equations / lineage</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "Our latest research AI agents fail not because they are stupid or have not enough complex sub-agent and multi-agent structure but because the <b>scientific structure / information / knowledge itself gets destroyed during the retrieval</b>."
+  </blockquote>
+</div>
+
+<!-- TAB 2: ARCH -->
+<div class="tab-content" data-tab-content="arch">
+  <h2 class="section">🏗️ 3 大组件</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>1. Multimodal Parser</h4>
+      <p>解析 PDF → 5 schemas 结构化</p>
+      <ul>
+        <li>Text blocks</li>
+        <li>Tables</li>
+        <li>Figures / graphs</li>
+        <li>Equations</li>
+        <li>Citations</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>2. 4B Extraction LLM</h4>
+      <p>专用 expert model（不是 chat / reasoning）</p>
+      <ul>
+        <li>RL 训练（GRPO）</li>
+        <li>3 reward: format / JSON / task</li>
+        <li>MIT license，可下载</li>
+        <li>4B 足够一般任务</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>3. Graph Anything CLI</h4>
+      <p>17 MCP tools + Python package + Unified CLI</p>
+      <ul>
+        <li>4 大 operator</li>
+        <li>3 源 retrieval</li>
+        <li>Domain-specific KG</li>
+        <li>Symbolic graph traversal</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: SCHEMA -->
+<div class="tab-content" data-tab-content="schema">
+  <h2 class="section">📐 5 Schemas 详细</h2>
+
+  <div class="schema-grid">
+    <div class="schema-card">
+      <div class="letter">A</div>
+      <div class="title">Factual / Metadata</div>
+      <div class="content">
+        <ul>
+          <li>Title / ID</li>
+          <li>Publication year</li>
+          <li>Document type</li>
+          <li>Language</li>
+          <li>License</li>
+          <li>Country/region</li>
+          <li>PDF URL</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="schema-card">
+      <div class="letter">B</div>
+      <div class="title">Authors</div>
+      <div class="content">
+        <ul>
+          <li>Name</li>
+          <li>Email</li>
+          <li>Affiliation</li>
+          <li>Ordering</li>
+          <li>Corresponding</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="schema-card">
+      <div class="letter">C</div>
+      <div class="title">Textual Entities</div>
+      <div class="content">
+        <ul>
+          <li>Method (proposed/cited)</li>
+          <li>Task</li>
+          <li>Evaluation</li>
+          <li>Dataset</li>
+          <li>Metric</li>
+          <li>Result</li>
+          <li>Table reference</li>
+          <li>Figure reference</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="schema-card">
+      <div class="letter">D</div>
+      <div class="title">Implicit / Abstracted</div>
+      <div class="content">
+        <ul>
+          <li>Motivation</li>
+          <li>Contribution</li>
+          <li>Limitation</li>
+          <li>Future work</li>
+          <li>Hypothesis</li>
+          <li>Failure mode</li>
+          <li>Novelty</li>
+          <li>Mechanism</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="schema-card">
+      <div class="letter">E</div>
+      <div class="title">Citation Relations</div>
+      <div class="content">
+        <ul>
+          <li>Site type (cites/cited by)</li>
+          <li>Related reference</li>
+          <li>Evidence (support/contradict/extend/benchmark/criticize/reuse)</li>
+          <li>Publication type</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Socratic PO 提取例子</h3>
+  <table>
+    <thead>
+      <tr><th>字段</th><th>提取值</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Method</td><td>Socratic Policy Optimization</td></tr>
+      <tr><td>What it improves</td><td>RL convergence</td></tr>
+      <tr><td>Mechanism</td><td>Teacher-guided curriculum generation</td></tr>
+      <tr><td>Baseline</td><td>PPO (2017)</td></tr>
+      <tr><td>Problem</td><td>Exploration inefficiency</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 4: RETRIEVAL -->
+<div class="tab-content" data-tab-content="retrieval">
+  <h2 class="section">🔍 3 源 Retrieval（关键创新）</h2>
+
+  <div class="phase-flow">
+    <div class="phase blue">
+      <div class="num">1</div>
+      <div class="name">Web Retrieval</div>
+      <div class="detail">Google Scholar / arXiv / APIs</div>
+    </div>
+    <div class="phase green">
+      <div class="num">2</div>
+      <div class="name">KG Retrieval</div>
+      <div class="detail">Domain-specific multimodal</div>
+    </div>
+    <div class="phase yellow">
+      <div class="num">3</div>
+      <div class="name">Graph Traversal</div>
+      <div class="detail">Symbolic reasoning over paths</div>
+    </div>
+  </div>
+
+  <h3>4 大 Operator（CLI）</h3>
+  <table>
+    <thead>
+      <tr><th>Operator</th><th>用途</th><th>例子</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Seed resolution</b></td>
+        <td>解析 query → 实体</td>
+        <td>"Socratic PPO" → 论文名 + 作者 + 方法 + 引用</td>
+      </tr>
+      <tr>
+        <td><b>Citation lineage</b></td>
+        <td>演进链</td>
+        <td>"What led to this methodology?" → 遍历 graph</td>
+      </tr>
+      <tr>
+        <td><b>Limitation retrieval</b></td>
+        <td>未解决问题</td>
+        <td>"Which limitations remain?"</td>
+      </tr>
+      <tr>
+        <td><b>Comparative retrieval</b></td>
+        <td>文献对比</td>
+        <td>"What beats classical PPO?" → benchmark + delta + failure</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "Graph traversal... is <b>NOT vector building or vector databases or vector searching</b> — this is reasoning over the graph paths and elements here that we need for the long reasoning task."
+  </blockquote>
+</div>
+
+<!-- TAB 5: TRAINING -->
+<div class="tab-content" data-tab-content="training">
+  <h2 class="section">🎓 4B 模型训练（GRPO）</h2>
+
+  <h3>为什么不是 SFT？</h3>
+  <div class="card">
+    <p>"Think about the nature of the job. What we have to do is <b>extraction and even more structured extraction optimization and not simple reasoning</b>. So what we need is here a massive alignment to our new schema."</p>
+  </div>
+
+  <h3>3 大 Reward</h3>
+  <table>
+    <thead>
+      <tr><th>Reward</th><th>作用</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Format reward</b></td>
+        <td>输出符合 schema 格式</td>
+      </tr>
+      <tr>
+        <td><b>JSON reward</b></td>
+        <td>JSON 合法 + 结构化</td>
+      </tr>
+      <tr>
+        <td><b>Task reward</b></td>
+        <td>NER F1 + Relation Extraction + Long-form structured</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3 大训练任务</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Classical NER</h4>
+      <p>"Socratic PO is a method, PPO is the baseline, this is a dataset"</p>
+    </div>
+    <div class="card">
+      <h4>2. Relation Extraction</h4>
+      <p>extend / compare / reuse / adapt / contrast / generalize / modify / criticize</p>
+    </div>
+    <div class="card">
+      <h4>3. Structured NER</h4>
+      <p>method / role / evidence / context / analysis</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow); margin-top: 1rem;">
+    <h4>⚠️ 模型 size 选择</h4>
+    <ul>
+      <li><b>4B</b>：足够一般任务（论文目标）</li>
+      <li><b>8B / 27B</b>：理论物理、数学可能需要</li>
+      <li>不是 reasoning model → <b>dedicated expert</b></li>
+    </ul>
+  </div>
+
+  <h3>GRPO 关键</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li>Group Relative Policy Optimization（熟悉的算法）</li>
+    <li>Low variance KL + KL penalty to frozen reference</li>
+    <li>KL 加到 last token（不 fold 进 reward）</li>
+    <li>Normalization factors / hyperparameters</li>
+  </ul>
+</div>
+
+<!-- TAB 6: WORKFLOW -->
+<div .tab-content="" data-tab-content="workflow">
+</div>
+
+<div class="tab-content" data-tab-content="workflow">
+  <h2 class="section">⚙️ 完整工作流（offline + online）</h2>
+
+  <h3>Offline Phase（一次性构建）</h3>
+  <div class="phase-flow">
+    <div class="phase yellow">
+      <div class="num">①</div>
+      <div class="name">2.5M PDFs</div>
+      <div class="detail">6 大科学领域</div>
+    </div>
+    <div class="phase">
+      <div class="num">②</div>
+      <div class="name">Parser</div>
+      <div class="detail">multimodal: text/visual/equation</div>
+    </div>
+    <div class="phase green">
+      <div class="num">③</div>
+      <div class="name">4B Extractor</div>
+      <div class="detail">RL 训练 · 5 schemas</div>
+    </div>
+    <div class="phase blue">
+      <div class="num">④</div>
+      <div class="name">Scholar KG</div>
+      <div class="detail">multimodal + 5-layer</div>
+    </div>
+  </div>
+
+  <h3>Online Phase（每次 query）</h3>
+  <div class="phase-flow">
+    <div class="phase yellow">
+      <div class="name">User query</div>
+    </div>
+    <div class="phase">
+      <div class="name">CLI / MCP</div>
+    </div>
+    <div class="phase green">
+      <div class="name">3 源 Retrieval</div>
+      <div class="detail">web + KG + traversal</div>
+    </div>
+    <div class="phase blue">
+      <div class="name">Reasoning Agent</div>
+      <div class="detail">GPT-5 / Gemini 3 (SOTA)</div>
+    </div>
+    <div class="phase">
+      <div class="name">Answer</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1.5rem; border-left: 3px solid var(--green);">
+    <h4>✅ 关键设计：separation of concerns</h4>
+    <p>4B 模型做 extraction · SOTA 模型做 reasoning · <b>避免 giant expensive LLM 用于所有 task</b></p>
+    <p style="margin-top: 0.6rem; color: var(--accent-2); font-weight: 600;">"Less money less expensive."</p>
+  </div>
+</div>
+
+<!-- TAB 7: PERF -->
+<div class="tab-content" data-tab-content="perf">
+  <h2 class="section">📈 性能数据</h2>
+
+  <h3>3 个 Benchmark</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li><b>HotpotQA</b>（multihop QA）</li>
+    <li><b>2WikiMultihopQA</b>（2 Wiki multihop）</li>
+    <li><b>Musique</b></li>
+  </ul>
+
+  <h3>K1 vs Naked LLM（Knowledge + Research Questions）</h3>
+  <div class="perf-bar">
+    <span class="label">Naked GPT-5.2</span>
+    <div class="bar-container">
+      <div class="bar baseline" style="width: 41.8%;">41.8%</div>
+    </div>
+  </div>
+  <div class="perf-bar">
+    <span class="label"><b>K1 (Agent Native)</b></span>
+    <div class="bar-container">
+      <div class="bar" style="width: 66.3%;"><b>66.3%</b></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1.5rem; border-left: 3px solid var(--green);">
+    <h4>📈 提升 +24.5%</h4>
+    <p>在所有 3 个 multihop QA benchmark 上，K1 都 <b>outperforms</b> 所有 baseline（包括 LightRAG / HippoRAG / GFMRAG / HippoRAG 2）</p>
+    <p style="margin-top: 0.6rem; color: var(--text-mute); font-size: 0.9rem;">注：Naked GPT-5.2 在 knowledge / research question 表现类似 41.8%</p>
+  </div>
+</div>
+
+<!-- TAB 8: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 hybrid-llm-routing-framework</h4>
+      <p><b>核心关联</b> — K1 是 hybrid-llm-router 的 production-grade 实现：</p>
+      <ul>
+        <li>✅ 本地 cheap（4B extraction）+ cloud SOTA（GPT-5 reasoning）</li>
+        <li>✅ <b>不用 vector DB</b> → 3 源 retrieval</li>
+        <li>✅ 17 MCP tools → 同 Patrick hybrid 路线</li>
+        <li>✅ MIT license → 立即可用</li>
+        <li>✅ "less money less expensive" = 验证 hybrid 决策</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>4B 模型本地能跑 → <b>本地 + cloud reasoning</b> 的最优分工</p>
+      <p>Graph traversal reasoning 跟 IndyDevDan "8K context limit" 完全互补</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm = 多 agent 协作 · K1 = single agent with 3-source retrieval</p>
+      <p>两条路线可结合：K1 节点 + OpenSwarm 协调</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman Stanford</h4>
+      <p>Sam "inference underinvested" → K1 = <b>inference 优化实例</b></p>
+      <p>"Always fresh data" → Sam 3 forks 之一（compute + data shortage）</p>
+      <p>"less money less expensive" = Sam "80% democratization" 具体路径</p>
+    </div>
+    <div class="card">
+      <h4>🔗 DataCamp AI Engineer</h4>
+      <p>DataCamp 学 RAG → K1 是 <b>RAG 2.0 范式</b>（无 vector DB）</p>
+      <p>Multimodal + structured extraction 是进阶技能</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（10 分钟）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>看 GitHub repo（17 MCP tools + Python package）</li>
+    <li>理解 5 schema + 3 source 架构</li>
+    <li>在 hybrid-llm-router skill 文档加 case study（K1 案例）</li>
+  </ol>
+
+  <h3>中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>本地跑 4B extraction model（Ollama / LM Studio）</li>
+    <li>选 1 个 domain 跑 100-1000 docs 做小型 KG</li>
+    <li>接 hybrid-llm-router 做 routing（本地 4B + cloud GPT-5）</li>
+  </ol>
+
+  <h3>长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>OpenSwarm 中集成 K1 节点</li>
+    <li>自训练 4B extraction model（垂直领域）</li>
+    <li>用 K1 论文框架做 OpenSwarm 自己的 knowledge layer</li>
+  </ol>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1.5rem;">
+    <h4>💡 关键洞察</h4>
+    <p>K1 论文 6/11 刚出 → 7 个 MCP tools 立即可用 → 跟 hybrid-llm-router skill 完美互补</p>
+    <p>这是 <b>RAG 2.0 范式</b>：从 vector DB → 3 源 retrieval（web + KG + traversal）</p>
+  </div>
+</div>
+
+<!-- TAB 10: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 完整时间线（65 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：Forget GraphRAG, 4B AI does the work</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:17</div>
+      <div class="what">前 2 视频：hierarchical memory + planning</div>
+      <div class="note">今天 = knowledge optimization</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:33</div>
+      <div class="what">GraphRAG 流程介绍</div>
+      <div class="note">chunk → triples → retrieval</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:39</div>
+      <div class="what">❌ <b>问题 1：Flatten science into triples</b></div>
+      <div class="note">Einstein 例子 + conditional structure 消失</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:07</div>
+      <div class="what">❌ <b>问题 2：Ignores multimodal</b></div>
+      <div class="note">table 3 / figure 3 丢失</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:41</div>
+      <div class="what">❌ <b>问题 3：Lacks abstractions</b></div>
+      <div class="note">motivation/contribution/limitation 缺</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:47</div>
+      <div class="what">❌ <b>问题 4：Citations as flat edges</b></div>
+      <div class="note">没区分 support/contradict/extend</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:42</div>
+      <div class="what">❌ <b>问题 5：Retrieves only chunks</b></div>
+      <div class="note">拿不到 benchmark / failure / equations</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:08</div>
+      <div class="what">K1 论文介绍</div>
+      <div class="note">Shanghai AI Lab + ECNU + Fudan, 2026-06-11</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:54</div>
+      <div class="what">🏗️ 3 大组件</div>
+      <div class="note">Parser + 4B LLM + Graph CLI</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:35</div>
+      <div class="what">2.5M PDFs → Scholar KG</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:25</div>
+      <div class="what">Socratic PO extraction 例子</div>
+      <div class="note">method/motivation/baseline 全提取</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:54</div>
+      <div class="what">训练 = GRPO（不是 SFT）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:20</div>
+      <div class="what">3 reward: format / JSON / task</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:50</div>
+      <div class="what">3 extraction tasks: NER / relation / structured</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:30</div>
+      <div class="what">📐 <b>5 schemas (A/B/C/D/E)</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:30</div>
+      <div class="what">4B ≠ reasoning model</div>
+      <div class="note">= dedicated expert</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:15</div>
+      <div class="what">"less money less expensive"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:00</div>
+      <div class="what">Always fresh data → web search integration</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:25</div>
+      <div class="what">🔍 <b>3 源 retrieval</b></div>
+      <div class="note">web + KG + traversal</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:50</div>
+      <div class="what">Graph traversal ≠ vector search</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:33</div>
+      <div class="what">Graph operators 例子</div>
+      <div class="note">seed / lineage / limitation / comparison</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:15</div>
+      <div class="what">完整结构图（offline + online）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:44</div>
+      <div class="what">3 benchmarks: HotpotQA / 2Wiki / Musique</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:24</div>
+      <div class="what">📈 <b>41.8% → 66.3%</b></div>
+      <div class="note">knowledge + research questions</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">27:00</div>
+      <div class="what">Next week 新系统预告</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/k1-agent-native-knowledge-orchestration/</code></p>
+  <p>Desktop: <code>~/Desktop/k1-agent-native-knowledge-orchestration-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=QuTcXMgPanw">https://www.youtube.com/watch?v=QuTcXMgPanw</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>
