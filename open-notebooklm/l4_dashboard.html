@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Open NotebookLM · L4 Self-Harness Dashboard</title>
+<style>
+  :root{
+    --orange:#ff6b35;
+    --orange-dim:#cc4f1f;
+    --bg:#0d0d10;
+    --bg-2:#16161a;
+    --bg-3:#1f1f24;
+    --line:#2a2a30;
+    --text:#e8e8ec;
+    --text-dim:#9a9aa3;
+    --text-mute:#6a6a73;
+    --good:#4ade80;
+    --warn:#fbbf24;
+    --bad:#f87171;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  code,.mono{font-family:"SF Mono","JetBrains Mono",Menlo,monospace;font-size:0.85em}
+  .wrap{max-width:1200px;margin:0 auto;padding:32px}
+
+  .hero{padding:32px 0 24px;border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:12px;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase;font-family:"SF Mono",monospace;margin-bottom:12px}
+  h1{font-size:36px;font-weight:700;margin-bottom:8px;letter-spacing:-0.01em}
+  h1 .hl{color:var(--orange)}
+  .lede{font-size:15px;color:var(--text-dim);max-width:720px}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+  .kpi{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .kpi .v{font-size:28px;font-weight:700;color:var(--orange);font-family:"SF Mono",monospace}
+  .kpi .l{font-size:12px;color:var(--text-dim);margin-top:4px}
+  @media (max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:768px){.grid-2{grid-template-columns:1fr}}
+  .card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+  .card h2{font-size:18px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card h2 .num{font-family:"SF Mono",monospace;font-size:11px;color:var(--orange);background:rgba(255,107,53,0.12);padding:2px 6px;border-radius:4px}
+  .card .desc{color:var(--text-dim);font-size:13px;margin-bottom:12px}
+
+  /* chart bars */
+  .bars{display:flex;align-items:flex-end;gap:6px;height:180px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .bar{flex:1;background:linear-gradient(180deg,var(--orange),var(--orange-dim));border-radius:4px 4px 0 0;position:relative;min-width:24px;transition:opacity 0.2s}
+  .bar:hover{opacity:0.8}
+  .bar .val{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-family:"SF Mono",monospace;font-size:10px;color:var(--text);white-space:nowrap}
+  .bar .lbl{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-family:"SF Mono",monospace;font-size:10px;color:var(--text-mute);white-space:nowrap}
+  .bar.warn{background:linear-gradient(180deg,var(--warn),#b88c10)}
+  .bar.good{background:linear-gradient(180deg,var(--good),#2a9a55)}
+  .bar.bad{background:linear-gradient(180deg,var(--bad),#a64545)}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+  th{text-align:left;padding:8px 10px;background:var(--bg-3);color:var(--text);font-weight:600;font-family:"SF Mono",monospace;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--text-dim);font-family:"SF Mono",monospace}
+  tr:hover td{background:var(--bg-2)}
+
+  .badge{display:inline-block;font-family:"SF Mono",monospace;font-size:10px;padding:2px 6px;border-radius:3px;letter-spacing:0.05em}
+  .badge.cloud{background:rgba(248,113,113,0.12);color:var(--bad);border:1px solid rgba(248,113,113,0.3)}
+  .badge.local{background:rgba(74,222,128,0.12);color:var(--good);border:1px solid rgba(74,222,128,0.3)}
+  .badge.hybrid{background:rgba(251,191,36,0.12);color:var(--warn);border:1px solid rgba(251,191,36,0.3)}
+
+  .empty{padding:48px;text-align:center;color:var(--text-mute);font-family:"SF Mono",monospace;font-size:13px}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--text-mute);font-size:11px;font-family:"SF Mono",monospace}
+  .legend{display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text-dim);font-family:"SF Mono",monospace}
+  .legend .sw{width:12px;height:12px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">v1.1.0 · L4 SELF-HARNESS DASHBOARD</div>
+  <h1>Cortex <span class="hl">Self-Harness</span> · Live Telemetry</h1>
+  <p class="lede">每 query 1 行 telemetry 收集 · 4 元素 (prompts/tools/memory/policy) 自学习监控。Open NotebookLM L4 输出。</p>
+</header>
+
+<!-- KPI Row -->
+<div class="kpi-row" id="kpiRow">
+  <div class="kpi"><div class="v" id="kpiTotal">—</div><div class="l">Total Queries</div></div>
+  <div class="kpi"><div class="v" id="kpiLocal">—</div><div class="l">Local Mode %</div></div>
+  <div class="kpi"><div class="v" id="kpiAvgGap">—</div><div class="l">Avg Gap (fields)</div></div>
+  <div class="kpi"><div class="v" id="kpiLastTs">—</div><div class="l">Last Run</div></div>
+</div>
+
+<div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+  <div class="kpi" style="border-color:var(--orange-dim)"><div class="v" id="kpiLlmPct">—</div><div class="l">LLM Usage % (L2/L3)</div></div>
+  <div class="kpi"><div class="v" id="kpiTotalWeb">—</div><div class="l">Total Vault Hits</div></div>
+  <div class="kpi"><div class="v" id="kpiTotalSize">—</div><div class="l">Total Output (B)</div></div>
+</div>
+
+<!-- Grid: 2 charts side by side -->
+<div class="grid-2">
+  <div class="card">
+    <h2><span class="num">CHART 1</span> L1 Routing Mode 分布</h2>
+    <p class="desc">每次 query 路由模式 (local/hybrid/cloud) · 监控隐私 vs 成本</p>
+    <div class="bars" id="modeChart"></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--good)"></span>local</span>
+      <span><span class="sw" style="background:var(--warn)"></span>hybrid</span>
+      <span><span class="sw" style="background:var(--bad)"></span>cloud</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">CHART 2</span> L2 Gap 字段数 趋势</h2>
+    <p class="desc">每 query 推断缺失字段数 · 监控 vault 完整度</p>
+    <div class="bars" id="gapChart"></div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2><span class="num">CHART 3</span> L3 Deliverable 大小 (md + html)</h2>
+    <p class="desc">每次产出 .md + .html 字节数 · 监控 deliverable 稳定性</p>
+    <div class="bars" id="sizeChart"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">CHART 4</span> L4 Cortex 4 元素 健康度</h2>
+    <p class="desc">基于 telemetry 聚合的 4 元素自学习建议 · v1.3.0 哲学:用户掌控 → 不自动写回</p>
+    <div id="cortexPanel" style="padding:12px;background:var(--bg);border-radius:8px;font-family:'SF Mono',monospace;font-size:12px;line-height:1.8;color:var(--text-dim);min-height:160px"></div>
+  </div>
+</div>
+
+<!-- Recent queries table -->
+<div class="card">
+  <h2><span class="num">TABLE</span> 最近 10 次 query · 完整 telemetry</h2>
+  <p class="desc">每行 1 个 query · L0/L1/L2/L3/L4 全字段</p>
+  <div id="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>ts</th>
+          <th>query</th>
+          <th>mode</th>
+          <th>score</th>
+          <th>web_hits</th>
+          <th>kg</th>
+          <th>gap</th>
+          <th>md/h</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer class="footer">
+  Open NotebookLM · L4 Dashboard v1.1.0 · 2026-06-18 · data: ~/open-notebooklm/data/telemetry.jsonl · model: Qwen 2.5 1.5B local
+</footer>
+
+</div>
+
+<script id="telemetryData" type="application/json">[{"ts": "2026-06-18T14:28:05.665898", "query": "TOP10 基金排名用什么方法?权重怎么分配?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 8, "l3_md_size": 948, "l3_html_size": 2498, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:07.366580", "query": "ESG 投资策略的评分公式是什么?核心持仓筛选规则?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 940, "l3_html_size": 2493, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:08.514059", "query": "Neo Labs Tracker 25 家数据怎么采集的?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 10, "l3_md_size": 894, "l3_html_size": 2450, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:09.677491", "query": "如何把投资人简报部署到 2017zyl.xyz 同一域名?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 829, "l3_html_size": 2385, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:10.286415", "query": "Anthropic 当前估值是多少?可比交易倍数怎么算?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 2, "l3_md_size": 579, "l3_html_size": 2134, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}]</script>
+<script>
+(function(){
+  let data = [];
+  try {
+    const raw = document.getElementById('telemetryData').textContent;
+    data = JSON.parse(raw);
+  } catch(e) {
+    data = [];
+  }
+
+  if (!data || data.length === 0) {
+    document.getElementById('kpiTotal').textContent = '0';
+    document.getElementById('kpiLocal').textContent = '—';
+    document.getElementById('kpiAvgGap').textContent = '—';
+    document.getElementById('kpiLastTs').textContent = 'never';
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="empty">⚠️  telemetry.jsonl 空 · 跑 smoke_test.py ≥1 次</td></tr>';
+    document.getElementById('cortexPanel').innerHTML = '<span style="color:var(--text-mute)">awaiting telemetry...</span>';
+    document.getElementById('modeChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
+    document.getElementById('gapChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
+    document.getElementById('sizeChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
+    return;
+  }
+
+  // KPIs
+  const total = data.length;
+  const localCount = data.filter(d => d.l1_mode === 'local').length;
+  const localPct = Math.round(100 * localCount / total);
+  const avgGap = (data.reduce((s,d) => s + (d.l2_gap_count||0), 0) / total).toFixed(1);
+  const lastTs = new Date(data[data.length-1].ts).toLocaleString('zh-CN', {hour12:false});
+
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiLocal').textContent = localPct + '%';
+  document.getElementById('kpiAvgGap').textContent = avgGap;
+  document.getElementById('kpiLastTs').textContent = lastTs.slice(11);
+
+  // v1.1.0: LLM / Vault / Output KPIs
+  const llmL2 = data.filter(d => d.l2_llm_used).length;
+  const llmL3 = data.filter(d => d.l3_llm_used).length;
+  const llmPct = Math.round(100 * (llmL2 + llmL3) / (2 * total));
+  const totalWeb = data.reduce((s, d) => s + (d.l2_web_hits||0), 0);
+  const totalSize = data.reduce((s, d) => s + (d.l3_md_size||0) + (d.l3_html_size||0), 0);
+  document.getElementById('kpiLlmPct').textContent = llmPct + '%';
+  document.getElementById('kpiTotalWeb').textContent = totalWeb;
+  document.getElementById('kpiTotalSize').textContent = totalSize.toLocaleString();
+
+  // Chart 1: Mode distribution per query
+  const modeChart = document.getElementById('modeChart');
+  modeChart.innerHTML = '';
+  data.forEach((d, i) => {
+    const cls = d.l1_mode === 'local' ? 'good' : (d.l1_mode === 'hybrid' ? 'warn' : 'bad');
+    const h = 30 + Math.random() * 130;  // visual height
+    const bar = document.createElement('div');
+    bar.className = 'bar ' + cls;
+    bar.style.height = h + 'px';
+    bar.innerHTML = `<span class="val">${d.l1_mode[0].toUpperCase()}</span><span class="lbl">#${i+1}</span>`;
+    bar.title = `#${i+1} ${d.l1_mode} · score=${d.l1_total_score}`;
+    modeChart.appendChild(bar);
+  });
+
+  // Chart 2: Gap count trend
+  const gapChart = document.getElementById('gapChart');
+  gapChart.innerHTML = '';
+  const maxGap = Math.max(...data.map(d => d.l2_gap_count||0), 1);
+  data.forEach((d, i) => {
+    const gap = d.l2_gap_count || 0;
+    const h = (gap / maxGap) * 160;
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = Math.max(4, h) + 'px';
+    bar.innerHTML = `<span class="val">${gap}</span><span class="lbl">#${i+1}</span>`;
+    bar.title = `gap=${gap} · web_hits=${d.l2_web_hits} · kg=${d.l2_kg_matches}`;
+    gapChart.appendChild(bar);
+  });
+
+  // Chart 3: Deliverable size (md + html stacked)
+  const sizeChart = document.getElementById('sizeChart');
+  sizeChart.innerHTML = '';
+  const maxSize = Math.max(...data.map(d => (d.l3_md_size||0) + (d.l3_html_size||0)), 1);
+  data.forEach((d, i) => {
+    const total = (d.l3_md_size||0) + (d.l3_html_size||0);
+    const h = (total / maxSize) * 160;
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = Math.max(4, h) + 'px';
+    bar.innerHTML = `<span class="val">${total}</span><span class="lbl">#${i+1}</span>`;
+    bar.title = `md=${d.l3_md_size}B + html=${d.l3_html_size}B`;
+    sizeChart.appendChild(bar);
+  });
+
+  // Cortex panel (4 元素)
+  const panel = document.getElementById('cortexPanel');
+  const avgScore = (data.reduce((s,d) => s + (d.l1_total_score||0), 0) / total).toFixed(1);
+  const localColor = localPct > 70 ? 'var(--bad)' : (localPct > 30 ? 'var(--good)' : 'var(--warn)');
+  panel.innerHTML = `
+    <div style="margin-bottom:8px"><span style="color:var(--orange)">📝 prompts</span> · 8-section 模板 · ${total} 次复用 · ${avgScore} avg score</div>
+    <div style="margin-bottom:8px"><span style="color:var(--orange)">🔧 tools</span> · 7 MCP tool · ${totalWeb} vault hits total · LLM ${llmPct}% used (L2 ${llmL2}/${total} · L3 ${llmL3}/${total})</div>
+    <div style="margin-bottom:8px"><span style="color:var(--orange)">💾 memory</span> · ${total} telemetry entries · kg ${data.reduce((s,d)=>s+(d.l2_kg_matches||0),0)} total matches · ${totalSize.toLocaleString()}B total output</div>
+    <div style="margin-bottom:8px"><span style="color:var(--orange)">📜 policy</span> · local ${localPct}% · <span style="color:${localColor}">${localPct > 70 ? '占比偏高, 建议调 5 维权重' : (localPct < 30 ? 'cloud 偏多, 隐私敏感数据未上' : '健康平衡 ✓')}</span></div>
+    <div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--line);color:var(--text-mute)">
+      ⚠️  v1.3.0 哲学 · 用户掌控 → proposal 不自动写回,需 Patrick 显式 approve · v1.1.0 接入本地 Qwen 1.5B
+    </div>
+  `;
+
+  // Table
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  data.slice(-10).reverse().forEach((d, i) => {
+    const tr = document.createElement('tr');
+    const badge = `<span class="badge ${d.l1_mode}">${d.l1_mode}</span>`;
+    const ts = new Date(d.ts).toLocaleString('zh-CN', {hour12:false}).slice(5, 19);
+    tr.innerHTML = `
+      <td style="color:var(--text-mute)">#${data.length - i}</td>
+      <td style="color:var(--text-mute)">${ts}</td>
+      <td style="color:var(--text);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.query}">${d.query}</td>
+      <td>${badge}</td>
+      <td>${d.l1_total_score||'?'}</td>
+      <td>${d.l2_web_hits||0}</td>
+      <td>${d.l2_kg_matches||0}</td>
+      <td>${d.l2_gap_count||0}</td>
+      <td>${d.l3_md_size||0}/${d.l3_html_size||0}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+})();
+</script>
+</body>
+</html>
