@@ -6,22 +6,16 @@
 <title>Open NotebookLM · L4 Self-Harness Dashboard</title>
 <style>
   :root{
-    --orange:#ff6b35;
-    --orange-dim:#cc4f1f;
-    --bg:#0d0d10;
-    --bg-2:#16161a;
-    --bg-3:#1f1f24;
-    --line:#2a2a30;
-    --text:#e8e8ec;
-    --text-dim:#9a9aa3;
-    --text-mute:#6a6a73;
-    --good:#4ade80;
-    --warn:#fbbf24;
-    --bad:#f87171;
+    --orange:#ff6b35; --orange-dim:#cc4f1f;
+    --bg:#0d0d10; --bg-2:#16161a; --bg-3:#1f1f24; --line:#2a2a30;
+    --text:#e8e8ec; --text-dim:#9a9aa3; --text-mute:#6a6a73;
+    --good:#4ade80; --warn:#fbbf24; --bad:#f87171;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
   code,.mono{font-family:"SF Mono","JetBrains Mono",Menlo,monospace;font-size:0.85em}
+  a{color:var(--orange);text-decoration:none}
+  a:hover{text-decoration:underline}
   .wrap{max-width:1200px;margin:0 auto;padding:32px}
 
   .hero{padding:32px 0 24px;border-bottom:1px solid var(--line)}
@@ -31,19 +25,18 @@
   .lede{font-size:15px;color:var(--text-dim);max-width:720px}
 
   .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}
+  .kpi-row.tri{grid-template-columns:repeat(3,1fr)}
   .kpi{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:16px}
   .kpi .v{font-size:28px;font-weight:700;color:var(--orange);font-family:"SF Mono",monospace}
   .kpi .l{font-size:12px;color:var(--text-dim);margin-top:4px}
-  @media (max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:768px){.kpi-row,.kpi-row.tri{grid-template-columns:repeat(2,1fr)}}
 
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media (max-width:768px){.grid-2{grid-template-columns:1fr}}
   .card{background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
   .card h2{font-size:18px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
   .card h2 .num{font-family:"SF Mono",monospace;font-size:11px;color:var(--orange);background:rgba(255,107,53,0.12);padding:2px 6px;border-radius:4px}
-  .card .desc{color:var(--text-dim);font-size:13px;margin-bottom:12px}
 
-  /* chart bars */
   .bars{display:flex;align-items:flex-end;gap:6px;height:180px;padding:12px 0;border-bottom:1px solid var(--line)}
   .bar{flex:1;background:linear-gradient(180deg,var(--orange),var(--orange-dim));border-radius:4px 4px 0 0;position:relative;min-width:24px;transition:opacity 0.2s}
   .bar:hover{opacity:0.8}
@@ -62,23 +55,57 @@
   .badge.cloud{background:rgba(248,113,113,0.12);color:var(--bad);border:1px solid rgba(248,113,113,0.3)}
   .badge.local{background:rgba(74,222,128,0.12);color:var(--good);border:1px solid rgba(74,222,128,0.3)}
   .badge.hybrid{background:rgba(251,191,36,0.12);color:var(--warn);border:1px solid rgba(251,191,36,0.3)}
+  .badge.live{background:rgba(74,222,128,0.12);color:var(--good);border:1px solid rgba(74,222,128,0.3)}
+
+  /* Cortex 4 元素 panel v1.3.0 */
+  .cortex-panel{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:16px;font-family:"SF Mono",monospace;font-size:12px;line-height:1.8;color:var(--text-dim);min-height:120px}
+  .cortex-panel .element{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+  .cortex-panel .element:last-child{border-bottom:0}
+  .cortex-panel .element .icon{font-size:14px;flex:0 0 24px;text-align:center}
+  .cortex-panel .element .body{flex:1}
+  .cortex-panel .element .name{color:var(--orange);font-weight:600;display:inline-block;min-width:80px}
+  .cortex-panel .element .priority{font-size:10px;padding:1px 6px;border-radius:3px;margin-left:8px;background:var(--bg-3);color:var(--text-mute)}
+  .cortex-panel .element .priority.critical{background:rgba(248,113,113,0.15);color:var(--bad)}
+  .cortex-panel .element .priority.nice{background:rgba(74,222,128,0.12);color:var(--good)}
+
+  /* Apply button + log */
+  .apply-bar{display:flex;gap:8px;align-items:center;margin-top:12px;padding:12px;background:var(--bg-3);border-radius:6px;font-size:12px}
+  .btn{padding:6px 14px;border:0;border-radius:4px;font-family:"SF Mono",monospace;font-size:12px;cursor:pointer;transition:opacity 0.2s}
+  .btn-primary{background:var(--orange);color:#fff}
+  .btn-secondary{background:var(--bg-2);color:var(--text-dim);border:1px solid var(--line)}
+  .btn:hover{opacity:0.85}
+  .apply-bar .note{color:var(--text-mute);font-size:11px;flex:1}
 
   .empty{padding:48px;text-align:center;color:var(--text-mute);font-family:"SF Mono",monospace;font-size:13px}
   .footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--text-mute);font-size:11px;font-family:"SF Mono",monospace}
   .legend{display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--text-dim);font-family:"SF Mono",monospace}
   .legend .sw{width:12px;height:12px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+  .callout{border-left:3px solid var(--orange);background:rgba(255,107,53,0.05);padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0;font-size:12px;color:var(--text-dim)}
+  .callout strong{color:var(--orange)}
+
+  /* proposal YAML modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:100;padding:32px}
+  .modal.open{display:flex}
+  .modal-content{background:var(--bg-2);border:1px solid var(--orange-dim);border-radius:12px;max-width:720px;width:100%;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+  .modal-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .modal-header .title{font-size:16px;font-weight:600;flex:1}
+  .modal-header .close{cursor:pointer;font-size:20px;color:var(--text-mute);padding:4px 8px}
+  .modal-header .close:hover{color:var(--text)}
+  .modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+  pre.yaml{background:#0a0a0c;padding:12px;border-radius:6px;overflow-x:auto;font-size:11px;line-height:1.6;color:var(--text);font-family:"SF Mono",monospace;white-space:pre-wrap}
+  .modal-footer{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body>
 <div class="wrap">
 
 <header class="hero">
-  <div class="eyebrow">v1.1.0 · L4 SELF-HARNESS DASHBOARD</div>
+  <div class="eyebrow">v1.3.0 · L4 SELF-HARNESS DASHBOARD</div>
   <h1>Cortex <span class="hl">Self-Harness</span> · Live Telemetry</h1>
-  <p class="lede">每 query 1 行 telemetry 收集 · 4 元素 (prompts/tools/memory/policy) 自学习监控。Open NotebookLM L4 输出。</p>
+  <p class="lede">每 query 1 行 telemetry 收集 · 4 元素 (prompts/tools/memory/policy) 自学习监控 · v1.3.0 user-approve gate。</p>
 </header>
 
-<!-- KPI Row -->
+<!-- KPI Row 1 -->
 <div class="kpi-row" id="kpiRow">
   <div class="kpi"><div class="v" id="kpiTotal">—</div><div class="l">Total Queries</div></div>
   <div class="kpi"><div class="v" id="kpiLocal">—</div><div class="l">Local Mode %</div></div>
@@ -86,17 +113,17 @@
   <div class="kpi"><div class="v" id="kpiLastTs">—</div><div class="l">Last Run</div></div>
 </div>
 
-<div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+<!-- KPI Row 2 -->
+<div class="kpi-row tri">
   <div class="kpi" style="border-color:var(--orange-dim)"><div class="v" id="kpiLlmPct">—</div><div class="l">LLM Usage % (L2/L3)</div></div>
   <div class="kpi"><div class="v" id="kpiTotalWeb">—</div><div class="l">Total Vault Hits</div></div>
   <div class="kpi"><div class="v" id="kpiTotalSize">—</div><div class="l">Total Output (B)</div></div>
 </div>
 
-<!-- Grid: 2 charts side by side -->
+<!-- Charts -->
 <div class="grid-2">
   <div class="card">
     <h2><span class="num">CHART 1</span> L1 Routing Mode 分布</h2>
-    <p class="desc">每次 query 路由模式 (local/hybrid/cloud) · 监控隐私 vs 成本</p>
     <div class="bars" id="modeChart"></div>
     <div class="legend">
       <span><span class="sw" style="background:var(--good)"></span>local</span>
@@ -104,121 +131,135 @@
       <span><span class="sw" style="background:var(--bad)"></span>cloud</span>
     </div>
   </div>
-
   <div class="card">
     <h2><span class="num">CHART 2</span> L2 Gap 字段数 趋势</h2>
-    <p class="desc">每 query 推断缺失字段数 · 监控 vault 完整度</p>
     <div class="bars" id="gapChart"></div>
   </div>
 </div>
 
-<div class="grid-2">
-  <div class="card">
-    <h2><span class="num">CHART 3</span> L3 Deliverable 大小 (md + html)</h2>
-    <p class="desc">每次产出 .md + .html 字节数 · 监控 deliverable 稳定性</p>
-    <div class="bars" id="sizeChart"></div>
+<!-- Cortex 4 元素 Proposal v1.3.0 (升级版) -->
+<div class="card">
+  <h2><span class="num">CORTEX</span> L4 Self-Harness · 4 元素 Proposal (v1.3.0 user-approve)</h2>
+  <div class="callout">
+    <strong>v1.3.0 哲学</strong>: 提案永远 <code>approve_required: true</code>。
+    点击 "View YAML" 查看完整 proposal → 复制 YAML 到本地 → 跑 <code>python3 scripts/apply_patch.py</code> 走 user-approve gate。
   </div>
-
-  <div class="card">
-    <h2><span class="num">CHART 4</span> L4 Cortex 4 元素 健康度</h2>
-    <p class="desc">基于 telemetry 聚合的 4 元素自学习建议 · v1.3.0 哲学:用户掌控 → 不自动写回</p>
-    <div id="cortexPanel" style="padding:12px;background:var(--bg);border-radius:8px;font-family:'SF Mono',monospace;font-size:12px;line-height:1.8;color:var(--text-dim);min-height:160px"></div>
+  <div class="cortex-panel" id="cortexPanel">
+    <div class="empty">awaiting proposal...</div>
+  </div>
+  <div class="apply-bar">
+    <button class="btn btn-primary" id="viewYamlBtn" disabled>📋 View YAML</button>
+    <button class="btn btn-secondary" id="copyYamlBtn" disabled>📑 Copy</button>
+    <button class="btn btn-secondary" id="downloadBtn" disabled>⬇ Download</button>
+    <span class="note">公网静态站不能直接 apply · 复制到本地跑 apply_patch.py (v1.3.0 硬护栏)</span>
   </div>
 </div>
 
-<!-- Recent queries table -->
+<!-- Apply Log v1.3.0 -->
+<div class="card">
+  <h2><span class="num">APPLY LOG</span> 已 apply 的 patch 历史</h2>
+  <p style="color:var(--text-dim);font-size:12px;margin-bottom:8px">每次 approve + apply 都会追加一行 · v1.3.0 user-approve gate 永久记录</p>
+  <div id="applyLogPanel">
+    <div class="empty">no applied patches yet</div>
+  </div>
+</div>
+
+<!-- Table -->
 <div class="card">
   <h2><span class="num">TABLE</span> 最近 10 次 query · 完整 telemetry</h2>
-  <p class="desc">每行 1 个 query · L0/L1/L2/L3/L4 全字段</p>
-  <div id="tableWrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>ts</th>
-          <th>query</th>
-          <th>mode</th>
-          <th>score</th>
-          <th>web_hits</th>
-          <th>kg</th>
-          <th>gap</th>
-          <th>md/h</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>ts</th><th>query</th><th>mode</th><th>score</th>
+        <th>web_hits</th><th>kg</th><th>gap</th><th>md/h</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
 </div>
 
 <footer class="footer">
-  Open NotebookLM · L4 Dashboard v1.1.0 · 2026-06-18 · data: ~/open-notebooklm/data/telemetry.jsonl · model: Qwen 2.5 1.5B local
+  Open NotebookLM · L4 Dashboard v1.3.0 · 2026-06-18 · data: ~/open-notebooklm/data/telemetry.jsonl · model: Qwen 2.5 1.5B local · cron: every 6h (job 3e4954bf6a6a)
 </footer>
 
 </div>
 
+<!-- YAML Modal -->
+<div class="modal" id="yamlModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="title">📋 Cortex Proposal YAML</div>
+      <div class="close" id="closeModal">×</div>
+    </div>
+    <div class="modal-body">
+      <pre class="yaml" id="yamlContent">Loading...</pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modalCloseBtn">Close</button>
+      <button class="btn btn-primary" id="modalCopyBtn">📑 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
 <script id="telemetryData" type="application/json">[{"ts": "2026-06-18T14:28:05.665898", "query": "TOP10 基金排名用什么方法?权重怎么分配?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 8, "l3_md_size": 948, "l3_html_size": 2498, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:07.366580", "query": "ESG 投资策略的评分公式是什么?核心持仓筛选规则?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 940, "l3_html_size": 2493, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:08.514059", "query": "Neo Labs Tracker 25 家数据怎么采集的?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 10, "l3_md_size": 894, "l3_html_size": 2450, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:09.677491", "query": "如何把投资人简报部署到 2017zyl.xyz 同一域名?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 829, "l3_html_size": 2385, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:28:10.286415", "query": "Anthropic 当前估值是多少?可比交易倍数怎么算?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 2, "l3_md_size": 579, "l3_html_size": 2134, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:41:54.257165", "query": "TOP10 基金排名用什么方法?权重怎么分配?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 8, "l3_md_size": 948, "l3_html_size": 2498, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:41:55.964913", "query": "ESG 投资策略的评分公式是什么?核心持仓筛选规则?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 940, "l3_html_size": 2493, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:41:57.147318", "query": "Neo Labs Tracker 25 家数据怎么采集的?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 10, "l3_md_size": 894, "l3_html_size": 2450, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:41:58.317495", "query": "如何把投资人简报部署到 2017zyl.xyz 同一域名?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 12, "l3_md_size": 829, "l3_html_size": 2385, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}, {"ts": "2026-06-18T14:41:58.914905", "query": "Anthropic 当前估值是多少?可比交易倍数怎么算?", "l0_status": "pass", "l1_mode": "local", "l1_total_score": 3, "l1_hardware_check": "pass", "l2_web_hits": 20, "l2_kg_matches": 1, "l2_gap_count": 2, "l3_md_size": 579, "l3_html_size": 2134, "l3_md_path": "output/notebook_8section.md", "l3_html_path": "output/notebook_8section.html", "l2_llm_used": true, "l3_llm_used": true}]</script>
+<script id="proposalData" type="application/json">{"status": "proposal_ready", "summary": "5 samples · local 100% · avg gap 8.8 · avg web_hits 20.0 · avg score 3.0 · LLM 100% (mock fallback, set OPENROUTER_API_KEY for real propose)", "suggested_changes": [{"element": "policy", "action": "local 占比 100% 需调"}, {"element": "prompts", "action": "8-section 模板在低 gap 场景可精简到 4-section"}, {"element": "tools", "action": "✅ 无需改动"}, {"element": "memory", "action": "写入 5 条 telemetry 到 KG"}], "llm_used": "mock (no OPENROUTER_API_KEY)", "approve_required": true}</script>
+<script id="applyLogData" type="application/json">[{"ts": "2026-06-18T14:45:52.030821", "patch_path": "/Users/zl/open-notebooklm/harness_patches/applied_20260618_144552.yaml", "llm_used": "mock (no OPENROUTER_API_KEY)", "n_changes": 4, "approved_by": "Patrick (interactive CLI)"}]</script>
 <script>
 (function(){
-  let data = [];
-  try {
-    const raw = document.getElementById('telemetryData').textContent;
-    data = JSON.parse(raw);
-  } catch(e) {
-    data = [];
+  // ---------- Load data ----------
+  function jsonOrEmpty(id) {
+    try { return JSON.parse(document.getElementById(id).textContent); } catch (e) { return []; }
   }
+  const data = jsonOrEmpty('telemetryData') || [];
+  const proposal = jsonOrEmpty('proposalData') || null;
+  const applyLog = jsonOrEmpty('applyLogData') || [];
 
+  // ---------- Empty state ----------
   if (!data || data.length === 0) {
     document.getElementById('kpiTotal').textContent = '0';
-    document.getElementById('kpiLocal').textContent = '—';
-    document.getElementById('kpiAvgGap').textContent = '—';
-    document.getElementById('kpiLastTs').textContent = 'never';
+    ['kpiLocal','kpiAvgGap','kpiLlmPct','kpiTotalWeb','kpiTotalSize','kpiLastTs'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
     document.getElementById('tbody').innerHTML = '<tr><td colspan="9" class="empty">⚠️  telemetry.jsonl 空 · 跑 smoke_test.py ≥1 次</td></tr>';
-    document.getElementById('cortexPanel').innerHTML = '<span style="color:var(--text-mute)">awaiting telemetry...</span>';
-    document.getElementById('modeChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
-    document.getElementById('gapChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
-    document.getElementById('sizeChart').innerHTML = '<div class="empty" style="margin:auto">no data</div>';
+    ['modeChart','gapChart'].forEach(id => {
+      document.getElementById(id).innerHTML = '<div class="empty" style="margin:auto">no data</div>';
+    });
     return;
   }
 
-  // KPIs
+  // ---------- KPIs ----------
   const total = data.length;
   const localCount = data.filter(d => d.l1_mode === 'local').length;
   const localPct = Math.round(100 * localCount / total);
   const avgGap = (data.reduce((s,d) => s + (d.l2_gap_count||0), 0) / total).toFixed(1);
   const lastTs = new Date(data[data.length-1].ts).toLocaleString('zh-CN', {hour12:false});
-
-  document.getElementById('kpiTotal').textContent = total;
-  document.getElementById('kpiLocal').textContent = localPct + '%';
-  document.getElementById('kpiAvgGap').textContent = avgGap;
-  document.getElementById('kpiLastTs').textContent = lastTs.slice(11);
-
-  // v1.1.0: LLM / Vault / Output KPIs
   const llmL2 = data.filter(d => d.l2_llm_used).length;
   const llmL3 = data.filter(d => d.l3_llm_used).length;
   const llmPct = Math.round(100 * (llmL2 + llmL3) / (2 * total));
   const totalWeb = data.reduce((s, d) => s + (d.l2_web_hits||0), 0);
   const totalSize = data.reduce((s, d) => s + (d.l3_md_size||0) + (d.l3_html_size||0), 0);
+  const avgScore = (data.reduce((s,d) => s + (d.l1_total_score||0), 0) / total).toFixed(1);
+
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiLocal').textContent = localPct + '%';
+  document.getElementById('kpiAvgGap').textContent = avgGap;
+  document.getElementById('kpiLastTs').textContent = lastTs.slice(11);
   document.getElementById('kpiLlmPct').textContent = llmPct + '%';
   document.getElementById('kpiTotalWeb').textContent = totalWeb;
   document.getElementById('kpiTotalSize').textContent = totalSize.toLocaleString();
 
-  // Chart 1: Mode distribution per query
+  // ---------- Charts ----------
   const modeChart = document.getElementById('modeChart');
-  modeChart.innerHTML = '';
   data.forEach((d, i) => {
     const cls = d.l1_mode === 'local' ? 'good' : (d.l1_mode === 'hybrid' ? 'warn' : 'bad');
-    const h = 30 + Math.random() * 130;  // visual height
+    const h = 30 + Math.random() * 130;
     const bar = document.createElement('div');
     bar.className = 'bar ' + cls;
     bar.style.height = h + 'px';
     bar.innerHTML = `<span class="val">${d.l1_mode[0].toUpperCase()}</span><span class="lbl">#${i+1}</span>`;
-    bar.title = `#${i+1} ${d.l1_mode} · score=${d.l1_total_score}`;
     modeChart.appendChild(bar);
   });
-
-  // Chart 2: Gap count trend
   const gapChart = document.getElementById('gapChart');
-  gapChart.innerHTML = '';
   const maxGap = Math.max(...data.map(d => d.l2_gap_count||0), 1);
   data.forEach((d, i) => {
     const gap = d.l2_gap_count || 0;
@@ -227,42 +268,48 @@
     bar.className = 'bar';
     bar.style.height = Math.max(4, h) + 'px';
     bar.innerHTML = `<span class="val">${gap}</span><span class="lbl">#${i+1}</span>`;
-    bar.title = `gap=${gap} · web_hits=${d.l2_web_hits} · kg=${d.l2_kg_matches}`;
     gapChart.appendChild(bar);
   });
 
-  // Chart 3: Deliverable size (md + html stacked)
-  const sizeChart = document.getElementById('sizeChart');
-  sizeChart.innerHTML = '';
-  const maxSize = Math.max(...data.map(d => (d.l3_md_size||0) + (d.l3_html_size||0)), 1);
-  data.forEach((d, i) => {
-    const total = (d.l3_md_size||0) + (d.l3_html_size||0);
-    const h = (total / maxSize) * 160;
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.height = Math.max(4, h) + 'px';
-    bar.innerHTML = `<span class="val">${total}</span><span class="lbl">#${i+1}</span>`;
-    bar.title = `md=${d.l3_md_size}B + html=${d.l3_html_size}B`;
-    sizeChart.appendChild(bar);
-  });
-
-  // Cortex panel (4 元素)
+  // ---------- Cortex 4 元素 panel (v1.3.0) ----------
   const panel = document.getElementById('cortexPanel');
-  const avgScore = (data.reduce((s,d) => s + (d.l1_total_score||0), 0) / total).toFixed(1);
-  const localColor = localPct > 70 ? 'var(--bad)' : (localPct > 30 ? 'var(--good)' : 'var(--warn)');
-  panel.innerHTML = `
-    <div style="margin-bottom:8px"><span style="color:var(--orange)">📝 prompts</span> · 8-section 模板 · ${total} 次复用 · ${avgScore} avg score</div>
-    <div style="margin-bottom:8px"><span style="color:var(--orange)">🔧 tools</span> · 7 MCP tool · ${totalWeb} vault hits total · LLM ${llmPct}% used (L2 ${llmL2}/${total} · L3 ${llmL3}/${total})</div>
-    <div style="margin-bottom:8px"><span style="color:var(--orange)">💾 memory</span> · ${total} telemetry entries · kg ${data.reduce((s,d)=>s+(d.l2_kg_matches||0),0)} total matches · ${totalSize.toLocaleString()}B total output</div>
-    <div style="margin-bottom:8px"><span style="color:var(--orange)">📜 policy</span> · local ${localPct}% · <span style="color:${localColor}">${localPct > 70 ? '占比偏高, 建议调 5 维权重' : (localPct < 30 ? 'cloud 偏多, 隐私敏感数据未上' : '健康平衡 ✓')}</span></div>
-    <div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--line);color:var(--text-mute)">
-      ⚠️  v1.3.0 哲学 · 用户掌控 → proposal 不自动写回,需 Patrick 显式 approve · v1.1.0 接入本地 Qwen 1.5B
-    </div>
-  `;
+  const ELEMENT_ICONS = {prompts:'📝', tools:'🔧', memory:'💾', policy:'📜', llm:'🤖', router:'🔀', schema:'🗂️', hardware:'💻'};
+  if (proposal && proposal.suggested_changes) {
+    let html = `<div style="margin-bottom:8px;color:var(--text);font-weight:600">💬 ${proposal.summary || ''}</div>`;
+    html += `<div style="margin-bottom:8px;font-size:10px;color:var(--text-mute)">llm_used: ${proposal.llm_used || 'unknown'} · status: ${proposal.status}</div>`;
+    proposal.suggested_changes.forEach((c, i) => {
+      const elem = c.element || '?';
+      const icon = ELEMENT_ICONS[elem] || '•';
+      const pri = c.priority || '';
+      const priClass = pri === 'critical' ? 'critical' : (pri === 'nice-to-have' ? 'nice' : '');
+      html += `<div class="element"><div class="icon">${icon}</div><div class="body"><span class="name">${elem}</span><span class="priority ${priClass}">${pri || '—'}</span><div style="margin-top:4px;color:var(--text)">${c.action || ''}</div></div></div>`;
+    });
+    panel.innerHTML = html;
+    // Enable buttons
+    document.getElementById('viewYamlBtn').disabled = false;
+    document.getElementById('copyYamlBtn').disabled = false;
+    document.getElementById('downloadBtn').disabled = false;
+  } else {
+    panel.innerHTML = '<div class="empty">⚠️  no proposal · 跑 verify_openrouter.py 生成</div>';
+  }
 
-  // Table
+  // ---------- Apply Log (v1.3.0) ----------
+  const logPanel = document.getElementById('applyLogPanel');
+  if (applyLog && applyLog.length > 0) {
+    let html = '<table><thead><tr><th>ts</th><th>patch</th><th>llm_used</th><th>n_changes</th><th>approved_by</th></tr></thead><tbody>';
+    applyLog.slice().reverse().forEach(e => {
+      const ts = new Date(e.ts).toLocaleString('zh-CN', {hour12:false}).slice(0,19);
+      const patch = e.patch_path ? e.patch_path.split('/').slice(-1)[0] : '?';
+      html += `<tr><td>${ts}</td><td title="${e.patch_path}">${patch}</td><td>${e.llm_used || '?'}</td><td>${e.n_changes || 0}</td><td>${e.approved_by || '?'}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    logPanel.innerHTML = html;
+  } else {
+    logPanel.innerHTML = '<div class="empty">no applied patches yet · 跑 apply_patch.py 创建</div>';
+  }
+
+  // ---------- Table ----------
   const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
   data.slice(-10).reverse().forEach((d, i) => {
     const tr = document.createElement('tr');
     const badge = `<span class="badge ${d.l1_mode}">${d.l1_mode}</span>`;
@@ -280,6 +327,49 @@
     `;
     tbody.appendChild(tr);
   });
+
+  // ---------- YAML modal + buttons (v1.3.0) ----------
+  function buildYaml() {
+    if (!proposal) return '';
+    const ts = new Date().toISOString().slice(0,19).replace(/[T:]/g, '_').slice(0,15);
+    let yaml = `# Cortex Patch · ${ts}\n# v1.3.0 user-approve gate\n# llm_used: ${proposal.llm_used || 'unknown'}\n\nsummary: ${(proposal.summary || '').replace(/\n/g, ' ')}\n\nchanges:\n`;
+    (proposal.suggested_changes || []).forEach(c => {
+      yaml += `  - element: ${c.element || '?'}\n    priority: ${c.priority || 'nice-to-have'}\n    action: "${(c.action || '').replace(/"/g, '\\"')}"\n`;
+    });
+    return yaml;
+  }
+  const yaml = buildYaml();
+  const modal = document.getElementById('yamlModal');
+  // 改用 addEventListener 避免 TDZ + onclick 引用未定义变量
+  function openModal() { modal.classList.add('open'); }
+  function closeModal() { modal.classList.remove('open'); }
+  document.getElementById('viewYamlBtn').addEventListener('click', openModal);
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('modalCopyBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(yaml).then(() => {
+      document.getElementById('modalCopyBtn').textContent = '✓ Copied';
+      setTimeout(() => { document.getElementById('modalCopyBtn').textContent = '📑 Copy to Clipboard'; }, 1500);
+    });
+  });
+  document.getElementById('copyYamlBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(yaml).then(() => {
+      document.getElementById('copyYamlBtn').textContent = '✓ Copied';
+      setTimeout(() => { document.getElementById('copyYamlBtn').textContent = '📑 Copy'; }, 1500);
+    });
+  });
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const ts = new Date().toISOString().slice(0,19).replace(/[T:]/g, '-').slice(0,19);
+    const blob = new Blob([yaml], {type:'text/yaml'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cortex_patch_${ts}.yaml`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  // 把 yaml 填到 modal
+  document.getElementById('yamlContent').textContent = yaml;
 })();
 </script>
 </body>
