@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Self-Harness Optimization — 自学习 AI Harness</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .loop-step {
+    display: flex; align-items: center; gap: 0.8rem;
+    margin: 0.5rem 0; padding: 0.8rem 1rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .loop-step .step-num {
+    background: var(--accent); color: var(--bg);
+    width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.95rem; flex-shrink: 0;
+  }
+  .loop-step .step-content { flex: 1; }
+  .loop-step .step-title { color: var(--text); font-weight: 600; }
+  .loop-step .step-detail { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+
+  .phase-flow {
+    display: flex; align-items: stretch; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1.2rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text);
+    flex: 1; min-width: 150px;
+  }
+  .phase.green { border-color: var(--green); color: var(--green); }
+  .phase.blue { border-color: var(--blue); color: var(--blue); }
+  .phase.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .phase .num { color: var(--accent); font-weight: 700; }
+  .phase .name { font-size: 0.95rem; font-weight: 600; margin: 0.2rem 0; }
+  .phase .detail { font-size: 0.78rem; color: var(--text-dim); }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .perf-bar {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 0.6rem 0; padding: 0.6rem 0.8rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .perf-bar .label { color: var(--text-dim); font-size: 0.9rem; min-width: 180px; }
+  .perf-bar .bar-container {
+    flex: 1; height: 24px; background: var(--bg);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .perf-bar .bar {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 0.5rem; color: var(--bg); font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .perf-bar .bar.baseline { background: var(--gray); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Self-Harness Optimization</h1>
+<p class="subtitle">自学习 AI Harness — Discover AI 深度拆解 Shanghai AI Lab 论文</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=l7ffflCU824" target="_blank">Code Loops and A Self Learning AI Harness</a></span>
+  <span><strong>频道：</strong>Discover AI</span>
+  <span><strong>时长：</strong>17:42（1062s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2>核心论点</h2>
+  <p><b>Harness engineering 是 2026-06-08 后 AI 圈新范式</b>：Anthropic Boris 自己说 "stop prompting Claude, <b>build loops that prompt themselves</b>"。Anthropic 把"intelligence"从 LLM <b>移到 harness</b>（参考 Fable 5 现象：70% refusal = 模型被换 harness）。Shanghai AI Lab 提出 <b>Self-Harness Optimization</b> —— 让 LLM <b>自己优化自己的 harness</b>（不改权重），用 frozen model + 数学 loop 检测 failure pattern → 提案 → 验证 → 更新。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">Minimax 2.5</div>
+    <div class="value">42% → 53%</div>
+    <div class="sub">+11%</div>
+  </div>
+  <div class="stat">
+    <div class="label">QA 3.5</div>
+    <div class="value">20% → 36%</div>
+    <div class="sub">+16%</div>
+  </div>
+  <div class="stat">
+    <div class="label">Fable 5 refusal</div>
+    <div class="value">70%+</div>
+    <div class="sub">对 science task</div>
+  </div>
+  <div class="stat">
+    <div class="label">Boris 公告</div>
+    <div class="value">6/8</div>
+    <div class="sub">"harness engineering"</div>
+  </div>
+  <div class="stat">
+    <div class="label">Harness 元素</div>
+    <div class="value">4</div>
+    <div class="sub">prompts/tools/memory/policy</div>
+  </div>
+  <div class="stat">
+    <div class="label">Loop 步骤</div>
+    <div class="value">4</div>
+    <div class="sub">evaluate/propose/validate/update</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="fable">🔥 Fable 5 吐槽</button>
+  <button class="tab" data-tab="scaffold">🏗️ Scaffold vs Harness</button>
+  <button class="tab" data-tab="loop">🔁 4 步 Loop</button>
+  <button class="tab" data-tab="cluster">📊 Cluster & 排序</button>
+  <button class="tab" data-tab="example">💡 失败 case 例子</button>
+  <button class="tab" data-tab="perf">📈 性能数据</button>
+  <button class="tab" data-tab="related">🔗 与 Patrick 工作关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战路线</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: FABLE -->
+<div class="tab-content active" data-tab-content="fable">
+  <h2 class="section">🔥 Fable 5 吐槽（背景）</h2>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>💬 Hugging Face CTO 评价</h4>
+    <ul>
+      <li>"Super high frequency of refusals may <b>backfire</b> on Fable/Anthropic"</li>
+      <li>"Why pay 2x if 70% probability of refusal?"</li>
+      <li>"I have <b>70%+ refusal</b> for science tasks"</li>
+      <li>禁 medical / chemistry / biology / cybersecurity</li>
+      <li>"<b>Hey, can you explain the heart of a human being?</b>" → flagged for cybersecurity risk</li>
+    </ul>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <h4>💡 Discover AI 关键猜想</h4>
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "Is Fable 5 really a new LLM, or since it's input a vision language model — is this really a new object or has it just a <b>better harness</b>?"
+    </blockquote>
+    <p style="margin-top: 0.6rem;">"Tropic is <b>moving the intelligence out from their LLM system into the harness system</b>."</p>
+  </div>
+
+  <div class="card" style="margin-top: 1rem;">
+    <h4>📊 Fable 5 vs Claude 4.6</h4>
+    <table>
+      <tr><th>任务类型</th><th>Fable 5</th><th>Claude 4.6</th></tr>
+      <tr><td>Video game</td><td>✅ 好</td><td>✅ 好</td></tr>
+      <tr><td>HTML 生成</td><td>✅ 好</td><td>✅ 好</td></tr>
+      <tr><td><b>科学 task</b></td><td>❌ 70%+ refusal</td><td>✅ work</td></tr>
+      <tr><td>价格</td><td>2x</td><td>1x</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 2: SCAFFOLD -->
+<div class="tab-content" data-tab-content="scaffold">
+  <h2 class="section">🏗️ Scaffold vs Harness（核心区分）</h2>
+
+  <h3>论文定义（Shanghai AI Lab）</h3>
+  <blockquote>
+    "We use the term <b>harness</b> to denote the <b>non-parametric scaffolding</b> that governs how a fixed language model is deployed as an agent."
+  </blockquote>
+
+  <p style="color: var(--text-dim);"><b>简化</b>：论文把 "everything that is not the LLM" 都叫 harness，<b>包含 scaffold</b>。</p>
+
+  <h3>Discover AI 自己的区分（更精细）</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Scaffold</th><th>Harness</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>本质</b></td>
+        <td>Expertise as workflow</td>
+        <td>Execution substrate</td>
+      </tr>
+      <tr>
+        <td><b>问</b></td>
+        <td>"How should this problem be solved?"</td>
+        <td>"With which tool? How often retry? When stop?"</td>
+      </tr>
+      <tr>
+        <td><b>包含</b></td>
+        <td>Skills + workflows</td>
+        <td>Tool calling / file I/O / code exec / memory / loop control</td>
+      </tr>
+      <tr>
+        <td><b>类比</b></td>
+        <td>OSC: 知识</td>
+        <td>OSC: runtime layer</td>
+      </tr>
+      <tr>
+        <td><b>Source of expertise</b></td>
+        <td>✅ 是</td>
+        <td>❌ 否（只是 operational layer）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Discover AI 框架</h3>
+  <blockquote>
+    "LLM running inside an iterative loop, <b>governed by a harness, and shaped by a scaffold</b> of skills and workflows."
+  </blockquote>
+
+  <h3>4 大 Harness 优化元素</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>1. Prompts</h4>
+      <p>System / execution / verification / failure recovery instruction</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>2. Tools</h4>
+      <p>Tool calling / file I/O / code execution</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>3. Memory</h4>
+      <p>Context compaction / past experience</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>4. Policy</h4>
+      <p>Runtime control / routing</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: LOOP -->
+<div class="tab-content" data-tab-content="loop">
+  <h2 class="section">🔁 Self-Harness 4 步 Loop</h2>
+
+  <div class="loop-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Evaluate（评估）</div>
+      <div class="step-detail">收集 execution traces · Cluster failed records by verifier-grounded failure signatures · <b>排序 by actionability</b></div>
+    </div>
+  </div>
+
+  <div class="loop-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Propose（提案）</div>
+      <div class="step-detail">用 frozen LLM (M) + current harness 角色 · 提供 failure patterns + passing behavior + 之前 attempted edits · LLM 提案 <b>minimum candidate modifications (baby steps)</b></div>
+    </div>
+  </div>
+
+  <div class="loop-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Validate（验证）</div>
+      <div class="step-detail">同一 evaluator 评估新 proposal · Pass → accept · Fail → reject</div>
+    </div>
+  </div>
+
+  <div class="loop-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Update（更新）</div>
+      <div class="step-detail">接受 → 更新 harness · 否则 → 保留旧版本</div>
+    </div>
+  </div>
+
+  <h3>关键设计：Baby Steps</h3>
+  <blockquote>
+    "Since it's a self-learning procedure, you know this is like a cool back library versions, you don't want to diverse too much here from your given probability distribution. So, you just make <b>baby steps</b>."
+  </blockquote>
+
+  <p style="color: var(--text-dim); margin-top: 1rem;"><b>为什么不大幅修改</b>：保持分布稳定 · 避免 catastrophic forgetting · 验证局部最优化（小改易验证）</p>
+</div>
+
+<!-- TAB 4: CLUSTER -->
+<div class="tab-content" data-tab-content="cluster">
+  <h2 class="section">📊 Cluster & 排序</h2>
+
+  <h3>Cluster 结构（per cluster）</h3>
+  <table>
+    <thead>
+      <tr><th>字段</th><th>含义</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Cluster size</b></td><td>失败记录数</td></tr>
+      <tr><td><b>Representative task</b></td><td>代表任务</td></tr>
+      <tr><td><b>Shared trace symptoms</b></td><td>trace 共同症状</td></tr>
+      <tr><td><b>Verifier evidence</b></td><td>verifier 证据</td></tr>
+      <tr><td><b>Agent mechanisms</b></td><td>agent 行为</td></tr>
+    </tbody>
+  </table>
+
+  <h3>排序原则</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "Order clusters by <b>estimated actionability</b> — what can we solve immediately, what's simplest to correct, how can we optimize performance immediately? We don't waste 30-min or 1-hour runs to find what's wrong."
+    </blockquote>
+  </div>
+
+  <h3>提案包含</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li><b>Verifier-grounded failure patterns</b>（检测到的问题）</li>
+    <li><b>Passing behavior</b>（什么 work）</li>
+    <li><b>Summary of previously attempted edits</b>（之前试过什么）</li>
+  </ul>
+
+  <h3>10 大 Initial Harness 元素</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>元素</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>System prompt</td></tr>
+      <tr><td>2</td><td>Memory source</td></tr>
+      <tr><td>3</td><td>Sub-agent</td></tr>
+      <tr><td>4</td><td>Skills</td></tr>
+      <tr><td>5</td><td>Bootstrap instruction</td></tr>
+      <tr><td>6</td><td>Execution instruction</td></tr>
+      <tr><td>7</td><td>Verification instruction</td></tr>
+      <tr><td>8</td><td>Failure recovery instruction</td></tr>
+      <tr><td>9</td><td>Runtime control policy</td></tr>
+      <tr><td>10</td><td>Routing policy</td></tr>
+    </tbody>
+  </table>
+  <p style="color: var(--text-mute); font-size: 0.9rem; margin-top: 0.5rem;">→ Self-harness optimization 改的就是这 10 个 element</p>
+</div>
+
+<!-- TAB 5: EXAMPLE -->
+<div class="tab-content" data-tab-content="example">
+  <h2 class="section">💡 失败 case 例子</h2>
+
+  <h3>场景：被 stuck in tool loop（52 calls 后）</h3>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>❌ 旧 behavior</h4>
+    <p style="color: var(--text-dim); font-style: italic;">"继续重复 same failed path，stuck in loop"</p>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <h4>✅ Self-correction（harness 自动改）</h4>
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "You appear to be <b>stuck in a tool loop</b>. Stop repeating the same failed path. <b>Summarize the evidence already collected</b>. Choose the <b>smallest remaining implementation step</b> and then run one targeted verification."
+    </blockquote>
+  </div>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--accent);">
+    <h4>💡 关键能力</h4>
+    <p>不是改 LLM 权重，而是改 <b>harness 的 instruction</b> → 立即可读 / 立即生效</p>
+    <p>比 fine-tune 快 + 比 prompt 更结构化</p>
+  </div>
+</div>
+
+<!-- TAB 6: PERF -->
+<div class="tab-content" data-tab-content="perf">
+  <h2 class="section">📈 性能数据（Terminal Bench 2）</h2>
+
+  <h3>89 containerized terminal tasks · tool-based execution</h3>
+
+  <h3>Minimax M 2.5</h3>
+  <div class="perf-bar">
+    <span class="label">初始 pass rate</span>
+    <div class="bar-container">
+      <div class="bar baseline" style="width: 42%;">42%</div>
+    </div>
+  </div>
+  <div class="perf-bar">
+    <span class="label"><b>自优化后</b></span>
+    <div class="bar-container">
+      <div class="bar" style="width: 53%;"><b>53%</b></div>
+    </div>
+  </div>
+
+  <h3>Q&A 3.5</h3>
+  <div class="perf-bar">
+    <span class="label">初始 pass rate</span>
+    <div class="bar-container">
+      <div class="bar baseline" style="width: 20%;">20%</div>
+    </div>
+  </div>
+  <div class="perf-bar">
+    <span class="label"><b>自优化后</b></span>
+    <div class="bar-container">
+      <div class="bar" style="width: 36%;"><b>36%</b></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1.5rem; border-left: 3px solid var(--yellow);">
+    <h4>⚠️ 限制</h4>
+    <p>"Of course, since the tasks are rather simple and you have a simple harness, a self-evolving harness, these are the <b>easy wins</b>."</p>
+    <p style="margin-top: 0.6rem;">"For a higher complexity system, there's nothing particular to it. It is more or less <b>more of the same</b>."</p>
+  </div>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Sam Altman Stanford</h4>
+      <p>Sam 暗示 Anthropic "把 intelligence 移到 harness"（Fable 5 现象）</p>
+      <p>Sam "inference underinvested" → 被验证：<b>harness engineering</b> 是 inference 高阶</p>
+    </div>
+    <div class="card">
+      <h4>🔗 K1（Agent Native KG）</h4>
+      <p>K1 = "harness 设计" 优秀 case（17 MCP tools + 3 源 retrieval）</p>
+      <p>Self-harness = 进一步让 harness <b>自我进化</b></p>
+      <p>K1 可以加 self-harness loop → 自动检测 failure → 优化 CLI</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Claude Code / IndyDevDan</h4>
+      <p>IndyDevDan "Claude Code = LLM + 迭代 loop + harness"</p>
+      <p>"Milestone + commit" = harness 的人工版本</p>
+      <p>Self-harness = <b>Milestone + commit 的自动化</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>🔗 hybrid-llm-router ⭐</h4>
+      <p>4 harness 元素：<b>prompts / tools / memory / policy</b> → memory + policy 是 routing 关键</p>
+      <p>Self-harness optimization 可以优化 "policy" → <b>router policy 自学习</b></p>
+      <p>"估计 actionability" 排序 = <b>routing decision log 分析</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm = 多个 harness 协作</p>
+      <p>每个 harness 可以自学习 → <b>自演化 multi-agent</b></p>
+      <p>"OpenSkill"（Discover AI 之前）= self-evolution skill loop</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（30 分钟）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>在 hybrid-llm-router skill 文档加 case study（self-harness optimization）</li>
+    <li>找当前 OpenSwarm / hybrid-llm-router 跑过的 traces</li>
+    <li>手工 cluster failure patterns（学思路）</li>
+  </ol>
+
+  <h3>中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>实现 self-harness loop（基于 hybrid-llm-router 框架）</li>
+    <li>4 元素（prompts/tools/memory/policy）按 cluster 排序</li>
+    <li>Baby-step 验证</li>
+  </ol>
+
+  <h3>长期（1 个月+）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>Self-evolving multi-agent system（OpenSwarm + self-harness）</li>
+    <li>跨 harness 共享 failure patterns（<b>collective learning</b>）</li>
+    <li>集成到生产 LiteLLM proxy</li>
+  </ol>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1.5rem;">
+    <h4>💡 Boris 6/8 公告（Anthropic）</h4>
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "Stop prompting Claude and <b>build loops that prompt them self</b>."
+    </blockquote>
+    <p style="margin-top: 0.6rem; color: var(--text-dim);">→ Harness engineering = 2026-06-08 后新范式</p>
+    <p style="color: var(--text-dim);">→ Self-harness = loop 的 self-improvement 版本</p>
+  </div>
+</div>
+
+<!-- TAB 9: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 完整时间线（61 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：Fable 5 长周后 → Self-Learning Harness</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:08</div>
+      <div class="what">上一视频：research harness（K1 类）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:28</div>
+      <div class="what">🔥 <b>Fable 5 吐槽</b>：70%+ refusal</div>
+      <div class="note">Hugging Face CTO："why pay 2x for 70% refusal?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">"Is Fable 5 new LLM or just better harness?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:27</div>
+      <div class="what">"Anthropic moving intelligence to harness"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:42</div>
+      <div class="what"><b>Open Skill</b> 引用（自演化 skill）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:01</div>
+      <div class="what">🏗️ <b>Scaffold vs Harness</b> 区分</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:10</div>
+      <div class="what">"Harness = operational layer, not source of expertise"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:18</div>
+      <div class="what">"Scaffold: how to solve / Harness: with which tool"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:14</div>
+      <div class="what">"OSC: scaffold = 知识, harness = runtime"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:01</div>
+      <div class="what">"🔑 Boris: stop prompting, build loops that prompt themselves"</div>
+      <div class="note"><b>6/8 hot topic</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:38</div>
+      <div class="what">"LLM inside iterative loop, governed by harness"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:53</div>
+      <div class="what">🔁 <b>Self-harness</b> 引入</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:17</div>
+      <div class="what">"AI bubble boiling in your own soup"（警告）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:11</div>
+      <div class="what">论文定义：harness = non-parametric scaffolding</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:55</div>
+      <div class="what">"Fable 5 是不是只是优化 harness"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:18</div>
+      <div class="what">4 elements：<b>prompts / tools / memory / policy</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:46</div>
+      <div class="what">🔁 <b>4 步循环</b>：evaluate → propose → validate → update</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:33</div>
+      <div class="what">Cluster failed records by failure signatures</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:43</div>
+      <div class="what"><b>Order by actionability</b>（什么最容易修）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:03</div>
+      <div class="what"><b>Baby steps</b>（不大幅修改分布）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:10</div>
+      <div class="what">Validation 用同一 evaluator</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:33</div>
+      <div class="what">Terminal Bench 2 · 89 tasks</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:53</div>
+      <div class="what">Initial harness 构造（10 elements）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:22</div>
+      <div class="what">性能图：iteration 上升 → pass rate 提升</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:55</div>
+      <div class="what">💡 失败 case（stuck in tool loop → self-correction）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:42</div>
+      <div class="what">📈 <b>结果</b>：Minimax 2.5 42%→53% · QA 3.5 20%→36%</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:20</div>
+      <div class="what">限制：simple task 才能 win</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:34</div>
+      <div class="what">Closing</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/self-harness-optimization/</code></p>
+  <p>Desktop: <code>~/Desktop/self-harness-optimization-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=l7ffflCU824">https://www.youtube.com/watch?v=l7ffflCU824</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OpenSquilla + MetaSkill：Skill 2.0 时代 — 南哥 AGI 研习社</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .phase-flow {
+    display: flex; align-items: stretch; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1.2rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text);
+    flex: 1; min-width: 150px;
+  }
+  .phase.green { border-color: var(--green); color: var(--green); }
+  .phase.blue { border-color: var(--blue); color: var(--blue); }
+  .phase.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .phase.red { border-color: var(--red); color: var(--red); }
+  .phase .num { color: var(--accent); font-weight: 700; }
+  .phase .name { font-size: 0.95rem; font-weight: 600; margin: 0.2rem 0; }
+  .phase .detail { font-size: 0.78rem; color: var(--text-dim); }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .perf-bar {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 0.6rem 0; padding: 0.6rem 0.8rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .perf-bar .label { color: var(--text-dim); font-size: 0.9rem; min-width: 180px; }
+  .perf-bar .bar-container {
+    flex: 1; height: 24px; background: var(--bg);
+    border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .perf-bar .bar {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 0.5rem; color: var(--bg); font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .perf-bar .bar.baseline { background: var(--gray); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>OpenSquilla + MetaSkill</h1>
+<p class="subtitle">Skill 2.0 时代 — 南哥 AGI 研习社</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=4xMvWPNLU5Q" target="_blank">Skill 2.0 时代，来了</a></span>
+  <span><strong>频道：</strong>南哥 AGI 研习社</span>
+  <span><strong>时长：</strong>26:58（1618s）</span>
+  <span><strong>字幕：</strong>中文 manual → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2>🔥 核心论点</h2>
+  <p><b>继 OpenClaw、Hermes Agent 之后又一个飞速攀升的 Agent 开源项目 —— OpenSquilla</b>（GitHub 2.5K+ star，开源 1 个多月）。<b>0.3.0 版本（5/31 发布）核心新功能 = MetaSkill</b>（"Skill 的 Skill"）= 把多个 Skill 编排成端到端长程 workflow。</p>
+  <p style="margin-top: 0.5rem;"><b>4 大核心能力</b>：① 节省 60-80% TOKEN ② <b>MetaSkill 协议</b> ③ Memory 4 层认知架构 ④ 安全 Sandbox</p>
+  <p style="margin-top: 0.5rem;"><b>架构亮点</b>：<b>微内核设计</b>（核心引擎只做编排 + 调度 + 状态管理，其余全插件）</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">TOKEN 节省</div>
+    <div class="value">60-80%</div>
+    <div class="sub">官方核心数据</div>
+  </div>
+  <div class="stat">
+    <div class="label">GitHub Star</div>
+    <div class="value">2.5K+</div>
+    <div class="sub">开源 1 个多月</div>
+  </div>
+  <div class="stat">
+    <div class="label">版本</div>
+    <div class="value">0.3.0</div>
+    <div class="sub">5/31 发布</div>
+  </div>
+  <div class="stat">
+    <div class="label">核心能力</div>
+    <div class="value">4</div>
+    <div class="sub">节省/MetaSkill/Memory/Sandbox</div>
+  </div>
+  <div class="stat">
+    <div class="label">路由层</div>
+    <div class="value">4 (T0-T3)</div>
+    <div class="sub">动态匹配模型</div>
+  </div>
+  <div class="stat">
+    <div class="label">内置 MetaSkill</div>
+    <div class="value">9</div>
+    <div class="sub">+ 1 个创建 MetaSkill 的 MetaSkill</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心论点</button>
+  <button class="tab" data-tab="arch">🏗️ 微内核架构</button>
+  <button class="tab" data-tab="metaskill">🎯 MetaSkill 详解</button>
+  <button class="tab" data-tab="router">🎛️ 4 层路由</button>
+  <button class="tab" data-tab="ui">🖥️ 控制台演示</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 class="section">🔥 核心论点</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>① 节省 60-80% TOKEN</h4>
+      <p>通过智能模型路由 + Skill 编排</p>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.4rem;">vs naive 调用节省</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>② MetaSkill 协议 ⭐</h4>
+      <p><b>"MetaSkill 就是 Skill 的 Skill"</b></p>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.4rem;">一个 MetaSkill 内嵌多个 Skill = 端到端长程 workflow</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>③ Memory 4 层</h4>
+      <p>4 层认知架构</p>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.4rem;">对应不同认知层级</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>④ 安全 Sandbox</h4>
+      <p>Agent 在安全环境运行</p>
+      <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 0.4rem;">防止恶意操作</p>
+    </div>
+  </div>
+
+  <h3>项目速览</h3>
+  <table>
+    <tr><td><b>名称</b></td><td>OpenSquilla</td></tr>
+    <tr><td><b>版本</b></td><td>0.3.0（5/31 发布）</td></tr>
+    <tr><td><b>Star</b></td><td>2.5K+（开源 1 个多月）</td></tr>
+    <tr><td><b>创始人</b></td><td>原华为盘古核心成员，2026 创业</td></tr>
+    <tr><td><b>架构</b></td><td>微内核 + 插件化</td></tr>
+    <tr><td><b>大模型</b></td><td>通过 OpenRouter（推荐）/ 也支持自定义</td></tr>
+  </table>
+</div>
+
+<!-- TAB 2: ARCH -->
+<div class="tab-content" data-tab-content="arch">
+  <h2 class="section">🏗️ 微内核 + 插件架构</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>核心引擎（最小集）</h4>
+      <ul>
+        <li>编排</li>
+        <li>调度</li>
+        <li>状态管理</li>
+        <li><b>不做其他事</b></li>
+      </ul>
+    </div>
+    <div class="cmp yellow">
+      <h4>其余能力（全部插件）</h4>
+      <ul>
+        <li>以<b>插件形式</b>运行</li>
+        <li>在<b>用户态</b>独立</li>
+        <li>可独立扩展 / 替换</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    "<b>核心引擎只做最少的事，只进行编排调度和状态管理，其余的所有的能力全部是以插件的形式在用户态运行</b>"
+  </blockquote>
+
+  <h3>优势（操作系统类比）</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li>核心稳定</li>
+    <li>插件灵活</li>
+    <li>易扩展</li>
+    <li>单点失败不传播</li>
+  </ul>
+</div>
+
+<!-- TAB 3: METASKILL -->
+<div class="tab-content" data-tab-content="metaskill">
+  <h2 class="section">🎯 MetaSkill 详解</h2>
+
+  <h3>MetaSkill vs Skill</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Skill</th><th>MetaSkill</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>层级</b></td><td>单个能力</td><td><b>Skill 的 Skill</b></td></tr>
+      <tr><td><b>例子</b></td><td>翻译 / 搜索 / 生成图片</td><td>儿童项目规划（嵌套 5 个 Skill）</td></tr>
+      <tr><td><b>本质</b></td><td>工具</td><td><b>编排 + 串接 + workflow</b></td></tr>
+    </tbody>
+  </table>
+
+  <h3>9 个内置 MetaSkill</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ 儿童项目规划（视频演示）</h4>
+      <p>孩子学校项目 / 科学展 / 兴趣套件</p>
+      <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.4rem;">评估可行性 + 步骤计划 + 预算 + 安全</p>
+    </div>
+    <div class="card">
+      <h4>MetaSkill 2-9</h4>
+      <p>其余 8 个内置（视频未详述）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>⭐ 创建 MetaSkill 的 MetaSkill</h4>
+      <p>meta-meta level</p>
+      <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 0.4rem;">帮你写 MetaSkill</p>
+    </div>
+  </div>
+
+  <h3>演示全流程（儿童项目 MetaSkill）</h3>
+  <div class="phase-flow">
+    <div class="phase blue">
+      <div class="num">①</div>
+      <div class="name">用户提问</div>
+      <div class="detail">"帮我给孩子准备科学展项目"</div>
+    </div>
+    <div class="phase yellow">
+      <div class="num">②</div>
+      <div class="name">MetaSkill 触发</div>
+      <div class="detail">自动追问题</div>
+    </div>
+    <div class="phase">
+      <div class="num">③</div>
+      <div class="name">年龄 / 预算 / 时间</div>
+      <div class="detail">用户补充</div>
+    </div>
+    <div class="phase yellow">
+      <div class="num">④</div>
+      <div class="name">可行性判断</div>
+      <div class="detail">适不适合？安全？</div>
+    </div>
+    <div class="phase">
+      <div class="num">⑤</div>
+      <div class="name">拆 20+ 子任务</div>
+      <div class="detail">5 个 Skill 并行</div>
+    </div>
+    <div class="phase green">
+      <div class="num">⑥</div>
+      <div class="name">整合输出</div>
+      <div class="detail">Markdown 下载</div>
+    </div>
+  </div>
+
+  <h3>MetaSkill 源文件结构</h3>
+  <pre><code>MetaSkill 文件:
+  - 元数据 (name / description / use case)
+  - 步骤 1: 追问题（缺什么信息）
+  - 步骤 2: 可行性判断
+  - 步骤 3: 拆子任务
+  - 步骤 4-N: 串接子 Skill
+  - 输出模板 (Markdown 格式)
+  - 安全提醒</code></pre>
+
+  <p style="color: var(--text-dim); font-style: italic; margin-top: 1rem;">示例：儿童项目 MetaSkill ~800 行，5 个嵌套 Skill</p>
+</div>
+
+<!-- TAB 4: ROUTER -->
+<div class="tab-content" data-tab-content="router">
+  <h2 class="section">🎛️ 4 层智能路由（T0-T3）</h2>
+
+  <div class="phase-flow">
+    <div class="phase green">
+      <div class="num">T0</div>
+      <div class="name">最简单</div>
+      <div class="detail">"你好" → 最 cheap</div>
+    </div>
+    <div class="phase blue">
+      <div class="num">T1</div>
+      <div class="name">简单 query</div>
+      <div class="detail">cheap 模型</div>
+    </div>
+    <div class="phase yellow">
+      <div class="num">T2</div>
+      <div class="name">中等复杂度</div>
+      <div class="detail">中等模型</div>
+    </div>
+    <div class="phase red">
+      <div class="num">T3</div>
+      <div class="name">复杂</div>
+      <div class="detail">SOTA 模型</div>
+    </div>
+  </div>
+
+  <h3>演示对比</h3>
+  <table>
+    <thead>
+      <tr><th>场景</th><th>不开路由</th><th>开路由</th><th>节省</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"你好"</td>
+        <td>MiniMax <b>$0.1</b></td>
+        <td>DeepSeek T0 <b>$0.003</b></td>
+        <td><span class="badge green">97%</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--accent);">
+    <h4>💡 Router 配置（OpenRouter）</h4>
+    <ul>
+      <li>官方提供<b>免费 TOKEN</b>（测试用）</li>
+      <li>也可自己接大模型（南哥接了 MiniMax）</li>
+      <li>4 层任意配置（用哪个模型走 T0 / T1 / T2 / T3）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 5: UI -->
+<div class="tab-content" data-tab-content="ui">
+  <h2 class="section">🖥️ 控制台演示</h2>
+
+  <p style="color: var(--text-dim);">南哥二次开发定制（原版不支持 MiniMax → 主动改了源码）</p>
+
+  <h3>控制面板模块</h3>
+  <table>
+    <thead>
+      <tr><th>模块</th><th>功能</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>概览</b></td><td>5 卡片：TOKEN / 会话数 / 大模型 / 健康状态 / 运行时长</td></tr>
+      <tr><td><b>会话</b></td><td>全部会话列表 + 跳转</td></tr>
+      <tr><td><b>网关</b></td><td>网关配置</td></tr>
+      <tr><td><b>事件监控</b></td><td>事件监听</td></tr>
+      <tr><td><b>健康状态</b></td><td>服务状态卡片</td></tr>
+      <tr><td><b>配置参数</b></td><td>未配置项标红 + 指令说明</td></tr>
+      <tr><td><b>Channels</b></td><td>飞书 / QQ / 钉钉 等</td></tr>
+      <tr><td><b>Skills</b></td><td>MetaSkill（9 个内置）+ 普通 Skill</td></tr>
+      <tr><td><b>Agents</b></td><td>内置 + 可新增</td></tr>
+      <tr><td><b>Token 分析</b></td><td>可视化分析</td></tr>
+      <tr><td><b>定时任务</b></td><td>Cron</td></tr>
+      <tr><td><b>配置</b></td><td>初始化 + Router</td></tr>
+    </tbody>
+  </table>
+
+  <h3>动态路由效果（演示）</h3>
+  <div class="perf-bar">
+    <span class="label">不开路由 "你好"</span>
+    <div class="bar-container">
+      <div class="bar baseline" style="width: 95%;">$0.1</div>
+    </div>
+  </div>
+  <div class="perf-bar">
+    <span class="label">开路由 "你好" → T0</span>
+    <div class="bar-container">
+      <div class="bar" style="width: 3%;">$0.003</div>
+    </div>
+  </div>
+  <p style="color: var(--text-dim); font-style: italic; margin-top: 0.5rem;">→ 老虎机式动效展示 T0 选 DeepSeek 模型</p>
+</div>
+
+<!-- TAB 6: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（30 分钟）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>clone OpenSquilla</b> → 体验 MetaSkill 9 个内置</li>
+    <li><b>接本地 Ollama</b>（4B 模型走 T0）</li>
+    <li><b>跑儿童项目 MetaSkill</b> 验证长程 workflow</li>
+  </ol>
+
+  <h3>中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>基于 OpenSquilla 写 <b>OpenSwarm 的 MetaSkill library</b></li>
+    <li>接 <b>hybrid-llm-router</b>（替换 OpenSquilla 内置 router）</li>
+    <li><b>Self-harness loop 集成</b>（OpenSquilla 是 harness，self-harness = meta-harness）</li>
+  </ol>
+
+  <h3>长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>写自己的 MetaSkill（基于 Patrick 工作流：pitch / cron / open-skill）</li>
+    <li>建立 <b>Patrick 专属 MetaSkill library</b></li>
+    <li>MetaSkill 社区（Patrick 自家 skill 系统？）</li>
+  </ol>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Self-Harness Optimization</h4>
+      <p>OpenSquilla 的<b>微内核 + 插件架构</b> = <b>Self-Harness 框架</b>的自然演化</p>
+      <p style="margin-top: 0.4rem;">核心引擎 = harness；插件 = 4 元素（prompts/tools/memory/policy）</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ OpenSquilla = <b>生产级 self-harness 实现</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p><b>4 层智能路由（T0-T3）= hybrid-llm-router 的 5 维评分的 production 实现</b></p>
+      <p style="margin-top: 0.4rem;">"你好" 走 T0 cheap = score 0-3 → 本地</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 节省 60-80% TOKEN = 验证 hybrid 经济模型</p>
+    </div>
+    <div class="card">
+      <h4>🔗 K1（Agent Native KG）</h4>
+      <p><b>Memory 4 层认知架构</b> ≈ K1 的 5 schemas</p>
+      <p style="margin-top: 0.4rem;">两者都强调 domain-specific knowledge graph</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman "intelligence 移到 harness"</h4>
+      <p>Sam 暗示 "intelligence 在 harness 不在 model"</p>
+      <p style="margin-top: 0.4rem;">→ OpenSquilla = <b>harness 化产品</b>（核心在 plugin 编排）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan "本地 LLM"</h4>
+      <p>支持多 provider（包括自定义 = 可接本地 Ollama / LM Studio）</p>
+      <p style="margin-top: 0.4rem;">T0 = <b>本地 4B 模型</b>（Qwen 2.5 Coder 1.5B）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm = 多 agent 协作</p>
+      <p style="margin-top: 0.4rem;">OpenSquilla = <b>单 agent 但 plugin 化</b> = OpenSwarm 单节点模板</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>🔗 Nate Herk "AI 品牌糟糕"</h4>
+      <p>"蓝色玻璃拟态" 站点泛滥</p>
+      <p style="margin-top: 0.4rem;">→ OpenSquilla <b>暖橙 + 微内核</b> = 反 slop</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Video Notes Dashboard v1.3.0</h4>
+      <p>7 Tab 模板 ≈ MetaSkill 编排思想</p>
+      <p style="margin-top: 0.4rem;">跨笔记 cross-refs ≈ MetaSkill 的"创建 MetaSkill 的 MetaSkill"</p>
+    </div>
+  </div>
+
+  <h3>4 大能力 vs Patrick 工作映射</h3>
+  <table>
+    <thead>
+      <tr><th>OpenSquilla</th><th>Patrick 对应</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>节省 60-80% TOKEN</td><td>hybrid-llm-router 5 维评分 + LiteLLM</td></tr>
+      <tr><td>MetaSkill 协议</td><td>self-harness-optimization 4 步 loop</td></tr>
+      <tr><td>Memory 4 层</td><td>K1 5 schema knowledge graph</td></tr>
+      <tr><td>4 层智能路由</td><td>hybrid-llm-router T0-T3 模型分级</td></tr>
+      <tr><td>微内核 + 插件</td><td>OpenSwarm agent 协作架构</td></tr>
+      <tr><td>安全 Sandbox</td><td>Claude Code permission system</td></tr>
+      <tr><td>二次开发友好</td><td>Patrick "全做 / 自己改" 工作流</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 8: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Hook</div>
+      <div class="text">Skill 2.0 时代，来了。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">MetaSkill 定义</div>
+      <div class="text">MetaSkill 直接翻译就是元 Skill，也就是 Skill 的 Skill。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Skill 挑战</div>
+      <div class="text">对于这些 Skill 如何把它更高效地进行检索，更高效地进行筛选组合，那这个是下一步 Agent 所面临的问题。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">微内核</div>
+      <div class="text">核心引擎只做最少的事，只进行编排调度和状态管理，其余的所有的能力全部是以插件的形式在用户态运行。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">TOKEN 节省</div>
+      <div class="text">整个项目帮助大家节省 60% - 80% 的 TOKEN 的成本。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Meta-Meta</div>
+      <div class="text">创建 MetaSkill 的 MetaSkill 也是很有必要的。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">二开</div>
+      <div class="text">当前只支持英文，它是没有中文的，所以大家可以基于这个项目去做二次开发。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">背景</div>
+      <div class="text">他是原来华为盘古的一些核心的成员，出来去创的业，而且是今年刚刚创的业。</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 完整时间线（81 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：OpenSquilla 来了 · 2.5K star</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:22</div>
+      <div class="what">0.3.0 版本（5/31 发布）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:44</div>
+      <div class="what">3 方面分享：项目 + 路由 + MetaSkill</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:01</div>
+      <div class="what">官方文档介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:41</div>
+      <div class="what">4 大核心能力（节省 60-80% TOKEN）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:21</div>
+      <div class="what">微内核架构（操作系统类比）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:25</div>
+      <div class="what">部署方式 + 源码安装理由</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:03</div>
+      <div class="what">修改记录文档（merge 用）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:38</div>
+      <div class="what">控制面板 UI（5 卡片）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:07</div>
+      <div class="what">MiniMax 二次开发（官方未列）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:12</div>
+      <div class="what">4 层路由 T0-T3</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:33</div>
+      <div class="what">4 层路由介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:30</div>
+      <div class="what">"你好" 不开路由 vs 开路由（$0.1 vs $0.003）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:48</div>
+      <div class="what">9 个内置 MetaSkill</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:33</div>
+      <div class="what">MetaSkill = "Skill 的 Skill"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:52</div>
+      <div class="what">5 个嵌套 Skill 演示</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:25</div>
+      <div class="what">追问题 + 拆子任务 + 输出</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:30</div>
+      <div class="what">MetaSkill 源文件结构（800 行）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:30</div>
+      <div class="what">"创建 MetaSkill 的 MetaSkill"（meta-meta）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:38</div>
+      <div class="what">实践心得（飞书配置 / 文档 / UI）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:10</div>
+      <div class="what">团队背景：原华为盘古</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:12</div>
+      <div class="what">Closing</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/opensquilla-metaskill-skill-2-0/</code></p>
+  <p>Desktop: <code>~/Desktop/opensquilla-metaskill-skill-2-0-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=4xMvWPNLU5Q">https://www.youtube.com/watch?v=4xMvWPNLU5Q</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>
