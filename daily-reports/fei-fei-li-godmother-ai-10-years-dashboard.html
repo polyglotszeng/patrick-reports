@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI 教母 Fei-Fei Li：10 年后只剩 2 种 Worker</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.neutral { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.neutral h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>AI 教母 Fei-Fei Li</h1>
+<p class="subtitle">10 年后只剩 2 种 Worker — Silicon Valley Girl</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=subu-xHrp1w" target="_blank">Godmother of AI: In 10 Years There Will Be Only 2 Kinds of Workers</a></span>
+  <span><strong>频道：</strong>Silicon Valley Girl</span>
+  <span><strong>嘉宾：</strong>Fei-Fei Li + David Rogier</span>
+  <span><strong>时长：</strong>49:06（2946s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-21</span>
+</div>
+
+<div class="hero">
+  <h2>🔥 核心论点</h2>
+  <p><b>10 年后只有 2 种 Worker</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Top 1% Specialists</b>（最好的 copywriter / 设计师 / 软件工程师）</li>
+    <li><b>High-Agency Generalists</b>（判断力 + 创造力 + 工具驾驭）</li>
+  </ol>
+  <p style="margin-top: 0.6rem;">中间层 = <b>被 AI 替代</b>。"If I'm an okay one, anybody that now uses an LLM can do a decent job at that."</p>
+  <p style="margin-top: 0.6rem;"><b>最核心关键词 = Agency</b>："Agency is the key in the face of a technology that is so cognitively advanced."</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">2 种 Worker</div>
+    <div class="value">Top 1% + Agency</div>
+    <div class="sub">中间 98% 被替代</div>
+  </div>
+  <div class="stat">
+    <div class="label">Fei-Fei 关键数据</div>
+    <div class="value">$1B</div>
+    <div class="sub">World Labs 融资</div>
+  </div>
+  <div class="stat">
+    <div class="label">教育成本下降</div>
+    <div class="value">$80K → $100</div>
+    <div class="sub">AI 1-on-1 tutor</div>
+  </div>
+  <div class="stat">
+    <div class="label">学习效率提升</div>
+    <div class="value">60%</div>
+    <div class="sub">AI tutor 加速</div>
+  </div>
+  <div class="stat">
+    <div class="label">Spatial Intelligence</div>
+    <div class="value">4 大子能力</div>
+    <div class="sub">理解 / 推理 / 生成 / 交互</div>
+  </div>
+  <div class="stat">
+    <div class="label">Spatial 进化</div>
+    <div class="value">5 亿年</div>
+    <div class="sub">vs 语言 intelligence 几千年</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="agency">🎯 Agency 议程</button>
+  <button class="tab" data-tab="education">🎓 教育革命</button>
+  <button class="tab" data-tab="workers">👥 2 种 Worker</button>
+  <button class="tab" data-tab="pm">📊 PM 角色转变</button>
+  <button class="tab" data-tab="spatial">🌐 Spatial Intelligence</button>
+  <button class="tab" data-tab="discourse">⚠️ Discourse 极端化</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: AGENCY -->
+<div class="tab-content active" data-tab-content="agency">
+  <h2 class="section">🎯 Agency 议程（最核心关键词）</h2>
+
+  <blockquote>
+    "<b>Agency is the key</b> in the face of a technology that is so cognitively advanced. <b>Get familiar with that technology.</b>"
+  </blockquote>
+
+  <h3>定义</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"The word <b>entrepreneur is very much a synonym to agency</b>."</p>
+    <p style="margin-top: 0.5rem;">不只是创业 = 你做任何事都需要 agency</p>
+  </div>
+
+  <h3>4 要素（David 拆解）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>① Safe to take risks</h4>
+      <p>安全感（才能冒险）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>② Fail and learn</h4>
+      <p>从失败中学习</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>③ Resilience to get back up</h4>
+      <p>韧性反弹</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>④ Curiosity in the world</h4>
+      <p>对世界好奇</p>
+    </div>
+  </div>
+
+  <h3>Fei-Fei 实践建议</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h4>🎯 "Find a kid under 25"</h4>
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0.5rem 0; color: var(--text);">
+      "Find a kid either your own kid or your nephew or your niece that they are likely to be younger than 25 years old. Almost all of them are already using AI in some way. Be curious. Ask them to just show you how they use AI."
+    </blockquote>
+    <ul style="margin-top: 0.5rem;">
+      <li>不需要学 CS</li>
+      <li>不需要懂哪个 app</li>
+      <li>只要让年轻人带 1 个周末</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 2: EDUCATION -->
+<div class="tab-content" data-tab-content="education">
+  <h2 class="section">🎓 教育革命</h2>
+
+  <h3>成本对比</h3>
+  <table>
+    <thead>
+      <tr><th>传统方式</th><th>成本</th><th>AI 方式</th><th>成本</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Elementary school</td>
+        <td>$12,000/年</td>
+        <td>AI tutor 1-on-1</td>
+        <td><b>~$100</b></td>
+      </tr>
+      <tr>
+        <td>College</td>
+        <td>$80,000/年</td>
+        <td>AI tutor 1-on-1</td>
+        <td><b>~$100</b></td>
+      </tr>
+      <tr>
+        <td>1-on-1 instruction</td>
+        <td>极贵（不可负担）</td>
+        <td>AI 1-on-1</td>
+        <td>可负担</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>60% 时间节省</h3>
+  <blockquote>
+    "If you use AI to learn, you're able to learn the same things in <b>60% less time</b>."
+  </blockquote>
+
+  <h3>最大障碍不是技术</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h4>⚠️ 制度阻力</h4>
+    <p>"The biggest obstacle is not the tech. The biggest obstacle is the <b>institutions that are afraid of the change</b>."</p>
+    <p style="margin-top: 0.5rem;">10 年内，<b>禁止 AI 的学校将不复存在</b>（太落后）</p>
+  </div>
+
+  <h3>教育目标（Fei-Fei 关键立场）</h3>
+  <blockquote>
+    "The goal of education is <b>not a tool</b>. The goal of education is <b>not closed book or open book exams</b>. The goal of education is <b>not standardized test scores</b>. The goal of education is <b>building humans</b> so that every individual is a meaningful contributor of their community and society and lead to a meaningful life."
+  </blockquote>
+
+  <h3>需要重思的 5 件事</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>教室（classroom）</li>
+    <li>考试（examinations）</li>
+    <li>标准化测试（standardized test）</li>
+    <li>大学录取（college admissions）</li>
+    <li>资源分配（resource distribution）+ 重视 global south / 农村</li>
+  </ol>
+</div>
+
+<!-- TAB 3: WORKERS -->
+<div class="tab-content" data-tab-content="workers">
+  <h2 class="section">👥 2 种 Worker</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>🏆 Top 1% Specialist</h4>
+      <ul>
+        <li><b>极深 mastery</b></li>
+        <li>顶级 copywriter / 设计师 / 工程师</li>
+        <li>AI 也替代不了</li>
+        <li>"I can't beat you at it"</li>
+        <li>代表：MasterClass 老师 / World Labs 研究员</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>🌍 High-Agency Generalist</h4>
+      <ul>
+        <li><b>多领域 breadth</b></li>
+        <li>创业者 / PM / 跨学科</li>
+        <li>judgment + 创造力 + 工具驾驭</li>
+        <li>"如果大家说 good idea, probably not"</li>
+        <li>代表：创始人 / 高 agency 员工</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>❌ 被 AI 替代 = "okay" 的人（中间 98%）</h3>
+  <blockquote>
+    "If I'm an okay copywriter, anybody that now uses an LLM can do a decent job at that. But if you're the <b>best in the world at it or if you're in the top 1%</b>, I can't beat you at it."
+  </blockquote>
+
+  <h3>Barbell Effect</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"What I'm seeing is a <b>bifurcation</b> of those specialists and the people that can do lots of things well."</p>
+    <p style="margin-top: 0.5rem;">= 哑铃型分布（specialist 顶尖 + generalist 高 agency）</p>
+    <p style="color: var(--text-dim); font-size: 0.9rem;">中间被 AI 替代</p>
+  </div>
+</div>
+
+<!-- TAB 4: PM -->
+<div .tab-content="" data-tab-content="pm">
+</div>
+
+<div class="tab-content" data-tab-content="pm">
+  <h2 class="section">📊 产品经理角色转变</h2>
+
+  <h3>过去 vs 现在</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>过去（10 年前）</th><th>现在</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Prototype 流程</b></td>
+        <td>PM → designer → engineer → 用户</td>
+        <td><b>PM 自己 code</b>（vibe code）</td>
+      </tr>
+      <tr>
+        <td><b>Life cycle</b></td>
+        <td><b>typically months</b></td>
+        <td>大幅缩短（周）</td>
+      </tr>
+      <tr>
+        <td><b>Engineer 角色</b></td>
+        <td>实现 prototype</td>
+        <td>做 <b>更 sophisticated work</b></td>
+      </tr>
+      <tr>
+        <td><b>用户反馈</b></td>
+        <td>人工收集</td>
+        <td>AI <b>simulate user behavior</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Fei-Fei 招聘标准</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h4>✅ 找："riding the wave of changes"</h4>
+    <p>聊 5 年前 textbook workflow → 淘汰</p>
+  </div>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>❌ 不找："still talking about the textbook workflow"</h4>
+    <p>= 低 agency / 不能 adapt</p>
+  </div>
+</div>
+
+<!-- TAB 5: SPATIAL -->
+<div class="tab-content" data-tab-content="spatial">
+  <h2 class="section">🌐 Spatial Intelligence（Fei-Fei 创业核心）</h2>
+
+  <h3>4 大子能力</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>子能力</th><th>例子</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>①</td>
+        <td><b>Understanding</b></td>
+        <td>看到环境 = 看到人 / 设备 / 房间</td>
+      </tr>
+      <tr>
+        <td>②</td>
+        <td><b>Reasoning</b></td>
+        <td>"去冰箱拿水"需要推理动作路径</td>
+      </tr>
+      <tr>
+        <td>③</td>
+        <td><b>Generation</b></td>
+        <td>心智之眼生成 2D / 3D / 4D 视觉</td>
+      </tr>
+      <tr>
+        <td>④</td>
+        <td><b>Interactivity</b></td>
+        <td>折衣服 / 挂衣服的空间交互</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>与 LLM 关系</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"They're <b>complimentary</b>."</p>
+    <p style="margin-top: 0.5rem;">人类活动 = <b>语言 + 空间 + 物理</b> intelligence 混合</p>
+    <p style="margin-top: 0.5rem;">投篮例子：语言（紧张感）+ 空间（看球场）+ 物理（身体定位）</p>
+  </div>
+
+  <h3>时间预测</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>❌ 100 年太久</h4>
+      <p>太远</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>✅ Fei-Fei 目标：lifetime</h4>
+      <p>她的 lifetime 内能到</p>
+    </div>
+    <div class="card">
+      <h4>❌ 1 年太短</h4>
+      <p>不可能</p>
+    </div>
+  </div>
+
+  <h3>当前进展</h3>
+  <div class="card" style="margin-top: 1rem;">
+    <ul>
+      <li><b>2D 图像生成</b>（nano banana / GPT image）— <span class="badge green">已成熟</span></li>
+      <li><b>3D generation</b>（World Labs 专注）— <span class="badge yellow">早期</span></li>
+      <li><b>4D 物理交互</b>— <span class="badge red">未到</span></li>
+    </ul>
+  </div>
+
+  <h3>Fei-Fei 对 AGI 的学术立场</h3>
+  <blockquote>
+    "As a scholar, we always... the field in the academic world is called <b>artificial intelligence</b>. It's <b>not scientifically rigorously clear what the G means here</b>."
+  </blockquote>
+  <p style="color: var(--text-dim); margin-top: 0.5rem;">→ 不 fighting "AGI" 这个词，但 <b>科学上不严谨</b></p>
+  <p style="color: var(--text-dim);">→ <b>Spatial intelligence 不解决 → 无法接近 AGI</b></p>
+
+  <h3>Evolution 时间尺度</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p style="font-size: 1.05rem;">"Evolution took <b>500 million plus years</b> to get spatial intelligence to maturity. It took much a much shorter time for language intelligence."</p>
+    <p style="margin-top: 0.5rem; color: var(--accent-2);">= Spatial 是<b>更古老</b>的能力 · AI 还远</p>
+  </div>
+</div>
+
+<!-- TAB 6: DISCOURSE -->
+<div class="tab-content" data-tab-content="discourse">
+  <h2 class="section">⚠️ Discourse 极端化</h2>
+
+  <h3>现状（Fei-Fei 警告）</h3>
+  <div class="compare">
+    <div class="cmp good">
+      <h4>🌟 极端 A：godlike</h4>
+      <ul>
+        <li>"AI 会拯救世界"</li>
+        <li>"我们不再需要工作"</li>
+        <li>"躺着拿工资"</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>💀 极端 B：devil</h4>
+      <ul>
+        <li>"AI 替代所有工作"</li>
+        <li>"抢走人类 agency"</li>
+        <li>"毁灭一切"</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>缺什么：Nuanced Middle</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "The most important discourse is missing. And that's the discourse of the <b>nuanced middle</b>. What is this tool? How can we use it for good? How should we avoid the pitfalls? And how do we go forward as a civilization with this civilizational tool?"
+    </blockquote>
+  </div>
+
+  <h3>Fei-Fei 立场</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"AI is a <b>tool</b>. It's a very powerful tool. But it's a tool that <b>humans can wield to help make things better</b>. But we also have to be <b>very very vigilant</b> about how to use the tool."</p>
+  </div>
+
+  <h3>不 adapt 的代价（spreadsheet 案例）</h3>
+  <blockquote>
+    "If you don't adapt, your lifetime income drops by <b>over a fifth</b> and your <b>mortality rate in the first year doubles</b>. It actually hurts your health."
+  </blockquote>
+
+  <h3>David 反驳：avoidance 错误</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"The <b>avoidance is the wrong way</b>."</p>
+    <p style="margin-top: 0.5rem;">"If we look at any technological shift it's always ended up in <b>net more jobs</b>."</p>
+  </div>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Sam Altman Stanford CS183</h4>
+      <p>Sam "intelligence 移到 harness" + Fei-Fei "agency 是 harness 操作员核心"</p>
+      <p style="margin-top: 0.4rem;">→ <b>同构</b>：工具强 → 操作工具的人（agency）重要</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "Stop AI"</h4>
+      <p>Nate "OpenAI 不能停" + Fei-Fei "discourse 极端化"</p>
+      <p style="margin-top: 0.4rem;">→ 都警告<b>缺 nuanced middle</b> · 同方向解药</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking 4 大系统</h4>
+      <p>Fei-Fei "nuanced middle" = <b>DART Analyze</b></p>
+      <p style="margin-top: 0.4rem;">2 种 Worker = <b>Clear / Complex</b>（非 binary）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>🔗 Pi Agent</h4>
+      <p>Pi = <b>top 1% specialist / agency generalist</b> 的工具</p>
+      <p style="margin-top: 0.4rem;">Claude Code 用户 = "okay"（10 年后被替代）</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ Patrick 用 Pi = <b>选 top 1% 路径</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 NotebookLM 2.0</h4>
+      <p>NotebookLM = bottom-up 工具 / Fei-Fei = top-down agency</p>
+      <p style="margin-top: 0.4rem;">→ <b>互补</b>：工具 + agency = 成功</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Self-Harness Optimization</h4>
+      <p>Fei-Fei "agency" = <b>Self-harness 人文版</b></p>
+      <p style="margin-top: 0.4rem;">Boris 6/8 (agent 工具) + Fei-Fei (人工具) = <b>完整</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>IndyDevDan 工具民主化 = <b>high agency generalist 路径</b></p>
+      <p style="margin-top: 0.4rem;">Fei-Fei 教育民主化 = <b>同方向</b>（$80K → $100）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>MetaSkill = "Skill 的 Skill" = <b>agent 能力编排</b></p>
+      <p style="margin-top: 0.4rem;">Fei-Fei World Labs = <b>spatial AI 民主化</b>（3D generation）</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（1 小时）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>问身边 25 岁以下的人</b>：他们用 AI 做什么？</li>
+    <li><b>找 1 个 "okay → top 1%" 任务</b>：用 AI 把它做到 top 1%</li>
+    <li>建立"agency check"：每周问自己 4 要素</li>
+  </ol>
+
+  <h3>中期（1-3 个月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>选 1 个 vertical 做到 top 1%（用 Pi + hybrid + 自训练）</li>
+    <li>同时 build agency generalist 技能（3D / spatial / 多 domain）</li>
+  </ol>
+
+  <h3>长期（1+ 年）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>成为 "top 1% + high agency"（1 deep + 多 shallow）</li>
+    <li>教育下一代（agency 培养指南）</li>
+    <li>Public discourse 贡献（nuanced middle 内容）</li>
+  </ol>
+</div>
+
+<!-- TAB 9: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Agency 核心</div>
+      <div class="text">Agency is the key in the face of a technology that is so cognitively advanced. Get familiar with that technology.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">2 种 Worker</div>
+      <div class="text">If I'm an okay one, anybody that now uses an LLM can do a decent job at that. But if you're the best in the world at it or if you're in the top 1%, I can't beat you at it.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Barbell</div>
+      <div class="text">What I'm seeing is a bifurcation of those specialists and the people that can do lots of things well.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Entrepreneur</div>
+      <div class="text">The word entrepreneur is very much a synonym to agency.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Education 目标</div>
+      <div class="text">The goal of education is not a tool. The goal of education is not closed book or open book exams. The goal of education is building humans.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AI 学习</div>
+      <div class="text">If you use AI to learn, you're able to learn the same things in 60% less time.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Human Intelligence</div>
+      <div class="text">Physical labor, cognitive labor, emotional labor, human activity is deeply intertwined with human intelligence, which is still very much an unsolved mystery in nature.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AI Values</div>
+      <div class="text">AI doesn't have its own values. It's our values.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Irresponsible Claim</div>
+      <div class="text">Intelligence goes to zero — it's just an irresponsible claim because human intelligence is so deep.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Spatial 4 能力</div>
+      <div class="text">Spatial intelligence is these four things: understanding, reasoning, generation, and interaction.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Spatial 进化</div>
+      <div class="text">Evolution took 500 million plus years to get spatial intelligence to maturity.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AGI 学术</div>
+      <div class="text">The field in the academic world is called artificial intelligence. It's not scientifically rigorously clear what the G means here.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Nuanced Middle</div>
+      <div class="text">The most important discourse is missing. And that's the discourse of the nuanced middle.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AI 是工具</div>
+      <div class="text">AI is a tool. It's a very powerful tool. But it's a tool that humans can wield to help make things better.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">不 adapt 代价</div>
+      <div class="text">If you don't adapt, your lifetime income drops by over a fifth and your mortality rate in the first year doubles.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Net More Jobs</div>
+      <div class="text">If we look at any technological shift it's always ended up in net more jobs.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">找年轻人</div>
+      <div class="text">Find a kid under 25, ask them to show you AI. Be curious about the future world that they will live in.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">David 哲学</div>
+      <div class="text">If you have an idea that everybody thinks it's good, it's probably not a good idea.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 关键时间戳（89 段字幕精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：a lot of people are scared</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:17</div>
+      <div class="what">Fei-Fei + David Rogier 介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">"Polarized society" 警告</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:22</div>
+      <div class="what">David 真实 to-do list app</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:01</div>
+      <div class="what">"I don't like vibe coding a dashboard"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:02</div>
+      <div class="what">⚠️ <b>Fei-Fei 警告"nuanced middle 缺失"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:24</div>
+      <div class="what">🌐 <b>Spatial intelligence 4 大子能力</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:36</div>
+      <div class="what">物理 / 认知 / 情感 labor 不可分</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:35</div>
+      <div class="what">"AI doesn't have its own values"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:11</div>
+      <div class="what">Nurse 例子：charting 不是 job 核心</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:42</div>
+      <div class="what">"Net more jobs" 历史规律</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:62</div>
+      <div class="what">📊 <b>不 adapt 死亡率 + 收入双降</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:01</div>
+      <div class="what">🎓 <b>教育革命：AI 1-on-1 instructor</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:16</div>
+      <div class="what">$12K / $80K → $100（AI 替代）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:37</div>
+      <div class="what">"60% less time" 学习效率</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:23</div>
+      <div class="what">"The biggest obstacle is the institutions"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:36</div>
+      <div class="what">教育目标 = building humans</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:30</div>
+      <div class="what">👥 <b>10 年后 workplace = 2 种 worker</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:54</div>
+      <div class="what">📊 <b>PM 现在自己 code</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:24</div>
+      <div class="what">Barbell effect</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:10</div>
+      <div class="what">"If I'm an okay one, anybody can do a decent job"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:59</div>
+      <div class="what">Top 1% specialist vs High-Agency Generalist</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:04</div>
+      <div class="what">David 哲学金句</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:39</div>
+      <div class="what">Agency 不只是 entrepreneur</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:46</div>
+      <div class="what">🌐 <b>Spatial Intelligence 详解</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:17</div>
+      <div class="what">"Spatial 不解决 → 无法接近 AGI"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:46</div>
+      <div class="what">Spatial + LLM 是 complementary</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:35</div>
+      <div class="what">"AGI" 一词科学上不严谨</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:72</div>
+      <div class="what">🎯 <b>Agency 培养：4 大要素 + 实操</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:14</div>
+      <div class="what">🎯 <b>"Find a kid under 25"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:52</div>
+      <div class="what">家庭 + 实践 + 长期</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:81</div>
+      <div class="what">总结：develop your agency</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:33</div>
+      <div class="what">拥抱 AI 的世界</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/fei-fei-li-godmother-ai-10-years/</code></p>
+  <p>Desktop: <code>~/Desktop/fei-fei-li-godmother-ai-10-years-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=subu-xHrp1w">https://www.youtube.com/watch?v=subu-xHrp1w</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Google IO 2026: The Line — AI Founders</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.yellow .value { color: var(--yellow); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Google IO 2026: The Line</h1>
+<p class="subtitle">AI Founders — "Google Just Made One Kind of AI Startup Worthless"</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=S7Yc3BnQrkU" target="_blank">Google Just Made One Kind of AI Startup Worthless</a></span>
+  <span><strong>频道：</strong>AI Founders</span>
+  <span><strong>时长：</strong>20:38（1238s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-22</span>
+</div>
+
+<div class="hero">
+  <h2>🔥 核心论点</h2>
+  <p><b>"Google did not launch a product or a few. They drew a line."</b></p>
+  <p style="margin-top: 0.6rem;"><b>The Line 切两半</b>：</p>
+  <ul style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Below the line</b> = <b>commodity</b>（generic agents / thin wrappers / simple apps）= "built in, gone as a business"</li>
+    <li><b>Above the line</b> = <b>不可替代</b>（deep industry / proprietary / trust / owned distribution / unique POV）</li>
+  </ul>
+  <p style="margin-top: 0.6rem;"><b>"Everything below the line just became free leverage, free fuel."</b></p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">Google 4 大战略</div>
+    <div class="value">1 strategic move</div>
+    <div class="sub">100 ways</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">AI Mode Users</div>
+    <div class="value">1B / month</div>
+    <div class="sub">largest distribution pipe</div>
+  </div>
+  <div class="stat">
+    <div class="label">12 Systems</div>
+    <div class="value">5 moves</div>
+    <div class="sub">Build / Sell / Operate / Create / Above</div>
+  </div>
+  <div class="stat green">
+    <div class="label">Below the Line</div>
+    <div class="value">5 类别</div>
+    <div class="sub">commodity</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Above the Line</div>
+    <div class="value">5 元素</div>
+    <div class="sub">不可 commoditize</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">关键测试</div>
+    <div class="value">1 question</div>
+    <div class="sub">"Google free tomorrow?"</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="strategy">🏗️ 4 大战略</button>
+  <button class="tab" data-tab="line">⚖️ The Line</button>
+  <button class="tab" data-tab="m1">🚀 Build Faster</button>
+  <button class="tab" data-tab="m2">💰 Sell Smarter</button>
+  <button class="tab" data-tab="m3">⚙️ Operate Leaner</button>
+  <button class="tab" data-tab="m4">🎨 Create Cheaper</button>
+  <button class="tab" data-tab="m5">⭐ Above the Line</button>
+  <button class="tab" data-tab="money">💵 Money Path</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: STRATEGY -->
+<div class="tab-content active" data-tab-content="strategy">
+  <h2 class="section">🏗️ Google IO 2026 4 大战略</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>战略</th><th>关键动作</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>①</td>
+        <td><b>Gemini 3.5 Flash inside</b></td>
+        <td>Search / Chrome / Workspace / Android</td>
+      </tr>
+      <tr>
+        <td>②</td>
+        <td><b>Search → 行动</b></td>
+        <td>"builds a dashboard instead of 10 blue links"</td>
+      </tr>
+      <tr>
+        <td>③</td>
+        <td><b>1-line agent</b></td>
+        <td>"single line of code spins up full AI agent"（sandbox + browser + memory）</td>
+      </tr>
+      <tr>
+        <td>④</td>
+        <td><b>Agents everywhere</b></td>
+        <td>monitor web / run inbox / edit videos by conversation</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Distribution Pipe（关键数据）</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.1rem;">"<b>Google AI mode in search has now over a billion users a month, a billion.</b>"</p>
+    <p style="margin-top: 0.4rem;">"<b>That is the single biggest distribution pipe on the internet at the moment.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 2: LINE -->
+<div class="tab-content" data-tab-content="line">
+  <h2 class="section">⚖️ The Line（核心框架）</h2>
+
+  <h3>Below the Line（Commodity — 5 类）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>① Raw model access</h4>
+      <p>1-line agent</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>② Generic agent</h4>
+      <p>browse + code</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>③ Generic gen</h4>
+      <p>image / video / music</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>④ Single-prompt app</h4>
+      <p>shipped</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ Thin wrapper</h4>
+      <p>always was</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--red); margin-top: 1rem;">
+    <p>"<b>If your business is one of those things, you're now competing with a free feature that has a billion user front door.</b>"</p>
+  </div>
+
+  <h3>Above the Line（5 大不可替代元素）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>① Deep industry</h4>
+      <p>Built deep into one specific industry</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② Proprietary context</h4>
+      <p>Your data / your customers / your judgment</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>③ Trust expensive</h4>
+      <p>Healthcare / legal / finance</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>④ Owned distribution</h4>
+      <p>Not relying on Google</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>⑤ Unique POV</h4>
+      <p>"A model can't average its way into"</p>
+    </div>
+  </div>
+
+  <h3>关键测试</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.1rem;">"<b>If Google shipped a free, decent version of what I sell tomorrow, would I still have customers?</b>"</p>
+  </div>
+
+  <div class="compare" style="margin-top: 1rem;">
+    <div class="cmp good">
+      <h4>✅ Yes → Above the line</h4>
+      <p>可放心用 11 systems 加速</p>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ No → Wake-up call</h4>
+      <p>需重新 build above the line</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow); margin-top: 1rem;">
+    <p>"<b>Models are trained on average and the average is exactly what you're refusing to be.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 3: M1 -->
+<div class="tab-content" data-tab-content="m1">
+  <h2 class="section">🚀 Move 1：Build Faster（3 systems）</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>System</th><th>关键工具</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>①</td>
+        <td><b>Prompt to Product</b></td>
+        <td>Google AI Studio + Gemini 3.5 Flash + <b>Anti-gravity</b></td>
+      </tr>
+      <tr>
+        <td>②</td>
+        <td><b>AI Product Team</b></td>
+        <td><b>Antigravity 2.0</b>（parallel agents）</td>
+      </tr>
+      <tr>
+        <td>③</td>
+        <td><b>Software from Spreadsheets</b></td>
+        <td>AI Studio reads mess → builds dashboard</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>核心警告</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>A prototype is not a company.</b> This collapses the cost of testing an idea. It does not collapse the cost of being right about which idea. That part is still your job."</p>
+  </div>
+
+  <h3>反 jargon warning</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"<b>If words like tools, workflows, reasoning loops sound like jargon to you, that is the exact gap to close before you can brief an agent or implement any of these systems.</b>"</p>
+    <p style="margin-top: 0.4rem;">→ 推荐 <b>Google Cloud GenAI Agents on Coursera</b>（5 hours · beginner · $59/月）</p>
+  </div>
+</div>
+
+<!-- TAB 4: M2 -->
+<div class="tab-content" data-tab-content="m2">
+  <h2 class="section">💰 Move 2：Sell Smarter（3 systems）</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>System</th><th>关键工具</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>④</td>
+        <td><b>Analyst that never sleeps</b></td>
+        <td><b>Search information agents</b>（watch competitors）</td>
+      </tr>
+      <tr>
+        <td>⑤</td>
+        <td><b>Decision tool, not document</b></td>
+        <td>Search builds interface on spot（calculator / dashboard）</td>
+      </tr>
+      <tr class="highlight">
+        <td>⑥</td>
+        <td><b>Make business agent-readable</b> ⭐</td>
+        <td><b>WebMCP</b> standard（最 underrated）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>WebMCP 关键 ⭐</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>Soon the thing visiting your website will not be a person anymore. It'll be that person's AI agent sent to book, to buy, to compare, or to get a quote on their behalf.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>For 15 years, we optimized websites for Google Scroller. This is that again, but for agents.</b>"</p>
+    <p style="margin-top: 0.5rem; color: var(--red);">"<b>A beautiful website an agent can't use is essentially invisible.</b>"</p>
+    <p style="margin-top: 0.4rem;">"<b>The founders who do it early are going to get found, and the ones who wait will go invisible, and they won't even know why.</b>"</p>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <h4>Patrick 启示</h4>
+    <p>v1.3.0 dashboard 需加 <b>WebMCP</b> = 让 agent 可 execute</p>
+  </div>
+</div>
+
+<!-- TAB 5: M3 -->
+<div class="tab-content" data-tab-content="m3">
+  <h2 class="section">⚙️ Move 3：Operate Leaner（3 systems）</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>System</th><th>关键工具</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>⑦</td>
+        <td><b>Chief of Staff</b></td>
+        <td><b>Gemini Spark</b>（background personal agent）</td>
+      </tr>
+      <tr>
+        <td>⑧</td>
+        <td><b>Wake up to a briefing</b></td>
+        <td><b>Daily Brief + Gmail Live</b></td>
+      </tr>
+      <tr>
+        <td>⑨</td>
+        <td><b>Voice in, structure out</b></td>
+        <td><b>Docs Live</b> + <b>Talk to Keep</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Gemini Spark 核心</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"<b>This is not a chatbot that you visit, it's an assistant that works while you do other things, and then checks in with you before anything that matters.</b>"</p>
+    <p style="margin-top: 0.4rem;">"<b>For a solo founder, that is the closest thing that you get to an executive assistant and a chief of staff both in one.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 6: M4 -->
+<div class="tab-content" data-tab-content="m4">
+  <h2 class="section">🎨 Move 4：Create Cheaper（2 systems）</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>System</th><th>关键工具</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>⑩</td>
+        <td><b>1 asset → 10</b></td>
+        <td><b>Gemini Omni</b> + <b>Flow</b>（edit video by conversation）</td>
+      </tr>
+      <tr>
+        <td>⑪</td>
+        <td><b>Brand image engine</b></td>
+        <td><b>Google Picks</b>（Nano Banana image model）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>核心 1→10 game</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"<b>You record one solid product demo and turn it into a launch ad, five shorts, a tutorial, an investor clip, and a week of social posts. One shoot, 10 pieces of content, at least.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>You can multiply the asset and not remake it.</b>"</p>
+  </div>
+
+  <h3>Brand Image Engine 控制力</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p>可以 edit one specific object, swap text, translate, keep brand consistent</p>
+    <p style="margin-top: 0.4rem; color: var(--green);">= <b>AI images as actual marketing function</b>（vs fun toy）</p>
+  </div>
+</div>
+
+<!-- TAB 7: M5 -->
+<div class="tab-content" data-tab-content="m5">
+  <h2 class="section">⭐ Move 5：Build Above the Line（1 system ⭐⭐⭐）</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>System</th><th>关键工具</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>⑫</td>
+        <td><b>On-device vertical play</b></td>
+        <td><b>Light RTLM</b>（on-device AI · no data leaves device）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Light RTLM 关键</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>It lets a capable AI model run directly on a phone or a laptop with no data ever leaving the device.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>You can build an AI product for the places that the cloud isn't welcome, like health care, like legal, finance, anything regulated, anything with sensitive data. The data stays on the device.</b>"</p>
+    <p style="margin-top: 0.5rem; color: var(--green);">"<b>That is a real structural advantage and Google handing out the free version of everything else does not erase it. It sharpens it.</b>"</p>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <h4>Patrick 启示</h4>
+    <p><b>IndyDevDan 本地 LLM 哲学 = Light RTLM 完全一致</b> = 完美对齐</p>
+  </div>
+
+  <h3>↑ Above the Line 5 元素（系统 12 配套）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>Deep knowledge of one specific industry</li>
+    <li>Your own proprietary data and context</li>
+    <li>Trust where being wrong is expensive</li>
+    <li>Distribution that you own</li>
+    <li>A point of view that a model can't average its way into</li>
+  </ol>
+</div>
+
+<!-- TAB 8: MONEY -->
+<div class="tab-content" data-tab-content="money">
+  <h2 class="section">💵 Money Path 2 大方向</h2>
+
+  <h3>Path 1：Your Own Business</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Pre-launch</h4>
+      <p>Build faster</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Have product no pipeline</h4>
+      <p>Sell smarter</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Drowning</h4>
+      <p>Operate leaner</p>
+    </div>
+  </div>
+
+  <h3>Path 2：Sell the Setup（被多数人 sleep on）</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>There are millions of small businesses that will never watch a Google I/O recap. And they don't know AI studio exists. They will happily pay someone to set up a market monitor, build the internal dashboard, wire up the AI chief of staff.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>That someone could be you. You're not selling AI though. You're selling the result. Their week back, their pipeline visible, their admin gone.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 9: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Bryant Chou "Top 1% + High-Agency"</h4>
+      <p>Bryant 5 大 Top 1% 元素 = Above the line 5 元素</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：deep/proprietary/trust/POV/distribution</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "10 年 2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency" = Above the line</p>
+      <p>Fei-Fei "okay 98%" = Below the line</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>反"中庸 98%"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "OpenMDW 3 层级"</h4>
+      <p>Matt W "Open Science = full proprietary" = Above</p>
+      <p>Matt W "Open Weights = restrictive" = Below</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>用 free 燃料 build proprietary</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Moon "Anthropic F*cked"</h4>
+      <p>Moon "Mythos hide behavior" = Below 黑盒风险</p>
+      <p>AI Founders "Google 1-line agent" = Below commoditize 极致</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同方向反 hype</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Berman 7 Loops</h4>
+      <p>Matt B 7 Loops = System 1-11 全部 below the line</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>use 12 systems as fuel</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Senior 10x"</h4>
+      <p>Matt P "Senior 10x" = Above the line 哲学</p>
+      <p>Matt P "architecture > model" = Light RTLM 实证</p>
+      <p>Matt P "delete everything" = Below = free fuel</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>experience + architecture</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = agent 编排受人类控制</p>
+      <p>AI Founders "owned distribution" = OpenSquilla</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>Above 实施</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent</h4>
+      <p>Pi = "4 tools + 1k prompt" = Above the line 工具</p>
+      <p>Pi = procedures = 用户掌控 = Above</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid T0/T1 = Below the line 工具</p>
+      <p>Hybrid T3 = Above the line 加成</p>
+      <p>Light RTLM = T0 极致化</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>IndyDevDan = 本地 LLM = 完全掌控</p>
+      <p>Light RTLM = on-device AI · no data leaves device</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>on-device</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm = 多 agent 协作</p>
+      <p>Antigravity 2.0 = parallel agents</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>multi-agent</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work" = Google commoditize 实证</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>主张 scale</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "AI 品牌糟糕"</h4>
+      <p>Nate "互相 verify" = Above "trust expensive"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>verify + trust</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 v1.3.0 Video Notes Dashboard ⭐</h4>
+      <p>v1.3.0 = "用户掌控 + 极简 + 自己扩展" = Above the line 5 元素</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>Above the line 工程</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw + Hermes Agent</h4>
+      <p>OpenClaw = "agent for every workflow" = Below commodity</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>反 bloat 启动</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⚠️ WebMCP 缺口</h4>
+      <p>v1.3.0 dashboard 缺口：<b>未加 WebMCP</b> = Below the line 风险</p>
+      <p style="margin-top: 0.4rem; color: var(--red);">→ <b>v1.3.0 + WebMCP = agent-readable dashboard = Above</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>⭐ Light RTLM 启示</h4>
+      <p>Light RTLM = on-device AI = v1.3.0 local-first = <b>完全同源</b></p>
+      <p style="margin-top: 0.4rem;">→ v1.3.0 <b>+ Light RTLM</b> = local agent-readable dashboard</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（1 周）— 跑 Line Test</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>跑 <b>Above the line test</b>："If Google shipped a free version tomorrow, would I still have customers?"</li>
+    <li>if <b>Below</b> → Wake-up call（rebuild above）</li>
+    <li>if <b>Above</b> → 立即装 11 systems as fuel</li>
+  </ol>
+
+  <h3>中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>用 12 systems 之一加速（"where bleeding most time"）</li>
+    <li><b>v1.3.0 + WebMCP</b> = agent-readable dashboard</li>
+    <li>测 OpenClaw + Hermes agent（Below the line 工具集）</li>
+    <li>build 5 大 Above the line 元素：
+      <ul>
+        <li><b>Deep industry</b>（hybrid routing / K1 / OpenSquilla / Pi）</li>
+        <li><b>Proprietary context</b>（Patrick's own Obsidian vault）</li>
+        <li><b>Trust</b>（OpenSwarm + verify + 公开 discourse）</li>
+        <li><b>Distribution</b>（自建 community）</li>
+        <li><b>POV</b>（"AI white pill" 实证 + Public discourse 贡献）</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build "Above the line" business</b>：不追 Below = free · build 5 大元素 = 不可 commoditize</li>
+    <li><b>IndyDevDan 本地 LLM + Light RTLM</b> = 极致 on-device Above</li>
+    <li><b>Public discourse 贡献</b>（"Above the line" 实证）</li>
+    <li><b>v1.3.0 笔记 = Above the line 工程</b></li>
+  </ol>
+</div>
+
+<!-- TAB 11: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">核心</div>
+      <div class="text">Google did not launch a product or a few. They drew a line.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Below the Line</div>
+      <div class="text">A line straight through the middle of the AI industry. And everything on one side of the line, generic AI agents, thin wrappers, simple app builders, basic Google basically just made them free. Built in, gone as a business.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">100 ways</div>
+      <div class="text">IO 2026 was not 100 product launches. It was one strategic move announced 100 ways.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Distribution</div>
+      <div class="text">Google AI mode in search has now over a billion users a month, a billion. That is the single biggest distribution pipe on the internet at the moment.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Fuel</div>
+      <div class="text">Everything below the line just became free leverage, free fuel.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Order Matters</div>
+      <div class="text">Use the commodity, build the unique competitive angle, and the order matters.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Prototype</div>
+      <div class="text">A prototype is not a company. This collapses the cost of testing an idea. It does not collapse the cost of being right about which idea.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Average</div>
+      <div class="text">Models are trained on average and the average is exactly what you're refusing to be.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Test</div>
+      <div class="text">If Google shipped a free, decent version of what I sell tomorrow, would I still have customers?</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">WebMCP 时代</div>
+      <div class="text">For 15 years, we optimized websites for Google Scroller. This is that again, but for agents.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Invisible</div>
+      <div class="text">A beautiful website an agent can't use is essentially invisible.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Multiply</div>
+      <div class="text">You can multiply the asset and not remake it.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Light RTLM</div>
+      <div class="text">It lets a capable AI model run directly on a phone or a laptop with no data ever leaving the device.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Structural</div>
+      <div class="text">That is a real structural advantage and Google handing out the free version of everything else does not erase it. It sharpens it.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Sell Result</div>
+      <div class="text">That someone could be you. You're not selling AI though. You're selling the result. Their week back, their pipeline visible, their admin gone.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Every Year</div>
+      <div class="text">The line is not really about Google at the end of the day. Every model company will do this. Commoditize the layer below them every single year.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Direction</div>
+      <div class="text">Above the line isn't a place you arrive to. It's a direction that you need to keep walking on, or towards, better said.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">唯一不变</div>
+      <div class="text">The systems will keep changing. It's a given fact. The question, "What can't be commoditized about my business?" does not.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 12: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 关键时间戳（62 段精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 <b>"Lost their business this week"</b>（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:20</div>
+      <div class="what">⚖️ <b>"Google did not launch a product. They drew a line."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:33</div>
+      <div class="what">Below = "built in, gone as a business"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:50</div>
+      <div class="what">"12 systems" 预告</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">"100 product launches = 1 strategic move announced 100 ways"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:45</div>
+      <div class="what">Gemini 3.5 Flash inside Search/Chrome/Workspace/Android</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:55</div>
+      <div class="what">"Single line of code spins up full AI agent"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:05</div>
+      <div class="what">📊 <b>"AI mode in search = 1 billion users/month"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:25</div>
+      <div class="what">"The floor of the AI industry basically dropped"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:40</div>
+      <div class="what">5 moves 框架（build/sell/operate/create/above）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:45</div>
+      <div class="what">Below the line 5 类别</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:55</div>
+      <div class="what">Above the line 5 元素</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:10</div>
+      <div class="what">"Models trained on average · the average is exactly what you're refusing to be"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:13</div>
+      <div class="what">"Use commodity, build unique, and order matters"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:27</div>
+      <div class="what">🚀 ① Prompt to product</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:48</div>
+      <div class="what">"A prototype is not a company"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:10</div>
+      <div class="what">② Antigravity 2.0 parallel agents</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:30</div>
+      <div class="what">反 jargon warning（推荐 Coursera 5h）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:32</div>
+      <div class="what">③ Software from Spreadsheets</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:30</div>
+      <div class="what">💰 ④ Search information agents</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:15</div>
+      <div class="what">⑤ Search builds interface on spot</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:00</div>
+      <div class="what">⭐ <b>⑥ WebMCP</b>（agent-readable website）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:42</div>
+      <div class="what">"For 15 years optimized for Google Scroller. This is that again but for agents"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:03</div>
+      <div class="what">⚙️ ⑦ Gemini Spark = Chief of Staff</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:35</div>
+      <div class="what">⑧ Daily Brief + Gmail Live</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:11</div>
+      <div class="what">⑨ Docs Live + Talk to Keep</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:08</div>
+      <div class="what">🎨 ⑩ Gemini Omni + Flow（1 asset → 10）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:30</div>
+      <div class="what">"You can multiply the asset and not remake it"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:48</div>
+      <div class="what">⑪ Google Picks（Nano Banana）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:30</div>
+      <div class="what">⚠️ "Faster, smarter, leaner, cheaper = competitor can copy by end of week"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:45</div>
+      <div class="what">⭐⭐⭐ ⑫ Light RTLM（on-device vertical play）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:15</div>
+      <div class="what">"Cloud isn't welcome in healthcare/legal/finance"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:25</div>
+      <div class="what">"The data stays on the device"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:45</div>
+      <div class="what">关键测试："If Google shipped free, would I still have customers?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:25</div>
+      <div class="what">💵 Path 1 + Path 2</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:45</div>
+      <div class="what">"Sell the result, not the AI"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:41</div>
+      <div class="what">🎯 <b>"The line is not about Google. Every model company will do this."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:45</div>
+      <div class="what">"Commodify the layer below them every single year"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:53</div>
+      <div class="what">🎯 <b>"Above the line isn't a place you arrive. It's a direction."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:13</div>
+      <div class="what">"The systems will keep changing. The question does not."</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/google-io-2026-the-line/</code></p>
+  <p>Desktop: <code>~/Desktop/google-io-2026-the-line-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=S7Yc3BnQrkU">https://www.youtube.com/watch?v=S7Yc3BnQrkU</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>

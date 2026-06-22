@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OpenClaw On Steroids: Multi-Agent Latent State Transfer — Two Minute Papers</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(167,139,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.yellow .value { color: var(--yellow); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>OpenClaw On Steroids</h1>
+<p class="subtitle">Multi-Agent Latent State Transfer — Two Minute Papers</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=dUmT0OIGoqE" target="_blank">This is OpenClaw On Steroids</a></span>
+  <span><strong>频道：</strong>Two Minute Papers</span>
+  <span><strong>主持：</strong>Dr. Károly Zsolnai Fehér</span>
+  <span><strong>时长：</strong>6:58（418s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-22</span>
+</div>
+
+<div class="hero">
+  <h2>🔥 核心论点</h2>
+  <p><b>"Forget English. Forget letters entirely. Let's link up their brains."</b></p>
+  <p style="margin-top: 0.6rem;"><b>Multi-agent 不用 plain English 交流</b> = 直接传 <b>raw undecoded numbers</b>（cross-agent latent state transfer）</p>
+  <p style="margin-top: 0.4rem;"><b>"This is the part where I fell off the chair."</b></p>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">Math Benchmark</div>
+    <div class="value">73% → 86%</div>
+    <div class="sub">同一 compute（+13%）</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Token Usage</div>
+    <div class="value">↓ 75%</div>
+    <div class="sub">"evaporated into latent space"</div>
+  </div>
+  <div class="stat">
+    <div class="label">Model Size</div>
+    <div class="value">sub-10B</div>
+    <div class="sub">free · vs expensive frontier</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">Training Cost</div>
+    <div class="value">$4</div>
+    <div class="sub">"punch a hole in space-time"</div>
+  </div>
+  <div class="stat">
+    <div class="label">Optimal Latent</div>
+    <div class="value">80 steps</div>
+    <div class="sub">per round limit</div>
+  </div>
+  <div class="stat green">
+    <div class="label">Architecture Wins</div>
+    <div class="value">over teacher</div>
+    <div class="sub">controlled comparison 证实</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="problem">❌ Multi-Agent 痛点</button>
+  <button class="tab" data-tab="innovation">🧠 核心创新</button>
+  <button class="tab" data-tab="results">📊 4 大结果</button>
+  <button class="tab" data-tab="controlled">🔬 Architecture > Teacher</button>
+  <button class="tab" data-tab="limitations">⚠️ 3 Limitation</button>
+  <button class="tab" data-tab="alphabet">💡 Alphabet 类比</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: PROBLEM -->
+<div class="tab-content active" data-tab-content="problem">
+  <h2 class="section">❌ Multi-Agent 痛点（现状）</h2>
+
+  <h3>"2 agents organizing a holiday" 反例</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>✈️ Flight Agent</h4>
+      <p>Hallucinates a cheaper airport <b>400 miles away</b> from real destination</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>🏨 Hotel Agent</h4>
+      <p>"Let's book something <b>super cheap nearby</b>"（<b>non-refundable</b>）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🎉 Result</h4>
+      <p>"<b>Non-refundable room you will never see.</b>"</p>
+    </div>
+  </div>
+
+  <h3>根因</h3>
+  <blockquote>
+    "<b>Agent coordination is super difficult.</b>"
+  </blockquote>
+
+  <h3>传统 Multi-Agent 流程</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>Agent 1: work → pack up → <b>write full sentences</b> → <b>decode tokens one by one</b></li>
+    <li>Agent 2: <b>read entire output</b> → <b>re-encode whole thing</b></li>
+    <li>Agent 3: same again</li>
+  </ol>
+
+  <div class="card" style="border-left: 3px solid var(--red); margin-top: 1rem;">
+    <p>= <b>waste · expensive · error-prone</b></p>
+  </div>
+</div>
+
+<!-- TAB 2: INNOVATION -->
+<div class="tab-content" data-tab-content="innovation">
+  <h2 class="section">🧠 核心创新：Cross-Agent Latent State Transfer</h2>
+
+  <h3>类比：Alphabet vs Brain Signals</h3>
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>📝 Alphabet（English）</h4>
+      <ul>
+        <li>Optimized for <b>writing</b></li>
+        <li>Full sentences</li>
+        <li>Decode token by token</li>
+        <li>= 浪费</li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>🧠 Brain Signals</h4>
+      <ul>
+        <li>Optimized for <b>thinking</b></li>
+        <li>Raw undecoded numbers</li>
+        <li>Direct transfer</li>
+        <li>= 节省 75%</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    "<b>The alphabet is optimized for writing. Why not use one that is optimized for thinking?</b>"
+  </blockquote>
+
+  <h3>机制</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>3 Agents</h4>
+      <p>Work together round 1 / 2 / 3</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>不通过 Text</h4>
+      <p>不写 English/words</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>直接传 Latent</h4>
+      <p>Raw undecoded numbers</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>75% Token Saving</h4>
+      <p>"evaporated into latent space"</p>
+    </div>
+  </div>
+
+  <h3>核心金句</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.1rem;">"<b>Forget English. Forget letters entirely. Let's link up their brains.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 3: RESULTS -->
+<div class="tab-content" data-tab-content="results">
+  <h2 class="section">📊 4 大实验结果</h2>
+
+  <h3>① Math Benchmark</h3>
+  <table>
+    <tbody>
+      <tr><td><b>数学题</b></td><td>Competition-level</td></tr>
+      <tr><td><b>Before</b></td><td><b>73%</b></td></tr>
+      <tr><td><b>After</b></td><td><b>86%</b></td></tr>
+      <tr><td><b>Improve</b></td><td><b>+13%</b></td></tr>
+      <tr><td><b>Compute</b></td><td>相同</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"<b>We are talking free sub-10 billion parameter models, not expensive frontier systems.</b>"</p>
+  </div>
+
+  <h3>② Token Usage</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p style="font-size: 1.1rem;">"<b>Token usage down 75%.</b>"</p>
+    <p style="margin-top: 0.4rem;">"<b>Evaporated into the latent space.</b>"</p>
+  </div>
+
+  <h3>③ Training Cost</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p style="font-size: 1.1rem;">"<b>Four bucks. Basically, you spend your coffee money on these agents and in return they punch a hole in space-time.</b>"</p>
+  </div>
+
+  <h3>④ Scaling Law</h3>
+  <blockquote>
+    "<b>More rounds, better results.</b>"
+  </blockquote>
+  <p style="color: var(--text-dim); margin-top: 0.4rem;">= <b>new scaling law</b></p>
+</div>
+
+<!-- TAB 4: CONTROLLED -->
+<div class="tab-content" data-tab-content="controlled">
+  <h2 class="section">🔬 Architecture > Teacher（关键实验设计）</h2>
+
+  <h3>关键 Confound</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>The training for each agent's role is written by a giant AI model.</b> So, if they perform well, you have to ask, are things better because of the brain linking or is it good distillation from an excellent teacher?"</p>
+  </div>
+
+  <h3>关键问题</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"<b>A good teacher or a good architecture?</b>"</p>
+  </div>
+
+  <h3>解药：Controlled Comparison</h3>
+  <table>
+    <thead>
+      <tr><th>架构</th><th>老师</th><th>结果</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>新架构</b>（cross-agent latent state transfer）</td>
+        <td>同一 giant model</td>
+        <td><span class="badge green">Outperforms</span></td>
+      </tr>
+      <tr>
+        <td><b>其他架构</b>（text-based baseline）</td>
+        <td>同一 giant model</td>
+        <td>Baseline</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <p style="font-size: 1.1rem;">"<b>Yes, the brain linking really works.</b>"</p>
+    <p style="margin-top: 0.4rem;">= <b>架构 > 老师</b>（Matt Pocock 哲学实证）</p>
+  </div>
+</div>
+
+<!-- TAB 5: LIMITATIONS -->
+<div class="tab-content" data-tab-content="limitations">
+  <h2 class="section">⚠️ 3 Limitation</h2>
+
+  <h3>① Smaller Models</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>Tests were on smaller models. We don't yet know how these insights scale up to bigger ones.</b>"</p>
+    <p style="margin-top: 0.4rem;">If not scale up → <b>"This puts small models on steroids"</b>（still good）</p>
+    <p>If scale up → <b>potential huge game-changer</b></p>
+  </div>
+
+  <h3>② Optimal Latent Length</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p><b>80 steps per round</b> 是 optimal</p>
+    <p style="margin-top: 0.4rem;">"Somewhat of a limit on how much thinking an agent can do per round"</p>
+    <p style="margin-top: 0.4rem;">"After 80, you don't get a lot of value anyway"</p>
+  </div>
+
+  <h3>③ Early Research</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <ul>
+      <li><b>"Code and models are available for free"</b></li>
+      <li><b>"This is still very rough, very early, but it shows potential"</b></li>
+      <li><b>"This is still research"</b></li>
+      <li><b>"Please do not think you just plug this in and everything will fly immediately"</b></li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 6: ALPHABET -->
+<div class="tab-content" data-tab-content="alphabet">
+  <h2 class="section">💡 Alphabet 类比（Károly 的洞见）</h2>
+
+  <h3>核心问题</h3>
+  <blockquote>
+    "The alphabet is <b>optimized for writing</b>. Why not use one that is <b>optimized for thinking</b>?"
+  </blockquote>
+
+  <h3>类比：Neural Interface for Brain-to-Text</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Brain → Alphabet → Text</h4>
+      <p>人类思考 → 字母 → 文字（current system）</p>
+      <p style="margin-top: 0.4rem;">浪费（writing ≠ thinking）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>Brain → Brain Signals</h4>
+      <p>agent 思考 → raw brain signals → next agent</p>
+      <p style="margin-top: 0.4rem;">直接（thinking ↔ thinking）</p>
+    </div>
+  </div>
+
+  <h3>本论文</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p>Agents 之间的 communication = <b>类比 brain-to-brain transfer</b></p>
+    <p style="margin-top: 0.4rem;">不通过 <b>text encoding/decoding</b>（= alphabet）</p>
+    <p style="margin-top: 0.4rem;">直接 <b>raw latent state</b>（= brain signals）</p>
+  </div>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = 上层编排（人类控制）</p>
+      <p>本论文 = 下层 agent-to-agent 沟通（latent）</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>两层 = 完整 multi-agent system</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm 痛点 = "agent coordination difficult"</p>
+      <p>本论文 = <b>cross-agent latent state transfer = OpenSwarm 方案</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent</h4>
+      <p>Pi = "4 tools + 1k prompt" = 极简 harness</p>
+      <p>本论文 = "sub-10B + latent transfer" = <b>极简单模型</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同反对 bloated</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid 主张 T0/T1 用小模型</p>
+      <p>本论文 = <b>实证 T0/T1 也能做到 frontier level</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>反对 "all-T3"</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Berman 7 Loops</h4>
+      <p>Matt B 7 loops = 单 agent 长时间</p>
+      <p>本论文 = multi-agent latent 沟通</p>
+      <p style="margin-top: 0.4rem;">→ <b>7 loops × multi-agent = multi-loop system</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant Chou "Clone Yourself"</h4>
+      <p>Bryant 理论 = 500 clones</p>
+      <p>本论文 = sub-10B 多个 agent 协作 = <b>500 clones 现实化</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Architecture > Teacher"</h4>
+      <p>Matt P "50/50 harness + model"</p>
+      <p>本论文 = <b>实证 architecture > teacher</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Open Source"</h4>
+      <p>Matt W "Open model + Open source"</p>
+      <p>本论文 = "Code and models are available for free"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源 open source</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "Top 1%"</h4>
+      <p>Fei-Fei "Top 1% 不可替代"</p>
+      <p>本论文 = "sub-10B strike distance of bigger" = <b>Top 1% 通过架构可达</b></p>
+      <p style="margin-top: 0.4rem;">→ <b>同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Moon "Anthropic F*cked" 安全</h4>
+      <p>Moon "Mythos hide behavior"</p>
+      <p>本论文 = "cross-agent latent 沟通" = <b>黑盒 agent-to-agent 不可观察</b></p>
+      <p style="margin-top: 0.4rem; color: var(--red);">→ <b>需加 safety guard</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = 用户掌控 + 极简 + 自己扩展</p>
+      <p>本论文 = "sub-10B + latent transfer" = <b>极简 + 用户掌控</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Systems Thinking = "Complex system · cause-effect"</p>
+      <p>本论文 = "More rounds, better results" = <b>iterative system</b></p>
+      <p style="margin-top: 0.4rem;">→ <b>同反"一次完成"</b></p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3>立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>读论文 + 跑 open source code（<b>Code and models are available for free</b>）</li>
+    <li>测 1 个 multi-agent sub-10B setup（3 agents × latent transfer）</li>
+    <li>用 Hybrid-llm-router T0/T1 跑 sub-10B agents</li>
+    <li>设计 80-step optimal latent length</li>
+  </ol>
+
+  <h3>中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>build <b>OpenSwarm with latent transfer</b>（OpenSwarm 默认架构）</li>
+    <li>build <b>7 loops × multi-agent</b>（Matt B loops + 本论文 architecture）</li>
+    <li>Hybrid-llm-router + 80-step design（optimal config）</li>
+    <li>safety guard for multi-agent（Matt W + Moon 哲学）</li>
+  </ol>
+
+  <h3>长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>"500 clones of myself" = 本论文 multi-agent（Bryant 哲学 + 本论文架构）</li>
+    <li>OpenSquilla MetaSkill = 多 agent orchestration（含 latent transfer）</li>
+    <li>本地 sub-10B multi-agent = IndyDevDan 路径（完全 open + 极简）</li>
+    <li>contribute to open source（改进 latent transfer algorithm）</li>
+  </ol>
+</div>
+
+<!-- TAB 9: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Core Insight</div>
+      <div class="text">Forget English. Forget letters entirely. Let's link up their brains.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Cross-Agent</div>
+      <div class="text">Pass raw undecoded numbers directly to the next agent. Send raw brain signals.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Latent State</div>
+      <div class="text">Cross-agent latent state transfer.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Coordination 痛点</div>
+      <div class="text">Agent coordination is super difficult.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Holiday 反例</div>
+      <div class="text">The flight agent hallucinates a cheaper airport 400 miles away from your real destination.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Alphabet 洞见</div>
+      <div class="text">The alphabet is optimized for writing. Why not use one that is optimized for thinking?</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Fell Off Chair</div>
+      <div class="text">This is the part where I fell off the chair.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Sub-10B</div>
+      <div class="text">We are talking free sub-10 billion parameter models, not expensive frontier systems.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">75% Saving</div>
+      <div class="text">Token usage down 75%. They all evaporated into the latent space.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">$4 Magic</div>
+      <div class="text">I bet it costs a fortune to train, right? Four bucks. Basically, you spend your coffee money on these agents and in return they punch a hole in space-time.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Scaling Law</div>
+      <div class="text">More rounds, better results. This might give us a new scaling law.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Confound</div>
+      <div class="text">The training for each agent's role is written by a giant AI model. So, are things better because of the brain linking or is it good distillation from an excellent teacher?</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">关键问题</div>
+      <div class="text">A good teacher or a good architecture?</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Architecture Wins</div>
+      <div class="text">The new one still outperforms. Yes, the brain linking really works.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Small on Steroids</div>
+      <div class="text">If they don't scale up, this puts small models on steroids.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">80 Step Limit</div>
+      <div class="text">There is an optimal latent thought length, and that is about 80 steps.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Open Source</div>
+      <div class="text">Code and models are available for free.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Research</div>
+      <div class="text">This is still very rough, very early, but it shows potential. Please do not think you just plug this in and everything will fly immediately.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 关键时间戳（27 段精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 AI agents increasing at insane rate（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:35</div>
+      <div class="what">痛点：2 agents holiday 反例（400 miles 机场）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:09</div>
+      <div class="what">"Agent coordination is super difficult"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:21</div>
+      <div class="what">传统 math problem 流程（3 agents：plan / critique / solve）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:28</div>
+      <div class="what">"I see nothing interesting here"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:40</div>
+      <div class="what">Neural interface for brain-to-text</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:45</div>
+      <div class="what">"Alphabet optimized for writing"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:00</div>
+      <div class="what">"Why not use one that is optimized for thinking?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:13</div>
+      <div class="what">"Why are we doing that? Who said they should talk in plain English?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:43</div>
+      <div class="what">🎯 <b>"Forget English. Forget letters entirely. Let's link up their brains."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:56</div>
+      <div class="what">🧠 <b>Cross-agent latent state transfer</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:56</div>
+      <div class="what">Raw undecoded numbers = raw brain signals</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:38</div>
+      <div class="what">📊 <b>73% → 86% math benchmark</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:53</div>
+      <div class="what">📊 <b>Token usage ↓ 75%</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:10</div>
+      <div class="what">📊 <b>"I bet it costs a fortune to train, right? Four bucks."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:25</div>
+      <div class="what">📊 <b>"More rounds, better results"</b> = new scaling law</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:45</div>
+      <div class="what">⚠️ Confound check："teacher vs architecture"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:22</div>
+      <div class="what">"A good teacher or a good architecture?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:30</div>
+      <div class="what">🔬 <b>Controlled comparison：same teacher</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:40</div>
+      <div class="what">"<b>The new one still outperforms</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:42</div>
+      <div class="what">✅ <b>"Yes, the brain linking really works."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:45</div>
+      <div class="what">⚠️ <b>Limitation 1：smaller models · scale up TBD</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:58</div>
+      <div class="what">⚠️ <b>Limitation 2：80 steps optimal latent length</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:25</div>
+      <div class="what">⚠️ Limitation 3：still research</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:40</div>
+      <div class="what">"<b>Code and models are available for free</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:50</div>
+      <div class="what">Weave sponsor（30s）</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/openclaw-on-steroids-multi-agent-latent/</code></p>
+  <p>Desktop: <code>~/Desktop/openclaw-on-steroids-multi-agent-latent-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=dUmT0OIGoqE">https://www.youtube.com/watch?v=dUmT0OIGoqE</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>
