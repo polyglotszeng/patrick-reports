@@ -1,0 +1,24 @@
+# Cloudflare Pages _redirects for /worldmonitor/ subpath
+# worldmonitor-cn vite plugin renames index.html → dashboard.html
+# (PITFALL #25 — single-file + directory coexistence). We expose both
+# entries: index.html as the canonical landing page, dashboard.html as
+# the alternative URL the vercel-edge-style rewrites expect.
+
+# Entry fallback: /worldmonitor/ → /worldmonitor/index.html
+/worldmonitor/         /worldmonitor/index.html       200
+/worldmonitor          /worldmonitor/index.html       200
+
+# Asset paths (built HTML uses root-relative /worldmonitor/assets/...,
+# but if a stale/older build ever lands without the prefix, this catches it)
+/assets/*              /assets/:splat                 200
+/worldmonitor/assets/* /assets/:splat                 200
+
+# Known static pages
+/worldmonitor/embed        /worldmonitor/embed.html      200
+/worldmonitor/embed.html   /worldmonitor/embed.html      200
+/worldmonitor/live-channels /worldmonitor/live-channels.html 200
+/worldmonitor/settings      /worldmonitor/settings.html   200
+/worldmonitor/mcp-grant     /worldmonitor/mcp-grant.html  200
+
+# Known data paths (Vite bundles /data/* in dist root; allow both)
+/worldmonitor/data/*  /data/:splat  200
