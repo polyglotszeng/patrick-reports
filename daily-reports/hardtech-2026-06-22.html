@@ -128,9 +128,91 @@ h1 {
   color: var(--muted);
   text-align: center;
 }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 今日 Top 20</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">⚛️ 可控核聚变 (8 条)</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🔮 量子计算 (8 条)</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">📄 arXiv 全部 (20 篇)</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">💬 Hacker News (15 条)</a></li>
+  </ol>
+</aside>
+
 <div class="wrap">
   <h1>⚛️ 硬科技热门追踪</h1>
   <div class="sub">
@@ -147,7 +229,7 @@ h1 {
     <div class="stat"><b>0</b>航天</div>
   </div>
 
-  <h2 class="section-h2">🔥 今日 Top 20</h2>
+  <h2 id="h2-1" class="section-h2">🔥 今日 Top 20</h2>
   <div class="item">
   <div class="rank">#01</div>
   <div class="content">
@@ -449,7 +531,7 @@ h1 {
   </div>
 </div>
 
-  <section class="topic-section"><h2 class="topic-h2">⚛️ 可控核聚变 (8 条)</h2>
+  <section class="topic-section"><h2 id="h2-2" class="topic-h2">⚛️ 可控核聚变 (8 条)</h2>
 <div class="item">
   <div class="rank">#01</div>
   <div class="content">
@@ -570,7 +652,7 @@ h1 {
     <div class="meta">📅 2026-06-17 · 🆔 2606.18845v1</div>
   </div>
 </div></section>
-<section class="topic-section"><h2 class="topic-h2">🔮 量子计算 (8 条)</h2>
+<section class="topic-section"><h2 id="h2-3" class="topic-h2">🔮 量子计算 (8 条)</h2>
 <div class="item">
   <div class="rank">#01</div>
   <div class="content">
@@ -693,7 +775,7 @@ h1 {
 </div></section>
 
 
-  <h2 class="section-h2">📄 arXiv 全部 (20 篇)</h2>
+  <h2 id="h2-4" class="section-h2">📄 arXiv 全部 (20 篇)</h2>
   <div class="item">
   <div class="rank">#01</div>
   <div class="content">
@@ -995,7 +1077,7 @@ h1 {
   </div>
 </div>
 
-  <h2 class="section-h2">💬 Hacker News (15 条)</h2>
+  <h2 id="h2-5" class="section-h2">💬 Hacker News (15 条)</h2>
   <div class="item">
   <div class="rank">#01</div>
   <div class="content">
@@ -1226,5 +1308,50 @@ h1 {
     Hermes cron · hardtech-daily.sh · 数据源 arXiv + HN · 姊妹任务 ai-trending-daily
   </div>
 </div>
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

@@ -169,9 +169,116 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🏗️ Google IO 2026 4 大战略</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Distribution Pipe（关键数据）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">⚖️ The Line（核心框架）</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Below the Line（Commodity — 5 类）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Above the Line（5 大不可替代元素）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 关键测试</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🚀 Move 1：Build Faster（3 systems）</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 核心警告</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 反 jargon warning</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">💰 Move 2：Sell Smarter（3 systems）</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ WebMCP 关键 ⭐</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">⚙️ Move 3：Operate Leaner（3 systems）</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Gemini Spark 核心</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🎨 Move 4：Create Cheaper（2 systems）</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 核心 1→10 game</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Brand Image Engine 控制力</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⭐ Move 5：Build Above the Line（1 system ⭐⭐⭐）</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Light RTLM 关键</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ ↑ Above the Line 5 元素（系统 12 配套）</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💵 Money Path 2 大方向</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Path 1：Your Own Business</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Path 2：Sell the Setup（被多数人 sleep on）</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 立即可做（1 周）— 跑 Line Test</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 长期</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">💬 关键金句库</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">⏱️ 关键时间戳（62 段精选）</a></li>
+  </ol>
+</aside>
+
 
 <h1>Google IO 2026: The Line</h1>
 <p class="subtitle">AI Founders — "Google Just Made One Kind of AI Startup Worthless"</p>
@@ -185,7 +292,7 @@
 </div>
 
 <div class="hero">
-  <h2>🔥 核心论点</h2>
+  <h2 id="h2-1">🔥 核心论点</h2>
   <p><b>"Google did not launch a product or a few. They drew a line."</b></p>
   <p style="margin-top: 0.6rem;"><b>The Line 切两半</b>：</p>
   <ul style="color: var(--text); margin: 0.6rem 0 0;">
@@ -245,7 +352,7 @@
 
 <!-- TAB 1: STRATEGY -->
 <div class="tab-content active" data-tab-content="strategy">
-  <h2 class="section">🏗️ Google IO 2026 4 大战略</h2>
+  <h2 id="h2-2" class="section">🏗️ Google IO 2026 4 大战略</h2>
 
   <table>
     <thead>
@@ -275,7 +382,7 @@
     </tbody>
   </table>
 
-  <h3>Distribution Pipe（关键数据）</h3>
+  <h3 id="h3-1">Distribution Pipe（关键数据）</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p style="font-size: 1.1rem;">"<b>Google AI mode in search has now over a billion users a month, a billion.</b>"</p>
     <p style="margin-top: 0.4rem;">"<b>That is the single biggest distribution pipe on the internet at the moment.</b>"</p>
@@ -284,9 +391,9 @@
 
 <!-- TAB 2: LINE -->
 <div class="tab-content" data-tab-content="line">
-  <h2 class="section">⚖️ The Line（核心框架）</h2>
+  <h2 id="h2-3" class="section">⚖️ The Line（核心框架）</h2>
 
-  <h3>Below the Line（Commodity — 5 类）</h3>
+  <h3 id="h3-2">Below the Line（Commodity — 5 类）</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--red);">
       <h4>① Raw model access</h4>
@@ -314,7 +421,7 @@
     <p>"<b>If your business is one of those things, you're now competing with a free feature that has a billion user front door.</b>"</p>
   </div>
 
-  <h3>Above the Line（5 大不可替代元素）</h3>
+  <h3 id="h3-3">Above the Line（5 大不可替代元素）</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>① Deep industry</h4>
@@ -338,7 +445,7 @@
     </div>
   </div>
 
-  <h3>关键测试</h3>
+  <h3 id="h3-4">关键测试</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p style="font-size: 1.1rem;">"<b>If Google shipped a free, decent version of what I sell tomorrow, would I still have customers?</b>"</p>
   </div>
@@ -361,7 +468,7 @@
 
 <!-- TAB 3: M1 -->
 <div class="tab-content" data-tab-content="m1">
-  <h2 class="section">🚀 Move 1：Build Faster（3 systems）</h2>
+  <h2 id="h2-4" class="section">🚀 Move 1：Build Faster（3 systems）</h2>
 
   <table>
     <thead>
@@ -386,12 +493,12 @@
     </tbody>
   </table>
 
-  <h3>核心警告</h3>
+  <h3 id="h3-5">核心警告</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <p>"<b>A prototype is not a company.</b> This collapses the cost of testing an idea. It does not collapse the cost of being right about which idea. That part is still your job."</p>
   </div>
 
-  <h3>反 jargon warning</h3>
+  <h3 id="h3-6">反 jargon warning</h3>
   <div class="card" style="border-left: 3px solid var(--blue);">
     <p>"<b>If words like tools, workflows, reasoning loops sound like jargon to you, that is the exact gap to close before you can brief an agent or implement any of these systems.</b>"</p>
     <p style="margin-top: 0.4rem;">→ 推荐 <b>Google Cloud GenAI Agents on Coursera</b>（5 hours · beginner · $59/月）</p>
@@ -400,7 +507,7 @@
 
 <!-- TAB 4: M2 -->
 <div class="tab-content" data-tab-content="m2">
-  <h2 class="section">💰 Move 2：Sell Smarter（3 systems）</h2>
+  <h2 id="h2-5" class="section">💰 Move 2：Sell Smarter（3 systems）</h2>
 
   <table>
     <thead>
@@ -425,7 +532,7 @@
     </tbody>
   </table>
 
-  <h3>WebMCP 关键 ⭐</h3>
+  <h3 id="h3-7">WebMCP 关键 ⭐</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p>"<b>Soon the thing visiting your website will not be a person anymore. It'll be that person's AI agent sent to book, to buy, to compare, or to get a quote on their behalf.</b>"</p>
     <p style="margin-top: 0.5rem;">"<b>For 15 years, we optimized websites for Google Scroller. This is that again, but for agents.</b>"</p>
@@ -441,7 +548,7 @@
 
 <!-- TAB 5: M3 -->
 <div class="tab-content" data-tab-content="m3">
-  <h2 class="section">⚙️ Move 3：Operate Leaner（3 systems）</h2>
+  <h2 id="h2-6" class="section">⚙️ Move 3：Operate Leaner（3 systems）</h2>
 
   <table>
     <thead>
@@ -466,7 +573,7 @@
     </tbody>
   </table>
 
-  <h3>Gemini Spark 核心</h3>
+  <h3 id="h3-8">Gemini Spark 核心</h3>
   <div class="card" style="border-left: 3px solid var(--blue);">
     <p>"<b>This is not a chatbot that you visit, it's an assistant that works while you do other things, and then checks in with you before anything that matters.</b>"</p>
     <p style="margin-top: 0.4rem;">"<b>For a solo founder, that is the closest thing that you get to an executive assistant and a chief of staff both in one.</b>"</p>
@@ -475,7 +582,7 @@
 
 <!-- TAB 6: M4 -->
 <div class="tab-content" data-tab-content="m4">
-  <h2 class="section">🎨 Move 4：Create Cheaper（2 systems）</h2>
+  <h2 id="h2-7" class="section">🎨 Move 4：Create Cheaper（2 systems）</h2>
 
   <table>
     <thead>
@@ -495,13 +602,13 @@
     </tbody>
   </table>
 
-  <h3>核心 1→10 game</h3>
+  <h3 id="h3-9">核心 1→10 game</h3>
   <div class="card" style="border-left: 3px solid var(--green);">
     <p>"<b>You record one solid product demo and turn it into a launch ad, five shorts, a tutorial, an investor clip, and a week of social posts. One shoot, 10 pieces of content, at least.</b>"</p>
     <p style="margin-top: 0.5rem;">"<b>You can multiply the asset and not remake it.</b>"</p>
   </div>
 
-  <h3>Brand Image Engine 控制力</h3>
+  <h3 id="h3-10">Brand Image Engine 控制力</h3>
   <div class="card" style="border-left: 3px solid var(--purple);">
     <p>可以 edit one specific object, swap text, translate, keep brand consistent</p>
     <p style="margin-top: 0.4rem; color: var(--green);">= <b>AI images as actual marketing function</b>（vs fun toy）</p>
@@ -510,7 +617,7 @@
 
 <!-- TAB 7: M5 -->
 <div class="tab-content" data-tab-content="m5">
-  <h2 class="section">⭐ Move 5：Build Above the Line（1 system ⭐⭐⭐）</h2>
+  <h2 id="h2-8" class="section">⭐ Move 5：Build Above the Line（1 system ⭐⭐⭐）</h2>
 
   <table>
     <thead>
@@ -525,7 +632,7 @@
     </tbody>
   </table>
 
-  <h3>Light RTLM 关键</h3>
+  <h3 id="h3-11">Light RTLM 关键</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p>"<b>It lets a capable AI model run directly on a phone or a laptop with no data ever leaving the device.</b>"</p>
     <p style="margin-top: 0.5rem;">"<b>You can build an AI product for the places that the cloud isn't welcome, like health care, like legal, finance, anything regulated, anything with sensitive data. The data stays on the device.</b>"</p>
@@ -537,7 +644,7 @@
     <p><b>IndyDevDan 本地 LLM 哲学 = Light RTLM 完全一致</b> = 完美对齐</p>
   </div>
 
-  <h3>↑ Above the Line 5 元素（系统 12 配套）</h3>
+  <h3 id="h3-12">↑ Above the Line 5 元素（系统 12 配套）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>Deep knowledge of one specific industry</li>
     <li>Your own proprietary data and context</li>
@@ -549,9 +656,9 @@
 
 <!-- TAB 8: MONEY -->
 <div class="tab-content" data-tab-content="money">
-  <h2 class="section">💵 Money Path 2 大方向</h2>
+  <h2 id="h2-9" class="section">💵 Money Path 2 大方向</h2>
 
-  <h3>Path 1：Your Own Business</h3>
+  <h3 id="h3-13">Path 1：Your Own Business</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--blue);">
       <h4>Pre-launch</h4>
@@ -567,7 +674,7 @@
     </div>
   </div>
 
-  <h3>Path 2：Sell the Setup（被多数人 sleep on）</h3>
+  <h3 id="h3-14">Path 2：Sell the Setup（被多数人 sleep on）</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p>"<b>There are millions of small businesses that will never watch a Google I/O recap. And they don't know AI studio exists. They will happily pay someone to set up a market monitor, build the internal dashboard, wire up the AI chief of staff.</b>"</p>
     <p style="margin-top: 0.5rem;">"<b>That someone could be you. You're not selling AI though. You're selling the result. Their week back, their pipeline visible, their admin gone.</b>"</p>
@@ -576,7 +683,7 @@
 
 <!-- TAB 9: RELATED -->
 <div class="tab-content" data-tab-content="related">
-  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+  <h2 id="h2-10" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
@@ -680,16 +787,16 @@
 
 <!-- TAB 10: ROUTE -->
 <div class="tab-content" data-tab-content="route">
-  <h2 class="section">🗺️ Patrick 实战路线</h2>
+  <h2 id="h2-11" class="section">🗺️ Patrick 实战路线</h2>
 
-  <h3>立即可做（1 周）— 跑 Line Test</h3>
+  <h3 id="h3-15">立即可做（1 周）— 跑 Line Test</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>跑 <b>Above the line test</b>："If Google shipped a free version tomorrow, would I still have customers?"</li>
     <li>if <b>Below</b> → Wake-up call（rebuild above）</li>
     <li>if <b>Above</b> → 立即装 11 systems as fuel</li>
   </ol>
 
-  <h3>中期（1 月）</h3>
+  <h3 id="h3-16">中期（1 月）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>用 12 systems 之一加速（"where bleeding most time"）</li>
     <li><b>v1.3.0 + WebMCP</b> = agent-readable dashboard</li>
@@ -705,7 +812,7 @@
     </li>
   </ol>
 
-  <h3>长期</h3>
+  <h3 id="h3-17">长期</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li><b>build "Above the line" business</b>：不追 Below = free · build 5 大元素 = 不可 commoditize</li>
     <li><b>IndyDevDan 本地 LLM + Light RTLM</b> = 极致 on-device Above</li>
@@ -716,7 +823,7 @@
 
 <!-- TAB 11: QUOTES -->
 <div class="tab-content" data-tab-content="quotes">
-  <h2 class="section">💬 关键金句库</h2>
+  <h2 id="h2-12" class="section">💬 关键金句库</h2>
 
   <div class="quote-grid">
     <div class="quote-card">
@@ -796,7 +903,7 @@
 
 <!-- TAB 12: TIME -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">⏱️ 关键时间戳（62 段精选）</h2>
+  <h2 id="h2-13" class="section">⏱️ 关键时间戳（62 段精选）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -981,5 +1088,50 @@
   });
 </script>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

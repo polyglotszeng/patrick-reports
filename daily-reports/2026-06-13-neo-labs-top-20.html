@@ -1,14 +1,102 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>硅谷Top 20 Neo Labs盘点 | 科研到商业化大幅缩短 | 工程门槛降低 | 资本提前押注 | 普罗米修斯计划 | SSI | Skild AI | TML | Reflection AI</title><style>
 :root{--bg:#0d0d0d;--panel:#161616;--panel2:#1d1d1d;--text:#e8e3dc;--muted:#a79d93;--accent:#ff6b35;--accent2:#f7c59f;--green:#6ee7b7;--blue:#93c5fd;--red:#fb7185}*{box-sizing:border-box}body{background:radial-gradient(circle at top left,#24120c 0,#0d0d0d 32rem);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.68;margin:0}.wrap{max-width:1180px;margin:0 auto;padding:42px 24px 80px}h1{font-size:clamp(2rem,4vw,4.2rem);line-height:1.05;margin:0 0 18px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}h2{color:var(--accent);border-bottom:1px solid #2a2a2a;padding-bottom:.45rem;margin-top:2.2rem}h3{color:var(--accent2)}a{color:var(--accent2)}.meta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 28px}.pill{border:1px solid #3b2a20;background:#17100d;color:#f7c59f;border-radius:999px;padding:7px 12px;font-size:.88rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}.card,.highlight,.quote,.transcript{background:linear-gradient(180deg,#171717,#111);border:1px solid #292929;border-radius:14px;padding:18px}.highlight{border-color:#7a3a20;box-shadow:0 0 0 1px rgba(255,107,53,.13),0 20px 70px rgba(0,0,0,.35)}.takeaways li{padding:.7rem 1rem;margin:.55rem 0;background:#121212;border-left:3px solid var(--accent);border-radius:0 8px 8px 0}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}.stat{background:#151515;border:1px solid #292929;border-radius:14px;padding:16px}.stat b{display:block;font-size:1.55rem;color:#fff}.stat span{color:var(--muted);font-size:.85rem}table{width:100%;border-collapse:collapse;margin:14px 0;background:#101010;border-radius:12px;overflow:hidden}th{background:#1f1f1f;color:#f7c59f;text-align:left}th,td{padding:10px;border:1px solid #262626;vertical-align:top}td:nth-child(3){white-space:nowrap;color:#fff}.company-table{font-size:.9rem}.quote{border-left:4px solid var(--accent);margin:12px 0;color:#f0e7dd}.ts{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#777;margin-right:8px}.transcript{max-height:520px;overflow:auto}.transcript p{margin:.35rem 0;border-bottom:1px solid #191919;padding-bottom:.35rem}.nav{position:sticky;top:0;background:rgba(13,13,13,.86);backdrop-filter:blur(12px);z-index:2;border-bottom:1px solid #222}.nav .inner{max-width:1180px;margin:auto;padding:10px 24px;display:flex;gap:12px;overflow:auto}.nav a{white-space:nowrap;text-decoration:none;color:#ddd;font-size:.88rem}.section-card{background:#121212;border:1px solid #242424;border-radius:14px;padding:16px;margin:12px 0}.footer{color:#7d746c;margin-top:40px;font-size:.85rem}
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style></head><body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">一句话摘要</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Key Takeaways</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">章节摘要</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 00:00-02:27 — Project Prometheus 开场：Neo </a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 02:29-05:16 — 为什么现在爆发</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 05:19-17:26 — Top 20 Neo Labs 盘点</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Top 20 Neo Labs 表</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Key Quotes</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Patrick 可执行启发</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">Discussion Questions</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">Full Transcript</a></li>
+  </ol>
+</aside>
+
 <div class="nav"><div class="inner"><a href="#summary">摘要</a><a href="#takeaways">要点</a><a href="#sections">章节</a><a href="#companies">Top 20</a><a href="#quotes">引用</a><a href="#patrick">Patrick</a><a href="#transcript">Transcript</a></div></div>
 <main class="wrap">
 <h1>硅谷Top 20 Neo Labs盘点 | 科研到商业化大幅缩短 | 工程门槛降低 | 资本提前押注 | 普罗米修斯计划 | SSI | Skild AI | TML | Reflection AI</h1><div class="meta"><span class="pill">频道：Best Partners TV</span><span class="pill">2026-06-13</span><span class="pill">时长：20:45</span><span class="pill">观看：3461</span><span class="pill"><a href="https://www.youtube.com/watch?v=NZFJj90aKpo">YouTube</a></span></div>
 <div class="stats"><div class="stat"><b>20</b><span>Neo Labs</span></div><div class="stat"><b>$100B+</b><span>合计估值（视频口径）</span></div><div class="stat"><b>3</b><span>爆发条件：研究即生产/工具链/资本</span></div><div class="stat"><b>10y</b><span>沉默期/兑现周期风险</span></div></div>
-<section id="summary" class="highlight"><h2>一句话摘要</h2><p>视频把 <b>Neo Labs</b> 定义为 AI 时代的新型研究创业组织：它们用顶级研究人才和巨额资本，把科学路径、工程实现、市场验证压到同一家公司里，试图把研究本身变成生产。</p></section>
-<section id="takeaways"><h2>Key Takeaways</h2><ol class="takeaways"><li>Neo Labs 是介于传统学术实验室与传统创业公司之间的新物种：无成熟产品/营收，但用顶级研究团队 + 巨额资本直接押注科学路径。</li><li>视频给出的三条形成条件：研究产出开始可直接变成生产资料；大模型/低代码降低工程门槛；资本愿意在产品前下注研究方向。</li><li>科研到商业化的链条被压缩：从“论文→工程转译→原型→产品”变成“代码/分子/材料/运营方案本身就是可用生产资料”。</li><li>这批公司估值总和已超过1000亿美元，资本隐含假设是未来十年里至少跑出一个万亿级赢家。</li><li>最高估值项目并不等于最确定：Project Prometheus、SSI 都几乎没有公开产品或技术进展，信息不透明是核心风险。</li><li>顶级 AI 人才的机会成本被巨头薪酬重新定价：Meta/Google 可能给上亿美元现金化包，Neo Labs 只能给“未来可能值钱”的期权。</li><li>机器人基础模型、空间智能、AI 芯片、AI 药物、代码智能体、可验证数学推理，是 Neo Labs 当前最密集的押注方向。</li><li>DeepMind 是历史参照：它也经历近十年沉默期才有 AlphaFold 级成果；但今天竞争烈度远高于 2012 年。</li><li>榜单本身短期意义有限：几年后极可能重排，高估值公司可能消失，真正赢家可能还在无产品的小实验室里。</li><li>对 Patrick 的启发：不要只看“AI 产品公司”，要单独追踪“研究路径 + 资本结构 + 人才密度 + 沉默期承受力”的 Neo Lab 类型资产。</li></ol></section>
-<section id="sections"><h2>章节摘要</h2><div class="section-card"><h3>00:00-02:27 — Project Prometheus 开场：Neo Labs 定义</h3><p>Jeff Bezos 重返创业，Project Prometheus 以超大融资、无公开产品的形态引出 Neo Labs：它们同时承担科学路径、工程系统、市场验证、资本耐心四件难事。</p></div><div class="section-card"><h3>02:29-05:16 — 为什么现在爆发</h3><p>历史上科学到商业的转化周期不断缩短；AI 让研究产出直接成为代码/分子/材料/规划，同时工具链成熟、资本前置入场。</p></div><div class="section-card"><h3>05:19-17:26 — Top 20 Neo Labs 盘点</h3><p>视频按估值列出 20 家公司，覆盖物理经济 AI、安全超智能、机器人基础模型、空间智能、AI 芯片、递归自我改进、药物研发、代码模型、数学推理等方向。</p></div><div class="section-card"><h3>17:27-20:38 — 风险：沉默期、人才、资本账</h3><p>真正挑战不只是技术，而是能否熬过多年无产品/无营收的沉默期；人才被巨头高薪吸走，资本需要万亿赢家才能消化整体估值。</p></div></section>
-<section id="companies"><h2>Top 20 Neo Labs 表</h2><table class="company-table"><thead><tr><th>#</th><th>公司</th><th>估值/融资</th><th>方向</th><th>核心人物/来源</th><th>视频要点</th></tr></thead><tbody>
+<section id="summary" class="highlight"><h2 id="h2-1">一句话摘要</h2><p>视频把 <b>Neo Labs</b> 定义为 AI 时代的新型研究创业组织：它们用顶级研究人才和巨额资本，把科学路径、工程实现、市场验证压到同一家公司里，试图把研究本身变成生产。</p></section>
+<section id="takeaways"><h2 id="h2-2">Key Takeaways</h2><ol class="takeaways"><li>Neo Labs 是介于传统学术实验室与传统创业公司之间的新物种：无成熟产品/营收，但用顶级研究团队 + 巨额资本直接押注科学路径。</li><li>视频给出的三条形成条件：研究产出开始可直接变成生产资料；大模型/低代码降低工程门槛；资本愿意在产品前下注研究方向。</li><li>科研到商业化的链条被压缩：从“论文→工程转译→原型→产品”变成“代码/分子/材料/运营方案本身就是可用生产资料”。</li><li>这批公司估值总和已超过1000亿美元，资本隐含假设是未来十年里至少跑出一个万亿级赢家。</li><li>最高估值项目并不等于最确定：Project Prometheus、SSI 都几乎没有公开产品或技术进展，信息不透明是核心风险。</li><li>顶级 AI 人才的机会成本被巨头薪酬重新定价：Meta/Google 可能给上亿美元现金化包，Neo Labs 只能给“未来可能值钱”的期权。</li><li>机器人基础模型、空间智能、AI 芯片、AI 药物、代码智能体、可验证数学推理，是 Neo Labs 当前最密集的押注方向。</li><li>DeepMind 是历史参照：它也经历近十年沉默期才有 AlphaFold 级成果；但今天竞争烈度远高于 2012 年。</li><li>榜单本身短期意义有限：几年后极可能重排，高估值公司可能消失，真正赢家可能还在无产品的小实验室里。</li><li>对 Patrick 的启发：不要只看“AI 产品公司”，要单独追踪“研究路径 + 资本结构 + 人才密度 + 沉默期承受力”的 Neo Lab 类型资产。</li></ol></section>
+<section id="sections"><h2 id="h2-3">章节摘要</h2><div class="section-card"><h3 id="h3-1">00:00-02:27 — Project Prometheus 开场：Neo Labs 定义</h3><p>Jeff Bezos 重返创业，Project Prometheus 以超大融资、无公开产品的形态引出 Neo Labs：它们同时承担科学路径、工程系统、市场验证、资本耐心四件难事。</p></div><div class="section-card"><h3 id="h3-2">02:29-05:16 — 为什么现在爆发</h3><p>历史上科学到商业的转化周期不断缩短；AI 让研究产出直接成为代码/分子/材料/规划，同时工具链成熟、资本前置入场。</p></div><div class="section-card"><h3 id="h3-3">05:19-17:26 — Top 20 Neo Labs 盘点</h3><p>视频按估值列出 20 家公司，覆盖物理经济 AI、安全超智能、机器人基础模型、空间智能、AI 芯片、递归自我改进、药物研发、代码模型、数学推理等方向。</p></div><div class="section-card"><h3 id="h3-4">17:27-20:38 — 风险：沉默期、人才、资本账</h3><p>真正挑战不只是技术，而是能否熬过多年无产品/无营收的沉默期；人才被巨头高薪吸走，资本需要万亿赢家才能消化整体估值。</p></div></section>
+<section id="companies"><h2 id="h2-4">Top 20 Neo Labs 表</h2><table class="company-table"><thead><tr><th>#</th><th>公司</th><th>估值/融资</th><th>方向</th><th>核心人物/来源</th><th>视频要点</th></tr></thead><tbody>
 <tr><td>1</td><td>Project Prometheus</td><td>约380亿美元</td><td>物理世界/工程设计/制造 OS</td><td>Jeff Bezos；Vik Bajaj</td><td>启动资金约62亿美元；传接近100亿美元融资；无公开产品/营收</td></tr>
 <tr><td>2</td><td>Safe SuperIntelligence (SSI)</td><td>约320亿美元</td><td>安全超智能/对齐/可控</td><td>Ilya Sutskever</td><td>拒绝短期商业化；融资超30亿美元；技术进展未公开</td></tr>
 <tr><td>3</td><td>Skild AI</td><td>约140亿美元</td><td>机器人基础模型/具身智能</td><td>CMU 机器人团队</td><td>机器人“安卓路线”；适配机械臂、人形、仓储机器人</td></tr>
@@ -30,10 +118,10 @@
 <tr><td>19</td><td>Flapping Airplanes</td><td>约15亿美元</td><td>数据效率/更少训练数据获得更强能力</td><td>Ben Spector 等</td><td>年轻 AI 研究实验室；种子轮约1.8亿美元</td></tr>
 <tr><td>20</td><td>Harmonic</td><td>约14.5亿美元</td><td>数学超级智能/Lean/可验证推理</td><td>Robinhood + 数学/形式化推理圈</td><td>用形式化证明降低幻觉；C 轮约1.2亿美元</td></tr>
 </tbody></table></section>
-<section id="quotes"><h2>Key Quotes</h2><blockquote class="quote"><span class="ts">02:13</span>“硅谷给这批公司起了一个非正式的名字，叫做 Neo Labs，也就是新实验室的意思。”</blockquote><blockquote class="quote"><span class="ts">03:28</span>“如今，人工智能时代的科研产出，已经可以直接是代码、是药物分子、是材料设计方案、是企业的运营规划。”</blockquote><blockquote class="quote"><span class="ts">04:57</span>“研究即生产、工程门槛下降、资本提前入场，这三个条件叠加在一起，构成了一个过去从未有过的历史窗口。”</blockquote><blockquote class="quote"><span class="ts">17:42</span>“这批 Neo Labs 面对的真正压力，比起技术本身，可能更多地来自于它们是否能熬住那漫长的沉默期。”</blockquote><blockquote class="quote"><span class="ts">20:29</span>“人工智能的竞赛，从来都不是一场百米冲刺，而是一场漫长的马拉松。”</blockquote></section>
-<section id="patrick" class="highlight"><h2>Patrick 可执行启发</h2><ul><li>建一个 <b>Neo Labs tracker</b>：公司 / 方向 / 核心人才 / 融资 / 公开 demo / 论文代码 / 商业化信号 / 风险。</li><li>不按“估值高低”追踪，按 <b>技术路线 × 兑现周期 × 人才稳定性</b> 排序。</li><li>优先关注和 Patrick 系统相关的 5 类：AI Agent/代码智能体、递归自我改进、可验证推理、机器人基础模型、世界模型。</li></ul></section>
-<section><h2>Discussion Questions</h2><ul><li>如果把 Neo Labs 当作一种新资产类别，应该用哪些领先指标追踪：人才流入、论文/代码、融资节奏、客户试点，还是技术 demo？</li><li>哪些方向更适合 Neo Lab 模式：药物/材料/芯片/机器人这类长周期硬科技，还是代码智能体这类短周期软件？</li><li>“研究即生产”成立到什么程度？哪些领域仍然需要漫长的工程、监管、销售和量产链条？</li><li>如果未来十年只跑出一个万亿赢家，最可能出自哪条技术路线？为什么？</li><li>Patrick 的 Agentic OS / skill 系统，是否可以设计一个 Neo Labs tracker：按人才、融资、技术信号、商业化信号持续更新？</li></ul></section>
-<section id="transcript"><h2>Full Transcript</h2><div class="transcript">
+<section id="quotes"><h2 id="h2-5">Key Quotes</h2><blockquote class="quote"><span class="ts">02:13</span>“硅谷给这批公司起了一个非正式的名字，叫做 Neo Labs，也就是新实验室的意思。”</blockquote><blockquote class="quote"><span class="ts">03:28</span>“如今，人工智能时代的科研产出，已经可以直接是代码、是药物分子、是材料设计方案、是企业的运营规划。”</blockquote><blockquote class="quote"><span class="ts">04:57</span>“研究即生产、工程门槛下降、资本提前入场，这三个条件叠加在一起，构成了一个过去从未有过的历史窗口。”</blockquote><blockquote class="quote"><span class="ts">17:42</span>“这批 Neo Labs 面对的真正压力，比起技术本身，可能更多地来自于它们是否能熬住那漫长的沉默期。”</blockquote><blockquote class="quote"><span class="ts">20:29</span>“人工智能的竞赛，从来都不是一场百米冲刺，而是一场漫长的马拉松。”</blockquote></section>
+<section id="patrick" class="highlight"><h2 id="h2-6">Patrick 可执行启发</h2><ul><li>建一个 <b>Neo Labs tracker</b>：公司 / 方向 / 核心人才 / 融资 / 公开 demo / 论文代码 / 商业化信号 / 风险。</li><li>不按“估值高低”追踪，按 <b>技术路线 × 兑现周期 × 人才稳定性</b> 排序。</li><li>优先关注和 Patrick 系统相关的 5 类：AI Agent/代码智能体、递归自我改进、可验证推理、机器人基础模型、世界模型。</li></ul></section>
+<section><h2 id="h2-7">Discussion Questions</h2><ul><li>如果把 Neo Labs 当作一种新资产类别，应该用哪些领先指标追踪：人才流入、论文/代码、融资节奏、客户试点，还是技术 demo？</li><li>哪些方向更适合 Neo Lab 模式：药物/材料/芯片/机器人这类长周期硬科技，还是代码智能体这类短周期软件？</li><li>“研究即生产”成立到什么程度？哪些领域仍然需要漫长的工程、监管、销售和量产链条？</li><li>如果未来十年只跑出一个万亿赢家，最可能出自哪条技术路线？为什么？</li><li>Patrick 的 Agentic OS / skill 系统，是否可以设计一个 Neo Labs tracker：按人才、融资、技术信号、商业化信号持续更新？</li></ul></section>
+<section id="transcript"><h2 id="h2-8">Full Transcript</h2><div class="transcript">
 <p><span class="ts">00:00</span>大家好，这里是最佳拍档，我是大飞</p>
 <p><span class="ts">00:02</span>2025年底</p>
 <p><span class="ts">00:03</span>杰夫·贝索斯（Jeff Bezos）从半退休状态</p>
@@ -521,4 +609,49 @@
 <p><span class="ts">20:39</span>以上就是今天这期视频的全部内容了</p>
 <p><span class="ts">20:41</span>希望对大家有所帮助</p>
 <p><span class="ts">20:43</span>感谢收看，我们下期再见</p>
-</div></section><div class="footer">Generated by Hermes Agent · source subtitles: YouTube zh-Hans VTT · files synced to Obsidian + public HTML.</div></main></body></html>
+</div></section><div class="footer">Generated by Hermes Agent · source subtitles: YouTube zh-Hans VTT · files synced to Obsidian + public HTML.</div></main><script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body></html>

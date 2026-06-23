@@ -153,9 +153,120 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;                 /* anchor to viewport left */
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;  /* 右侧圆角, 左侧贴边 */
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));  /* 默认缩到只露 24px 抓手 */
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  /* 抓手标识: 竖条 + 圆点, 提示"点这里可展开" */
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.toc:hover,
+.toc:focus-within {
+  transform: translateX(0);   /* hover 完全展开 */
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after,
+.toc:focus-within::after {
+  opacity: 0;
+  animation: none;
+}
+@media (max-width: 1279px) {
+  .toc { display: none; }
+}
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: toc;
+}
+.toc li {
+  counter-increment: toc;
+  margin-bottom: 6px;
+}
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <div class="toc-inner">
+    <h3>目录</h3>
+    <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">❌ 4 个虚假趋势（Joke Trends）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💎 Glassmorphism 为何真正特别</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🔘 Neumorphism（Minimalism 中间地带）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">📷 趋势 #1: Augmented Reality / Natural Behavior</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">✏️ 趋势 #2: Hand-drawn / Handwritten</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">📊 6 趋势对比表</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🔗 与 Patrick 工作的关联</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💬 关键金句库</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⏱️ 完整时间线（18 段字幕）</a></li>
+    </ol>
+  </div>
+</aside>
+
 
 <h1>UI Design 2026 趋势</h1>
 <p class="subtitle">Age of Slop + 2 个真正值得关注的方向 — Malewicz</p>
@@ -169,7 +280,7 @@
 </div>
 
 <div class="hero">
-  <h2>核心论点</h2>
+  <h2 id="h2-1">核心论点</h2>
   <p><b>"Not everything is blue and purple slop"</b> — AI 时代 UI 设计同质化危机。但 2 个真正值得关注的趋势：</p>
   <ol style="color: var(--text); margin: 0.6rem 0 0;">
     <li><b>Augmented Reality / Natural Behavior</b> — camera 投射真实光照 + button 物理反应（"bendy buttons"）</li>
@@ -224,7 +335,7 @@
 
 <!-- TAB 1: FAKE -->
 <div class="tab-content active" data-tab-content="fake">
-  <h2 class="section">❌ 4 个虚假趋势（Joke Trends）</h2>
+  <h2 id="h2-2" class="section">❌ 4 个虚假趋势（Joke Trends）</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--red);">
@@ -257,13 +368,13 @@
 
 <!-- TAB 2: GLASS -->
 <div class="tab-content" data-tab-content="glass">
-  <h2 class="section">💎 Glassmorphism 为何真正特别</h2>
+  <h2 id="h2-3" class="section">💎 Glassmorphism 为何真正特别</h2>
 
   <blockquote>
     "Glass is a material, obviously. But, in a way, this is a little bit more important than material itself, because all of the other materials are <b>non-translucent</b>. And just having that <b>transparency, the way to see through something, allows you to have a different level of depth and context</b>."
   </blockquote>
 
-  <h3>核心差异对比</h3>
+  <h3 id="h3-1">核心差异对比</h3>
   <table>
     <thead>
       <tr><th>Morphism</th><th>Material</th><th>关键特性</th></tr>
@@ -294,9 +405,9 @@
 
 <!-- TAB 3: NEUMO -->
 <div class="tab-content" data-tab-content="neumo">
-  <h2 class="section">🔘 Neumorphism（Minimalism 中间地带）</h2>
+  <h2 id="h2-4" class="section">🔘 Neumorphism（Minimalism 中间地带）</h2>
 
-  <h3>3 大风格</h3>
+  <h3 id="h3-2">3 大风格</h3>
   <div class="card-grid">
     <div class="card">
       <h4>Minimalism</h4>
@@ -312,7 +423,7 @@
     </div>
   </div>
 
-  <h3>Neumorphism 定位</h3>
+  <h3 id="h3-3">Neumorphism 定位</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p style="font-size: 1.05rem;">Minimalism + Flat + Skeuomorphism = <b>odd middle ground</b></p>
     <ul style="margin-top: 0.6rem;">
@@ -323,14 +434,14 @@
     </ul>
   </div>
 
-  <h3>关于 Accessibility 争议（Malewicz 反驳）</h3>
+  <h3 id="h3-4">关于 Accessibility 争议（Malewicz 反驳）</h3>
   <blockquote>
     "Accessibility issues are <b>non-issues</b> if you do the entire rest of the interface right. Because if everything has proper contrast, proper hierarchy, good typography, then just that little border around some things might not be visible to everyone, but they will still get the whole interface structure from everything else."
   </blockquote>
 
   <p style="color: var(--text-dim); font-style: italic; margin-top: 0.6rem;">"This is just an extra, not a defining thing."</p>
 
-  <h3>Squircle 插曲</h3>
+  <h3 id="h3-5">Squircle 插曲</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <p>Squircle = <b>friendly + processable</b> 的 sweet spot</p>
     <ul style="margin-top: 0.4rem;">
@@ -344,7 +455,7 @@
 
 <!-- TAB 4: AR -->
 <div class="tab-content" data-tab-content="ar">
-  <h2 class="section">📷 趋势 #1: Augmented Reality / Natural Behavior</h2>
+  <h2 id="h2-5" class="section">📷 趋势 #1: Augmented Reality / Natural Behavior</h2>
 
   <blockquote>
     "What I mean by that is if we can use the camera to cast the lighting and shadows of the real world in a real way onto skeuomorphic elements, that would deserve its own trend."
@@ -375,13 +486,13 @@
 
 <!-- TAB 5: HAND -->
 <div class="tab-content" data-tab-content="hand">
-  <h2 class="section">✏️ 趋势 #2: Hand-drawn / Handwritten</h2>
+  <h2 id="h2-6" class="section">✏️ 趋势 #2: Hand-drawn / Handwritten</h2>
 
   <blockquote>
     "There is so much AI slop everywhere, we're coming back to a point where we see a button that's just completely hand-drawn with a little bit uneven edge, and the pen was maybe pushed a little bit too hard on one end, so the line is even thicker on some side."
   </blockquote>
 
-  <h3>3 大特征</h3>
+  <h3 id="h3-6">3 大特征</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>More Human</h4>
@@ -397,7 +508,7 @@
     </div>
   </div>
 
-  <h3>例子</h3>
+  <h3 id="h3-7">例子</h3>
   <ul style="color: var(--text-dim); line-height: 1.8;">
     <li>漂亮 portfolio 站点（handwritten 风格）</li>
     <li>跑步 app 画 run 轨迹（handwritten style）</li>
@@ -413,7 +524,7 @@
 
 <!-- TAB 6: TABLE -->
 <div class="tab-content" data-tab-content="table">
-  <h2 class="section">📊 6 趋势对比表</h2>
+  <h2 id="h2-7" class="section">📊 6 趋势对比表</h2>
 
   <table>
     <thead>
@@ -459,7 +570,7 @@
     </tbody>
   </table>
 
-  <h3>Malewicz 给设计师的建议</h3>
+  <h3 id="h3-8">Malewicz 给设计师的建议</h3>
   <blockquote>
     "Designers can now use these <b>modern tools to prototype things like that</b>. Figure it out. Not every app or website will need skeuomorphism of any kind. But you can <b>try new things, imagine it, build it, see if it works</b>, and then discard it or use it."
   </blockquote>
@@ -475,7 +586,7 @@
 
 <!-- TAB 7: RELATED -->
 <div class="tab-content" data-tab-content="related">
-  <h2 class="section">🔗 与 Patrick 工作的关联</h2>
+  <h2 id="h2-8" class="section">🔗 与 Patrick 工作的关联</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
@@ -521,7 +632,7 @@
 
 <!-- TAB 8: QUOTES -->
 <div class="tab-content" data-tab-content="quotes">
-  <h2 class="section">💬 关键金句库</h2>
+  <h2 id="h2-9" class="section">💬 关键金句库</h2>
 
   <div class="quote-grid">
     <div class="quote-card">
@@ -577,7 +688,7 @@
 
 <!-- TAB 9: TIMELINE -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">⏱️ 完整时间线（18 段字幕）</h2>
+  <h2 id="h2-10" class="section">⏱️ 完整时间线（18 段字幕）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -672,6 +783,56 @@
       contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
     });
   });
+</script>
+
+
+<script>
+(function(){
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Smooth scroll: click link → activate matching tab → scroll to h2
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      // If target is inside an inactive tab-content, activate that tab first
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const matchingTab = document.querySelector(`.tab[data-tab="${tabContent.dataset.tabContent}"]`);
+        if (matchingTab) matchingTab.classList.add('active');
+      }
+      // Update hash + scroll (offset for sticky nav ~64px)
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      const top = rect.top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight as user scrolls
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+  targets.forEach(t => io.observe(t.target));
+})();
 </script>
 
 </body>

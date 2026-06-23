@@ -42,9 +42,95 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 .status-partial { color: #ff8c35; font-weight: 700; }
 .status-miss { color: #ff4444; font-weight: 700; }
 .action-line { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 8px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">Key Takeaways (10 条)</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Framework → Self-Apply Mapping (Patrick 已有 vs 缺)</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">3 New Opportunities (P0/P1/P2)</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Part 1: 0:00-0:26 — Setup & Misconceptio</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 2: 0:26-3:14 — Phrase #1: launch su</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 3: 3:14-5:45 — Phrase #2: write me </a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Key Quotes</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Discussion Questions</a></li>
+  </ol>
+</aside>
+
 
 <h1>6 Power Phrases — Austin Marchese</h1>
 
@@ -66,7 +152,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>Key Takeaways (10 条)</h2>
+<h2 id="h2-1">Key Takeaways (10 条)</h2>
 <ol class="takeaway-list">
 <li><strong>Phrase #1 <code>launch sub-agents</code></strong> — 强制并行 Claude 会话, 突破"主 agent 倾向独干"的默认。3 场景: 多视角 (5 agent 同题异判, 避免 anchor convergence) / 开新可能 (10 agent 扫 10K domains) / 独立任务并行提速。</li>
 <li><strong>Phrase #2 <code>write me an implementation spec</code></strong> — Boris Cherny 原话: 建任何东西前先建 spec/plan。Karpathy 升级: plan mode 不够, 要协作"写 spec"而非"通过 plan mode"。5×5×5 = 125 组合 vs 1×1×1 = 1 组合的统计论证。</li>
@@ -82,7 +168,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>Framework → Self-Apply Mapping (Patrick 已有 vs 缺)</h2>
+<h2 id="h2-2">Framework → Self-Apply Mapping (Patrick 已有 vs 缺)</h2>
 
 <div class="coverage">
 <div class="card"><div class="num ok">2</div><div class="lbl">✅ 已覆盖</div></div>
@@ -143,7 +229,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>3 New Opportunities (P0/P1/P2)</h2>
+<h2 id="h2-3">3 New Opportunities (P0/P1/P2)</h2>
 
 <div class="tier-p0">
 <h4>🟥 P0: <code>claude-code-6-power-phrases</code> skill (1 min)</h4>
@@ -185,12 +271,12 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>Section-by-Section Summary</h2>
+<h2 id="h2-4">Section-by-Section Summary</h2>
 
-<h3>Part 1: 0:00-0:26 — Setup & Misconception</h3>
+<h3 id="h3-1">Part 1: 0:00-0:26 — Setup & Misconception</h3>
 <p>"Austin says 6 phrases 才是 unlock, 不是更好 prompt / 更聪明模型 / 装更多 plugin"。卖点: "exact thing to type into Claude" + "cautionary phrase that 99% people get wrong"。这是典型 clickbait 钩子, 但 phrase 本身有结构, 跟 3 红旗警告相符。</p>
 
-<h3>Part 2: 0:26-3:14 — Phrase #1: <code>launch sub-agents</code></h3>
+<h3 id="h3-2">Part 2: 0:26-3:14 — Phrase #1: <code>launch sub-agents</code></h3>
 <p><strong>核心论点</strong>: Claude 默认 underutilizes sub-agents (业务原因 + "main agent 倾向自己干"), 显式 <code>launch sub-agents</code> 强制分拆。<strong>3 场景</strong>:</p>
 <ul>
 <li><strong>多视角</strong>: 5 agent 同题异判 (避免 anchor convergence — 同 chat 5 次会逐次收束)</li>
@@ -199,12 +285,12 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 </ul>
 <p><strong>注意事项</strong>: 子 agent 数量 ≠ 效果, <strong>crystal clear task</strong> 是前提 (Austin 自警)。</p>
 
-<h3>Part 3: 3:14-5:45 — Phrase #2: <code>write me an implementation spec</code></h3>
+<h3 id="h3-3">Part 3: 3:14-5:45 — Phrase #2: <code>write me an implementation spec</code></h3>
 <p><strong>Boris Cherny 原话引述</strong>: "before you build anything, you need to create a plan or a spec"。<strong>Karpathy 升级</strong>: "I don't even like the plan mode... you have to work with your agent to design a spec that is very detailed, basically the docs, and then get the agents to write them."</p>
 <p><strong>统计论证</strong>: 3 步 × 5 选项 = 125 组合 vs spec 后 1×1×1 = 1 组合。"literally doesn't matter how good these models get. It doesn't know what you don't tell it."</p>
 <p><strong>实战 prompt 关键行</strong>: <code>for each step, show me the key decisions you'd make</code> (逼 Claude 拆解, 让 user 提前 override)</p>
 
-<h3>Part 4: 5:45-7:52 — Phrase #3: <code>interview me</code></h3>
+<h3 id="h3-4">Part 4: 5:45-7:52 — Phrase #3: <code>interview me</code></h3>
 <p><strong>反向流程</strong>: Claude 问你, 不是你问 Claude。<strong>3 关键 meta</strong>:</p>
 <ol>
 <li><code>work with me to identify the core problem we're solving, who it is and isn't for</code> (Anthropic 自身清晰定位)</li>
@@ -213,7 +299,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 </ol>
 <p><strong>陷阱</strong>: 急答 yes/no = 等价 auto-answer, 失去价值。Pro tip: 用 Wispr Flow / Hex 录音, 模拟真面试。</p>
 
-<h3>Part 5: 7:52-11:09 — Phrase #4: <code>verify before you build</code></h3>
+<h3 id="h3-5">Part 5: 7:52-11:09 — Phrase #4: <code>verify before you build</code></h3>
 <p><strong>Boris 原话</strong>: "Give Claude a way to verify its work. If it has a feedback loop, it will 2-3x the quality"。<strong>Boris 升级</strong>: "give Claude a tool to see the output of its work" → 自纠正。<strong>3 层架构</strong>:</p>
 <ul>
 <li><strong>L1 Claude.md 一行</strong>: <code>Before you do any work, mention how you could verify that work</code> (因为 Claude.md 注入每个 prompt)</li>
@@ -222,10 +308,10 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 </ul>
 <p><strong>80/20 集成 prompt</strong> (Austin 提供): 一段话覆盖三层</p>
 
-<h3>Part 6: 11:09-12:59 — Phrase #5: <code>based on this conversation, build me a skill</code></h3>
+<h3 id="h3-6">Part 6: 11:09-12:59 — Phrase #5: <code>based on this conversation, build me a skill</code></h3>
 <p><strong>核心反主流</strong>: 主流"先想 skill 名 → 再实现"导致两种失败 (想不出 / 不用)。Austin 翻转: <strong>skill 只能从已完成对话抽取</strong>, 使用场景已验证。<strong>Anthropic 内部 gotchas section</strong>: "small issues that come up = gotchas = edge cases / stylistic quirks / 来回修过的点"。<strong>反 prompt</strong>: <code>Based on this conversation, enhance any skill I use to include a gotchas section</code> (闭环: 用了就升级)。<strong>金句</strong>: "Should I turn this process into a skill?" 优于 "What skill should I create?"</p>
 
-<h3>Part 7: 12:59-15:12 — Phrase #6: <code>automate this</code> (the dangerous one)</h3>
+<h3 id="h3-7">Part 7: 12:59-15:12 — Phrase #6: <code>automate this</code> (the dangerous one)</h3>
 <p><strong>Austin 自警</strong>: "this power phrase is one that I'm the most skeptical of"。<strong>2 决策 filter</strong>:</p>
 <ol>
 <li><strong>Taste test</strong>: 任务需"品味"判断好/坏输出? → 只能 augment。完全可量化? → 可考虑 automate。</li>
@@ -235,7 +321,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>Key Quotes</h2>
+<h2 id="h2-5">Key Quotes</h2>
 
 <blockquote>"Before you build anything, you need to create a plan or a spec so the AI knows how to build it."<br>— <strong>Boris Cherny (creator of Claude Code)</strong>, ~3:18</blockquote>
 
@@ -253,7 +339,7 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 
 <hr>
 
-<h2>Discussion Questions</h2>
+<h2 id="h2-6">Discussion Questions</h2>
 <ol>
 <li>Phrase #4 "give Claude a tool to see output" — 在 Patrick 当前工作中, 哪些任务能让 Claude 自纠正 (e.g. PDF 转录后让 Claude 读回来 / HTML 生成后让 browser 截图自查)?</li>
 <li>Phrase #5 gotchas section — 翻 Patrick 现有 skills, 哪些没 gotchas section? 哪些可今天加 (1 个 5 min)?</li>
@@ -265,5 +351,50 @@ hr { border: none; border-top: 1px solid #2a2a2a; margin: 2rem 0; }
 <hr>
 <p style="color:#555; font-size:0.85rem; text-align:center;">本笔记由 video-to-obsidian skill (v1.2.0) 生成 · Mapping 6/6 (2✅ + 4⚠️) · 3 红旗 pre-flight 应用</p>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

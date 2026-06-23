@@ -324,9 +324,102 @@ code {
   font-size: 0.92rem;
 }
 .section-intro strong { color: var(--accent-soft); }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">Key Takeaways</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 1: 0:00-1:22 — Intro</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 2: 1:23-7:58 — Human-in-the-Loop (H</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Part 3: 7:59-11:31 — Agent-Run Loop (Bor</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">Key Quotes</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">框架 → Self-Apply Mapping (Patrick 实战)</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Coverage 总览 — ACHIEVED 12/12 = 100% ✅ (2</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 12-row 评估表</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 3 个新机会 — ALL COMPLETED 2026-06-15 (same </a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Audit Verdict (Patrick's "做完让 audit agent 看看")</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 8-dimension scores</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Verification artifacts</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Coverage re-verification (12 rows)</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Discussion Questions</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">Full Transcript (by section)</a></li>
+  </ol>
+</aside>
+
 
 <h1>WTF Is an "AI Agent Loop"? Genius or Hype?</h1>
 
@@ -346,7 +439,7 @@ code {
 </div>
 
 <div class="highlight-box" style="border-color: var(--green); background: linear-gradient(135deg, #0a1f0e, #081208);">
-  <h3 style="color: var(--green);">✅ 100% 触达达成 (2026-06-15, same session)</h3>
+  <h3 id="h3-1" style="color: var(--green);">✅ 100% 触达达成 (2026-06-15, same session)</h3>
   <p style="margin: 0; color: var(--text);">笔记创建时 Mapping 7/12 = 58% (4 ✅ + 3 ⚠️ + 3 ❌). 同一 session 内 4 项 gap 全部闭环:</p>
   <ul style="margin: 0.5rem 0 0; padding-left: 1.5rem;">
     <li><code>loop-fit-checklist</code> skill v1.0.0 — 覆盖 row 4 + 9 + 11</li>
@@ -366,7 +459,7 @@ code {
   <p style="margin: 0.5rem 0 0; color: var(--text-dim);">总评: 视频对 Patrick 极有价值, <strong>3 警告信号 0 全中</strong>, 内容核心<strong>直接对应 Patrick 正在做的 2 个 skill</strong> (ai-auto-research-3file + hermes-eval-harness), 必须做 Mapping。</p>
 </div>
 
-<h2>Key Takeaways</h2>
+<h2 id="h2-1">Key Takeaways</h2>
 
 <ol class="takeaway-list">
   <li><strong>Loop = 一次 human fire, agent 自我检查 → 反馈 → 持续工作</strong>。Boris / Peter 描述的 loop: 你给 spec.md, agent 跑, 自己 review, 自己改, 自己 push, 不停迭代直到完成。</li>
@@ -383,21 +476,21 @@ code {
   <li><strong>Loop break 的 4 个常见 fail mode</strong>: ① 假设爆 ② token 烧光 ③ 反馈不 binary ④ 输出超 bounded scope (Greptile >1000 行就崩)。每个都有具体 mitigation。</li>
 </ol>
 
-<h2>Section-by-Section Summary</h2>
+<h2 id="h2-2">Section-by-Section Summary</h2>
 
-<h3>Part 1: 0:00-1:22 — Intro</h3>
+<h3 id="h3-2">Part 1: 0:00-1:22 — Intro</h3>
 <div class="section-intro"><strong>Speaker:</strong> Greg (host) + Ross Mike (guest). 视频 3 个目标: ① loop 是什么 ② 为什么 top builder 痴迷 ③ 什么时候 work, 什么时候烧钱。Mic 提前打预防针 — "the general consensus is wrong"。<strong>Patrick 视角</strong>: 跟 Karpathy 5/15 实测 70-85% score + hermes-eval-harness 5 层防御是同一波 — 不盲目追 hype, 用 eval signal 决定 loop 边界。</div>
 
-<h3>Part 2: 1:23-7:58 — Human-in-the-Loop (HITL) diagram</h3>
+<h3 id="h3-3">Part 2: 1:23-7:58 — Human-in-the-Loop (HITL) diagram</h3>
 <div class="section-intro"><strong>Speaker:</strong> Mic. 经典 HITL: prompt agent → result → <strong>你</strong> review + test + iterate → 回到 prompt。Build to-do app, 先 landing page → 满意 → auth → backend。每步<strong>你拍板</strong>。HITL 不是 "AI 没用", 是 "AI + 你的 judgment" — 你的判断是<strong>反馈信号</strong>。</div>
 
-<h3>Part 3: 7:59-11:31 — Agent-Run Loop (Boris / Peter style)</h3>
+<h3 id="h3-4">Part 3: 7:59-11:31 — Agent-Run Loop (Boris / Peter style)</h3>
 <div class="section-intro"><strong>Speaker:</strong> Mic. Wide-open loop: human 在 loop 1 次 (fire with spec.md), 之后 agent 自循环 (生成 → 自 review → 反馈 → 继续)。<strong>Startup analogy</strong>: hire 聪明 dev 给 prd 不问 → 假设爆 → 成品对不上 vision。Agent loop 把这个放大 10x, 因为 agent 没有 pushback ("never says wait this contradicts your earlier turn")。<strong>Token 经济学</strong>: Boris / Peter 无限 token, 普通用户 $20/$100 烧不起。数字: <strong>Peter 1 个月 $1.3M tokens</strong>。<br><br><strong>Patrick 视角</strong>: 跟 <code>ai-auto-research-3file</code> 的 5-min loop 是<strong>反例 vs 正例</strong>对比 — Karpathy loop 是 "bounded" (5 min + small file + numeric score), Boris loop 是 "wide-open" (PRD 全集, agent 自己判断)。<strong>Patrick 已经做对了</strong>。</div>
 
-<h3>Part 4: 11:32-12:41 — "The Slop Machine"</h3>
+<h3 id="h3-5">Part 4: 11:32-12:41 — "The Slop Machine"</h3>
 <div class="section-intro"><strong>Speaker:</strong> Greg 命名 → Mic 同意。Slot machine 隐喻 3 层: ① 没反馈方向 (pull lever 不知中啥) ② 没 stopping point (不像 HITL 看完决定) ③ 钱烧完才停 (budget 用完 = session 死)。<strong>Patrick 视角</strong>: 跟 <code>ai-slop-detector</code> skill 是<strong>同一现象不同名</strong>。Loop 加速 slop 产出, 因为每 turn 生成新内容, 没有 "this is redundant / off-topic" 的 correction。</div>
 
-<h3>Part 5: 12:42-18:18 — Greptile Loop (核心段落, 14 分钟)</h3>
+<h3 id="h3-6">Part 5: 12:42-18:18 — Greptile Loop (核心段落, 14 分钟)</h3>
 <div class="section-intro"><strong>Speaker:</strong> Mic. <strong>Setup</strong>: Cursor (写代码) + GitHub (push 触发) + Greptile (review agent, 0-5 score)。<br><br><strong>Loop 5 步</strong>:
 <ol>
   <li>Cursor 生成 feature 代码</li>
@@ -408,14 +501,14 @@ code {
 </ol>
 <strong>关键约束</strong> (Mic 反复强调): Hard rule score < 4 → 必须重做; ≤1000 lines / PR (超过必崩); 5 turns 上限 (不 infinite loop)。<br><br><strong>Loop 失败的 3 个 fail mode</strong> (Mic 承认): >1000 行 / 太大 agent 失 context / 5 turns 还 4/5 → 人工接手。<br><br><strong>Patrick 视角</strong>: <strong>这是 5-min loop + hermes-eval-harness 的 production 版</strong>。ai-auto-research-3file 5-min loop = "生成 → eval → 改" (single agent, numeric score)。Greptile loop = "生成 → eval → 改" (2 agent, 5-turn bounded)。hermes-eval-harness 5 层防御 → <strong>Greptile loop 自带 5 turns 上限 = human audit 等价</strong>。<strong>缺什么</strong>: Patrick 还没把 hermes-eval-harness 接到 Karpathy 5-min loop, <strong>应该立刻做</strong>。</div>
 
-<h3>Part 6: 18:19-20:41 — Honest Take for Builders</h3>
+<h3 id="h3-7">Part 6: 18:19-20:41 — Honest Take for Builders</h3>
 <div class="section-intro"><strong>Speaker:</strong> Greg. "Startup Ideas podcast 听众是 build app 的人, loop 不适合你们"。3 个 reason: ① 没有 "show to user halfway" ② 没 pivot 能力 (Full self-driving Miami → Charleston) ③ 路过的好 idea 被 loop 跳过。<br><br><strong>Loop 适合</strong>: ✅ Code review ✅ SEO 300 页同模板 ✅ Benchmark / 模拟 (Mic 例子: Among Us simulator for lying models)<br>
 <strong>Loop 不适合</strong>: ❌ Product / UX / taste 决策 ❌ 需要 "wait this contradicts..." 的 pushback ❌ Founder vision 还没定型前的 early stage</div>
 
-<h3>Part 7: 20:42-22:32 — The Future of Loops + Closing</h3>
+<h3 id="h3-8">Part 7: 20:42-22:32 — The Future of Loops + Closing</h3>
 <div class="section-intro"><strong>Speaker:</strong> Greg + Mic 共识。未来 100% 会到, 但 "maybe not as of recording June 9, 2026"。Boris / Peter 实验是 necessary 的 (self-healing agents 必经路)。<strong>当下: human-in-the-loop 仍是 best loop</strong>。Greg 金句: "You were a loop in the sense that you were the looper and just explained this clearly and keep it real"。</div>
 
-<h2>Key Quotes</h2>
+<h2 id="h2-3">Key Quotes</h2>
 
 <blockquote><span class="speaker">Mic, 7:00</span>Wide-open loops make heavy assumptions and burn serious tokens. Michael cites Peter's tweet about $1.3 million worth of tokens in one month.<span class="ts">7:00-7:10</span></blockquote>
 
@@ -439,11 +532,11 @@ code {
 
 <blockquote><span class="speaker">Mic, 21:00</span>Maybe not as of recording June 9, 2026.<span class="ts">21:00-21:05</span></blockquote>
 
-<h2>框架 → Self-Apply Mapping (Patrick 实战)</h2>
+<h2 id="h2-4">框架 → Self-Apply Mapping (Patrick 实战)</h2>
 
 <div class="section-intro"><strong>触发表</strong>: 视频讲"agent loop 什么时候 work" → 跟 Patrick 已建的 2 个 skill (<code>ai-auto-research-3file</code>, <code>hermes-eval-harness</code>) 直接相关。<strong>Mapping = 用 Mic 框架评估 Patrick 系统</strong>。</div>
 
-<h3>Coverage 总览 — ACHIEVED 12/12 = 100% ✅ (2026-06-15, same session)</h3>
+<h3 id="h3-9">Coverage 总览 — ACHIEVED 12/12 = 100% ✅ (2026-06-15, same session)</h3>
 <div class="coverage-grid">
   <div class="coverage-card yes">
     <span class="num">8/12</span>
@@ -464,7 +557,7 @@ code {
 </div>
 <p style="text-align: center; color: var(--text-dim); font-size: 0.9rem; margin-top: 0;">总触达: <strong style="color: var(--green);">10/12 实质 + 2/12 N/A = 12/12 = 100%</strong> ✅ — audit agent 端到端验证</p>
 
-<h3>12-row 评估表</h3>
+<h3 id="h3-10">12-row 评估表</h3>
 <table>
 <thead>
 <tr>
@@ -563,7 +656,7 @@ code {
 </tbody>
 </table>
 
-<h3>3 个新机会 — ALL COMPLETED 2026-06-15 (same session)</h3>
+<h3 id="h3-11">3 个新机会 — ALL COMPLETED 2026-06-15 (same session)</h3>
 
 <div class="priority-card p0">
   <div class="p-tag">P0<br>✅ DONE</div>
@@ -592,11 +685,11 @@ code {
   </div>
 </div>
 
-<h2>Audit Verdict (Patrick's "做完让 audit agent 看看")</h2>
+<h2 id="h2-5">Audit Verdict (Patrick's "做完让 audit agent 看看")</h2>
 
 <div class="section-intro"><strong>Source</strong>: <code>autonomous-ai-agents/audit</code> skill v1.0.0 — 8-dimension framework. Applied 2026-06-15 to verify the "100% 触达" claim.</div>
 
-<h3>8-dimension scores</h3>
+<h3 id="h3-12">8-dimension scores</h3>
 <table>
 <thead>
 <tr><th>Dimension</th><th>Score</th><th>Evidence</th></tr>
@@ -615,7 +708,7 @@ code {
 
 <p style="text-align: center; font-size: 1.1rem; margin-top: 1rem;"><strong>Overall: 9.1/10</strong> · <span style="color: var(--green);">✅ PASS</span></p>
 
-<h3>Verification artifacts</h3>
+<h3 id="h3-13">Verification artifacts</h3>
 <table>
 <thead>
 <tr><th>Artifact</th><th>Path</th><th>Status</th></tr>
@@ -632,7 +725,7 @@ code {
 </tbody>
 </table>
 
-<h3>Coverage re-verification (12 rows)</h3>
+<h3 id="h3-14">Coverage re-verification (12 rows)</h3>
 <table>
 <thead>
 <tr><th>#</th><th>Video point</th><th>Status (was → now)</th><th>Proof</th></tr>
@@ -656,7 +749,7 @@ code {
 <p style="text-align: center; font-size: 1.05rem; margin-top: 1rem;"><strong>Final: 10/12 实质 + 2/12 N/A = 12/12 = 100% 触达</strong> ✅<br>
 <span style="color: var(--text-dim); font-size: 0.9rem;">0 ❌ 缺, 0 ⚠️ 部分, 4 新建资产, audit score 9.1/10</span></p>
 
-<h2>Discussion Questions</h2>
+<h2 id="h2-6">Discussion Questions</h2>
 <ol class="questions-list">
   <li><strong>Patrick 的 Karpathy 5-min loop 是不是 "Greptile-style 2 agent loop"?</strong> 当前是 single-agent (生成 + 自评), 视频暗示加 external judge (Greptile role) → score 0-5 闭环。实战: 加 vs 不加, 哪个 win rate 高?</li>
   <li><strong>Mic 的 "AI replicate sauce, can't create sauce" 跟 Patrick 已建 <code>taste-test-8020-decide</code> skill 是不是 1:1 对应?</strong> 后者讲 "human validation zones", 前者讲 "loop 类型选择"。能不能合并?</li>
@@ -665,7 +758,7 @@ code {
   <li><strong>视频的 3 警告信号 (clickbait title + affiliate link + 学员角度频道) 触发但内容诚实</strong> — Patrick 笔记体系的 "3 警告信号" 模板需要增加第 4 档 "warning but proceed"? 当下默认 2/3 = warning, 是不是 1.5/3 才是 honest-but-clickbait 阈值?</li>
 </ol>
 
-<h2>Full Transcript (by section)</h2>
+<h2 id="h2-7">Full Transcript (by section)</h2>
 
 <details>
 <summary>Part 1: 0:00-1:22 — Intro</summary>
@@ -756,5 +849,50 @@ code {
   <div>Desktop HTML: <code>~/Desktop/greg-isenberg-agent-loop-ros-mike-2026-06.html</code></div>
 </div>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

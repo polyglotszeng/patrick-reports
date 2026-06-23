@@ -169,9 +169,115 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Scale 哲学（Sam 最重要的洞察）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 3 个 scale 案例</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 为什么大多数人不敢 scale</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">ChatGPT 创业故事（核心）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 2020-2022 时间线</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Codex / Code 故事</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ ChatGPT 前计划</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 实际进度</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Pipeline 现状</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">⚡ AI = 新 Utility（最深刻框架）</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Electricity 类比</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Jensen vs Sam utility 视角</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">OpenAI 关键目标（2026-2028）</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 跟 Nate Herk "Stop AI" 视频关联</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🔀 3 个未来 Fork（10 年视角）</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Fork 1：民主化</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Fork 2：Compute 短缺</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ Fork 3：经济模型</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⚔️ 反驳 Yann LeCun（"LLMs 是死胡同"）</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Sam 的回应</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ On "I told you so"</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ On critics + identity</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🎓 Education 没变（Sam 最大 prediction error）</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Sam 2022 预期</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 2024 现实</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Sam 的担心</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">💬 关键金句库</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">⏱️ 完整时间线（76 段字幕）</a></li>
+  </ol>
+</aside>
+
 
 <h1>Sam Altman @ Stanford CS183</h1>
 <p class="subtitle">2024 年 41 分钟访谈：Scale 哲学 + ChatGPT 故事 + AI 作为新 Utility + 3 个未来 Fork</p>
@@ -185,7 +291,7 @@
 </div>
 
 <div class="hero">
-  <h2>核心论点</h2>
+  <h2 id="h2-1">核心论点</h2>
   <p><b>AI 时代唯一"反共识但正确"的认知 = "scale 永远比共识认为的更有效"。</b>Sam 用 YC 批次规模、神经网络 scaling、OpenAI 内部组织为例：找到"小规模已经在 working 的东西" → 推到前所未有的规模 → <b>几乎 always 出 interesting results</b>。</p>
   <p style="margin-top: 0.5rem;"><b>教育是 Sam 自承的最大 prediction error</b>："我以为 ChatGPT 上线 1 年内教育会大改，3.5 年过去了<b>没看到任何系统性变化</b>。"</p>
 </div>
@@ -238,13 +344,13 @@
 
 <!-- TAB 1: SCALE -->
 <div class="tab-content active" data-tab-content="scale">
-  <h2 class="section">Scale 哲学（Sam 最重要的洞察）</h2>
+  <h2 id="h2-2" class="section">Scale 哲学（Sam 最重要的洞察）</h2>
 
   <blockquote>
     "I offer no theory that I find satisfying to explain it... but empirically it does seem to be true, which is <b>all of the most interesting things I have observed in my career</b> in watching other things happen. All of the most interesting ones have had something to do with <b>emergent properties that scale</b> or scale continuing to provide returns far beyond what the consensus thinks will work."
   </blockquote>
 
-  <h3>3 个 scale 案例</h3>
+  <h3 id="h3-1">3 个 scale 案例</h3>
   <table>
     <thead>
       <tr><th>案例</th><th>共识认为</th><th>实际发生</th></tr>
@@ -268,7 +374,7 @@
     </tbody>
   </table>
 
-  <h3>为什么大多数人不敢 scale</h3>
+  <h3 id="h3-2">为什么大多数人不敢 scale</h3>
   <div class="card-grid">
     <div class="card">
       <h4>🔧 Stuff breaks</h4>
@@ -292,9 +398,9 @@
 
 <!-- TAB 2: CHATGPT -->
 <div class="tab-content" data-tab-content="chatgpt">
-  <h2 class="section">ChatGPT 创业故事（核心）</h2>
+  <h2 id="h2-3" class="section">ChatGPT 创业故事（核心）</h2>
 
-  <h3>2020-2022 时间线</h3>
+  <h3 id="h3-3">2020-2022 时间线</h3>
 
   <div class="story-step">
     <div class="step-num">1</div>
@@ -346,9 +452,9 @@
 
 <!-- TAB 3: CODEX -->
 <div class="tab-content" data-tab-content="codex">
-  <h2 class="section">Codex / Code 故事</h2>
+  <h2 id="h2-4" class="section">Codex / Code 故事</h2>
 
-  <h3>ChatGPT 前计划</h3>
+  <h3 id="h3-4">ChatGPT 前计划</h3>
   <div class="card">
     <ul>
       <li>内部原本要 <b>all in on code</b></li>
@@ -358,7 +464,7 @@
     </ul>
   </div>
 
-  <h3>实际进度</h3>
+  <h3 id="h3-5">实际进度</h3>
   <table>
     <thead>
       <tr><th>时间</th><th>事件</th></tr>
@@ -379,7 +485,7 @@
     </tbody>
   </table>
 
-  <h3>Pipeline 现状</h3>
+  <h3 id="h3-6">Pipeline 现状</h3>
   <div class="phase-flow" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0;">
     <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>Pre-training</h4></div>
     <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>Mid-training</h4></div>
@@ -395,13 +501,13 @@
 
 <!-- TAB 4: UTILITY -->
 <div class="tab-content" data-tab-content="utility">
-  <h2 class="section">⚡ AI = 新 Utility（最深刻框架）</h2>
+  <h2 id="h2-5" class="section">⚡ AI = 新 Utility（最深刻框架）</h2>
 
   <blockquote>
     "We are in the process of <b>creating a new utility</b>. This doesn't happen very often. You know, electricity is a utility, internet's a utility, water, I guess there's not a lot of these."
   </blockquote>
 
-  <h3>Electricity 类比</h3>
+  <h3 id="h3-7">Electricity 类比</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <h4>💡 早期 electricity 公司</h4>
     <ul>
@@ -416,7 +522,7 @@
     "Even if we're totally right that intelligence is going to become this new utility... I kind of don't think the right way for us to analogize that is <b>'we're selling intelligence'</b> because people are just like somehow not resonating. I don't know what our equivalent of 'we're selling you light at night' is going to be."
   </blockquote>
 
-  <h3>Jensen vs Sam utility 视角</h3>
+  <h3 id="h3-8">Jensen vs Sam utility 视角</h3>
   <table>
     <thead>
       <tr><th>视角</th><th>主张</th><th>抽象层级</th></tr>
@@ -448,7 +554,7 @@
 
 <!-- TAB 5: GOALS -->
 <div class="tab-content" data-tab-content="goals">
-  <h2 class="section">OpenAI 关键目标（2026-2028）</h2>
+  <h2 id="h2-6" class="section">OpenAI 关键目标（2026-2028）</h2>
 
   <table>
     <thead>
@@ -473,7 +579,7 @@
     <p>这些是 Sam <b>2024 年</b>在 Stanford 讲的目标，<b>可能已更新</b>。但 framework 仍 valid。</p>
   </div>
 
-  <h3>跟 Nate Herk "Stop AI" 视频关联</h3>
+  <h3 id="h3-9">跟 Nate Herk "Stop AI" 视频关联</h3>
   <div class="card">
     <p>OpenAI 6/8 文章 "Built to Benefit Everyone" 跟 Sam 在 Stanford 讲的目标完全一致：</p>
     <ul>
@@ -486,7 +592,7 @@
 
 <!-- TAB 6: FORKS -->
 <div class="tab-content" data-tab-content="forks">
-  <h2 class="section">🔀 3 个未来 Fork（10 年视角）</h2>
+  <h2 id="h2-7" class="section">🔀 3 个未来 Fork（10 年视角）</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
@@ -506,7 +612,7 @@
     </div>
   </div>
 
-  <h3>Fork 1：民主化</h3>
+  <h3 id="h3-10">Fork 1：民主化</h3>
   <div class="card">
     <ul>
       <li>Default trajectory: 集中到少数公司 → "成为地球财富重要部分"</li>
@@ -520,7 +626,7 @@
     "The risk of keeping this concentrated in a handful of companies <b>even though we would be one of these companies</b> is not something we should tolerate."
   </blockquote>
 
-  <h3>Fork 2：Compute 短缺</h3>
+  <h3 id="h3-11">Fork 2：Compute 短缺</h3>
   <table>
     <thead>
       <tr><th>现状（2024 视角）</th><th>Sam 预测</th></tr>
@@ -546,7 +652,7 @@
     <p>"People assume we will make big inference gains on the hardware we have... I also think there is a tsunami of hardware coming <b>but maybe the demand tsunami is even bigger</b>."</p>
   </div>
 
-  <h3>Fork 3：经济模型</h3>
+  <h3 id="h3-12">Fork 3：经济模型</h3>
   <div class="compare">
     <div class="cmp good">
       <h4>✅ Sam 偏好：Citizen Wealth Fund</h4>
@@ -575,9 +681,9 @@
 
 <!-- TAB 7: YANN -->
 <div class="tab-content" data-tab-content="yann">
-  <h2 class="section">⚔️ 反驳 Yann LeCun（"LLMs 是死胡同"）</h2>
+  <h2 id="h2-8" class="section">⚔️ 反驳 Yann LeCun（"LLMs 是死胡同"）</h2>
 
-  <h3>Sam 的回应</h3>
+  <h3 id="h3-13">Sam 的回应</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>已超人类</h4>
@@ -601,14 +707,14 @@
     "Field held back by <b>a generation of scientists</b> who just were way too certain on what scaling was not going to produce and then some people just looked at the graphs and said, 'Well, it looks like it's continuing beautifully. Let's keep going.'"
   </blockquote>
 
-  <h3>On "I told you so"</h3>
+  <h3 id="h3-14">On "I told you so"</h3>
   <div class="card" style="border-left: 3px solid var(--green);">
     <h4>Sam 的态度</h4>
     <p>"The data is quite strong on our side and I don't think it'd be that fun to say I told you so."</p>
     <p style="margin-top: 0.6rem; color: var(--text-mute);">"You were like she was nervous. You're still going on about it. Like the data is quite strong on our side."</p>
   </div>
 
-  <h3>On critics + identity</h3>
+  <h3 id="h3-15">On critics + identity</h3>
   <blockquote>
     "If you make your identity about a particular thing is going to work or not work and then the science disproves you and you're too hung up on your identity, you can't let it go. You can't see the truth. <b>I think this is a form of insanity.</b>"
   </blockquote>
@@ -616,25 +722,25 @@
 
 <!-- TAB 8: EDU -->
 <div class="tab-content" data-tab-content="edu">
-  <h2 class="section">🎓 Education 没变（Sam 最大 prediction error）</h2>
+  <h2 id="h2-9" class="section">🎓 Education 没变（Sam 最大 prediction error）</h2>
 
-  <h3>Sam 2022 预期</h3>
+  <h3 id="h3-16">Sam 2022 预期</h3>
   <div class="card">
     <p>"ChatGPT 上线 → 1 年学生 cheating → 教育系统大改 → 教得更好"</p>
   </div>
 
-  <h3>2024 现实</h3>
+  <h3 id="h3-17">2024 现实</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <h4>❌ Prediction error</h4>
     <p>"I struggle to point to any <b>significant systemic change</b> that I've seen in the education system at large in the three and a half years since ChatGPT launched."</p>
   </div>
 
-  <h3>Sam 的担心</h3>
+  <h3 id="h3-18">Sam 的担心</h3>
   <blockquote>
     "If we continue to teach and evaluate students as if we were in a pre-agi world, it's not going to work and it is going to lead to like <b>atrophy of learning how to think</b>."
   </blockquote>
 
-  <h3>仍要学的</h3>
+  <h3 id="h3-19">仍要学的</h3>
   <div class="card-grid">
     <div class="card">
       <h4>✍️ Writing</h4>
@@ -650,7 +756,7 @@
     </div>
   </div>
 
-  <h3>Sam 选课建议</h3>
+  <h3 id="h3-20">Sam 选课建议</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <ul>
       <li>大一 <b>3 个 intro sem</b> 一季</li>
@@ -663,7 +769,7 @@
 
 <!-- TAB 9: QUOTES -->
 <div class="tab-content" data-tab-content="quotes">
-  <h2 class="section">💬 关键金句库</h2>
+  <h2 id="h2-10" class="section">💬 关键金句库</h2>
 
   <div class="quote-grid">
     <div class="quote-card">
@@ -719,7 +825,7 @@
 
 <!-- TAB 10: TIMELINE -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">⏱️ 完整时间线（76 段字幕）</h2>
+  <h2 id="h2-11" class="section">⏱️ 完整时间线（76 段字幕）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -954,5 +1060,50 @@
   });
 </script>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

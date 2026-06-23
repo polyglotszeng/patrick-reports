@@ -31,9 +31,95 @@ tr:nth-child(even) { background: #141414; }
 .cross-ref code { background: #0a0a0a; padding: 1px 6px; border-radius: 3px; color: #f7c59f; font-size: 0.9rem; }
 .warning { background: #2a1a0a; border: 1px solid #ff6b35; padding: 0.8rem 1.2rem; border-radius: 6px; margin: 1rem 0; font-size: 0.9rem; }
 code { background: #1a1a1a; padding: 1px 5px; border-radius: 3px; color: #f7c59f; font-size: 0.88rem; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">Key Takeaways</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Part 1: 三阶段进化 (Boris 一年回顾) — 1:13-2:28</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 2: Addy Osmani 5 块 + 1 脊柱框架 — 2:33-</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 3: 流程拼装 + 实战 — 4:29-5:23</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">Key Quotes</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Framework → Self-Apply Mapping (8/10 = 80% 触达)</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Discussion Questions</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Cross-Refs (跟 06-15 案例 6 互补视角)</a></li>
+  </ol>
+</aside>
+
 
 <h1>【Loop Engineering 循环工程】从理论到实践,它真的适合每个人吗?</h1>
 
@@ -47,7 +133,7 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 <strong>3 红旗扫描结果</strong>: 0/3 ✅ — 0 卖课链接, 0 clickbait 套路 (软问号问句非卖课), 0 mock 数据。中性 AI 知识科普, 引用 Addy Osmani 文章 + Peter Steinberger (OpenClaw) + Boris (Anthropic/Claude Code 负责人) + Geoff (Ralph 循环) 4 个真实业界人物。
 </blockquote>
 
-<h2>Key Takeaways</h2>
+<h2 id="h2-1">Key Takeaways</h2>
 
 <ol class="takeaway-list">
 <li><strong>Loop Engineering 的核心定义</strong>: 不再用提示词驱动 agent, 而是<strong>设计一个替你写提示词的系统</strong>。OpenClaw 作者 Peter 6 月初原话: "你不该再用提示词来驱动智能体为你编程了, 应该去设计那些循环来驱动智能体工作" (0:31-0:41)</li>
@@ -68,15 +154,15 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 <li><strong>不要一上来套所有 Loop</strong>: "先挑一件你每周都在重复、而且结果能够自动验证的小事, 把它写成一个 Loop" — <strong>风险小的事先试</strong> (13:14-13:27)</li>
 </ol>
 
-<h2>Section-by-Section Summary</h2>
+<h2 id="h2-2">Section-by-Section Summary</h2>
 
 <div class="section-card">
-<h3>Part 1: 三阶段进化 (Boris 一年回顾) — 1:13-2:28</h3>
+<h3 id="h3-1">Part 1: 三阶段进化 (Boris 一年回顾) — 1:13-2:28</h3>
 <p>Boris (Anthropic 管 Claude Code) 描述他这一年怎么从"逐行 Tab 补全"进化到"只写 Loop"。<strong>关键洞察</strong>: 第三阶段的核心不是"用 AI 更多", 而是<strong>角色转变</strong> — 从 Loop 里打字的那个人变成 Loop 的作者。</p>
 </div>
 
 <div class="section-card">
-<h3>Part 2: Addy Osmani 5 块 + 1 脊柱框架 — 2:33-4:27</h3>
+<h3 id="h3-2">Part 2: Addy Osmani 5 块 + 1 脊柱框架 — 2:33-4:27</h3>
 <p>Addy Osmani 把典型 Loop 系统拆成 5 个组件 + 1 根脊柱:</p>
 <ul>
 <li><strong>心跳</strong> (heartbeat) — 定时触发器, 到点自动跑</li>
@@ -89,23 +175,23 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 </div>
 
 <div class="section-card">
-<h3>Part 3: 流程拼装 + 实战 — 4:29-5:23</h3>
+<h3 id="h3-3">Part 3: 流程拼装 + 实战 — 4:29-5:23</h3>
 <p>典型 loop 一次循环: 早上定时触发 → 分诊 skill 读 CI 失败 + 最近提交 → 每个能处理的问题开独立 work tree + 子智能体修复 → 另一个子智能体对照 skill + 测试审查 → 连接器开 PR + 更新 ticket → 状态文件实时记录, 明天接着跑。<strong>关键观察</strong>: 整个一圈, "你只设计了一次, 中间的每一步, 你一条提示词都没有打"。</p>
 </div>
 
 <div class="section-card">
-<h3>Part 4: /goal 命令演示 (热身) — 5:25-6:50</h3>
+<h3 id="h3-4">Part 4: /goal 命令演示 (热身) — 5:25-6:50</h3>
 <p><code>/goal</code> 是 Claude Code 内置命令: 给一个可判定真假的目标 → 它自己一轮一轮执行 → 每轮结束判断目标达到没 → 达到自动收工。演示: 给目标"用 verysmallwoods research 获取过去资讯, 提取 Google/OpenAI/Anthropic 数据直到凑够 5 条", <strong>不需要每写一条就催它</strong>。</p>
 </div>
 
 <div class="section-card">
-<h3>Part 5: /loop 命令演示 (核心) — 6:52-10:25</h3>
+<h3 id="h3-5">Part 5: /loop 命令演示 (核心) — 6:52-10:25</h3>
 <p><code>/loop</code> 不一样: 按时间表<strong>盲跑</strong>, 到点就把提示词再跑一遍, 不判断完成。这正好是 Osmani 说的"心跳"。演示: 每分钟执行一次定时任务, 用 verysmallwoods research 拉过去 24h 资讯 → 挑出能写深度文的 → 追加到 <code>inbox.md</code> → <code>topic-scorer</code> 子智能体评级 → 写回 inbox。<strong>演示结果</strong>: 第一次循环完成, 6 月 12 号追加了若干话题, 状态文件实时更新, 下一个 tick 接着跑。</p>
 <p><strong>关键 lifecycle 约束</strong>: 会话中 <code>/loop</code> 定时任务<strong>7 天后自动过期</strong>; 提前停用 <code>CronDelete</code>。<strong>这是 Claude Code 的安全机制</strong>, 防止无人看管的 Loop 永久运行。</p>
 </div>
 
 <div class="section-card">
-<h3>Part 6: 4 条 fit-checklist (冷水) — 10:26-11:26</h3>
+<h3 id="h3-6">Part 6: 4 条 fit-checklist (冷水) — 10:26-11:26</h3>
 <p>引用"多数开发者其实还并不需要 agent Loop"那篇文章的 4 条测试:</p>
 <ol>
 <li><strong>重复性</strong> — 每周以上都跑, 一次性活不值得搭</li>
@@ -117,7 +203,7 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 </div>
 
 <div class="section-card">
-<h3>Part 7: 3 层失败警告 + Ralph 案例 — 11:28-12:32</h3>
+<h3 id="h3-7">Part 7: 3 层失败警告 + Ralph 案例 — 11:28-12:32</h3>
 <p><strong>3 层警告</strong>:</p>
 <ol>
 <li><strong>理解差距扩大</strong> — 仓库里有的东西 ≠ 你脑子里真正搞懂的东西</li>
@@ -134,11 +220,11 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 </div>
 
 <div class="section-card">
-<h3>Part 8: 寄语 + 起步建议 — 12:41-13:42</h3>
+<h3 id="h3-8">Part 8: 寄语 + 起步建议 — 12:41-13:42</h3>
 <p>Osmani 寄语: "当那个写 Loop 的人, 别当那个只会按启动键的人"。实操建议: "不要一上来就给所有事情都套上一个 Loop, 先挑一件你每周都在重复、而且结果能够自动验证的小事, 把它写成一个 Loop (就像我刚才那个选题筛选的任务, 这个任务的执行风险还是偏小的)"。<strong>写完 Loop 还要定期验证</strong> — 验证这事永远在你自己手上。</p>
 </div>
 
-<h2>Key Quotes</h2>
+<h2 id="h2-3">Key Quotes</h2>
 
 <blockquote>
 "你不该再用提示词来驱动智能体为你编程了, 应该去设计那些循环来驱动智能体工作" <span class="src">— Peter Steinberger (OpenClaw 作者), 0:31-0:41</span>
@@ -184,7 +270,7 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 "当那个写 Loop 的人, 别当那个只会按启动键的人" <span class="src">— Addy Osmani, 13:32-13:36</span>
 </blockquote>
 
-<h2>Framework → Self-Apply Mapping (8/10 = 80% 触达)</h2>
+<h2 id="h2-4">Framework → Self-Apply Mapping (8/10 = 80% 触达)</h2>
 
 <table>
 <thead>
@@ -216,7 +302,7 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 
 <p><strong>注</strong>: 视频的 4 条 fit-checklist 跟 <code>loop-fit-checklist</code> 100% 吻合, <strong>不需要新建 skill</strong>; Ralph 失败模式已经被 <code>loop-failure-mode-catalog</code> 4 fail mode 覆盖, <strong>不需要新建 skill</strong>; Osmani 寄语跟 <code>human-validation-zones</code> 重复, <strong>不需要新建 skill</strong>。3 缺口都是<strong>深化 / 模板化</strong>方向, 跟 06-15 案例 6 触达模式 (0 ❌ → 100% 全开) 互补, 这次走"1 skill 缺 + 1 stage model 缺 + 1 template 缺"。</p>
 
-<h2>Discussion Questions</h2>
+<h2 id="h2-5">Discussion Questions</h2>
 
 <ol>
 <li><strong>"我现在在哪个阶段" 自评</strong>: 看完这个视频, 你处在 Boris 三阶段中的哪个? (逐行驾驶 / 并行手动 / Loop 作者) — 如果还在"并行手动", 你打算把哪件每周重复 + 结果可自动验证的小事先做成 Loop?</li>
@@ -227,7 +313,7 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 <li><strong>跟 06-15 案例 6 (7clJ8IH784Q AI Agent Loop) 的视角对比</strong>: 那个 Greg Isenberg × Ross Mike 视频的结论是 "Loop = 1×fire, 不是 7×24h", 主推 human-in-the-loop; 这个 01Coder 视频的结论是 "Loop = 写完就让它自己跑, 你只在关键节点验证"。<strong>两种 Loop 哲学的边界在哪?</strong> — 我的猜测: 短决策链 (单文件 fix) 走 1×fire + 人工 review; 长流程任务 (CI 失败自动修复) 走 <code>/loop</code> + 阶段 tripwire</li>
 </ol>
 
-<h2>Cross-Refs (跟 06-15 案例 6 互补视角)</h2>
+<h2 id="h2-6">Cross-Refs (跟 06-15 案例 6 互补视角)</h2>
 
 <div class="cross-ref"><code>loop-fit-checklist</code> v1.0.0 (2026-06-15) — 4-condition gate, <strong>视频 4 条 fit-checklist 100% 吻合</strong></div>
 <div class="cross-ref"><code>loop-failure-mode-catalog</code> v1.0.0 (2026-06-15) — 4 fail mode, <strong>Ralph over-baking = token 烧光 + 输出超 scope 复合</strong></div>
@@ -237,5 +323,50 @@ URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.c
 <div class="cross-ref"><code>paper/ai-agent-loop-greg-isenberg-ross-mike-7clJ8IH784Q</code> — 06-15 案例 6 笔记, Greg/Ross 的 "1×fire" 哲学</div>
 <div class="cross-ref"><code>paper/loop-engineering-theory-addy-osmani</code> — 待建: Osmani 原文章中文摘要</div>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

@@ -149,9 +149,102 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">事件时间线（2026-06）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">OpenAI "Built to Benefit Everyone" 三大目标</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🪤 暂停陷阱（核心洞察）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">☢️ 核武器式检查：AI 反而比核武**更可见**</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">💰 真正难：激励翻转</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Nate 的推演</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 合同类比</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Nate 灵魂问题</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">📢 AI 品牌危机：公众 gap 巨大</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🚨 Cloud Mythos / Fable 下架（6/12）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 意义：跟主线对比</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">👤 普通人怎么办？Nate 的 3 个建议</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ OpenAI 自己的红线</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Patrick 视角：3 个工作关联</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">完整时间线（21 段字幕）</a></li>
+  </ol>
+</aside>
+
 
 <h1>我们可能真的需要停下 AI</h1>
 <p class="subtitle">OpenAI + Anthropic 同周呼吁放慢 — Nate Herk 视角</p>
@@ -165,7 +258,7 @@
 </div>
 
 <div class="hero">
-  <h2>核心论点</h2>
+  <h2 id="h2-1">核心论点</h2>
   <p><b>2026 年 6 月，两家顶级 AI 实验室在同一周分别公开呼吁"放慢 AI 发展"。</b>但 Nate 的关键洞察：<b>"我们要求暂停" ≠ "我们愿意停"。</b>他们都在说<b>"我们停不下来，需要别人建个裁判机构强制所有人一起停"</b>。这是两回事。</p>
 </div>
 
@@ -216,7 +309,7 @@
 
 <!-- TAB 1: TIMELINE -->
 <div class="tab-content active" data-tab-content="timeline">
-  <h2 class="section">事件时间线（2026-06）</h2>
+  <h2 id="h2-2" class="section">事件时间线（2026-06）</h2>
 
   <table>
     <thead>
@@ -253,7 +346,7 @@
 
 <!-- TAB 2: OPENAI -->
 <div class="tab-content" data-tab-content="openai">
-  <h2 class="section">OpenAI "Built to Benefit Everyone" 三大目标</h2>
+  <h2 id="h2-3" class="section">OpenAI "Built to Benefit Everyone" 三大目标</h2>
 
   <table>
     <thead>
@@ -289,7 +382,7 @@
 
 <!-- TAB 3: TRAP -->
 <div class="tab-content" data-tab-content="trap">
-  <h2 class="section">🪤 暂停陷阱（核心洞察）</h2>
+  <h2 id="h2-4" class="section">🪤 暂停陷阱（核心洞察）</h2>
 
   <blockquote>
     "They're both saying <b>we can't stop on our own. We can't give up our lead.</b> So somebody needs to build some sort of group or like a referee that makes all of us stop together."
@@ -326,7 +419,7 @@
 
 <!-- TAB 4: NUKE -->
 <div class="tab-content" data-tab-content="nuke">
-  <h2 class="section">☢️ 核武器式检查：AI 反而比核武**更可见**</h2>
+  <h2 id="h2-5" class="section">☢️ 核武器式检查：AI 反而比核武**更可见**</h2>
 
   <table class="nuke-table">
     <thead>
@@ -370,13 +463,13 @@
 
 <!-- TAB 5: INCENTIVE -->
 <div class="tab-content" data-tab-content="incentive">
-  <h2 class="section">💰 真正难：激励翻转</h2>
+  <h2 id="h2-6" class="section">💰 真正难：激励翻转</h2>
 
   <blockquote>
     "<b>A slowdown only holds if breaking it costs you more than winning ever could.</b>"
   </blockquote>
 
-  <h3>Nate 的推演</h3>
+  <h3 id="h3-1">Nate 的推演</h3>
   <div class="phase-flow" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0;">
     <div class="card" style="flex: 1; min-width: 200px; border-left: 3px solid var(--green);">
       <h4>① 所有国家签条约</h4>
@@ -392,12 +485,12 @@
     </div>
   </div>
 
-  <h3>合同类比</h3>
+  <h3 id="h3-2">合同类比</h3>
   <div class="card">
     <p style="font-size: 1.05rem;">"No matter how bulletproof a contract is, if it covers every single scenario, it's only as good as <b>the person on the other side of it.</b>"</p>
   </div>
 
-  <h3>Nate 灵魂问题</h3>
+  <h3 id="h3-3">Nate 灵魂问题</h3>
   <blockquote>
     "How do you get to a world where <b>the winning move is to respect a slowdown</b> and you actually like think about society and like how can everyone be doing this AI thing together rather than competing?"
   </blockquote>
@@ -405,7 +498,7 @@
 
 <!-- TAB 6: BRAND -->
 <div class="tab-content" data-tab-content="brand">
-  <h2 class="section">📢 AI 品牌危机：公众 gap 巨大</h2>
+  <h2 id="h2-7" class="section">📢 AI 品牌危机：公众 gap 巨大</h2>
 
   <div class="compare">
     <div class="cmp good">
@@ -447,7 +540,7 @@
 
 <!-- TAB 7: MYTHOS -->
 <div class="tab-content" data-tab-content="mythos">
-  <h2 class="section">🚨 Cloud Mythos / Fable 下架（6/12）</h2>
+  <h2 id="h2-8" class="section">🚨 Cloud Mythos / Fable 下架（6/12）</h2>
 
   <div class="warning-card" style="border-left: 3px solid var(--red); background: var(--bg-card); border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem; margin: 0.8rem 0;">
     <h4 style="color: var(--red);">关键事件</h4>
@@ -455,7 +548,7 @@
     <p style="color: var(--text-dim); font-size: 0.9rem;">Anthropic 声明"会恢复" · 时间：6/12 · 视频录制时事件</p>
   </div>
 
-  <h3>意义：跟主线对比</h3>
+  <h3 id="h3-4">意义：跟主线对比</h3>
   <table>
     <thead>
       <tr><th>维度</th><th>OpenAI/Anthropic 要求</th><th>Mythos 下架</th></tr>
@@ -493,7 +586,7 @@
 
 <!-- TAB 8: YOU -->
 <div class="tab-content" data-tab-content="you">
-  <h2 class="section">👤 普通人怎么办？Nate 的 3 个建议</h2>
+  <h2 id="h2-9" class="section">👤 普通人怎么办？Nate 的 3 个建议</h2>
 
   <blockquote>
     "The only thing that you fully control is <b>how good you get at this stuff and what you know about it.</b>"
@@ -533,7 +626,7 @@
     </div>
   </div>
 
-  <h3>OpenAI 自己的红线</h3>
+  <h3 id="h3-5">OpenAI 自己的红线</h3>
   <blockquote>
     "The human role that stays valuable is <b>judgment, taste, deciding what's actually worth doing.</b>"
   </blockquote>
@@ -541,7 +634,7 @@
     "Because the moment everybody's got a personal AGI, the <b>tool stops being the edge.</b>"
   </blockquote>
 
-  <h3>Patrick 视角：3 个工作关联</h3>
+  <h3 id="h3-6">Patrick 视角：3 个工作关联</h3>
   <div class="card-grid">
     <div class="card">
       <h4>🔗 与 OpenSwarm / 本地 LLM</h4>
@@ -560,7 +653,7 @@
 
 <!-- TAB 9: TIMELINE -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">完整时间线（21 段字幕）</h2>
+  <h2 id="h2-10" class="section">完整时间线（21 段字幕）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -675,5 +768,50 @@
   });
 </script>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

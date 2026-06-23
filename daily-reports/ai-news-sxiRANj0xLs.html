@@ -27,9 +27,94 @@ tr:nth-child(even) { background: #131313; }
 .q-section { background: #1a1a1a; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
 .cross-ref { background: #0f1a1f; border-left: 3px solid #4a9eff; padding: 0.7rem 1rem; margin: 0.6rem 0; border-radius: 0 6px 6px 0; font-size: 0.88rem; }
 .cross-ref code { color: #4a9eff; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔑 Key Takeaways (10)</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">📂 Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Part 1: 开源 motion transfer SOTA — Scale </a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 2: ZAI GLM 5.2 (3:01 - 9:00)</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 3: Kimi (Moonshot) 新模型 (3:15 - 4:30</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💬 Key Quotes</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">❓ Discussion Questions</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🔗 Cross-References (Patrick 已有 skills)</a></li>
+  </ol>
+</aside>
+
 
 <h1>AI 周报 2026-06: Claude Fable 5 上线一周被砍 + 7 大开源/产品发布</h1>
 
@@ -44,7 +129,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="highlight-box">
-<h2 style="margin-top: 0; border: none;">🔑 Key Takeaways (10)</h2>
+<h2 id="h2-1" style="margin-top: 0; border: none;">🔑 Key Takeaways (10)</h2>
 <ol class="takeaway-list">
 <li><b>Anthropic Claude Fable 5 上线不到 1 周被砍</b> — 0:51 提及,背后原因未在视频展开,需独立查 Anthropic changelog</li>
 <li><b>开源 motion transfer SOTA: "Scale 2"</b> — 0:51 起,reference video → 任意角色视频,支持多角色非人形态</li>
@@ -59,10 +144,10 @@ tr:nth-child(even) { background: #131313; }
 </ol>
 </div>
 
-<h2>📂 Section-by-Section Summary</h2>
+<h2 id="h2-2">📂 Section-by-Section Summary</h2>
 
 <div class="section">
-<h3>Part 1: 开源 motion transfer SOTA — Scale 2 <span class="ts">(0:48 - 3:00)</span></h3>
+<h3 id="h3-1">Part 1: 开源 motion transfer SOTA — Scale 2 <span class="ts">(0:48 - 3:00)</span></h3>
 <ul>
 <li><b>核心</b>: 用 reference video 提取动作,迁移到任意目标视频(角色/动物/非人形态都行)</li>
 <li><b>亮点</b>: 多角色动作可同时迁移;支持长 video;非人形态</li>
@@ -72,7 +157,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 2: ZAI GLM 5.2 <span class="ts">(3:01 - 9:00)</span></h3>
+<h3 id="h3-2">Part 2: ZAI GLM 5.2 <span class="ts">(3:01 - 9:00)</span></h3>
 <ul>
 <li><b>定位</b>: "quietly drops" = 不高调,但作者认为是当周最强开源 LLM 之一</li>
 <li><b>作者原话</b>: "my favorite open source lab" — ZAI 一直是中文 LLM 开源主力 (GLM-4 / ChatGLM 系列)</li>
@@ -83,7 +168,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 3: Kimi (Moonshot) 新模型 <span class="ts">(3:15 - 4:30 + 18:11 - 19:30)</span></h3>
+<h3 id="h3-3">Part 3: Kimi (Moonshot) 新模型 <span class="ts">(3:15 - 4:30 + 18:11 - 19:30)</span></h3>
 <ul>
 <li><b>3:15 段</b>: "absolute beast" — 新模型,具体规格未细说</li>
 <li><b>18:11 段</b>: Kimi K2.6 提及,edging "very close to" 闭源 SOTA</li>
@@ -93,7 +178,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 4: Google 两连发 <span class="ts">(9:04 - 18:00)</span></h3>
+<h3 id="h3-4">Part 4: Google 两连发 <span class="ts">(9:04 - 18:00)</span></h3>
 <ul>
 <li><b>9:04 起</b>: "incredibly fast open source model" — 推测是 Gemma 3 / Gemini Flash 变体</li>
 <li><b>Realtime translator</b>: 70+ 语言,免费,实时</li>
@@ -103,7 +188,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 5: Minimax M2 开源 <span class="ts">(22:20 - 24:00)</span></h3>
+<h3 id="h3-5">Part 5: Minimax M2 开源 <span class="ts">(22:20 - 24:00)</span></h3>
 <ul>
 <li><b>核心</b>: "sparse attention" + "incredibly efficient architecture"</li>
 <li><b>本地可跑</b>: 作者称可在消费级硬件跑</li>
@@ -113,7 +198,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 6: 4D Full-Body Avatars <span class="ts">(预告段 + 24:00)</span></h3>
+<h3 id="h3-6">Part 6: 4D Full-Body Avatars <span class="ts">(预告段 + 24:00)</span></h3>
 <ul>
 <li><b>24:12 段</b>: "is fairly efficient" — 4D avatar 生成 pipeline</li>
 <li><b>应用</b>: 视频会议 / 虚拟主播 / game NPC</li>
@@ -123,7 +208,7 @@ tr:nth-child(even) { background: #131313; }
 </div>
 
 <div class="section">
-<h3>Part 7: 3D 模型生成 + TTS <span class="ts">(多段穿插)</span></h3>
+<h3 id="h3-7">Part 7: 3D 模型生成 + TTS <span class="ts">(多段穿插)</span></h3>
 <ul>
 <li><b>3D generators</b>: 多个,支持物理 simulation-ready 输出</li>
 <li><b>TTS</b>: "top tier" speech generator,跟 ElevenLabs / Cartesia / OpenAI TTS 竞争</li>
@@ -131,7 +216,7 @@ tr:nth-child(even) { background: #131313; }
 </ul>
 </div>
 
-<h2>💬 Key Quotes</h2>
+<h2 id="h2-3">💬 Key Quotes</h2>
 <div class="q-section">
 <blockquote>
 "Anthropic releases their best model, Claude Fable 5, but then it also gets killed in less than a week."
@@ -151,7 +236,7 @@ tr:nth-child(even) { background: #131313; }
 </blockquote>
 </div>
 
-<h2>❓ Discussion Questions</h2>
+<h2 id="h2-4">❓ Discussion Questions</h2>
 <ol>
 <li>Claude Fable 5 上线 1 周内被砍 — 是 safety / capability / business 哪个原因? 影响 Anthropic 后续 model 发布节奏?</li>
 <li>ZAI GLM 5.2 / Kimi K2.6 / Google Gemma 3 / Minimax M2 — 哪个是 2026 H2 中文 LLM 开源 SOTA?</li>
@@ -160,7 +245,7 @@ tr:nth-child(even) { background: #131313; }
 <li>Sparse attention (DeepSeek + Minimax) 跟 MoE + dense attention (ZAI GLM) 哪个是 2026 H2 主流?</li>
 </ol>
 
-<h2>🔗 Cross-References (Patrick 已有 skills)</h2>
+<h2 id="h2-5">🔗 Cross-References (Patrick 已有 skills)</h2>
 <div class="cross-ref"><code>autonomous-ai-agents/fable-vs-hermes-capability-gap</code> v1.0.0 — Claude Fable 5 被砍事件追踪</div>
 <div class="cross-ref"><code>media/youtube-content</code> v1.0.0 — 视频转录 pipeline</div>
 <div class="cross-ref"><code>mlops/llama-cpp</code> v1.0.0 — Minimax M2 / ZAI GLM 本地 GGUF 部署</div>
@@ -169,5 +254,50 @@ tr:nth-child(even) { background: #131313; }
 <div class="cross-ref"><code>creative/comfyui</code> v1.0.0 — 4D avatar / 3D model 生成下游</div>
 <div class="cross-ref"><code>media/audiocraft-audio-generation</code> v1.0.0 — TTS 替代品评估</div>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

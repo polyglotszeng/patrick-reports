@@ -168,9 +168,130 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🧬 Loop 解构</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 2 大核心元素</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 3 种 Trigger</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 2 种 Goal</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">⭐ ① sub50ms page load loop（Matt 最爱）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Objective</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 完整 Prompt</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 配置</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">📚 ② Overnight docs sweep</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 配置</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 核心价值</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🏛️ ③ Architecture satisfaction loop（Peter Steinb</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 配置</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 实战节奏</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">📝 ④ Logging coverage loop</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 配置</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 联动 ⑤ Production error sweep</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🚨 ⑤ Production error sweep</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ 配置</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 5 步自动修复</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🔍 ⑥ SEO + GEO visibility loop</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ 配置</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ 8 大 SEO + GEO 维度</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🎯 ⑦ Full product evaluation loop</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ 核心机制</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ Matt 实战示例</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⚠️ 2 大 Caveat</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ Caveat 1：Not for Building Features</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ Matt 自己反例（Excel clone 跑几天）</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ Caveat 2：Loops Are Expensive</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-32" data-toc-target="h3-32">↳ 长期</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（30 段精选）</a></li>
+  </ol>
+</aside>
+
 
 <h1>7 Loops You NEED to Try</h1>
 <p class="subtitle">Matthew Berman — Loops = 最大的 AI 编码解锁</p>
@@ -184,7 +305,7 @@
 </div>
 
 <div class="hero">
-  <h2>🔥 核心论点</h2>
+  <h2 id="h2-1">🔥 核心论点</h2>
   <p><b>"Loops are emerging as the single biggest unlock for people building software with AI right now."</b></p>
   <p style="margin-top: 0.6rem;"><b>Loop = Trigger + Goal</b>（2 元素）— <b>3 种 trigger</b> + <b>2 种 goal</b></p>
   <p style="margin-top: 0.4rem;"><b>"Loops are the frontier of AI workloads."</b></p>
@@ -241,9 +362,9 @@
 
 <!-- TAB 1: ANATOMY -->
 <div class="tab-content active" data-tab-content="anatomy">
-  <h2 class="section">🧬 Loop 解构</h2>
+  <h2 id="h2-2" class="section">🧬 Loop 解构</h2>
 
-  <h3>2 大核心元素</h3>
+  <h3 id="h3-1">2 大核心元素</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
       <h4>① Trigger</h4>
@@ -257,7 +378,7 @@
     </div>
   </div>
 
-  <h3>3 种 Trigger</h3>
+  <h3 id="h3-2">3 种 Trigger</h3>
   <table>
     <thead>
       <tr><th>类型</th><th>说明</th><th>自动化</th></tr>
@@ -281,7 +402,7 @@
     </tbody>
   </table>
 
-  <h3>2 种 Goal</h3>
+  <h3 id="h3-3">2 种 Goal</h3>
   <div class="compare">
     <div class="cmp good">
       <h4>✅ Verifiable</h4>
@@ -310,20 +431,20 @@
 
 <!-- TAB 2: L1 -->
 <div class="tab-content" data-tab-content="l1">
-  <h2 class="section">⭐ ① sub50ms page load loop（Matt 最爱）</h2>
+  <h2 id="h2-3" class="section">⭐ ① sub50ms page load loop（Matt 最爱）</h2>
 
   <div class="card" style="border-left: 3px solid var(--accent);">
-    <h3>Objective</h3>
+    <h3 id="h3-4">Objective</h3>
     <p>"<b>Get every single page load in my app under 50 milliseconds.</b>"</p>
   </div>
 
-  <h3>完整 Prompt</h3>
+  <h3 id="h3-5">完整 Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Continue optimizing the code for speed. After each significant change,
 measure page load performance across every page under the same
 repeatable test conditions. Continue until every page loads in under
 50 milliseconds.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-6">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>manual（也可 schedule / on PR open）</td></tr>
@@ -333,7 +454,7 @@ repeatable test conditions. Continue until every page loads in under
     </tbody>
   </table>
 
-  <h3>实战结果</h3>
+  <h3 id="h3-7">实战结果</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>✅ 50 min 跑完</h4>
@@ -352,15 +473,15 @@ repeatable test conditions. Continue until every page loads in under
 
 <!-- TAB 3: L2 -->
 <div class="tab-content" data-tab-content="l2">
-  <h2 class="section">📚 ② Overnight docs sweep</h2>
+  <h2 id="h2-4" class="section">📚 ② Overnight docs sweep</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-8">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Each night, review the codebase in full and make sure all
 documentation reflects the latest changes from the previous day.
 Update the documentation as needed, then open a pull request
 with those changes.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-9">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>schedule（每晚）</td></tr>
@@ -369,7 +490,7 @@ with those changes.</code></pre>
     </tbody>
   </table>
 
-  <h3>核心价值</h3>
+  <h3 id="h3-10">核心价值</h3>
   <div class="card" style="border-left: 3px solid var(--green);">
     <p>🎯 <b>永远最新文档</b></p>
     <p>每天 commit → 晚上 review → 自动 PR</p>
@@ -378,12 +499,12 @@ with those changes.</code></pre>
 
 <!-- TAB 4: L3 -->
 <div class="tab-content" data-tab-content="l3">
-  <h2 class="section">🏛️ ③ Architecture satisfaction loop（Peter Steinberger 用）</h2>
+  <h2 id="h2-5" class="section">🏛️ ③ Architecture satisfaction loop（Peter Steinberger 用）</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-11">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Refactor until you are happy with the architecture.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-12">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>manual / schedule</td></tr>
@@ -392,7 +513,7 @@ with those changes.</code></pre>
     </tbody>
   </table>
 
-  <h3>实战节奏</h3>
+  <h3 id="h3-13">实战节奏</h3>
   <div class="card" style="border-left: 3px solid var(--blue);">
     <ul>
       <li>白天 deploy 一堆 code</li>
@@ -404,13 +525,13 @@ with those changes.</code></pre>
 
 <!-- TAB 5: L4 -->
 <div class="tab-content" data-tab-content="l4">
-  <h2 class="section">📝 ④ Logging coverage loop</h2>
+  <h2 id="h2-6" class="section">📝 ④ Logging coverage loop</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-14">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Review the systems logging and add missing coverage until
 every important path produces useful tested logs.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-15">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>manual</td></tr>
@@ -418,7 +539,7 @@ every important path produces useful tested logs.</code></pre>
     </tbody>
   </table>
 
-  <h3>联动 ⑤ Production error sweep</h3>
+  <h3 id="h3-16">联动 ⑤ Production error sweep</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <p>这 2 个 loop 配合 = <b>威力 × 2</b>：</p>
     <ul>
@@ -430,16 +551,16 @@ every important path produces useful tested logs.</code></pre>
 
 <!-- TAB 6: L5 -->
 <div class="tab-content" data-tab-content="l5">
-  <h2 class="section">🚨 ⑤ Production error sweep</h2>
+  <h2 id="h2-7" class="section">🚨 ⑤ Production error sweep</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-17">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Every single night, review production logs for errors.
 If you find an actionable issue, trace it to its root cause,
 fix it, verify the fix, and open a pull request.
 Then, ping me in Slack with the findings and PR link.
 If no actionable errors are present, ping me with that result instead.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-18">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>schedule（每晚）</td></tr>
@@ -447,7 +568,7 @@ If no actionable errors are present, ping me with that result instead.</code></p
     </tbody>
   </table>
 
-  <h3>5 步自动修复</h3>
+  <h3 id="h3-19">5 步自动修复</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--blue);">
       <h4>① Review</h4>
@@ -474,16 +595,16 @@ If no actionable errors are present, ping me with that result instead.</code></p
 
 <!-- TAB 7: L6 -->
 <div class="tab-content" data-tab-content="l6">
-  <h2 class="section">🔍 ⑥ SEO + GEO visibility loop</h2>
+  <h2 id="h2-8" class="section">🔍 ⑥ SEO + GEO visibility loop</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-20">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Run an SEO GEO audit across crawlability, indexation, page intent,
 titles, internal links, structured data, source citations, and
 answer first content. Rank the gaps. Fix the highest leverage
 issues. Rerun the same crawl. Repeat until no critical
 technical issues remain.</code></pre>
 
-  <h3>配置</h3>
+  <h3 id="h3-21">配置</h3>
   <table>
     <tbody>
       <tr><td><b>Trigger</b></td><td>schedule（<b>每周 1 次</b>）</td></tr>
@@ -491,7 +612,7 @@ technical issues remain.</code></pre>
     </tbody>
   </table>
 
-  <h3>8 大 SEO + GEO 维度</h3>
+  <h3 id="h3-22">8 大 SEO + GEO 维度</h3>
   <div class="card-grid">
     <div class="card"><h4>crawlability</h4><p>可爬</div>
     <div class="card"><h4>indexation</h4><p>可索引</div>
@@ -509,9 +630,9 @@ technical issues remain.</code></pre>
 
 <!-- TAB 8: L7 -->
 <div class="tab-content" data-tab-content="l7">
-  <h2 class="section">🎯 ⑦ Full product evaluation loop</h2>
+  <h2 id="h2-9" class="section">🎯 ⑦ Full product evaluation loop</h2>
 
-  <h3>Prompt</h3>
+  <h3 id="h3-23">Prompt</h3>
   <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text-dim);"><code>Create n realistic scenarios covering every major capability.
 Before testing, define clear success criteria and choose a
 consistent evaluation method such as past fail checks or a
@@ -521,7 +642,7 @@ of anything that does not meet the criteria. Rerun the affected
 scenarios and then rerun the complete test. Continue until
 every scenario meets the original quality bar.</code></pre>
 
-  <h3>核心机制</h3>
+  <h3 id="h3-24">核心机制</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
       <h4>N scenarios</h4>
@@ -541,12 +662,12 @@ every scenario meets the original quality bar.</code></pre>
     </div>
   </div>
 
-  <h3>Matt 实战示例</h3>
+  <h3 id="h3-25">Matt 实战示例</h3>
   <div class="card" style="border-left: 3px solid var(--green);">
     <p>"<b>Come up with 100 different use cases, wide ranging use cases for asking the LLM questions and judge whether the response is good enough. If it's not, iterate and improve it.</b>"</p>
   </div>
 
-  <h3>代价</h3>
+  <h3 id="h3-26">代价</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <p>"<b>It takes like 12 hours at times or more</b>, but it really does come up with very good optimizations."</p>
   </div>
@@ -554,21 +675,21 @@ every scenario meets the original quality bar.</code></pre>
 
 <!-- TAB 9: CAVEATS -->
 <div class="tab-content" data-tab-content="caveats">
-  <h2 class="section">⚠️ 2 大 Caveat</h2>
+  <h2 id="h2-10" class="section">⚠️ 2 大 Caveat</h2>
 
-  <h3>Caveat 1：Not for Building Features</h3>
+  <h3 id="h3-27">Caveat 1：Not for Building Features</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <p>"<b>I have not really found a way to build features with loops.</b> You cannot say loop until we build a full permissioning system. I mean, you technically can, but I'm not doing it because I don't know which direction the AI is going to go. I don't know what features it's going to build. I don't know when or how it's going to decide which features are worthwhile versus which are not."</p>
   </div>
 
-  <h3>Matt 自己反例（Excel clone 跑几天）</h3>
+  <h3 id="h3-28">Matt 自己反例（Excel clone 跑几天）</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <p>"<b>I told the model as a goal to clone Excel feature parity and it was running for days and days and days until I finally stopped it.</b>"</p>
     <p style="margin-top: 0.4rem;">"It actually opened up Excel on my computer, used computer use, and literally clicked through and made sure that it had feature par."</p>
     <p style="margin-top: 0.4rem; color: var(--red); font-weight: 600;">"<b>I do not recommend doing that.</b>"</p>
   </div>
 
-  <h3>Caveat 2：Loops Are Expensive</h3>
+  <h3 id="h3-29">Caveat 2：Loops Are Expensive</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <p>"<b>Loops are very expensive.</b> They are churning through tokens autonomously until they hit the goal. Some of these agents might run for 10 minutes. Some of them can run for <b>days</b>."</p>
     <p style="margin-top: 0.4rem;">"For you <b>token maxers</b> out there, loops are fantastic. But for those of you who don't have an unlimited token budget, <b>this might not work for you today</b>."</p>
@@ -577,7 +698,7 @@ every scenario meets the original quality bar.</code></pre>
 
 <!-- TAB 10: RELATED -->
 <div class="tab-content" data-tab-content="related">
-  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+  <h2 id="h2-11" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
@@ -669,9 +790,9 @@ every scenario meets the original quality bar.</code></pre>
 
 <!-- TAB 11: ROUTE -->
 <div class="tab-content" data-tab-content="route">
-  <h2 class="section">🗺️ Patrick 实战路线</h2>
+  <h2 id="h2-12" class="section">🗺️ Patrick 实战路线</h2>
 
-  <h3>立即可做（1 周）</h3>
+  <h3 id="h3-30">立即可做（1 周）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>build 7 loops（copy Matt B library）— <b>sub50ms</b> 最优先</li>
     <li>先跑 1 个 verifiable loop（sub50ms page load）· 观察 50 min</li>
@@ -679,7 +800,7 @@ every scenario meets the original quality bar.</code></pre>
     <li>set safety budget（30 min cap，Matt B 自己都警告）</li>
   </ol>
 
-  <h3>中期（1 月）</h3>
+  <h3 id="h3-31">中期（1 月）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>build 7 loops for OpenSwarm（每个 agent 一个 loop）</li>
     <li>loop + cue 融合（Matt P cue 系统 + Matt B goal）</li>
@@ -687,7 +808,7 @@ every scenario meets the original quality bar.</code></pre>
     <li>hybrid-llm-router + loop（T0/T1 跑 loop · 节省 token）</li>
   </ol>
 
-  <h3>长期</h3>
+  <h3 id="h3-32">长期</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>7 loops for Patrick's own products（Hybrid router / OpenSquilla / K1 / Pi 等）</li>
     <li>loop + safety framework（Matt White + Moon 哲学）</li>
@@ -698,7 +819,7 @@ every scenario meets the original quality bar.</code></pre>
 
 <!-- TAB 12: QUOTES -->
 <div class="tab-content" data-tab-content="quotes">
-  <h2 class="section">💬 关键金句库</h2>
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
 
   <div class="quote-grid">
     <div class="quote-card">
@@ -766,7 +887,7 @@ every scenario meets the original quality bar.</code></pre>
 
 <!-- TAB 13: TIME -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">⏱️ 关键时间戳（30 段精选）</h2>
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（30 段精选）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -927,5 +1048,50 @@ every scenario meets the original quality bar.</code></pre>
   });
 </script>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>

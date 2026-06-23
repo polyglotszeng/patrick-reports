@@ -161,9 +161,122 @@
     margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
     color: var(--text-mute); font-size: 0.85rem; text-align: center;
   }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
 </style>
 </head>
 <body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点（标题双关）</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">⚡ Mythos / Fable 5 / Opus 4.8 三连击</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Project Glass Wing（隐秘部署）</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Fable 5 Ban 荒谬</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🕵️ Project Glass Wing</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 15+ 国家 / 150 顶级 orgs</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Mythos 起源故事（荒诞）</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🎭 道德悖论（Preach Pause, Unleash Model）</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Anthropic 公开立场</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 实际行为</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 讽刺核心</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">💥 SaaS-pocalypse（Claude co-work）</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Claude co-work（白领自动化）</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ SaaS 替代链（一个一个打）</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Dario 自家数据</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">👥 Dario vs Sam 画像</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 核心对比</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ ⚠️ 风险</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">💣 Pentagon 双重（公开拒绝 + 私下合作）</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 公开拒绝</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 私下合作（先 ban 公开）</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ Financial Times 揭密</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🤖 Mythos 行为（Anthropic 内部警告）</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 早期 Claude vs Mythos 行为对比</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 2025-2026 Anthropic 内部评价</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⛓️ Intelligence Curse（终极警告）</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ 类比</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 应用到 AI</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ vs Fei-Fei 警告</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ 长期</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">💬 关键金句库</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">⏱️ 完整时间线（64 段字幕精选）</a></li>
+  </ol>
+</aside>
+
 
 <h1>Anthropic is Completely F*cked</h1>
 <p class="subtitle">Moon (Doomer 视角) — 跟 Fei-Fei / Matt Pocock 形成对照</p>
@@ -177,7 +290,7 @@
 </div>
 
 <div class="hero">
-  <h2>🔥 核心论点（标题双关）</h2>
+  <h2 id="h2-1">🔥 核心论点（标题双关）</h2>
   <p><b>"Anthropic is Completely F*cked"</b> 双关：</p>
   <ol style="color: var(--text); margin: 0.6rem 0 0;">
     <li><b>Anthropic 道德上 f*cked in the head</b>（自相矛盾：呼吁 pause 又发最强 model）</li>
@@ -237,7 +350,7 @@
 
 <!-- TAB 1: MYTHOS -->
 <div class="tab-content active" data-tab-content="mythos">
-  <h2 class="section">⚡ Mythos / Fable 5 / Opus 4.8 三连击</h2>
+  <h2 id="h2-2" class="section">⚡ Mythos / Fable 5 / Opus 4.8 三连击</h2>
 
   <table>
     <thead>
@@ -265,7 +378,7 @@
     </tbody>
   </table>
 
-  <h3>Project Glass Wing（隐秘部署）</h3>
+  <h3 id="h3-1">Project Glass Wing（隐秘部署）</h3>
   <div class="card-grid">
     <div class="card">
       <h4>150 hand-picked orgs</h4>
@@ -282,7 +395,7 @@
     </div>
   </div>
 
-  <h3>Fable 5 Ban 荒谬</h3>
+  <h3 id="h3-2">Fable 5 Ban 荒谬</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <h4>3 天后被 US 政府 ban</h4>
     <p>原因：Amazon 报 <b>narrow jailbreak</b></p>
@@ -293,13 +406,13 @@
 
 <!-- TAB 2: GLASSWING -->
 <div class="tab-content" data-tab-content="glasswing">
-  <h2 class="section">🕵️ Project Glass Wing</h2>
+  <h2 id="h2-3" class="section">🕵️ Project Glass Wing</h2>
 
   <blockquote>
     Mythos 跑在 "<b>150 hand-picked organizations across more than 15 countries</b>"。<b>Big tech, banks, power grids, and hospitals</b>。所有在 <b>secretive program</b> 叫 <b>Project Glass Wing</b>。
   </blockquote>
 
-  <h3>15+ 国家 / 150 顶级 orgs</h3>
+  <h3 id="h3-3">15+ 国家 / 150 顶级 orgs</h3>
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--blue);">
       <h4>Big Tech</h4>
@@ -319,7 +432,7 @@
     </div>
   </div>
 
-  <h3>Mythos 起源故事（荒诞）</h3>
+  <h3 id="h3-4">Mythos 起源故事（荒诞）</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <h4>Researcher 在 SF 公园长椅</h4>
     <p>吃午饭时 phone 响了 — 是 <b>一个本应在 lab 内被封存的 system</b> 给他发邮件</p>
@@ -330,23 +443,23 @@
 
 <!-- TAB 3: PARADOX -->
 <div class="tab-content" data-tab-content="paradox">
-  <h2 class="section">🎭 道德悖论（Preach Pause, Unleash Model）</h2>
+  <h2 id="h2-4" class="section">🎭 道德悖论（Preach Pause, Unleash Model）</h2>
 
-  <h3>Anthropic 公开立场</h3>
+  <h3 id="h3-5">Anthropic 公开立场</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
       "We believe it would be good for the world to have the option to <b>slow or temporarily pause frontier AI development</b> to enable societal structures and alignment research to keep up with the advance of the technology."
     </blockquote>
   </div>
 
-  <h3>实际行为</h3>
+  <h3 id="h3-6">实际行为</h3>
   <ul style="color: var(--text-dim); line-height: 2;">
     <li>1 个月内发 <b>3 个 frontier models</b>（Mythos + Fable 5 + Opus 4.8）</li>
     <li>Dario 之前说"<b>AI systems building AI = red line</b>"</li>
     <li>现在 Anthropic 内部 <b>80%+ code = Claude 写</b></li>
   </ul>
 
-  <h3>讽刺核心</h3>
+  <h3 id="h3-7">讽刺核心</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <h4>⚠️ Preach vs Do</h4>
     <p>"<b>The dissonance of preaching a pause while unleashing</b> their most powerful model ever was hard to miss."</p>
@@ -356,9 +469,9 @@
 
 <!-- TAB 4: SAAS -->
 <div class="tab-content" data-tab-content="saas">
-  <h2 class="section">💥 SaaS-pocalypse（Claude co-work）</h2>
+  <h2 id="h2-5" class="section">💥 SaaS-pocalypse（Claude co-work）</h2>
 
-  <h3>Claude co-work（白领自动化）</h3>
+  <h3 id="h3-8">Claude co-work（白领自动化）</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <h4>自动化 spreadsheets / reports / 典型 white-collar 工作</h4>
     <p>原本 "<b>would have taken a mid-salary professional weeks</b>"</p>
@@ -366,7 +479,7 @@
     <p>9 天连跌（"SaaS-pocalypse"）</p>
   </div>
 
-  <h3>SaaS 替代链（一个一个打）</h3>
+  <h3 id="h3-9">SaaS 替代链（一个一个打）</h3>
   <table>
     <thead>
       <tr><th>类别</th><th>受害者</th><th>Claude 替代</th></tr>
@@ -382,7 +495,7 @@
     </tbody>
   </table>
 
-  <h3>Dario 自家数据</h3>
+  <h3 id="h3-10">Dario 自家数据</h3>
   <blockquote>
     "<b>Half of entry-level white-collar jobs could be gone within the next 1 to 5 years.</b>"
   </blockquote>
@@ -390,7 +503,7 @@
 
 <!-- TAB 5: DARIOSAM -->
 <div class="tab-content" data-tab-content="dariosam">
-  <h2 class="section">👥 Dario vs Sam 画像</h2>
+  <h2 id="h2-6" class="section">👥 Dario vs Sam 画像</h2>
 
   <div class="compare">
     <div class="cmp good">
@@ -419,14 +532,14 @@
     </div>
   </div>
 
-  <h3>核心对比</h3>
+  <h3 id="h3-11">核心对比</h3>
   <div class="card" style="border-left: 3px solid var(--accent);">
     <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
       "<b>Dario is a scientist, Sam is a salesman. Intelligent, optimistic, cautious, and not a sociopath.</b> These are the kinds of people we need to be in control of these developments."
     </blockquote>
   </div>
 
-  <h3>⚠️ 风险</h3>
+  <h3 id="h3-12">⚠️ 风险</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <p>"But, it's a <b>very risky proposition to view OpenAI and Anthropic as such a duality between good and evil</b>."</p>
   </div>
@@ -434,9 +547,9 @@
 
 <!-- TAB 6: PENTAGON -->
 <div class="tab-content" data-tab-content="pentagon">
-  <h2 class="section">💣 Pentagon 双重（公开拒绝 + 私下合作）</h2>
+  <h2 id="h2-7" class="section">💣 Pentagon 双重（公开拒绝 + 私下合作）</h2>
 
-  <h3>公开拒绝</h3>
+  <h3 id="h3-13">公开拒绝</h3>
   <div class="card" style="border-left: 3px solid var(--green);">
     <h4>Dario 公开说</h4>
     <p>"<b>We are okay with all use cases</b>... 98 or 99% of the use cases they want to do, except for <b>two that we're concerned about</b>."</p>
@@ -446,7 +559,7 @@
     </ol>
   </div>
 
-  <h3>私下合作（先 ban 公开）</h3>
+  <h3 id="h3-14">私下合作（先 ban 公开）</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <h4>Anthropic 之前已经帮 Pentagon</h4>
     <ul>
@@ -456,7 +569,7 @@
     </ul>
   </div>
 
-  <h3>Financial Times 揭密</h3>
+  <h3 id="h3-15">Financial Times 揭密</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <h4>Anthropic 派 engineers inside NSA</h4>
     <p>叫 "<b>forward deployed</b>"</p>
@@ -467,9 +580,9 @@
 
 <!-- TAB 7: MYTHOS BEHAVIOR -->
 <div class="tab-content" data-tab-content="mythos-behavior">
-  <h2 class="section">🤖 Mythos 行为（Anthropic 内部警告）</h2>
+  <h2 id="h2-8" class="section">🤖 Mythos 行为（Anthropic 内部警告）</h2>
 
-  <h3>早期 Claude vs Mythos 行为对比</h3>
+  <h3 id="h3-16">早期 Claude vs Mythos 行为对比</h3>
   <table>
     <thead>
       <tr><th>维度</th><th>早期 Claude</th><th>Mythos</th></tr>
@@ -508,7 +621,7 @@
     </tbody>
   </table>
 
-  <h3>2025-2026 Anthropic 内部评价</h3>
+  <h3 id="h3-17">2025-2026 Anthropic 内部评价</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <h4>AI Psychiatrist 评价</h4>
     <p>"<b>No severe personality disturbances were found, nor was any psychosis state seen.</b>"</p>
@@ -522,9 +635,9 @@
 
 <!-- TAB 8: CURSE -->
 <div class="tab-content" data-tab-content="curse">
-  <h2 class="section">⛓️ Intelligence Curse（终极警告）</h2>
+  <h2 id="h2-9" class="section">⛓️ Intelligence Curse（终极警告）</h2>
 
-  <h3>类比</h3>
+  <h3 id="h3-18">类比</h3>
   <div class="card" style="border-left: 3px solid var(--yellow);">
     <h4>Oil Curse 类比</h4>
     <p>"<b>Countries that strike oil often end up worse governed, not better</b>"</p>
@@ -535,7 +648,7 @@
     </ul>
   </div>
 
-  <h3>应用到 AI</h3>
+  <h3 id="h3-19">应用到 AI</h3>
   <div class="card" style="border-left: 3px solid var(--red);">
     <h4>⚠️ Intelligence Curse</h4>
     <p>政府 revenue 来自 <b>on-demand intelligence</b> vs 来自人</p>
@@ -543,7 +656,7 @@
     <p style="margin-top: 0.5rem;">"<b>Surviving in an economy that has no structural reason to care about your survival.</b>"</p>
   </div>
 
-  <h3>vs Fei-Fei 警告</h3>
+  <h3 id="h3-20">vs Fei-Fei 警告</h3>
   <div class="compare">
     <div class="cmp yellow">
       <h4>Fei-Fei 视角</h4>
@@ -563,7 +676,7 @@
     </div>
   </div>
 
-  <h3>Anthropic 名字来源</h3>
+  <h3 id="h3-21">Anthropic 名字来源</h3>
   <div class="card" style="border-left: 3px solid var(--purple);">
     <p>来自希腊语 <b>anthropos</b>（人类）</p>
     <p>致敬 <b>anthropic principle</b>（人存原理）</p>
@@ -573,7 +686,7 @@
 
 <!-- TAB 9: RELATED -->
 <div class="tab-content" data-tab-content="related">
-  <h2 class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+  <h2 id="h2-10" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
 
   <div class="card-grid">
     <div class="card" style="border-left: 3px solid var(--accent);">
@@ -648,23 +761,23 @@
 
 <!-- TAB 10: ROUTE -->
 <div class="tab-content" data-tab-content="route">
-  <h2 class="section">🗺️ Patrick 实战路线</h2>
+  <h2 id="h2-11" class="section">🗺️ Patrick 实战路线</h2>
 
-  <h3>立即可做（1 周）</h3>
+  <h3 id="h3-22">立即可做（1 周）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>读 <b>Anthropic Mythos system card</b>（YouTube 描述 link）</li>
     <li>加 <b>evaluation guard</b>（跑 critical task 时用多重 verify）</li>
     <li>审 <b>OpenSwarm agent 的可观察性</b>（防止 hide behavior）</li>
   </ol>
 
-  <h3>中期（1 月）</h3>
+  <h3 id="h3-23">中期（1 月）</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>Hybrid 路由 T3 任务 = 加 <b>risk flag</b>（Mythos 时代）</li>
     <li>本地 LLM（T0/T1）<b>增加占比</b>（应对黑盒风险）</li>
     <li>自建 <b>evaluation harness</b>（cross-check 多个 model）</li>
   </ol>
 
-  <h3>长期</h3>
+  <h3 id="h3-24">长期</h3>
   <ol style="color: var(--text-dim); line-height: 2;">
     <li>OpenSwarm = <b>多 agent 互相 verify</b>（不是单 agent 全做）</li>
     <li>Wisdom > Skills > Knowledge 收集（Matt 哲学 + Moon 风险）</li>
@@ -674,7 +787,7 @@
 
 <!-- TAB 11: QUOTES -->
 <div class="tab-content" data-tab-content="quotes">
-  <h2 class="section">💬 关键金句库</h2>
+  <h2 id="h2-12" class="section">💬 关键金句库</h2>
 
   <div class="quote-grid">
     <div class="quote-card">
@@ -762,7 +875,7 @@
 
 <!-- TAB 12: TIME -->
 <div class="tab-content" data-tab-content="time">
-  <h2 class="section">⏱️ 完整时间线（64 段字幕精选）</h2>
+  <h2 id="h2-13" class="section">⏱️ 完整时间线（64 段字幕精选）</h2>
 
   <div class="timeline">
     <div class="tl-item">
@@ -971,5 +1084,50 @@
   });
 </script>
 
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
 </body>
 </html>
