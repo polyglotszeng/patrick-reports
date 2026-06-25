@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI-First Playbook: Do a Team's Work With AI (2026) — Peter Yang</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .chain {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.3rem; margin: 1rem 0;
+  }
+  .chain-step {
+    display: inline-block; padding: 0.4rem 0.8rem; margin: 0.2rem;
+    background: var(--bg-elevated); border-radius: 6px;
+    color: var(--accent-2); font-size: 0.9rem;
+  }
+  .chain-arrow { color: var(--text-mute); margin: 0 0.3rem; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大主线</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① ⭐ Self-Improving Skills</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 完整循环（7 步）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Peter 实战频率</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 关键 insight</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② 3 Top Deployment</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Self-quote</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ = L8 Principal "Captain onboard crew" 实战</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ ⭐ Whisper Flow + Super Whisper</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 2 大工具</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 关键 insight</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 根因</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ ⭐ Codex 直接 Post 4 大平台</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Codex 实战</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ Substack 限制</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Codex 解法</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ ⭐ Crown Jobs</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Peter 实战</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 3 大自动 job</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Analyst access</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ ⭐ Last 10% Manual = Taste</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Newsletter 流程</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ Last 10% 哲学</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ 实战流程 quote</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⑦ ⭐ 5 Layers AI Adoption</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ Layer 5 关键</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ Patrick 启示</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⑧ ⭐ Personal OS = Codex + 多个 Skills</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ Peter 实战</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ 结构</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ Workflow 触发</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">⑨ ⭐ Builder + Creator = 2 Role Future</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ Peter 自我定位</a></li>
+      <li><a class="h3-link" href="#h3-32" data-toc-target="h3-32">↳ Build 决策框架</a></li>
+      <li><a class="h3-link" href="#h3-33" data-toc-target="h3-33">↳ Peter 3 个 build 案例</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-35" data-toc-target="h3-35">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-36" data-toc-target="h3-36">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-37" data-toc-target="h3-37">↳ 长期</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">💬 关键金句库</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">⏱️ 关键时间戳（精选）</a></li>
+  </ol>
+</aside>
+
+
+<h1>AI-First Playbook: Do a Team's Work With AI (2026)</h1>
+<p class="subtitle">Peter Yang × Silicon Valley Girl — Self-Improving Skills + Personal OS + 5 Layers</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=Yu0z7-KMHpo" target="_blank">AI-First Playbook: Do a Team's Work With AI (2026)</a></span>
+  <span><strong>嘉宾：</strong>Peter Yang (ex-Reddit/Meta/Roblox · 140k newsletter · solo with AI)</span>
+  <span><strong>主持：</strong>Silicon Valley Girl</span>
+  <span><strong>语言：</strong>English (auto-generated)</span>
+  <span><strong>时长：</strong>29.6 min (1016 raw · 190 paras)</span>
+  <span><strong>日期：</strong>2026-06-23</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"Last 10% you got to add your human touch to it. You don't have to be a creator to make this."</b></p>
+  <p style="margin-top: 0.6rem;"><b>5 大主线</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Self-Improving Skills</b> = "stop prompting, update skill based on conversation"（⭐ 反复强调）</li>
+    <li><b>3 Top Deployment</b> = prep podcast + edit newsletter + post 4 social + advisor</li>
+    <li><b>5 Layers AI Adoption</b> = chat → daily work → prototype → apps → personal agent</li>
+    <li><b>Personal OS = Codex + 多个 skills</b> = "call it a folder"</li>
+    <li><b>Last 10% Manual</b> = AI 80% + Human 20% = <b>Taste</b></li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">Peter 独立 newsletter</div>
+    <div class="value">140K</div>
+    <div class="sub">subscribers · no team</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">Codex 直接 post</div>
+    <div class="value">4 platforms</div>
+    <div class="sub">X / LinkedIn / Threads / Substack</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">AI Adoption</div>
+    <div class="value">5 layers</div>
+    <div class="sub">chat → personal agent</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Super Whisper</div>
+    <div class="value">10 min</div>
+    <div class="sub">max brain dump</div>
+  </div>
+  <div class="stat">
+    <div class="label">AI / Human</div>
+    <div class="value">80/20</div>
+    <div class="sub">AI 80% + Human Last 10%</div>
+  </div>
+  <div class="stat red">
+    <div class="label">AI Slop 反例</div>
+    <div class="value">10 posts/hour</div>
+    <div class="sub">viral but heartening</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心</button>
+  <button class="tab" data-tab="t1">① Self-Improving</button>
+  <button class="tab" data-tab="t2">② 3 Top Deployment</button>
+  <button class="tab" data-tab="t3">③ Whisper + Super</button>
+  <button class="tab" data-tab="t4">④ Codex Direct Post</button>
+  <button class="tab" data-tab="t5">⑤ Crown Jobs</button>
+  <button class="tab" data-tab="t6">⑥ Last 10% Taste</button>
+  <button class="tab" data-tab="t7">⑦ 5 Layers Adoption</button>
+  <button class="tab" data-tab="t8">⑧ Personal OS</button>
+  <button class="tab" data-tab="t9">⑨ Builder+Creator</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🔥 核心论点</h2>
+
+  <blockquote>
+    "Last 10% you got to add your human touch to it. You don't have to be a creator to make this."
+  </blockquote>
+
+  <h3 id="h3-1">5 大主线</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>① Self-Improving Skills</h4>
+      <p>"stop prompting, update skill based on conversation"</p>
+      <p style="margin-top: 0.4rem;">⭐ <b>核心机制</b>：每次对话后 ask AI update skill</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>② 3 Top Deployment</h4>
+      <p>prep podcast + edit newsletter + post 4 social + advisor</p>
+      <p style="margin-top: 0.4rem;">"Spend one day → build all workflows"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>③ 5 Layers Adoption</h4>
+      <p>chat → daily work → prototype → apps → personal agent</p>
+      <p style="margin-top: 0.4rem;">Peter 自创 6 月前模型</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>④ Personal OS</h4>
+      <p>Codex + 多个 skills = "call it a folder"</p>
+      <p style="margin-top: 0.4rem;">self-improving skills 进化</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ Last 10% Manual</h4>
+      <p>AI 80% + Human 20% = <b>Taste</b></p>
+      <p style="margin-top: 0.4rem;">"Don't AI slopify everything"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① ⭐ Self-Improving Skills</h2>
+
+  <blockquote>
+    "The most basic way to do a self-improvement is after you use the skill and you have a back and forth conversation with the AI because it never gets it right in one shot. Then you just say like <b>hey, based on our conversation, can you please update the skill to account for [the issue] to try to get to it in one shot faster.</b>"
+  </blockquote>
+
+  <h3 id="h3-2">完整循环（7 步）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>Use skill</li>
+    <li>Back-and-forth with AI</li>
+    <li>AI never gets it right in one shot</li>
+    <li>User: "<b>Based on our conversation, can you please update the skill</b>"</li>
+    <li>AI makes a bunch of changes</li>
+    <li>User reviews</li>
+    <li>Hopefully next time better</li>
+  </ol>
+
+  <h3 id="h3-3">Peter 实战频率</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"<b>Pretty much every single time I talk to AI, something changes.</b> Like update some skills or something changes."</p>
+  </div>
+
+  <h3 id="h3-4">关键 insight</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>不再 "<b>prompt engineering</b>" = 直接让 AI 更新 skill</li>
+    <li>= <b>OpenSquilla MetaSkill 哲学实战</b></li>
+    <li>= <b>L8 Principal "Correct agent and ask to remember" 哲学</b></li>
+  </ul>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② 3 Top Deployment</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Workflow</th><th>工具</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><b>Prep podcast post-production</b></td>
+        <td>Codex + Whisper Flow</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><b>Edit newsletter posts</b></td>
+        <td>Codex + custom skills</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><b>Post to 4 social platforms</b></td>
+        <td>Codex + browser use + internal APIs</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><b>Advisor (bonus)</b></td>
+        <td>Codex + Google Doc + personal info</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-5">Self-quote</h3>
+  <blockquote>
+    "I just decided to <b>spend one day, no meetings, just sat down with Codex and brain dumped all my workflows to Codex. Here's how I do it manually, and I use this thing called Whisper Flow.</b>"
+  </blockquote>
+
+  <h3 id="h3-6">= L8 Principal "Captain onboard crew" 实战</h3>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ ⭐ Whisper Flow + Super Whisper</h2>
+
+  <h3 id="h3-7">2 大工具</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Whisper Flow</h4>
+      <p>实时 voice → text</p>
+      <p style="margin-top: 0.4rem;">"pull up right through voice"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>Super Whisper</h4>
+      <p>10 min brain dump recording</p>
+      <p style="margin-top: 0.4rem;">copy/paste 到 Codex</p>
+    </div>
+  </div>
+
+  <h3 id="h3-8">关键 insight</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p>"<b>Codex I'm just worried, like if I dictate for 10 minutes, Codex will get confused.</b> That's my worry too. Or something stops working and it just keeps processing and nothing happens. That happened to me a couple times."</p>
+  </div>
+
+  <h3 id="h3-9">根因</h3>
+  <blockquote>
+    "And it's not just Codex. <b>I think it's the context field that is not designed for a 10-minute prompt.</b>"
+  </blockquote>
+
+  <h3 id="h3-10">修法</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Super Whisper record 10 min brain dump</li>
+    <li><b>Copy and paste whole thing</b> into Codex</li>
+    <li>避免 context field overflow</li>
+  </ul>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ ⭐ Codex 直接 Post 4 大平台</h2>
+
+  <h3 id="h3-11">Codex 实战</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>用 Codex 直接 post 到 X / LinkedIn / Threads / Substack</li>
+    <li><b>不再用 Typefully</b>（"social media tools"）</li>
+  </ul>
+
+  <h3 id="h3-12">Substack 限制</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>Some of the platforms I post to like Substack Notes, they don't have any kind of like API and integrations.</b>"</p>
+  </div>
+
+  <h3 id="h3-13">Codex 解法</h3>
+  <blockquote>
+    "I just told Codex, hey, I want to schedule post Substack notes. Can you help me figure it out? And then <b>it went to the browser and it sniffed out some internal APIs that they're using to post.</b>"
+  </blockquote>
+
+  <h3 id="h3-14">Computer use fallback</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"<b>It can also do computers. Yeah. So it can do both.</b>"</p>
+  </div>
+
+  <h3 id="h3-15">3 大平台差异（Codex 自动处理）</h3>
+  <table>
+    <thead>
+      <tr><th>平台</th><th>Codex 处理</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>X</b></td><td>tag person（找 handle）</td></tr>
+      <tr><td><b>LinkedIn</b></td><td>难以 tag（不同处理）</td></tr>
+      <tr><td><b>Substack</b></td><td>用 sniffed internal API</td></tr>
+      <tr><td><b>Threads</b></td><td>自定义</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 6: T5 -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ ⭐ Crown Jobs</h2>
+
+  <h3 id="h3-16">Peter 实战</h3>
+  <blockquote>
+    "I have some like uh <b>crown jobs which is basically like you know like this morning briefings, weekly reports that send me how other channels are doing, what kind of videos are popular.</b>"
+  </blockquote>
+
+  <h3 id="h3-17">3 大自动 job</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>1. Morning briefings</h4>
+      <p>每天发送</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>2. Weekly reports</h4>
+      <p>每周发送</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>3. Other channels analysis</h4>
+      <p>"<b>outliers</b>" detection</p>
+    </div>
+  </div>
+
+  <h3 id="h3-18">Analyst access</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>It does have access to analytics from various platforms and also Typefully.</b>"</p>
+  </div>
+
+  <h3 id="h3-19">Analyst output (AI 主动学到的 insight)</h3>
+  <blockquote>
+    "Like for example, it found that <b>on LinkedIn, if you just do a post with a bunch of links to all your tutorials and stuff, it tends to do better than if you do a single one.</b> I had no idea about that."
+  </blockquote>
+
+  <p style="color: var(--text-dim);">= <b>AI 主动学到的 insight（人不知道）</b></p>
+</div>
+
+<!-- TAB 7: T6 -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ ⭐ Last 10% Manual = Taste</h2>
+
+  <div class="card" style="border-left: 3px solid var(--red); margin-bottom: 1rem;">
+    <p style="font-size: 1.05rem;">"<b>Last 10% you got to add your human touch to it. You can't just like AI slopify everything.</b>"</p>
+  </div>
+
+  <h3 id="h3-20">Newsletter 流程</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>Walk 散步时 → Whisper Flow</li>
+    <li>Brain dump 10 min</li>
+    <li>Super Whisper 录</li>
+    <li>Copy paste to Codex</li>
+    <li>Codex 编辑</li>
+    <li><b>Read through</b></li>
+    <li><b>Voice feedback</b> (multiple takes)</li>
+    <li><b>Not pass</b> → loop</li>
+    <li><b>Last 10% manual change</b></li>
+  </ol>
+
+  <h3 id="h3-21">Last 10% 哲学</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>重复 <b>3 次强调</b></li>
+    <li>vs AI Slop：5 posts/hour viral</li>
+    <li>Peter 反："<b>This dish is heartening</b>"</li>
+  </ul>
+
+  <h3 id="h3-22">实战流程 quote</h3>
+  <blockquote>
+    "It's actually harder to just edit yourself and just give it feedback, right? So like I bring up it, I give it the Codex, it does a bunch of editing and it uses my best examples to edit. And then inevitably there's something wrong. So I have to read through and I give voice feedback. It doesn't pass. And then maybe <b>the last 10% I have to manually change stuff.</b>"
+  </blockquote>
+</div>
+
+<!-- TAB 8: T7 -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-9" class="section">⑦ ⭐ 5 Layers AI Adoption</h2>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-bottom: 1rem;">
+    <p>"Peter 自创 6 月前模型"</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>描述</th><th>工具</th><th>现状</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>1. Chat answers</b></td>
+        <td>用 AI 问问题</td>
+        <td>ChatGPT / Claude</td>
+        <td>"<b>most people are in layer one</b>"</td>
+      </tr>
+      <tr>
+        <td><b>2. Daily work</b></td>
+        <td>AI 做日常工作（projects + 不复制粘贴）</td>
+        <td>ChatGPT / Claude projects</td>
+        <td>还在 chat UI · 复制粘贴到别处</td>
+      </tr>
+      <tr>
+        <td><b>3. Prototype</b></td>
+        <td>AI 做产品原型（截图 → prototype）</td>
+        <td>Lovable / Replit / Codex</td>
+        <td>"<b>PM 用</b>"</td>
+      </tr>
+      <tr>
+        <td><b>4. Build apps</b></td>
+        <td>AI build apps（personal apps）</td>
+        <td>Codex / Vercel</td>
+        <td>部署给自己用</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>5. Personal agent</b></td>
+        <td>AI 作为个人 agent 自动化一切</td>
+        <td>Codex + custom skills</td>
+        <td>"<b>what we've been talking about</b>"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-23">Layer 5 关键</h3>
+  <blockquote>
+    "It sounds very complicated, but really it's just about like <b>sitting down, canceling all your meetings for a day, and sitting down and thinking through your past week, all the time you spent doing stuff manually, and just sharing it with your AI friend.</b>"
+  </blockquote>
+
+  <h3 id="h3-24">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>5 层 = 渐进式 AI 采纳 = <b>L8 Principal Captain Ship</b> 同源</p>
+  </div>
+</div>
+
+<!-- TAB 9: T8 -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-10" class="section">⑧ ⭐ Personal OS = Codex + 多个 Skills</h2>
+
+  <h3 id="h3-25">Peter 实战</h3>
+  <blockquote>
+    "So basically like what I recommend you do is <b>use Codex or Claude Code and set up a new folder. Call it like personal OS or whatever you want to call it. Just call it a folder, right?</b>"
+  </blockquote>
+
+  <h3 id="h3-26">结构</h3>
+  <pre style="background: var(--bg-card); padding: 1rem; border-radius: 8px; color: var(--text); font-size: 0.85rem; border: 1px solid var(--border);">personal-os/
+├── CLAUDE.md / AGENTS.md
+├── skills/
+│   ├── podcast-prep.md
+│   ├── edit-newsletter.md
+│   ├── last-30-days.md       (open source)
+│   ├── no-ai-slop.md
+│   ├── social-writer.md
+│   ├── thumbnail-tester.md
+│   ├── post-production.md
+│   └── advisor.md
+└── workflows/
+    ├── newsletter.md
+    ├── podcast.md
+    └── social.md</pre>
+
+  <h3 id="h3-27">Workflow 触发</h3>
+  <blockquote>
+    "And then I asked it like <b>what are the main workflows that it can do here</b>, and you can kind of see here that ... all the stuff that I've set up over time."
+  </blockquote>
+
+  <h3 id="h3-28">Newsletter skill chain</h3>
+  <div class="chain">
+    <span class="chain-step">voice input</span><span class="chain-arrow">→</span>
+    <span class="chain-step">shape (rough note)</span><span class="chain-arrow">→</span>
+    <span class="chain-step">last 30 days (fresh research)</span><span class="chain-arrow">→</span>
+    <span class="chain-step">no AI slop (fact check)</span><span class="chain-arrow">→</span>
+    <span class="chain-step">social writer (threads)</span>
+  </div>
+
+  <h3 id="h3-29">⭐ 关键 insight: Open Source Skills 实战</h3>
+  <blockquote>
+    "Another thing people should recognize is that there's a lot of like <b>open source skills that are really good, you know. So last 30 days is like some open source skill that I found on GitHub and it does like searches across like Reddit X and all these other platforms.</b>"
+  </blockquote>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p><b>Patrick 注意</b>：Kun 06-23 警告 "<b>stars ≠ quality</b>"（实测 Anthropic Skills -5% quality + 5% tokens）！Peter 反证 "<b>open source skills can be really good</b>" = 2 实战对比（矛盾结论可双查）</p>
+  </div>
+
+  <h3 id="h3-30">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>Peter 实战 = <b>OpenSquilla MetaSkill</b> + <b>L8 Principal Ship</b> + <b>v1.3.0 vault</b> 三合一</p>
+  </div>
+</div>
+
+<!-- TAB 10: T9 -->
+<div class="tab-content" data-tab-content="t9">
+  <h2 id="h2-11" class="section">⑨ ⭐ Builder + Creator = 2 Role Future</h2>
+
+  <h3 id="h3-31">Peter 自我定位</h3>
+  <blockquote>
+    "I spent a decade of my career just building products inside big companies. Now that we have all these agents and tokens, I want to <b>build different tools, like open source tools, or things that solve my own problems.</b>"
+  </blockquote>
+
+  <blockquote>
+    "I don't want to just be a creator. I want to be a <b>creator and a builder.</b>"
+  </blockquote>
+
+  <h3 id="h3-32">Build 决策框架</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"It's best to <b>build stuff to solve your own problems.</b>"</p>
+  </div>
+
+  <h3 id="h3-33">Peter 3 个 build 案例</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Fitness app</h4>
+      <p>自用 + MCP send email</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Gmail scam extension</h4>
+      <p>父母防钓鱼</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>Open source tools</h4>
+      <p>解决自己问题</p>
+    </div>
+  </div>
+
+  <h3 id="h3-34">Build 80/20 时间观</h3>
+  <blockquote>
+    "I think to get to 80% there, it probably just takes <b>a couple hours</b> because you just make a plan and you get to do it. But to actually make it good and to test it and polish it, <b>that takes more time. That takes like a couple days or like depending on where your quality bar is.</b>"
+  </blockquote>
+
+  <p style="color: var(--text-dim);">= <b>80% in 2-3 hours + 20% in days = L8 Principal iteration 哲学</b></p>
+</div>
+
+<!-- TAB 11: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-12" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B 7 Loops = autonomous agentic run</p>
+      <p>Peter "every single time I talk to AI something changes"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Peter self-improving = Matt B 7 loops</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = agent 编排 + skill 蒸馏</p>
+      <p>Peter "update skill based on conversation"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Peter = OpenSquilla MetaSkill creator + user</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Senior 10x / Harness"</h4>
+      <p>Matt P "Harness > Model"</p>
+      <p>Peter "Codex or Claude Code" + "140k newsletter solo"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Peter = Matt P 哲学 100% 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 L8 Principal "Captain Ship" (Kun)</h4>
+      <p>Kun = L8 engineer + 40-50 PRs/day</p>
+      <p>Peter = creator + 140k newsletter solo</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源 L8 哲学</b> · 不同 industry</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan 本地 LLM</h4>
+      <p>IndyDevDan = 本地 LLM 重型</p>
+      <p>Peter = Codex 远端 + skills 轻型</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：2 种 L8 哲学路径</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid = T0-T3 routing</p>
+      <p>Peter "Codex or Claude Code" = 2 harness</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：两者都反对"绑定单 model"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenAI "FDE 40B"</h4>
+      <p>FDE = AI 落地 + Lesson learned</p>
+      <p>Peter "Self-improving skills" = Lesson learned</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：FDE 1:2-3 = Peter 1 人 + 多个 skills</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw "Multi-Agent"</h4>
+      <p>OpenClaw = multi-agent + latent</p>
+      <p>Peter = "last 30 days + no AI slop + social writer" = 多个 skills</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：都反"单 skill 解决一切"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>Peter "140k newsletter solo" = scale via agents</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Sam scale 哲学的 creator 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency"</p>
+      <p>Peter "Solo with AI" + "Last 10% taste"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：都拒绝中庸 + 主动创造</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant "Clone Yourself"</h4>
+      <p>Bryant "Clone 500-1000x"</p>
+      <p>Peter "multiple skills = clone skills"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：都反对"线性时间 vs 杠杆时间"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Open Source"</h4>
+      <p>Matt W "open source democratize"</p>
+      <p>Peter "last 30 days 是 GitHub 上找的 open source skill"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：都主张"公开技术 + democratize"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon "Anthropic Mythos"</h4>
+      <p>Moon "don't fully trust"</p>
+      <p>Peter "No AI slop" + "Last 10% manual"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：都反对"100% AI generated"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = 用户掌控 + 极简 + 自扩展</p>
+      <p>Peter "Personal OS = Codex + skills"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：v1.3.0 = Peter workflow 的笔记层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Systems "5 阶段 loop"</p>
+      <p>Peter "5 Layers AI Adoption"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：都主张"系统化 + 渐进"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Kun "L8 Principal"</h4>
+      <p>Kun = technical (L8 engineer)</p>
+      <p>Peter = creator (140k newsletter)</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源 L8 OS</b> · 不同 industry</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 12: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-13" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-35">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>建 Patrick Personal OS</b>：
+      <ul>
+        <li>Codex + Claude Code 选 1 主 1 副</li>
+        <li><code>~/personal-os/</code> 文件夹</li>
+        <li>CLAUDE.md + AGENTS.md symlink</li>
+      </ul>
+    </li>
+    <li><b>建 3 大核心 skill</b>：
+      <ul>
+        <li><code>last-30-days</code>（open source · 找 GitHub）</li>
+        <li><code>no-ai-slop</code>（自建 · fact check）</li>
+        <li><code>social-writer</code>（自建 · newsletter → threads）</li>
+      </ul>
+    </li>
+    <li><b>装 Super Whisper</b>：本地 Whisper（Peter 推荐）</li>
+    <li><b>试 5 Layers Adoption</b>：定位自己当前 layer</li>
+  </ol>
+
+  <h3 id="h3-36">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick Self-Improving Loop</b>：
+      <ul>
+        <li>每次 video 笔记 → "<b>update the skill based on our conversation</b>"</li>
+        <li>Skill 链：shape → last 30 days → no AI slop → social writer</li>
+      </ul>
+    </li>
+    <li><b>Crown Jobs 自动化</b>：
+      <ul>
+        <li>每天 morning briefing</li>
+        <li>每周 weekly report</li>
+      </ul>
+    </li>
+    <li><b>Builder + Creator 双轨</b>：
+      <ul>
+        <li>视频笔记 = creator</li>
+        <li>Skill + 工具 = builder</li>
+      </ul>
+    </li>
+    <li><b>Last 10% Manual 哲学</b>：
+      <ul>
+        <li>AI 80% + Human 20% = taste</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-37">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "L8 OS"</b>：
+      <ul>
+        <li>跨 8 skill 整合：Matt B + OpenSquilla + Matt P + Kun + IndyDevDan + Hybrid + FDE + v1.3.0</li>
+      </ul>
+    </li>
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享 "5 Layers AI Adoption"</li>
+        <li>v1.3.0 + Peter workflow</li>
+      </ul>
+    </li>
+    <li><b>持续 taste 升级</b>：
+      <ul>
+        <li>Last 10% = 永久手动</li>
+        <li>"Don't AI slopify everything"</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 13: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-14" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">⭐ Self-Improving Skills</div>
+      <div class="text">Based on our conversation, can you please update the skill to account for you know to try to get to it in one shot faster.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Self-Improving Frequency</div>
+      <div class="text">Pretty much every single time I talk to AI, something changes. Like update some skills or something changes.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">核心 (Last 10%)</div>
+      <div class="text">Last 10% you got to add your human touch to it. You don't have to be a creator to make this.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ AI Slop 反例</div>
+      <div class="text">You can't just like AI slopify everything.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">AI Slop 实战</div>
+      <div class="text">I see a lot of creators they like to get AI to generate like 10 posts per hour and the slop goes viral. This dish is heartening.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ Whisper / Codex</div>
+      <div class="text">Codex I'm just worried, like if I dictate for 10 minutes, Codex will get confused. The context field is not designed for a 10-minute prompt.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Codex 直接 Post</div>
+      <div class="text">I just told Codex, hey, I want to schedule post Substack notes. And then it went to the browser and it sniffed out some internal APIs that they're using to post.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">AI 主动学 insight</div>
+      <div class="text">It found that on LinkedIn, if you just do a post with a bunch of links to all your tutorials and stuff, it tends to do better than if you do a single one. I had no idea about that.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ 5 Layers</div>
+      <div class="text">Most people are in layer one which is just using AI for everyday answers.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ 5 Layers</div>
+      <div class="text">Layer five is what we've been talking about, which is like you actually use AI kind of for as a personal agent to try to like streamline and automate as much as you can.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Personal OS</div>
+      <div class="text">Set up a new folder. Call it like personal OS or whatever you want to call it. Just call it a folder, right?</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Open Source Skills</div>
+      <div class="text">Another thing people should recognize is that there's a lot of like open source skills that are really good, you know.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Builder + Creator</div>
+      <div class="text">I don't want to just be a creator. I want to be a creator and a builder.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ Build 决策</div>
+      <div class="text">It's best to build stuff to solve your own problems.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Build 80/20</div>
+      <div class="text">To get to 80% there, it probably just takes a couple hours. But to actually make it good, that takes like a couple days.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">2 Harness 主用</div>
+      <div class="text">Use Codex or Claude Code. Step one is to use Codex or Claude Code.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Codex 80% 非 code</div>
+      <div class="text">When I use Codex, like 80% of the time I'm not building or coding.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Whisper Flow</div>
+      <div class="text">I use this thing called Whisper Flow just like bringing up right through my voice.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-15" class="section">⏱️ 关键时间戳（精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:01</div>
+      <div class="what">🎯 Peter Yang 介绍（ex-Reddit/Meta/Roblox · 140k newsletter）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:23</div>
+      <div class="what">"<b>Last 10% you got to add your human touch</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:46</div>
+      <div class="what">⭐ <b>Self-improving skills</b> 介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:21</div>
+      <div class="what">"<b>Based on our conversation, can you please update the scale</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:36</div>
+      <div class="what">"<b>Pretty much every single time I talk to AI something changes</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:50</div>
+      <div class="what">Top 3 deployment（prep + newsletter + post social + advisor）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:11</div>
+      <div class="what">⭐ Whisper Flow + Codex = 1 day build all workflows</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:00</div>
+      <div class="what">Posting on different platforms（<b>Codex 直接 sniff internal APIs</b>）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:35</div>
+      <div class="what">Substack API 缺失 → Codex 嗅探 internal API</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:18</div>
+      <div class="what">⭐ <b>Crown jobs</b> = morning briefings + weekly reports</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:35</div>
+      <div class="what">AI 学到 LinkedIn 多 link 比 single 更好</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:05</div>
+      <div class="what">Newsletter 流程（walk → Whisper Flow → Super Whisper → Codex）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:23</div>
+      <div class="what">Super Whisper 录 10 min brain dump</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:52</div>
+      <div class="what">⭐ "<b>Codex I'm just worried, like if I dictate for 10 minutes, Codex will get confused</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:52</div>
+      <div class="what">⭐ "<b>The context field is not designed for a 10-minute prompt</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:28</div>
+      <div class="what">Last 10% manual（<b>taste</b>）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:42</div>
+      <div class="what">"<b>Last 10% you got to add your human touch to it</b>"（⭐ 重复 1）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:43</div>
+      <div class="what">"<b>You can't just like AI slopify everything</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:50</div>
+      <div class="what">Brief: money + past 30 days + other channels outliers</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:00</div>
+      <div class="what">Substack 无 API → browser use</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:21</div>
+      <div class="what">"<b>That would take me like an hour to do manually</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:00</div>
+      <div class="what">Video editing（仍用 human editor · transcript → Codex 找 awkward pause）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:30</div>
+      <div class="what">"<b>Pretty much every single time I talk to AI, something changes</b>"（⭐ 重复 2）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:35</div>
+      <div class="what">Builder + Creator = 未来 2 role</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:10</div>
+      <div class="what">Build 决策："<b>best to build stuff to solve your own problems</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:36</div>
+      <div class="what">Fitness app + Gmail scam extension + open source tools</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:55</div>
+      <div class="what">"<b>80% in 2-3 hours + 20% in days</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:09</div>
+      <div class="what">⭐ <b>5 Layers AI Adoption</b>（6 月前自创）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:20</div>
+      <div class="what">Layer 1: chat answers（"<b>most people are here</b>"）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:35</div>
+      <div class="what">Layer 2: daily work（projects + 不复制粘贴）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:03</div>
+      <div class="what">Layer 3: prototype（PM 截图 → prototype）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:26</div>
+      <div class="what">Layer 4: build apps（personal apps）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:51</div>
+      <div class="what">⭐ Layer 5: personal agent（"<b>what we've been talking about</b>"）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:51</div>
+      <div class="what">"<b>Sitting down, canceling all your meetings for a day</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:21</div>
+      <div class="what">"<b>Stop using chatbot and just start using Codex or Claude Code</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:40</div>
+      <div class="what">"<b>80% of the time I'm not building or coding</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:55</div>
+      <div class="what">⭐ <b>Personal OS = folder</b> = Codex + skills</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:20</div>
+      <div class="what">Skills 链：shape → last 30 days → no AI slop → social writer</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:55</div>
+      <div class="what">"<b>last 30 days is like some open source skill that I found on GitHub</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:14</div>
+      <div class="what">podcast prep + thumbnail tester + post-production</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/ai-first-playbook-do-teams-work-2026-peter-yang/</code></p>
+  <p>Desktop: <code>~/Desktop/ai-first-playbook-do-teams-work-2026-peter-yang-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=Yu0z7-KMHpo">https://www.youtube.com/watch?v=Yu0z7-KMHpo</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>
