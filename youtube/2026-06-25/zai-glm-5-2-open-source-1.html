@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZAI GLM 5.2: New #1 开源 AI 模型 — AI Search</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大优势</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① 模型规格</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Patrick 启示</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② Benchmark 表现</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 多 benchmark 击败</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Patrick 启示</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ ZCode = ZAI 自研 Coding Agent</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 5 大 vendor 全家桶</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Patrick 关联</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ 5 大优势（Why Open-Source）</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🔗 与 Patrick 工作的关联（⭐ 强制 section · 14 card）</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 长期</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💬 关键金句库</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⏱️ 关键时间戳（精选）</a></li>
+  </ol>
+</aside>
+
+
+<h1>ZAI GLM 5.2: New #1 开源 AI 模型</h1>
+<p class="subtitle">AI Search — MIT + 753B + 击败 GPT-5.5 / Gemini-3.1 / 接近 Claude Opus 4.8 / Design Arena 击败 Claude Fable 5</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=6d__WOpZswY" target="_blank">New #1 open-source AI model is here!</a></span>
+  <span><strong>频道：</strong>AI Search（AI 模型评测）</span>
+  <span><strong>语言：</strong>English</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+  <span><strong>License：</strong>MIT（完全开源）</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"ZAI GLM 5.2 是目前最强开源模型"</b> — MIT license · 753B params · 1.51TB training data · 1M context</p>
+  <p style="margin-top: 0.6rem;"><b>多 benchmark 击败 GPT 5.5 / Gemini 3.1 Pro</b> · <b>接近 Claude Opus 4.8</b> · <b>在 Design Arena 击败 Claude Fable 5</b>（Fable 5 已被 US 政府禁）</p>
+  <p style="margin-top: 0.6rem; color: var(--green);">⭐ 关键突破：<b>开源 = 不再被 closed labs 锁定 = 数据主权 + 隐私 + 可微调</b></p>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">GLM 5.2 参数</div>
+    <div class="value">753B</div>
+    <div class="sub">MIT license（完全开源）</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">训练数据</div>
+    <div class="value">1.51TB</div>
+    <div class="sub">高质量 reasoning 数据</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">Context Window</div>
+    <div class="value">1M</div>
+    <div class="sub">长文档支持</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">击败</div>
+    <div class="value">GPT 5.5 / Gemini 3.1</div>
+    <div class="sub">多 benchmark 胜出</div>
+  </div>
+  <div class="stat red">
+    <div class="label">Design Arena 击败</div>
+    <div class="value">Claude Fable 5</div>
+    <div class="sub">Fable 5 已被 US 政府禁</div>
+  </div>
+  <div class="stat">
+    <div class="label">Cache hit rate</div>
+    <div class="value">94-96%</div>
+    <div class="sub">推理速度优化</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心</button>
+  <button class="tab" data-tab="t1">① 模型规格</button>
+  <button class="tab" data-tab="t2">② Benchmark</button>
+  <button class="tab" data-tab="t3">③ ZCode</button>
+  <button class="tab" data-tab="t4">④ 5 大优势</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🔥 核心论点</h2>
+
+  <blockquote>
+    "ZAI GLM 5.2 是目前最强开源模型 —— MIT license + 753B params + 1.51TB training data + 1M context。开源 = <b>不再被 closed labs 锁定</b> = 数据主权 + 隐私 + 可微调。"
+  </blockquote>
+
+  <h3 id="h3-1">5 大优势</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>① 性能对标</h4>
+      <p>击败 GPT 5.5 / Gemini 3.1</p>
+      <p style="margin-top: 0.4rem;">接近 Claude Opus 4.8</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>② 数据主权</h4>
+      <p>本地部署 / On-prem</p>
+      <p style="margin-top: 0.4rem;">数据不离开控制</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ 隐私</h4>
+      <p>法律 / 医疗 / 金融文档</p>
+      <p style="margin-top: 0.4rem;">不外发到 closed lab</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>④ 可微调</h4>
+      <p>完全 open weights</p>
+      <p style="margin-top: 0.4rem;">社区持续 build</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ 摆脱 Lock-in</h4>
+      <p>Closed labs gatekeep</p>
+      <p style="margin-top: 0.4rem;">"intentionally make it dumber"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① 模型规格</h2>
+
+  <table>
+    <thead>
+      <tr><th>规格</th><th>GLM 5.2</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>License</td>
+        <td>MIT（完全开源）</td>
+      </tr>
+      <tr>
+        <td>Parameters</td>
+        <td>753B</td>
+      </tr>
+      <tr>
+        <td>Training data</td>
+        <td>1.51TB</td>
+      </tr>
+      <tr>
+        <td>Context window</td>
+        <td>1M tokens</td>
+      </tr>
+      <tr>
+        <td>Cache hit rate</td>
+        <td>94-96%</td>
+      </tr>
+      <tr>
+        <td>推理速度</td>
+        <td>Open-source #1</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-2">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>IndyDevDan / TechWithTim 本地 LLM</b> 哲学完全同源 = <b>本地 LLM = 数据主权</b></p>
+  </div>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② Benchmark 表现</h2>
+
+  <h3 id="h3-3">多 benchmark 击败</h3>
+  <table>
+    <thead>
+      <tr><th>对手</th><th>GLM 5.2 表现</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>GPT 5.5</b></td>
+        <td><b>击败</b></td>
+      </tr>
+      <tr>
+        <td><b>Gemini 3.1 Pro</b></td>
+        <td><b>击败</b></td>
+      </tr>
+      <tr>
+        <td>Claude Opus 4.8</td>
+        <td>接近</td>
+      </tr>
+      <tr>
+        <td>Claude Fable 5（Design Arena）</td>
+        <td><b>击败</b>（Fable 5 已被 US 政府禁）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-4">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>"开源 #1"</b> = 跟 Hybrid LLM Router 哲学同源 = <b>不绑定单 model</b></p>
+  </div>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ ZCode = ZAI 自研 Coding Agent</h2>
+
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p style="font-size: 1.05rem;">"ZAI 同步推出 <b>ZCode</b> = ZAI 自研的 coding agent / 对标 OpenAI Codex / Anthropic Claude Code。"</p>
+  </div>
+
+  <h3 id="h3-5">5 大 vendor 全家桶</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>OpenAI → <b>Codex</b></li>
+    <li>Anthropic → <b>Claude Code</b></li>
+    <li>Google → <b>Jules</b></li>
+    <li>Qwen → <b>??</b></li>
+    <li><b>ZAI → ZCode</b> ⭐ 新</li>
+  </ul>
+
+  <h3 id="h3-6">Patrick 关联</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p>= 跟 <b>L8 Principal Kun + Peter Yang</b> 哲学同源 = <b>agent harness 选择 = 重要决策</b></p>
+  </div>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ 5 大优势（Why Open-Source）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>① 性能对标</h4>
+      <p>击败 GPT 5.5 / Gemini 3.1 Pro</p>
+      <p style="margin-top: 0.4rem;">接近 Claude Opus 4.8</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>② 数据主权</h4>
+      <p>"数据不离开控制"</p>
+      <p style="margin-top: 0.4rem;">本地部署 / On-prem</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ 隐私</h4>
+      <p>法律 / 医疗 / 金融 / 政府文档</p>
+      <p style="margin-top: 0.4rem;">Closed lab 不能看</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>④ 可微调</h4>
+      <p>Open weights</p>
+      <p style="margin-top: 0.4rem;">社区 build on top</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ 摆脱 Lock-in</h4>
+      <p>Closed labs gatekeep</p>
+      <p style="margin-top: 0.4rem;">"intentionally make it dumper"</p>
+    </div>
+  </div>
+
+  <blockquote>
+    "The other closed labs like Anthropic constantly gatekeep their models. They <b>intentionally make it dumber</b> for certain use cases."
+  </blockquote>
+</div>
+
+<!-- TAB 6: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-7" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section · 14 card）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>IndyDevDan = 本地 LLM + M5 Max + MLX</p>
+      <p>GLM 5.2 = <b>开源 #1 + MIT = 数据主权</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：本地 LLM = 数据主权</p>
+    </div>
+    <div class="card">
+      <h4>🔗 TechWithTim Local Agentic Coding</h4>
+      <p>TechWithTim = 本地部署 + agentic</p>
+      <p>GLM 5.2 = <b>本地 + agentic-ready</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：本地 agentic</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid = T0-T3 routing</p>
+      <p>GLM 5.2 = <b>T0/T1 开源 fallback</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：开源 = cost optimization</p>
+    </div>
+    <div class="card">
+      <h4>🔗 DeepSeek "Billion Dollar"</h4>
+      <p>DeepSeek = 40% → 80% utilization</p>
+      <p>GLM 5.2 = <b>开源 = 不被 closed lab 锁定</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：开源 = 主动 routing</p>
+    </div>
+    <div class="card">
+      <h4>🔗 L8 Principal (Kun)</h4>
+      <p>Kun = Captain + crew + 4 harness</p>
+      <p>GLM 5.2 = <b>第 5 harness option</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：多 harness 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 AI-First Peter</h4>
+      <p>Peter = Self-Improving Skills + Codex</p>
+      <p>GLM 5.2 + ZCode = <b>开源 Codex 替代</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：开源 harness</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Airtable Howie</h4>
+      <p>Howie = Virtual Twin + Tinker</p>
+      <p>GLM 5.2 = <b>本地部署 = 数据主权</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：tinker + 自主部署</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Looped World Model (Discover)</h4>
+      <p>Discover = Looped Transformer T=100</p>
+      <p>GLM 5.2 = <b>开源 753B = 社区微调</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：开源 = community build</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OODA + Infinite Brain (AI Impact)</h4>
+      <p>AI Impact = OODA + Infinite Brain</p>
+      <p>GLM 5.2 = <b>本地 = 知识图谱自主</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：本地 ORIENT</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw Multi-Agent</h4>
+      <p>OpenClaw = multi-agent + latent</p>
+      <p>GLM 5.2 = <b>多 agent 协作</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：multi-agent 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 FDE 40B</h4>
+      <p>FDE = AI 落地 + Lesson learned</p>
+      <p>GLM 5.2 = <b>企业可部署 = 落地</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：AI 落地</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam = scale 永远 work</p>
+      <p>GLM 5.2 = <b>开源 753B scale = democratize</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>Fei-Fei = Top 1% + High-Agency</p>
+      <p>GLM 5.2 = <b>开源 = High-Agency</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Top 1% 选择</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White Open Source</h4>
+      <p>Matt W = Open source democratize</p>
+      <p>GLM 5.2 = <b>MIT license = democratize 极致</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：democratize 哲学</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-8" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-7">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>测 GLM 5.2 本地部署</b>：
+      <ul>
+        <li>用 M5 Max + MLX</li>
+        <li>跟 Claude Code / Codex / Pi / OpenCode 4 harness 对比</li>
+      </ul>
+    </li>
+    <li><b>更新 Hybrid LLM Router</b>：
+      <ul>
+        <li>T0 = GLM 5.2 本地（free）</li>
+        <li>T1 = Haiku（API · cheap）</li>
+        <li>T2 = Sonnet（API）</li>
+        <li>T3 = Opus（API · max）</li>
+      </ul>
+    </li>
+    <li><b>测 ZCode</b>：
+      <ul>
+        <li>vs Codex / Claude Code / 5 大 vendor</li>
+        <li>Patrick "agent harness 选择"实战</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-8">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "5 大 vendor" 完整 harness 矩阵</b>：
+      <ul>
+        <li>OpenAI Codex / Anthropic Claude Code / Google Jules / ZAI ZCode / Patrick 自选</li>
+      </ul>
+    </li>
+    <li><b>测 GLM 5.2 在企业 workflow 实战</b>：
+      <ul>
+        <li>数据主权场景（法律 / 医疗 / 金融）</li>
+        <li>本地部署成本 = 0 API fee</li>
+      </ul>
+    </li>
+    <li><b>建 Patrick "T0 本地 + T3 云" 双层 router</b>：
+      <ul>
+        <li>本地优先 + 云端 fallback</li>
+        <li>= Hybrid + 本地 LLM 哲学合并</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-9">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享"GLM 5.2 实战"</li>
+        <li>开源 vs closed 哲学</li>
+      </ul>
+    </li>
+    <li><b>持续开源模型探索</b>：
+      <ul>
+        <li>DeepSeek V3.1 / GLM 5.2 / Qwen 3 Max / Llama 4</li>
+        <li>= Hybrid LLM Router 持续扩展</li>
+      </ul>
+    </li>
+    <li><b>Data Sovereignty 战略</b>：
+      <ul>
+        <li>本地 LLM = 终极数据主权</li>
+        <li>Closed lab "intentionally make it dumper" = 警示</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 8: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-9" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">核心 (开源 #1)</div>
+      <div class="text">ZAI GLM 5.2 是目前最强开源模型 —— MIT license + 753B params + 1.51TB training data + 1M context。</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ 数据主权</div>
+      <div class="text">Your data can stay where you control it. <b>This is very important for things like legal documents, medical data, or government records, financial records, etc.</b></div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ 可微调</div>
+      <div class="text">Because the model is completely open weights, <b>people can fine-tune it or make it better.</b> The community builds on top of this.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Lock-in 警示</div>
+      <div class="text">The other closed labs like Anthropic constantly gatekeep their models. They <b>intentionally make it dumper</b> for certain use cases.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Benchmark</div>
+      <div class="text">多 benchmark 击败 GPT 5.5 / Gemini 3.1 Pro，接近 Claude Opus 4.8，Design Arena 击败 Claude Fable 5。</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ Fable 5</div>
+      <div class="text">Fable 5 已被 US 政府禁 = closed lab 政府风险。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ ZCode</div>
+      <div class="text">ZAI 同步推出 ZCode = ZAI 自研的 coding agent，对标 OpenAI Codex / Anthropic Claude Code。</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-10" class="section">⏱️ 关键时间戳（精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 "ZAI GLM 5.2 是目前最强开源模型"（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:30</div>
+      <div class="what">⭐ "MIT license + 753B params + 1.51TB"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:00</div>
+      <div class="what">"1M context window"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:30</div>
+      <div class="what">"Cache hit rate 94-96% · 推理速度 #1"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:00</div>
+      <div class="what">⭐ "多 benchmark 击败 GPT 5.5 / Gemini 3.1 Pro"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:30</div>
+      <div class="what">"接近 Claude Opus 4.8"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:00</div>
+      <div class="what">⭐ "Design Arena 击败 Claude Fable 5"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:30</div>
+      <div class="what">"Fable 5 已被 US 政府禁"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:00</div>
+      <div class="what">⭐ 5 大优势 #1 = "性能对标"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:30</div>
+      <div class="what">⭐ 5 大优势 #2 = "数据主权"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:00</div>
+      <div class="what">⭐ "数据不离开控制" (法律 / 医疗 / 金融 / 政府)</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:30</div>
+      <div class="what">⭐ 5 大优势 #3 = "隐私"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:00</div>
+      <div class="what">⭐ 5 大优势 #4 = "可微调"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:30</div>
+      <div class="what">⭐ 5 大优势 #5 = "摆脱 Lock-in"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:00</div>
+      <div class="what">⭐ "Closed labs intentionally make it dumper"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what">⭐ ZCode = "5 大 vendor 全家桶"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/zai-glm-5-2-open-source-1/</code></p>
+  <p>Desktop: <code>~/Desktop/zai-glm-5-2-open-source-1-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=6d__WOpZswY">https://www.youtube.com/watch?v=6d__WOpZswY</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

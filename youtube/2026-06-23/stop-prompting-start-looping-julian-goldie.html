@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Stop Prompting. Start Looping — Julian Goldie (The New AI Way)</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.3.1 TOC */
+  .toc {
+    position: fixed; top: 20px; left: 16px; width: 188px;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 0.8rem;
+    z-index: 100; font-size: 0.78rem;
+  }
+  .toc-title {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  .toc-list { list-style: none; padding: 0; margin: 0; }
+  .toc-list li { margin: 0; }
+  .toc-list a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s;
+  }
+  .toc-list a:hover { color: var(--text); background: var(--bg-elevated); }
+  .toc-list a.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  @media (max-width: 1100px) {
+    body { padding-left: 0 !important; }
+    .toc { display: none; }
+  }
+  .tab-content { scroll-margin-top: 20px; }
+  .h2-section { scroll-margin-top: 20px; }
+
+
+  
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🎯 核心哲学</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Loop vs Prompt 核心机制</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💡 3 大权威引用</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Jensen Huang（NVIDIA）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Boris Cherny（Claude Code creator · Anthr</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Addy Osmani（Google engineer）</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">⚔️ Loop vs Prompt 哲学</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 关键金句</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🛡️ Doer + Judge（2 角色架构）</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 2 角色</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Loop 流程</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 核心优势</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🔄 4 大 Loop 系统</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ ① Loop Engineering with Fusion</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ ② Agent Kanban</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ ③ Fusion Boardroom</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🧠 Memory Loop（Positive Feedback Loop）</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 机制</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ Positive Feedback Loop</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 效果</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">📊 Anthropic 80% 实战</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ Anthropic 5 步 Loop</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ 长期</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">💬 关键金句库</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">⏱️ 关键时间戳（46 段精选）</a></li>
+  </ol>
+</aside>
+
+
+
+
+
+<h1>Stop Prompting. Start Looping</h1>
+<p class="subtitle">The New AI Way — Julian Goldie SEO</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=uqCWfJRi66U" target="_blank">Stop Prompting. Start Looping</a></span>
+  <span><strong>频道：</strong>Julian Goldie SEO</span>
+  <span><strong>时长：</strong>12:40（760s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-22</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"The future isn't a clever prompt. It's a better loop."</b></p>
+  <p style="margin-top: 0.6rem;"><b>You don't prompt anymore. The thing to get good at is the loop that does the prompting for you.</b></p>
+  <p style="margin-top: 0.4rem;"><b>"The people who win the next year won't be the ones with the cleverest prompts, they'll be the one whose loops run whilst they're doing something else."</b></p>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">Anthropic 实战</div>
+    <div class="value">80%</div>
+    <div class="sub">production code by Claude</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">Loop 系统</div>
+    <div class="value">4 大</div>
+    <div class="sub">Fusion / Kanban / Boardroom / Sakana</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">2 角色</div>
+    <div class="value">Doer + Judge</div>
+    <div class="sub">独立性 > 智能</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Memory</div>
+    <div class="value">Obsidian</div>
+    <div class="sub">positive feedback loop</div>
+  </div>
+  <div class="stat">
+    <div class="label">3 引用权威</div>
+    <div class="value">Jensen + Boris + Addy</div>
+    <div class="sub">NVIDIA / Claude Code / Google</div>
+  </div>
+  <div class="stat">
+    <div class="label">Setup 时间</div>
+    <div class="value">~1 min</div>
+    <div class="sub">"wake up to done"</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🎯 核心哲学</button>
+  <button class="tab" data-tab="authorities">💡 3 权威引用</button>
+  <button class="tab" data-tab="loopvprompt">⚔️ Loop vs Prompt</button>
+  <button class="tab" data-tab="doer-judge">🛡️ Doer + Judge</button>
+  <button class="tab" data-tab="4systems">🔄 4 大 Loop 系统</button>
+  <button class="tab" data-tab="memory">🧠 Memory Loop</button>
+  <button class="tab" data-tab="anthropic">📊 Anthropic 80%</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🎯 核心哲学</h2>
+
+  <blockquote style="border-left-color: var(--accent);">
+    "The future isn't a clever prompt. <b>It's a better loop.</b>"
+  </blockquote>
+
+  <blockquote>
+    "You don't prompt anymore. <b>The thing to get good at is the loop that does the prompting for you.</b>"
+  </blockquote>
+
+  <blockquote>
+    "The people who win the next year won't be the ones with the cleverest prompts, they'll be the <b>one whose loops run whilst they're doing something else.</b>"
+  </blockquote>
+
+  <h3 id="h3-1">Loop vs Prompt 核心机制</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ Prompt（旧）</h4>
+      <p><b>你 = 引擎</b></p>
+      <ul>
+        <li>持续 babysit the thread</li>
+        <li>Hands-on 整段时间</li>
+        <li>One mistake → restart</li>
+        <li>Capped by attention / energy</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>✅ Loop（新）</h4>
+      <p><b>你 = 架构师</b></p>
+      <ul>
+        <li>设一次（~1 min）</li>
+        <li>Run whilst sleep / work</li>
+        <li>Auto iterate</li>
+        <li>Capped by loop design</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <p style="font-size: 1.1rem;">"<b>One makes you the engine, the other makes you the architect.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 2: AUTHORITIES -->
+<div class="tab-content" data-tab-content="authorities">
+  <h2 id="h2-3" class="section">💡 3 大权威引用</h2>
+
+  <h3 id="h3-2">Jensen Huang（NVIDIA）</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"On the biggest stage in the industry and video's GT keynote <b>Jensen Huang declared the age of agents.</b>"</p>
+    <p style="margin-top: 0.5rem; color: var(--accent-2); font-weight: 600;">"<b>He didn't describe a better prompt box. He described a loop.</b>"</p>
+  </div>
+
+  <h3 id="h3-3">Boris Cherny（Claude Code creator · Anthropic）</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"<b>I don't prompt Claude anymore. I have loops that are running.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>They're the ones that are prompting Claude and figuring out what to do. My job is to write the loops.</b>"</p>
+  </div>
+
+  <h3 id="h3-4">Addy Osmani（Google engineer）</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p>"<b>You don't really need to be good at prompting anymore. The thing to get good at is the loop that does the prompting for you.</b>"</p>
+    <p style="margin-top: 0.5rem;">= 命名 "Loop Engineering"</p>
+  </div>
+
+  <h3 id="h3-5">Peter Steinberger（OpenClaw founder）</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>Loop engineering is pretty much everywhere that I look right now.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 3: LOOPVPROMPT -->
+<div class="tab-content" data-tab-content="loopvprompt">
+  <h2 id="h2-4" class="section">⚔️ Loop vs Prompt 哲学</h2>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Prompt（旧）</th><th>Loop（新）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>谁主导</b></td>
+        <td>你 = <b>引擎</b></td>
+        <td>你 = <b>架构师</b></td>
+      </tr>
+      <tr>
+        <td><b>时间投入</b></td>
+        <td>持续 babysit</td>
+        <td>设一次（~1 min）</td>
+      </tr>
+      <tr>
+        <td><b>注意力</b></td>
+        <td><b>constant</b></td>
+        <td><b>set and forget</b></td>
+      </tr>
+      <tr>
+        <td><b>产出上限</b></td>
+        <td>capped by attention / energy</td>
+        <td>capped by <b>loop design</b></td>
+      </tr>
+      <tr>
+        <td><b>失败处理</b></td>
+        <td>one mistake → restart thread</td>
+        <td>loop iterates automatically</td>
+      </tr>
+      <tr>
+        <td><b>multitasking</b></td>
+        <td><span class="badge red">❌ 不行</span></td>
+        <td><span class="badge green">✅ 跑 loop 时可做其他</span></td>
+      </tr>
+      <tr>
+        <td><b>结果</b></td>
+        <td>wake up to "still working"</td>
+        <td><b>wake up to "done"</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-6">关键金句</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <p>"<b>One makes you the engine, the other makes you the architect.</b>"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <p>"<b>It can run whilst you sleep, and you wake up to done.</b>"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <p>"<b>You stop being the bottleneck. You define the goal once, and the loop carries on.</b>"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: DOER-JUDGE -->
+<div class="tab-content" data-tab-content="doer-judge">
+  <h2 id="h2-5" class="section">🛡️ Doer + Judge（2 角色架构）</h2>
+
+  <blockquote>
+    "<b>The catch here is what most people miss, which is a loop only works if something other than the agent decides when it's done.</b>"
+  </blockquote>
+
+  <blockquote>
+    "<b>The agent that wrote the code can't be the one that grades it. It will always say, 'Looks good to me.'</b>"
+  </blockquote>
+
+  <h3 id="h3-7">2 角色</h3>
+  <table>
+    <thead>
+      <tr><th>角色</th><th>任务</th><th>关键</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Doer</b></td>
+        <td>Agent acts / builds / writes / searches</td>
+        <td>实际 work</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>Judge</b></td>
+        <td><b>Separate</b> model grades against goal</td>
+        <td>"<b>doesn't need to be smarter, just independent</b>"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-8">Loop 流程</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text);"><code>Define what done looks like
+        ↓
+   Doer acts (build / write / search)
+        ↓
+   Judge checks against goal
+        ↓
+   Pass → Ship ✅
+   Fail → Loop back to Doer 🔁
+        ↓
+   Repeat until goal met</code></pre>
+  </div>
+
+  <h3 id="h3-9">核心优势</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>✅ "Scales because one loop or 100 is the same effort from you"</li>
+    <li>✅ "Repetitive work stops being your problem"</li>
+    <li>✅ "Everything improves together"</li>
+  </ul>
+</div>
+
+<!-- TAB 5: 4SYSTEMS -->
+<div class="tab-content" data-tab-content="4systems">
+  <h2 id="h2-6" class="section">🔄 4 大 Loop 系统</h2>
+
+  <h3 id="h3-10">① Loop Engineering with Fusion</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h4>结构</h4>
+    <p><b>1 doer + 1 judge</b> · API-based · N rounds self-iterate</p>
+    <h4 style="margin-top: 0.5rem;">配置</h4>
+    <ul>
+      <li>✅ Builder（doer）</li>
+      <li>✅ API select</li>
+      <li>✅ Number of rounds</li>
+      <li>✅ Judge（不同 model）</li>
+    </ul>
+    <h4 style="margin-top: 0.5rem;">使用</h4>
+    <p>Frontier model judge + 便宜/free model work</p>
+  </div>
+
+  <h3 id="h3-11">② Agent Kanban</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <h4>结构</h4>
+    <p><b>3 角色</b>：Planner + Builder + Reviewer</p>
+    <h4 style="margin-top: 0.5rem;">3 步骤</h4>
+    <ol style="line-height: 2;">
+      <li>Plug in task</li>
+      <li>Triage</li>
+      <li>Judge profile（quality checker）→ Pass / Fail</li>
+    </ol>
+    <h4 style="margin-top: 0.5rem;">特性</h4>
+    <p>Fail → back to doing · loop over and over</p>
+  </div>
+
+  <h3 id="h3-12">③ Fusion Boardroom</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <h4>结构</h4>
+    <p><b>5 different models</b> 都答 + Judge fuses all answers</p>
+    <p style="margin-top: 0.4rem;">"<b>Multiple minds together are better than one.</b>"</p>
+    <h4 style="margin-top: 0.5rem;">实现</h4>
+    <p>Fusion API（OpenRouter）</p>
+  </div>
+
+  <h3 id="h3-13">④ Sakana Fuji</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h4>结构</h4>
+    <p><b>Council across multiple models</b> · Deliberate in parallel + search web · Judge weighs into one verdict</p>
+    <h4 style="margin-top: 0.5rem;">哲学</h4>
+    <p>"<b>Not one model's opinion, but the cross-checked result of many.</b>"</p>
+    <h4 style="margin-top: 0.5rem;">优势</h4>
+    <p>"<b>Cheaper than Fusion</b>" + "Collective intelligence"</p>
+  </div>
+</div>
+
+<!-- TAB 6: MEMORY -->
+<div class="tab-content" data-tab-content="memory">
+  <h2 id="h2-7" class="section">🧠 Memory Loop（Positive Feedback Loop）</h2>
+
+  <h3 id="h3-14">机制</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"<b>Every time I speak to my agents, they automatically log outputs inside our Obsidian memory.</b>"</p>
+    <p style="margin-top: 0.4rem;">"<b>These are all memories I've never built or touched any of them.</b>"</p>
+  </div>
+
+  <h3 id="h3-15">Positive Feedback Loop</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <pre style="background: var(--bg-elevated); padding: 1rem; border-radius: 8px; color: var(--text);"><code>Agents work → output → Obsidian memory
+                              ↑                    ↓
+                              ←←←←←←←←←←←←←←←←←←←←
+                                  (next loop)</code></pre>
+  </div>
+
+  <h3 id="h3-16">效果</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>✅ Memory improves</li>
+    <li>✅ Context improves</li>
+    <li>✅ More notes</li>
+    <li>✅ "Better system beautifully organized"</li>
+  </ul>
+
+  <div class="card" style="border-left: 3px solid var(--purple); margin-top: 1rem;">
+    <p>"<b>My agents work in a positive feedback loop because when they are generating outputs, they plug it into this Obsidian galaxy. And then, when they're coming up with answers, they pull from that Obsidian galaxy.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 7: ANTHROPIC -->
+<div class="tab-content" data-tab-content="anthropic">
+  <h2 id="h2-8" class="section">📊 Anthropic 80% 实战</h2>
+
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.1rem;">"<b>80% of production code at Anthropic is now written by Claude</b>, which only became possible once engineers stopped reviewing every single answer and <b>started building loops that verify the work for them</b>."</p>
+  </div>
+
+  <h3 id="h3-17">Anthropic 5 步 Loop</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① Observe</h4>
+      <p>Context awareness</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>② Reason</h4>
+      <p>Plan + decide</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>③ Plan</h4>
+      <p>Action sequence</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>④ Act</h4>
+      <p>Call tools + execute</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ Verify</h4>
+      <p>Independent judge</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <p>"<b>That's not a prompt, it's a loop running on its own, and that's the new default for doing this stuff.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 8: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-9" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B 7 Loops = Julian 4 systems 实战</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>（Matt B 实战 + Julian 哲学）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Cue > Loop" 对话</h4>
+      <p>Matt P "cues, not loops" = Julian "loops, not prompts"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全互补</b>：Cue = triggers + Loop = goals</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant Chou "Clone Yourself 500-1000x"</h4>
+      <p>Bryant 哲学 = Julian "loops clone"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Loops = 实际可行的 clone 机制</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = Julian 4 loop systems</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：loop orchestration</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = Julian "Obsidian galaxy"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：positive feedback loop</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid T0/T1 = Julian "cheap work" + T3 = "judge"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：loop = hybrid routing 完美实施</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Two Minute Papers "Multi-Agent Latent"</h4>
+      <p>Two MP "latent transfer" = Julian "Fusion Boardroom"</p>
+      <p style="margin-top: 0.4rem;">→ <b>同源</b>：multi-agent 协作</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Google IO 2026 "The Line"</h4>
+      <p>Google IO "Below free · Above control"</p>
+      <p>Julian "doer cheap · judge frontier" = <b>Below + Above 完美结合</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "Agency"</h4>
+      <p>Fei-Fei "High-Agency" = Julian "architect not engine"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Julian loops = agency 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Safety by Design"</h4>
+      <p>Matt W "framework safety" = Julian "independent judge"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：judge as safety guard</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon "Mythos"</h4>
+      <p>Moon "Mythos 黑盒" = Julian "doer + judge"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：loops = Mythos safety net</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSwarm</h4>
+      <p>OpenSwarm multi-agent = Julian Fusion Boardroom</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：multi-agent + 1+1 judge</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman "harness"</h4>
+      <p>Sam "harness = scale" = Julian "loop = harness"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：harness is the new scale</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan 本地 LLM</h4>
+      <p>IndyDevDan 本地 = Julian "cheap work"</p>
+      <p>Frontier judge = <b>Hybrid T0/T1 + T3</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 AI Founders "Containment Stack"</h4>
+      <p>AI Founders "lock down" = Julian "loop scope = done"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：safe autonomous loops</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "互相 verify"</h4>
+      <p>Nate "互相 verify" = Julian "independent judge"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：verify > trust</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw</h4>
+      <p>OpenClaw "agent for every workflow" = Julian "loops 24/7"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：24/7 loop agent</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-10" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-18">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>建 <b>第 1 个 loop</b>：doer = GLM 5.2 / judge = Opus 4.8</li>
+    <li>写 <b>"doer ≠ judge" 模板</b>（Matt B 7 loops + Julian 4 systems）</li>
+    <li>接 <b>Obsidian memory</b>：每次 loop output → 笔记</li>
+    <li>跑 1 个 <b>verifiable loop</b>（sub50ms page load）</li>
+  </ol>
+
+  <h3 id="h3-19">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>build <b>4 大 loop systems in v1.3.0</b>：
+      <ul>
+        <li>① Loop with Fusion（doer + judge）</li>
+        <li>② Agent Kanban（planner + builder + reviewer）</li>
+        <li>③ Fusion Boardroom（5 models + judge）</li>
+        <li>④ Sakana Fuji（multi-model council）</li>
+      </ul>
+    </li>
+    <li><b>Memory loop</b>：每 loop output → Obsidian → context improve</li>
+    <li><b>Positive feedback loop</b>：v1.3.0 笔记 = Julian "Obsidian galaxy"</li>
+    <li><b>Safety guard</b>：doer 黑盒 + judge 独立 = Moon defense</li>
+  </ol>
+
+  <h3 id="h3-20">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>build <b>Patrick Loop OS</b>：
+      <ul>
+        <li>Hybrid routing × Julian loops = T0/T1 work + T3 judge</li>
+        <li>v1.3.0 × Julian memory = positive feedback loop</li>
+        <li>OpenSquilla × Julian 4 systems = loop orchestration</li>
+      </ul>
+    </li>
+    <li><b>stop being the loop</b> = 写 loops 不是 prompt</li>
+    <li><b>wake up to done</b> = 7 loops + 4 systems + memory loop</li>
+    <li>Public discourse 贡献（"Stop Prompting. Start Looping." 实证）</li>
+  </ol>
+</div>
+
+<!-- TAB 10: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-11" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card green">
+      <div class="who">核心</div>
+      <div class="text">The future isn't a clever prompt. It's a better loop.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">核心</div>
+      <div class="text">You don't prompt anymore. The thing to get good at is the loop that does the prompting for you.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">核心</div>
+      <div class="text">The people who win the next year won't be the ones with the cleverest prompts, they'll be the one whose loops run whilst they're doing something else.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Jensen Huang</div>
+      <div class="text">He didn't describe a better prompt box. He described a loop.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Boris Cherny</div>
+      <div class="text">I don't prompt Claude anymore. I have loops that are running. My job is to write the loops.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Architect vs Engine</div>
+      <div class="text">One makes you the engine, the other makes you the architect.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Wake Up to Done</div>
+      <div class="text">It can run whilst you sleep, and you wake up to done.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Stop Bottleneck</div>
+      <div class="text">You stop being the bottleneck. You define the goal once, and the loop carries on.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Doer + Judge</div>
+      <div class="text">The agent that wrote the code can't be the one that grades it. It will always say, "Looks good to me."</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Independence</div>
+      <div class="text">A loop only works if something other than the agent decides when it's done.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Judge 关键</div>
+      <div class="text">Doesn't need to be smarter, just independent.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Fusion Boardroom</div>
+      <div class="text">Multiple minds together are better than one.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Sakana Fuji</div>
+      <div class="text">Not one model's opinion, but the cross-checked result of many.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Positive Feedback Loop</div>
+      <div class="text">My agents work in a positive feedback loop.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Anthropic 80%</div>
+      <div class="text">80% of production code at Anthropic is now written by Claude, which only became possible once engineers stopped reviewing every single answer and started building loops that verify the work for them.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">5 步 Loop</div>
+      <div class="text">Observe, reason, plan, act, verify, repeat. That's not a prompt, it's a loop running on its own.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Stop Being The Loop</div>
+      <div class="text">This is how to stop being the loop and start writing them instead.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Scales</div>
+      <div class="text">Scales because one loop or 100 is the same effort from you, and repetitive work stops being your problem.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-12" class="section">⏱️ 关键时间戳（46 段精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 <b>"Stop Prompting. Start Looping"</b>（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:18</div>
+      <div class="what">"<b>Loop engineering is everywhere</b>" · Peter Steinberger</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:42</div>
+      <div class="what">Anatoly "<b>nobody writes prompts anymore</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:50</div>
+      <div class="what">"<b>You are the bottleneck</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:05</div>
+      <div class="what">🎯 <b>"The future isn't a clever prompt. It's a better loop."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:25</div>
+      <div class="what"><b>"80% of production code at Anthropic is now written by Claude"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:38</div>
+      <div class="what">🛡️ <b>"The agent that wrote the code can't be the one that grades it"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:55</div>
+      <div class="what"><b>"Wake up to done"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:15</div>
+      <div class="what"><b>"With looping, you set it up once, it takes about a minute"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:35</div>
+      <div class="what">🛡️ <b>"A loop only works if something other than the agent decides when it's done"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:55</div>
+      <div class="what"><b>Doer + Judge</b> 架构</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:14</div>
+      <div class="what"><b>"Doesn't need to be smarter, just independent"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:25</div>
+      <div class="what">① <b>Loop Engineering with Fusion</b>（doer + judge loop）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:35</div>
+      <div class="what">例：build SEO blog · frontier judge + cheap work</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:50</div>
+      <div class="what">② <b>Agent Kanban</b>（planner + builder + reviewer）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:00</div>
+      <div class="what">例：blog post + video "fully done with AI agents"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:30</div>
+      <div class="what">③ <b>Fusion Boardroom</b>（5 models 答 + judge fuse）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:35</div>
+      <div class="what">"<b>Multiple minds together are better than one</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:45</div>
+      <div class="what">OpenRouter 提供 Fusion API</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:00</div>
+      <div class="what">④ <b>Sakana Fuji</b>（Japanese model · multi-model council）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:15</div>
+      <div class="what">"<b>Cheaper than Fusion</b>" + "<b>Collective intelligence</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:35</div>
+      <div class="what">🧠 <b>Memory Loop</b>：every chat → Obsidian</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:50</div>
+      <div class="what">"<b>Positive feedback loop</b>"（memory improves + context improves）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:00</div>
+      <div class="what">"<b>Stop being the loop and start writing them instead</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:20</div>
+      <div class="what">"<b>The people who win next year won't be the ones with cleverest prompts</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:40</div>
+      <div class="what">"<b>Within 30 minutes to build</b>"（非技术也能做）</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/stop-prompting-start-looping-julian-goldie/</code></p>
+  <p>Desktop: <code>~/Desktop/stop-prompting-start-looping-julian-goldie-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=uqCWfJRi66U">https://www.youtube.com/watch?v=uqCWfJRi66U</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+
+  // v1.3.1 TOC active section highlight
+  (function() {
+    const tocLinks = document.querySelectorAll('.toc-list a');
+    if (!tocLinks.length) return;
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('href').slice(1);
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('.toc-list a[href="#' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+</script>
+
+
+  
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>
