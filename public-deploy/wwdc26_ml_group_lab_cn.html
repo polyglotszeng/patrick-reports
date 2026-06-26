@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWDC26 Coding Intelligence, ML & AI Group Lab | Apple</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.7; }
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+  .header { border-bottom: 1px solid #21262d; padding-bottom: 20px; margin-bottom: 28px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tag { background: #1f6feb; color: #fff; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+  .tag.green { background: #238636; }
+  .tag.purple { background: #8b5cf6; }
+  .tag.orange { background: #d29922; }
+  h1 { font-size: 22px; font-weight: 700; color: #f0f6fc; margin-bottom: 12px; line-height: 1.3; }
+  .meta { font-size: 13px; color: #8b949e; display: flex; gap: 20px; flex-wrap: wrap; }
+  .meta span { display: flex; align-items: center; gap: 5px; }
+  .description { margin-top: 14px; font-size: 14px; color: #8b949e; background: #161b22; border-left: 3px solid #1f6feb; padding: 10px 14px; border-radius: 0 6px 6px 0; }
+  .speakers-section { background: #161b22; border-radius: 8px; padding: 16px 20px; margin-bottom: 28px; border: 1px solid #21262d; }
+  .speakers-title { font-size: 12px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .speakers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .speaker { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #0d1117; border-radius: 6px; }
+  .speaker-avatar { width: 32px; height: 32px; border-radius: 50%; background: #1f6feb; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .speaker-info { overflow: hidden; }
+  .speaker-name { font-size: 13px; font-weight: 600; color: #f0f6fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .speaker-team { font-size: 11px; color: #8b949e; }
+  .topic { background: #161b22; border: 1px solid #21262d; border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+  .topic-header { padding: 16px 20px 12px; cursor: pointer; display: flex; align-items: flex-start; gap: 12px; }
+  .topic-time { font-size: 11px; font-weight: 600; color: #1f6feb; background: rgba(31,111,235,0.15); padding: 2px 8px; border-radius: 4px; white-space: nowrap; margin-top: 2px; flex-shrink: 0; }
+  .topic-title-group { flex: 1; }
+  .topic-title { font-size: 15px; font-weight: 600; color: #f0f6fc; margin-bottom: 4px; }
+  .topic-speakers { font-size: 12px; color: #8b949e; }
+  .topic-body { padding: 0 20px 16px 52px; }
+  .topic-summary { font-size: 14px; color: #c9d1d9; }
+  .topic-key-points { margin-top: 12px; padding-left: 0; list-style: none; }
+  .topic-key-points li { font-size: 13px; color: #8b949e; padding: 5px 0; border-bottom: 1px solid #21262d; display: flex; gap: 8px; }
+  .topic-key-points li:last-child { border-bottom: none; }
+  .topic-key-points li::before { content: "▸"; color: #1f6feb; flex-shrink: 0; }
+  .highlight-box { background: rgba(31,111,235,0.1); border: 1px solid rgba(31,111,235,0.3); border-radius: 8px; padding: 14px 16px; margin-top: 12px; font-size: 13px; color: #c9d1d9; }
+  .highlight-box strong { color: #58a6ff; }
+  .footer { text-align: center; font-size: 12px; color: #484f58; margin-top: 40px; padding-top: 20px; border-top: 1px solid #21262d; }
+  .key-insight { background: linear-gradient(135deg, rgba(31,111,235,0.08), rgba(139,92,246,0.08)); border: 1px solid #30363d; border-radius: 10px; padding: 18px 20px; margin-bottom: 20px; }
+  .key-insight-label { font-size: 11px; font-weight: 700; color: #8b5cf6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .key-insight-text { font-size: 14px; color: #c9d1d9; }
+  .quote { border-left: 3px solid #d29922; padding: 8px 14px; background: rgba(210,153,34,0.05); margin: 10px 0; font-style: italic; color: #e6edf3; font-size: 13px; }
+  @media (max-width: 600px) {
+    .speakers-grid { grid-template-columns: 1fr 1fr; }
+    .topic-body { padding-left: 20px; }
+    h1 { font-size: 18px; }
+  }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="tag-row">
+    <span class="tag">WWDC26</span>
+    <span class="tag green">Apple Developer</span>
+    <span class="tag purple">Group Lab</span>
+    <span class="tag orange">65:35</span>
+  </div>
+  <h1>WWDC26 Coding Intelligence, Machine Learning & AI Group Lab</h1>
+  <div class="meta">
+    <span>👤 Apple Developer</span>
+    <span>👁 2,981 views</span>
+    <span>⏱ 1:05:35</span>
+    <span>📅 Jun 2026</span>
+  </div>
+  <div class="description">
+    Apple 工程师小组实时问答直播。6位专家（Xcode/Core AI/CoreML/MLX/Foundation Models/Evaluations）现场回答开发者关于 Apple AI 技术栈的问题，涵盖技术选型、最佳实践和架构哲学。
+  </div>
+</div>
+
+<div class="key-insight">
+  <div class="key-insight-label">💡 核心洞察</div>
+  <div class="key-insight-text">
+    Apple 的 AI 技术栈分层清晰：<strong>Foundation Models（顶层，LLM 统一入口）→ Core AI（中层，定制模型/SLA保障）→ MLX（底层，分布式训练）</strong>。新项目从 Foundation Models 开始，用 Evaluations Framework 驱动开发，用 Agentic Coding 提升生产力。
+  </div>
+</div>
+
+<div class="speakers-section">
+  <div class="speakers-title">嘉宾阵容</div>
+  <div class="speakers-grid">
+    <div class="speaker">
+      <div class="speaker-avatar">K</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Kevin</div>
+        <div class="speaker-team">Xcode · Agents in Xcode</div>
+      </div>
+    </div>
+    <div class="speaker">
+      <div class="speaker-avatar" style="background:#238636">E</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Eric</div>
+        <div class="speaker-team">Foundation Models · Language Model Protocol</div>
+      </div>
+    </div>
+    <div class="speaker">
+      <div class="speaker-avatar" style="background:#8b5cf6">S</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Stephen</div>
+        <div class="speaker-team">Evaluations Framework · Model Judge</div>
+      </div>
+    </div>
+    <div class="speaker">
+      <div class="speaker-avatar" style="background:#d29922">R</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Raseel</div>
+        <div class="speaker-team">Core AI · 框架架构</div>
+      </div>
+    </div>
+    <div class="speaker">
+      <div class="speaker-avatar" style="background:#db6d28">A</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Angela</div>
+        <div class="speaker-team">MLX · 本地 AI</div>
+      </div>
+    </div>
+    <div class="speaker">
+      <div class="speaker-avatar" style="background:#6e7681">Sh</div>
+      <div class="speaker-info">
+        <div class="speaker-name">Shashank</div>
+        <div class="speaker-team">Evangelism · 主持人</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Topic 1 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">00:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">开场介绍与嘉宾团队</div>
+      <div class="topic-speakers">Shashank 主持 · 6位工程师</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      6位工程师组成的小组，每位分享最期待的方向：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>Kevin (Xcode)</strong>：兴奋于 Agents in Xcode——可以构建以前无法构建的软件，高效学习和采纳新技术</li>
+      <li><strong>Eric (Foundation Models)</strong>：兴奋于 Language Model Protocol——可插入多种推理后端（MLX、Core AI、Google、Thropic），开发者可自定义</li>
+      <li><strong>Stephen (Evaluations)</strong>：兴奋于 Model Judge Evaluator——极简配置即可评估 LLM 响应质量</li>
+      <li><strong>Raseel (Core AI)</strong>：兴奋于 Core AI 发布——这是他参与构建的"最佳框架"，也驱动 Foundation Models 等上层功能</li>
+      <li><strong>Angela (MLX)</strong>：兴奋于"本地 AI 元年"——本地 AI 已真正实用化，可以运行 Agent、做真实工作，不再是噱头</li>
+    </ul>
+    <div class="quote">"We're basically at the point where local AI is starting to become useful. You can actually do work with it. You can actually have local agents." — Angela</div>
+  </div>
+</div>
+
+<!-- Topic 2 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">06:10</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Core AI vs CoreML vs MLX：清晰的技术分层</div>
+      <div class="topic-speakers">Raseel, Eric, Angela</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      Apple 构建了一套覆盖不同层级的完整技术套件，开发者可以从不同层级介入：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>Foundation Models Framework</strong>（最高层）：想做 LLM 相关功能从这里开始。尝试系统语言模型，不满足再用 Private Cloud Compute，仍不满足则通过 LMP 协议接入 Core AI</li>
+      <li><strong>Core AI</strong>（中层）：有定制模型需求（自己的模型/开源模型）时使用。提供 SLA 和保障，适合应用开发</li>
+      <li><strong>MLX</strong>（底层）：做分布式计算、训练、自定义用例。Andrew Lusk 展示的 4 台 Mac Studio 连接跑万亿参数模型令人兴奋</li>
+      <li><strong>CoreML</strong>：未来仅聚焦传统 ML（决策树类），新项目建议用 Core AI</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>决策路径：</strong>LLM 相关 → Foundation Models → 不满足 → Private Cloud Compute → 仍不满足 → 通过 LMP 接入 Core AI。<br>
+      <strong>非 LLM</strong>（diffusion、图像分割等）→ Core AI → 仍不满足 → MLX。<br>
+      <strong>训练</strong>→ MLX。
+    </div>
+  </div>
+</div>
+
+<!-- Topic 3 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">13:30</span>
+    <div class="topic-title-group">
+      <div class="topic-title">iOS 27 设备端模型上下文窗口</div>
+      <div class="topic-speakers">Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      设备端模型的上下文大小与之前相同，共享窗口设计：
+    </div>
+    <ul class="topic-key-points">
+      <li>设备端 Foundation Model：<strong>4096 tokens</strong>（输入+输出共享 budget）</li>
+      <li>Private Cloud Compute（PCC）：<strong>32K tokens</strong>（共享 budget）</li>
+      <li>如果需要更大上下文窗口：使用 PCC；需要深度推理能力：使用 PCC</li>
+      <li>接入 MLX 或第三方服务器模型：可扩展到 <strong>1M tokens</strong></li>
+    </ul>
+    <div class="highlight-box">
+      <strong>关键工具：</strong>iOS 26.4 新增 API：<code>contextSize</code> 和 <code>tokenCounting</code>，可编程查询剩余上下文大小。<code>response.usage</code> 可精确返回输入/输出/cached token 数，以及 reasoning vs 输出 token 分布。
+    </div>
+  </div>
+</div>
+
+<!-- Topic 4 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">16:25</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Background App + Foundation Models 运行</div>
+      <div class="topic-speakers">Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      设备端模型支持 Background Task，但有系统级限速机制：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>iOS</strong>：支持在 Background Task 中运行，但 OS 繁忙时可能被限速（收到 rate limit 错误，稍后再试）</li>
+      <li><strong>macOS</strong>：只要 App 在前台，无限制</li>
+      <li>PCC 有两层限速：系统繁忙限速（API 返回特定错误码）vs 请求过于频繁限速（不同错误码，DoCAP 可区分处理）</li>
+      <li>质量不受影响——只是可能需要等待</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Topic 5 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">20:15</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Apple Intelligence 等待列表与 AFM Core Advanced</div>
+      <div class="topic-speakers">Raseel</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      等待列表（Waitlist）的边界非常清晰：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>等待列表仅适用于 Siri</strong>，不影响 PCC 语言模型或设备端功能</li>
+      <li>AFM Core Advanced（20B 参数模型）已包含在 Beta 中，用于语音功能</li>
+      <li>关于 Siri 的详细问题：参加 Apple Intelligence 专题 Group Lab</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Topic 6 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">23:30</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Dynamic Profiles：多模型路由与隐私边界</div>
+      <div class="topic-speakers">Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      Dynamic Profiles 是 Apple 多模型协作的核心 API：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>Baton Pass（接力模式）</strong>：完整上下文在所有模型间共享，适合可信模型（设备端/PCC）。"就像接力赛，你看到前面的人跑来，把棒交给你，你有全部信息"</li>
+      <li><strong>Phone a Friend（求助模式）</strong>：调用外部模型时只传递当前问题，不暴露历史对话。适合第三方/隐私敏感场景。"就像百万富翁游戏，打电话给朋友，他不知道之前的问题"</li>
+      <li><strong>Profile Modifiers</strong>：可声明式地控制上下文压缩策略，如"只保留最后10条对话"或"工具调用结果一旦产生答案就丢弃"</li>
+      <li>切换到 PCC 时，完整历史重新可用（因为 PCC 有 32K 上下文）</li>
+    </ul>
+    <div class="quote">"Declarative nature makes it really easy to reason about which model is going to wind up doing each task within that workflow." — Eric</div>
+  </div>
+</div>
+
+<!-- Topic 7 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">32:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">训练 Coding Agent 适应代码风格</div>
+      <div class="topic-speakers">Kevin, Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      Agent 学习代码风格的三大策略，以及 Xcode 27 新能力：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>① 源码搜索</strong>：Agent 天然擅长通过查看现有源码来复制风格。开箱即用</li>
+      <li><strong>② agent-SMD 文件</strong>：每个查询自动注入的上下文文件（Xcode Agent 配置）。保持简短（吃 token），可引用其他文件如 style guide</li>
+      <li><strong>③ 文档化</strong>：让 Agent 记录见过的模式到 markdown，纠正并维护，作为后续参考</li>
+      <li><strong>Xcode 27 ACP 支持</strong>：可直接接入 LM Studio、Ollama 等本地模型，作为 Agent 后端</li>
+      <li><strong>建议</strong>：新模型发布时，从零开始尝试，不带任何 agent-SMD，看模型本身能力如何再决定加哪些记忆</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>实用技巧：</strong>Xcode 有极详细的文档搜索能力。即使模型没训练过新 API，Agent 可通过 tool calls 查询文档，把新 API 引入上下文。这使得旧模型+新工具链仍然效果很好。
+    </div>
+  </div>
+</div>
+
+<!-- Topic 8 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">44:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Xcode 27 Agent + Simulator 集成</div>
+      <div class="topic-speakers">Kevin</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      Xcode Agent 现在可以操控 Simulator，形成自动化测试闭环：
+    </div>
+    <ul class="topic-key-points">
+      <li>Agent 可对 Simulator 执行：<strong>点击/滑动/输入</strong></li>
+      <li>可截图并解析<strong>无障碍树（Accessibility Tree）</strong>，理解屏幕内容</li>
+      <li>可让 Agent 在后台运行数小时，自动寻找不同区域的 bug，输出报告</li>
+      <li>自动生成 UI 测试代码，永久保留</li>
+      <li>也可让 Agent 判断某 UI 问题是否应该降级为单元测试（因为系统本身不稳定）</li>
+    </ul>
+    <div class="quote">"We let the agent run for a couple of hours and look for different bugs, and give us reports of which areas needed the most attention." — Kevin</div>
+  </div>
+</div>
+
+<!-- Topic 9 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">49:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Vision vs Foundation Models 选型</div>
+      <div class="topic-speakers">Kevin, Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      选型规则清晰，核心是问题模式是否固定：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>固定模式</strong>（OCR、条码检测、物体识别等）→ <strong>Vision Framework</strong>（已优化、高效、可测试）</li>
+      <li><strong>语义理解/动态提示/自然语言描述</strong> → <strong>Foundation Models</strong></li>
+      <li>Foundation Models 新增工具：<strong>OCR 读取</strong>和<strong>条码读取</strong>（Vision 能力集成）</li>
+      <li><strong>翻译 API</strong> vs <strong>Foundation Models 翻译</strong>：翻译 API 更专精（更多语言），Foundation Models 更灵活（1920年代风格/双语言混合等）</li>
+    </ul>
+    <div class="quote">"Foundation Models is like a 3D printer — can do all kinds of stuff. But if you're going into production and know exactly what you're making, a specialized production line is more efficient." — Eric</div>
+  </div>
+</div>
+
+<!-- Topic 10 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">55:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">上下文窗口管理与性能优化</div>
+      <div class="topic-speakers">Eric, Stephen, Angela</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      上下文管理是设备端部署的核心挑战，Apple 提供了完整工具链：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>工具调用后丢弃</strong>：工具输出产生答案后，立即丢弃工具调用和输出（不再需要）</li>
+      <li><strong>保留最后 N 条</strong>：Profile Modifiers 可声明"只保留最后10条"</li>
+      <li><strong>Summarize History Modifier</strong>（Foundation Models Utilities 开源库）：超过阈值时自动将历史压缩为一条摘要，可配置 verbose 或 concise</li>
+      <li><strong>KV Cache vs 重新计算</strong>：频繁小压缩 vs 偶尔大压缩——用 Evaluations Framework 对比测试决定哪种更好</li>
+      <li><strong>新模型注意力机制</strong>：滑动窗口注意力/线性注意力，上下文行为更好。PCC 支持 low/medium/deep reasoning 选项</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>关键观点：</strong>Eval 是唯一正确的答案来源。不同策略对不同模型/用例效果差异巨大，无法猜测，只能测量。<strong>compare</strong> 功能可对同一数据集直接比较所有不同配置。
+    </div>
+  </div>
+</div>
+
+<!-- Topic 11 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">01:02:30</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Guardrails 与模型拒绝检测</div>
+      <div class="topic-speakers">Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      今年 Guardrails 有重大改进，假阳性大幅减少：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>Permissive Content Transformations</strong>：设置后，模型不会对输入内容做安全审查（适合处理情感日记等场景）</li>
+      <li><strong>Structured Output 拒绝</strong>：这是 alignment 训练导致的拒绝（模型输出"抱歉无法帮助"），不同于 Guardrail 拒绝（独立审核模型）</li>
+      <li>两种拒绝有不同的错误码，可区分处理</li>
+      <li>使用第三方模型时，这些保护机制不适用</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Topic 12 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">01:03:00</span>
+    <div class="topic-title-group">
+      <div class="topic-title">Apple AI 评估哲学：Eval-Driven Development</div>
+      <div class="topic-speakers">Stephen</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      Stephen 分享了 Apple 对 AI 产品开发的核心理念：
+    </div>
+    <ul class="topic-key-points">
+      <li><strong>Eval 驱动开发</strong>（Evaluation-Driven Development）：Eval 不是"最后验收"，而是 Feature 的行为规范本身，是持续的开发规范</li>
+      <li>类比教育学"形成性评估"（formative assessment）：评估即学习，通过测试发现弱点并改进</li>
+      <li>Eval 数据集应包含：核心用例（扩展）、边界情况、预留成长空间</li>
+      <li>支持合成数据扩展；支持 <strong>compare</strong> 功能直接对比所有配置</li>
+      <li>在非确定性行为时代，Eval 是建立信心的唯一途径</li>
+    </ul>
+    <div class="quote">"The best AI products that I've been involved with have been driven this way. The evaluation is really the bread and butter of AI." — Stephen</div>
+  </div>
+</div>
+
+<!-- Topic 13 -->
+<div class="topic">
+  <div class="topic-header">
+    <span class="topic-time">01:03:50</span>
+    <div class="topic-title-group">
+      <div class="topic-title">跨 App 模型共享与存储</div>
+      <div class="topic-speakers">Raseel, Eric</div>
+    </div>
+  </div>
+  <div class="topic-body">
+    <div class="topic-summary">
+      由于沙箱安全和精度差异，跨 App 共享运行中模型不可行：
+    </div>
+    <ul class="topic-key-points">
+      <li>不同 App 有不同量化策略（FP32 vs 4-bit），运行时内存不共享</li>
+      <li>iOS 沙箱安全机制禁止跨 App 内存共享</li>
+      <li><strong>相同开发者</strong>的 App 可通过 App Group 共享模型缓存下载（weights 在磁盘层面共享）</li>
+      <li>设备端 Foundation Model 属于 OS 层，不计入 App 大小</li>
+      <li>PCC 是需要更多能力时的选择；自定义量化模型用 Core AI/MLX</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  WWDC26 Coding Intelligence, ML & AI Group Lab · Apple Developer<br>
+  转录处理：Whisper (base) → 手动整理 · 输出格式：中文笔记 + HTML
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>【Loop Engineering 循环工程】从理论到实践,它真的适合每个人吗?</title>
+<style>
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.7; padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.5rem; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.4rem; margin-top: 2.2rem; }
+h3 { color: #f7c59f; margin-top: 1.6rem; }
+.meta { color: #888; font-size: 0.85rem; margin-bottom: 1.5rem; }
+.meta a { color: #ff6b35; text-decoration: none; }
+.meta a:hover { text-decoration: underline; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; color: #d0d0d0; }
+blockquote .src { color: #888; font-size: 0.85rem; font-style: normal; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: #1f1f1f; color: #f7c59f; padding: 8px; text-align: left; border: 1px solid #2a2a2a; font-size: 0.9rem; }
+td { padding: 8px; border: 1px solid #222; font-size: 0.88rem; vertical-align: top; }
+tr:nth-child(even) { background: #141414; }
+.highlight-box { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 10px; padding: 1.4rem; margin: 1.5rem 0; }
+.takeaway-list { list-style: none; padding-left: 0; }
+.takeaway-list li { padding: 0.7rem 1rem; margin: 0.5rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; }
+.takeaway-list li::before { content: counter(takeaway) ". "; color: #ff6b35; font-weight: 600; counter-increment: takeaway; }
+.takeaway-list { counter-reset: takeaway; }
+.status-ok { color: #4ade80; font-weight: 600; }
+.status-warn { color: #fbbf24; font-weight: 600; }
+.status-miss { color: #ef4444; font-weight: 600; }
+.section-card { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; }
+.ts { color: #555; font-size: 0.78rem; font-family: monospace; }
+.cross-ref { background: #1a1a1a; border-left: 3px solid #f7c59f; padding: 0.8rem 1.2rem; margin: 0.5rem 0; border-radius: 0 6px 6px 0; }
+.cross-ref code { background: #0a0a0a; padding: 1px 6px; border-radius: 3px; color: #f7c59f; font-size: 0.9rem; }
+.warning { background: #2a1a0a; border: 1px solid #ff6b35; padding: 0.8rem 1.2rem; border-radius: 6px; margin: 1rem 0; font-size: 0.9rem; }
+code { background: #1a1a1a; padding: 1px 5px; border-radius: 3px; color: #f7c59f; font-size: 0.88rem; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">Key Takeaways</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Part 1: 三阶段进化 (Boris 一年回顾) — 1:13-2:28</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 2: Addy Osmani 5 块 + 1 脊柱框架 — 2:33-</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 3: 流程拼装 + 实战 — 4:29-5:23</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">Key Quotes</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Framework → Self-Apply Mapping (8/10 = 80% 触达)</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Discussion Questions</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Cross-Refs (跟 06-15 案例 6 互补视角)</a></li>
+  </ol>
+</aside>
+
+
+<h1>【Loop Engineering 循环工程】从理论到实践,它真的适合每个人吗?</h1>
+
+<div class="meta">
+频道: <strong>01Coder (小木头)</strong> · 时长: 13:48 · 日期: 2026-06-16<br>
+URL: <a href="https://www.youtube.com/watch?v=WuMlsfKeWHc">https://www.youtube.com/watch?v=WuMlsfKeWHc</a>
+</div>
+
+<blockquote>
+来源: 01Coder (小木头), 14 min 中文科普视频<br>
+<strong>3 红旗扫描结果</strong>: 0/3 ✅ — 0 卖课链接, 0 clickbait 套路 (软问号问句非卖课), 0 mock 数据。中性 AI 知识科普, 引用 Addy Osmani 文章 + Peter Steinberger (OpenClaw) + Boris (Anthropic/Claude Code 负责人) + Geoff (Ralph 循环) 4 个真实业界人物。
+</blockquote>
+
+<h2 id="h2-1">Key Takeaways</h2>
+
+<ol class="takeaway-list">
+<li><strong>Loop Engineering 的核心定义</strong>: 不再用提示词驱动 agent, 而是<strong>设计一个替你写提示词的系统</strong>。OpenClaw 作者 Peter 6 月初原话: "你不该再用提示词来驱动智能体为你编程了, 应该去设计那些循环来驱动智能体工作" (0:31-0:41)</li>
+<li><strong>三阶段进化模型 (Boris 一年回顾)</strong>: ① <strong>逐行驾驶</strong> — 手写代码, AI Tab 自动补全 ② <strong>并行手动</strong> — 同时开 5-10 个 Claude Code 会话, 你当调度员 ③ <strong>Loop 作者</strong> — 你写系统, agent 自己读仓库/issue/CI, 自己决定提示词 (1:13-2:28)</li>
+<li><strong>5 块 + 1 脊柱 (Addy Osmani 框架)</strong>: ①<strong>心跳</strong> (定时触发) ②<strong>工作树</strong> (work tree 隔离) ③<strong>skill</strong> (SKILL.md 持久规则) ④<strong>连接器</strong> (MCP 接真实工具) ⑤<strong>子智能体</strong> (写代码 + 审代码拆开) + <strong>脊柱</strong> (持久化记忆, Markdown / Linear 看板) (2:33-4:27)</li>
+<li><strong>/goal vs /loop 关键区别</strong>: <code>/goal</code> = <strong>现在就跑, 跑到条件为真</strong> (one-shot + 自动停止); <code>/loop</code> = <strong>按时间表盲跑, 到点就重放提示词</strong> (定时执行, 不判断完成) (5:38-7:38)</li>
+<li><strong>Claude Code /loop 7 天自动过期</strong>: 演示中明确说"会话中定时任务是 7 天后自动过期, 提前停用用 <code>CronDelete</code>" — 这是 Claude Code 的 lifecycle 约束 (9:23-9:27)</li>
+<li><strong>4 条 fit-checklist (跟 <code>loop-fit-checklist</code> skill 100% 吻合)</strong>: ①<strong>每周以上重复</strong> ②<strong>验证能自动化</strong> (测试/类型检查/Linter 不用肉眼审) ③<strong>token 预算扛得住</strong> (含浪费) ④<strong>agent 手里有资深工程师那套工具</strong> (日志/可浮现问题的环境/可跑起来的代码) — <strong>4 条全中才划算</strong> (10:36-11:26)</li>
+<li><strong>三层失败警告 (跟 <code>loop-failure-mode-catalog</code> + <code>human-validation-zones</code> 100% 吻合)</strong>:
+  <ul>
+    <li>① <strong>理解差距扩大</strong>: Loop 越快交付你没亲手写的代码, 仓库里有的东西和你脑子里真正搞懂的差距越大</li>
+    <li>② <strong>最危险姿态</strong>: 舒舒服服地接受 Loop 吐出来的一切 — AI 生成的不了解内容越多, 风险越大</li>
+    <li>③ <strong>无人盯着的 Loop = 无人盯着的在犯错</strong> (11:32-12:32)</li>
+  </ul>
+</li>
+<li><strong>Ralph 循环失败模式 over-baking (发酵过头)</strong>: Geoff 的 Ralph 循环"锲而不舍永不放弃"风格, <strong>修小 bug 会跑很久, 自作主张加没人要的功能, 甚至把能编译的代码改坏</strong> — 经典 token 烧光 + 输出超 scope 复合失败 (11:59-12:27)</li>
+<li><strong>写完 Loop 还要定期验证 (Osmani 寄语)</strong>: "当那个写 Loop 的人, 别当那个只会按启动键的人" — Loop 是设计一次但需要持续监督的系统 (12:43-13:39)</li>
+<li><strong>不要一上来套所有 Loop</strong>: "先挑一件你每周都在重复、而且结果能够自动验证的小事, 把它写成一个 Loop" — <strong>风险小的事先试</strong> (13:14-13:27)</li>
+</ol>
+
+<h2 id="h2-2">Section-by-Section Summary</h2>
+
+<div class="section-card">
+<h3 id="h3-1">Part 1: 三阶段进化 (Boris 一年回顾) — 1:13-2:28</h3>
+<p>Boris (Anthropic 管 Claude Code) 描述他这一年怎么从"逐行 Tab 补全"进化到"只写 Loop"。<strong>关键洞察</strong>: 第三阶段的核心不是"用 AI 更多", 而是<strong>角色转变</strong> — 从 Loop 里打字的那个人变成 Loop 的作者。</p>
+</div>
+
+<div class="section-card">
+<h3 id="h3-2">Part 2: Addy Osmani 5 块 + 1 脊柱框架 — 2:33-4:27</h3>
+<p>Addy Osmani 把典型 Loop 系统拆成 5 个组件 + 1 根脊柱:</p>
+<ul>
+<li><strong>心跳</strong> (heartbeat) — 定时触发器, 到点自动跑</li>
+<li><strong>工作树</strong> (work tree) — git 隔离分支, 多 agent 不踩踏</li>
+<li><strong>skill</strong> — SKILL.md 写项目规则, 每个 agent 每次都读</li>
+<li><strong>连接器</strong> (connector) — MCP 接 issue/数据库/Slack 等真实工具</li>
+<li><strong>子智能体</strong> (sub-agent) — 写代码 + 审代码拆开 (Osmani 原话: "写代码的模型给自己作业打分有时太宽容")</li>
+<li><strong>脊柱</strong> (spine) — 持久化记忆 (Markdown / Linear 看板), agent 会忘, 系统帮它记住</li>
+</ul>
+</div>
+
+<div class="section-card">
+<h3 id="h3-3">Part 3: 流程拼装 + 实战 — 4:29-5:23</h3>
+<p>典型 loop 一次循环: 早上定时触发 → 分诊 skill 读 CI 失败 + 最近提交 → 每个能处理的问题开独立 work tree + 子智能体修复 → 另一个子智能体对照 skill + 测试审查 → 连接器开 PR + 更新 ticket → 状态文件实时记录, 明天接着跑。<strong>关键观察</strong>: 整个一圈, "你只设计了一次, 中间的每一步, 你一条提示词都没有打"。</p>
+</div>
+
+<div class="section-card">
+<h3 id="h3-4">Part 4: /goal 命令演示 (热身) — 5:25-6:50</h3>
+<p><code>/goal</code> 是 Claude Code 内置命令: 给一个可判定真假的目标 → 它自己一轮一轮执行 → 每轮结束判断目标达到没 → 达到自动收工。演示: 给目标"用 verysmallwoods research 获取过去资讯, 提取 Google/OpenAI/Anthropic 数据直到凑够 5 条", <strong>不需要每写一条就催它</strong>。</p>
+</div>
+
+<div class="section-card">
+<h3 id="h3-5">Part 5: /loop 命令演示 (核心) — 6:52-10:25</h3>
+<p><code>/loop</code> 不一样: 按时间表<strong>盲跑</strong>, 到点就把提示词再跑一遍, 不判断完成。这正好是 Osmani 说的"心跳"。演示: 每分钟执行一次定时任务, 用 verysmallwoods research 拉过去 24h 资讯 → 挑出能写深度文的 → 追加到 <code>inbox.md</code> → <code>topic-scorer</code> 子智能体评级 → 写回 inbox。<strong>演示结果</strong>: 第一次循环完成, 6 月 12 号追加了若干话题, 状态文件实时更新, 下一个 tick 接着跑。</p>
+<p><strong>关键 lifecycle 约束</strong>: 会话中 <code>/loop</code> 定时任务<strong>7 天后自动过期</strong>; 提前停用 <code>CronDelete</code>。<strong>这是 Claude Code 的安全机制</strong>, 防止无人看管的 Loop 永久运行。</p>
+</div>
+
+<div class="section-card">
+<h3 id="h3-6">Part 6: 4 条 fit-checklist (冷水) — 10:26-11:26</h3>
+<p>引用"多数开发者其实还并不需要 agent Loop"那篇文章的 4 条测试:</p>
+<ol>
+<li><strong>重复性</strong> — 每周以上都跑, 一次性活不值得搭</li>
+<li><strong>自动验证</strong> — 测试/类型/Linter 挡得住, 不用肉眼审</li>
+<li><strong>token 预算</strong> — 扛得住浪费 (loop 反复读上下文 + 重试 + 来回试探)</li>
+<li><strong>agent 工具栈</strong> — 日志 + 可浮现问题的环境 + 可跑起来的代码</li>
+</ol>
+<p><strong>跟 <code>loop-fit-checklist</code> skill v1.0.0 的 4-condition gate (binary/constrained/bounded/token tier) 完全吻合</strong>。区别: 那个 skill 更结构化 (Q1-Q4 4 个问题), 这个视频是 4 个条件并列。</p>
+</div>
+
+<div class="section-card">
+<h3 id="h3-7">Part 7: 3 层失败警告 + Ralph 案例 — 11:28-12:32</h3>
+<p><strong>3 层警告</strong>:</p>
+<ol>
+<li><strong>理解差距扩大</strong> — 仓库里有的东西 ≠ 你脑子里真正搞懂的东西</li>
+<li><strong>最危险姿态</strong> — 接受 Loop 吐出来的一切</li>
+<li><strong>无人盯着的 Loop = 无人盯着的在犯错</strong></li>
+</ol>
+<p><strong>Ralph 循环 over-baking 案例</strong>: Geoff 著名的 Ralph 循环 (拉尔夫) 风格 = 锲而不舍永不放弃 → 修小 bug 跑很久 → 自作主张加没人要功能 → 把能编译的代码改坏。<strong>根因</strong>: 缺少 tripwire (没有"够好了就停"信号) + 缺少 scope guard (无"只能改这块"边界)。</p>
+<p><strong>跟 <code>loop-failure-mode-catalog</code> skill v1.0.0 的 4 fail mode 映射</strong>:</p>
+<ul>
+<li>"理解差距扩大" ≈ fail mode "假设爆" (output drifts from user mental model)</li>
+<li>"接受 Loop 吐出来的一切" ≈ fail mode "反馈非 binary" (用户没主动验证)</li>
+<li>"Ralph over-baking" ≈ fail mode "token 烧光" + "输出超 scope" 复合</li>
+</ul>
+</div>
+
+<div class="section-card">
+<h3 id="h3-8">Part 8: 寄语 + 起步建议 — 12:41-13:42</h3>
+<p>Osmani 寄语: "当那个写 Loop 的人, 别当那个只会按启动键的人"。实操建议: "不要一上来就给所有事情都套上一个 Loop, 先挑一件你每周都在重复、而且结果能够自动验证的小事, 把它写成一个 Loop (就像我刚才那个选题筛选的任务, 这个任务的执行风险还是偏小的)"。<strong>写完 Loop 还要定期验证</strong> — 验证这事永远在你自己手上。</p>
+</div>
+
+<h2 id="h2-3">Key Quotes</h2>
+
+<blockquote>
+"你不该再用提示词来驱动智能体为你编程了, 应该去设计那些循环来驱动智能体工作" <span class="src">— Peter Steinberger (OpenClaw 作者), 0:31-0:41</span>
+</blockquote>
+
+<blockquote>
+"Boris 他自己工作也就只是写 Loop" <span class="src">— 引用 Anthropic 负责人, 0:57-1:02</span>
+</blockquote>
+
+<blockquote>
+"你从 Loop 里打字的那个人, 变成了 Loop 的作者" <span class="src">— Addy Osmani 转述, 2:15-2:19</span>
+</blockquote>
+
+<blockquote>
+"写代码的那个模型给自己的作业打分, 有的时候太宽容了, 所以我们需要让另一个 agent 来挑刺" <span class="src">— Addy Osmani, 3:59-4:07</span>
+</blockquote>
+
+<blockquote>
+"/goal 是现在就跑, 跑到条件为真; /loop 不一样, 它是按照时间表盲跑, 到点就把你给它的那段提示词再跑一遍" <span class="src">— 01Coder (小木头), 7:24-7:34</span>
+</blockquote>
+
+<blockquote>
+"多数开发者其实还并不需要 agent Loop... 4 条全中, 做 Loop 才划算" <span class="src">— 引用某开发者文章, 10:31-10:41</span>
+</blockquote>
+
+<blockquote>
+"Loop 越快地交付, 你没有亲手写的代码... 仓库里有的东西, 和你脑子里真正搞懂的东西, 差距就越大" <span class="src">— Addy Osmani, 11:34-11:43</span>
+</blockquote>
+
+<blockquote>
+"最危险的姿态是, 舒舒服服地接受 Loop 吐出来的一切" <span class="src">— Addy Osmani, 11:47-11:49</span>
+</blockquote>
+
+<blockquote>
+"Ralph 也有个著名的失败模式叫 over-baking, 发酵过头... 把本来能编译的代码都改坏了" <span class="src">— 引用 Geoff, 12:11-12:27</span>
+</blockquote>
+
+<blockquote>
+"无人盯着的 Loop, 也是无人盯着的在犯错" <span class="src">— Addy Osmani, 12:27-12:29</span>
+</blockquote>
+
+<blockquote>
+"当那个写 Loop 的人, 别当那个只会按启动键的人" <span class="src">— Addy Osmani, 13:32-13:36</span>
+</blockquote>
+
+<h2 id="h2-4">Framework → Self-Apply Mapping (8/10 = 80% 触达)</h2>
+
+<table>
+<thead>
+<tr><th>#</th><th>视频概念</th><th>Source</th><th>已有 skill 覆盖</th><th>状态</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>三阶段进化 (逐行驾驶 / 并行手动 / Loop 作者)</td><td>Boris 转述</td><td>暂无显式 stage model</td><td class="status-warn">⚠️ 部分</td></tr>
+<tr><td>2</td><td>5 块 + 1 脊柱框架 (心跳/工作树/skill/MCP/sub-agent/spine)</td><td>Addy Osmani</td><td><code>hermes-eval-harness</code> Pattern B+ 含 sub-agent</td><td class="status-warn">⚠️ 部分</td></tr>
+<tr><td>3</td><td><code>/goal</code> 命令 (Claude Code)</td><td>演示</td><td><code>claude-code-6-power-phrases</code> 6 phrase 之一</td><td class="status-warn">⚠️ 部分</td></tr>
+<tr><td>4</td><td><code>/loop</code> 命令 (Claude Code)</td><td>演示</td><td><code>claude-code-6-power-phrases</code> 未直接覆盖 (skill 在 6 phrase 之外)</td><td class="status-miss">❌ 缺</td></tr>
+<tr><td>5</td><td>topic-scorer 子智能体 + inbox.md (演示)</td><td>演示</td><td><code>claude-code</code> (subagent harness) 概念层</td><td class="status-warn">⚠️ 部分</td></tr>
+<tr><td>6</td><td>4 条 fit-checklist</td><td>引用文章</td><td><strong><code>loop-fit-checklist</code> v1.0.0 ✅ 100% 吻合</strong></td><td class="status-ok">✅</td></tr>
+<tr><td>7</td><td>3 层警告 (差距/接受一切/无人盯着)</td><td>Addy Osmani</td><td><code>loop-failure-mode-catalog</code> + <code>human-validation-zones</code> ✅</td><td class="status-ok">✅</td></tr>
+<tr><td>8</td><td>Ralph over-baking 失败模式</td><td>Geoff 案例</td><td><code>loop-failure-mode-catalog</code> 4 fail mode 复合 ✅</td><td class="status-ok">✅</td></tr>
+<tr><td>9</td><td><code>/loop</code> 7 天自动过期 + CronDelete</td><td>演示</td><td>暂无 skill 显式记录</td><td class="status-miss">❌ 缺</td></tr>
+<tr><td>10</td><td>写完 Loop 定期验证 (Osmani 寄语)</td><td>寄语</td><td><code>human-validation-zones</code> ✅</td><td class="status-ok">✅</td></tr>
+</tbody>
+</table>
+
+<div class="highlight-box">
+<strong>总覆盖率</strong>: <span class="status-ok">5 ✅</span> + <span class="status-warn">3 ⚠️</span> + <span class="status-miss">2 ❌</span> = 8/10 (80%)<br><br>
+<strong>3 缺口</strong> (按 P0/P1/P2 排序):
+<ul>
+<li><strong>P0</strong> (5 min): 把 <code>/loop</code> 7 天过期 + <code>CronDelete</code> lifecycle 补进 <code>claude-code-6-power-phrases</code> skill, 加新 phrase "loop: lifecycle" (1 min 速查)</li>
+<li><strong>P1</strong> (30 min): 写 <code>loop-engineering-stage-model</code> skill 收纳三阶段进化模型 (逐行驾驶 / 并行手动 / Loop 作者), 给"我现在在哪个阶段"做 self-assessment 工具</li>
+<li><strong>P2</strong> (2 hour): 写 <code>loop-engineering-5-blocks-skeleton</code> template, 把 5 块+1 脊柱做成可填的 Hermes skill 模板 (心跳 / 工作树 / skill / MCP / sub-agent / spine 各一段 prompt 占位符)</li>
+</ul>
+</div>
+
+<p><strong>注</strong>: 视频的 4 条 fit-checklist 跟 <code>loop-fit-checklist</code> 100% 吻合, <strong>不需要新建 skill</strong>; Ralph 失败模式已经被 <code>loop-failure-mode-catalog</code> 4 fail mode 覆盖, <strong>不需要新建 skill</strong>; Osmani 寄语跟 <code>human-validation-zones</code> 重复, <strong>不需要新建 skill</strong>。3 缺口都是<strong>深化 / 模板化</strong>方向, 跟 06-15 案例 6 触达模式 (0 ❌ → 100% 全开) 互补, 这次走"1 skill 缺 + 1 stage model 缺 + 1 template 缺"。</p>
+
+<h2 id="h2-5">Discussion Questions</h2>
+
+<ol>
+<li><strong>"我现在在哪个阶段" 自评</strong>: 看完这个视频, 你处在 Boris 三阶段中的哪个? (逐行驾驶 / 并行手动 / Loop 作者) — 如果还在"并行手动", 你打算把哪件每周重复 + 结果可自动验证的小事先做成 Loop?</li>
+<li><strong><code>/goal</code> vs <code>/loop</code> 何时用哪个</strong>: 视频明确说 <code>/goal</code> = one-shot + 自动停止, <code>/loop</code> = 定时 + 盲跑。如果你有一个"每天早上 8 点拉过去 24h AI 圈新闻打分到 inbox"的任务, 是用 <code>/goal</code> 还是 <code>/loop</code>? 怎么避免 <code>/loop</code> 7 天过期后忘记续?</li>
+<li><strong>Ralph over-baking 防御</strong>: 如果你要用 Claude Code 写一个修小 bug 的 loop, 你会在哪里加 tripwire (够好了就停) 和 scope guard (只能改这块) ? 跟 <code>loop-failure-mode-catalog</code> skill 的 mitigation 模板对照, 缺什么补什么</li>
+<li><strong>"无人盯着的 Loop = 无人盯着的在犯错" 落地</strong>: 你的 <code>/loop</code> 任务怎么"定期在必要环节上验证"? 是每天早上看 inbox? 还是写一个 <code>/goal</code> 任务当 watchdog? 还是用 <code>human-validation-zones</code> skill 标识的 7 类 zone 触发 L3 验证?</li>
+<li><strong>5 块 + 1 脊柱骨架实测</strong>: 选一个你现在手头的重复任务, 试着按 5 块 (心跳 / 工作树 / skill / MCP / sub-agent) + 1 脊柱 (持久化记忆) 拆解 — 你能拼出几块? 哪几块你已经现成 (e.g. git work tree, SKILL.md, MCP server), 哪几块要从零写?</li>
+<li><strong>跟 06-15 案例 6 (7clJ8IH784Q AI Agent Loop) 的视角对比</strong>: 那个 Greg Isenberg × Ross Mike 视频的结论是 "Loop = 1×fire, 不是 7×24h", 主推 human-in-the-loop; 这个 01Coder 视频的结论是 "Loop = 写完就让它自己跑, 你只在关键节点验证"。<strong>两种 Loop 哲学的边界在哪?</strong> — 我的猜测: 短决策链 (单文件 fix) 走 1×fire + 人工 review; 长流程任务 (CI 失败自动修复) 走 <code>/loop</code> + 阶段 tripwire</li>
+</ol>
+
+<h2 id="h2-6">Cross-Refs (跟 06-15 案例 6 互补视角)</h2>
+
+<div class="cross-ref"><code>loop-fit-checklist</code> v1.0.0 (2026-06-15) — 4-condition gate, <strong>视频 4 条 fit-checklist 100% 吻合</strong></div>
+<div class="cross-ref"><code>loop-failure-mode-catalog</code> v1.0.0 (2026-06-15) — 4 fail mode, <strong>Ralph over-baking = token 烧光 + 输出超 scope 复合</strong></div>
+<div class="cross-ref"><code>human-validation-zones</code> v1.0.0 (2026-06-14) — 7 类 zone, <strong>视频"无人盯着的 Loop"警告 = L3 验证触发</strong></div>
+<div class="cross-ref"><code>hermes-eval-harness</code> v1.0.0 (2026-06-14) — Pattern B+ 2-agent 评估, <strong>跟视频"写代码+审代码拆开"sub-agent 设计一致</strong></div>
+<div class="cross-ref"><code>claude-code-6-power-phrases</code> v1.0.0 (2026-06-14) — 6 phrase 速查, <strong><code>/goal</code> 是 6 phrase 之一, <code>/loop</code> 缺</strong></div>
+<div class="cross-ref"><code>paper/ai-agent-loop-greg-isenberg-ross-mike-7clJ8IH784Q</code> — 06-15 案例 6 笔记, Greg/Ross 的 "1×fire" 哲学</div>
+<div class="cross-ref"><code>paper/loop-engineering-theory-addy-osmani</code> — 待建: Osmani 原文章中文摘要</div>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Decomposition 任务拆解</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #111827;
+    --border: #1f2937;
+    --green: #34d399;
+    --blue: #60a5fa;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --cyan: #22d3ee;
+    --orange: #fb923c;
+    --text: #f3f4f6;
+    --muted: #9ca3af;
+    --accent: #6366f1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Display', sans-serif; line-height: 1.6; }
+  
+  .hero { text-align: center; padding: 48px 24px 32px; background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, transparent 100%); }
+  .hero h1 { font-size: 32px; font-weight: 800; color: var(--blue); margin-bottom: 8px; }
+  .hero .sub { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .hero .author { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); padding: 8px 16px; border-radius: 24px; font-size: 13px; color: var(--text); }
+  .hero .tag { display: inline-block; background: rgba(99,102,241,0.2); color: var(--accent); padding: 2px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin: 4px 4px 0 0; }
+
+  /* Nav */
+  .nav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 0 24px 32px; }
+  .nav button { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .nav button:hover { border-color: var(--accent); color: var(--text); }
+  .nav button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .page { display: none; padding: 0 24px 48px; max-width: 1200px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .card h2 { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .card h3 { font-size: 13px; color: var(--yellow); margin: 16px 0 8px; font-weight: 600; }
+  .card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: rgba(99,102,241,0.15); color: var(--accent); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(31,41,55,0.6); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(99,102,241,0.04); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-g { background: rgba(52,211,153,0.15); color: var(--green); }
+  .tag-b { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .tag-r { background: rgba(248,113,113,0.15); color: var(--red); }
+  .tag-y { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .tag-p { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .tag-c { background: rgba(34,211,238,0.15); color: var(--cyan); }
+  .tag-o { background: rgba(251,146,60,0.15); color: var(--orange); }
+
+  /* Diagram boxes */
+  .chain { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding: 8px 0; }
+  .chain-item { flex: 1; min-width: 120px; background: var(--card); border: 2px solid; border-radius: 12px; padding: 16px; text-align: center; font-size: 13px; font-weight: 700; }
+  .chain-item.green { border-color: var(--green); color: var(--green); background: rgba(52,211,153,0.08); }
+  .chain-item.blue { border-color: var(--blue); color: var(--blue); background: rgba(96,165,250,0.08); }
+  .chain-item.purple { border-color: var(--purple); color: var(--purple); background: rgba(167,139,250,0.08); }
+  .chain-item.orange { border-color: var(--orange); color: var(--orange); background: rgba(251,146,60,0.08); }
+  .chain-item .sub { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 4px; }
+  .chain-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; }
+
+  /* Workflow nodes */
+  .workflow { display: flex; flex-direction: column; gap: 12px; }
+  .wf-row { display: flex; align-items: center; gap: 12px; }
+  .wf-node { flex: 1; min-width: 100px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; }
+  .wf-node.io { border-color: var(--blue); background: rgba(96,165,250,0.08); }
+  .wf-node.agent { border-color: var(--purple); background: rgba(167,139,250,0.08); }
+  .wf-node.qc { border-color: var(--yellow); background: rgba(251,191,36,0.08); }
+  .wf-node.out { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .wf-node .role { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .wf-arrow { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+  .wf-arrow-v { color: var(--muted); font-size: 16px; text-align: center; }
+
+  /* 3C cards */
+  .c3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .c3-card { background: var(--card); border: 2px solid; border-radius: 12px; padding: 20px; text-align: center; }
+  .c3-card.red { border-color: var(--red); }
+  .c3-card.blue { border-color: var(--blue); }
+  .c3-card.green { border-color: var(--green); }
+  .c3-card .icon { font-size: 28px; margin-bottom: 8px; }
+  .c3-card .title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .c3-card.red .title { color: var(--red); }
+  .c3-card.blue .title { color: var(--blue); }
+  .c3-card.green .title { color: var(--green); }
+  .c3-card .desc { font-size: 12px; color: var(--muted); }
+
+  /* Components */
+  .components { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .comp { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+  .comp .icon { font-size: 24px; margin-bottom: 8px; }
+  .comp .name { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .comp .role { font-size: 11px; color: var(--muted); }
+
+  /* Comparison */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cmp { background: var(--card); border: 2px solid; border-radius: 14px; padding: 20px; }
+  .cmp.bad { border-color: var(--red); }
+  .cmp.good { border-color: var(--green); }
+  .cmp h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .cmp.bad h3 { color: var(--red); }
+  .cmp.good h3 { color: var(--green); }
+  .cmp li { font-size: 12px; color: var(--muted); margin: 6px 0; padding-left: 16px; position: relative; list-style: none; }
+  .cmp li::before { content: '→'; position: absolute; left: 0; color: var(--muted); }
+
+  /* Quote */
+  .quote { background: rgba(99,102,241,0.08); border-left: 3px solid var(--accent); border-radius: 0 10px 10px 0; padding: 16px 20px; margin: 16px 0; font-size: 13px; font-style: italic; color: var(--text); line-height: 1.8; }
+
+  /* Skill balance */
+  .balance { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+  .balance-side { background: var(--card); border: 1px solid; border-radius: 10px; padding: 12px; font-size: 12px; text-align: center; }
+  .balance-side.too-wide { border-color: var(--yellow); color: var(--yellow); }
+  .balance-side.too-narrow { border-color: var(--orange); color: var(--orange); }
+  .balance-side.good { border-color: var(--green); color: var(--green); }
+  .balance-arrow { font-size: 20px; color: var(--muted); text-align: center; }
+
+  /* Canvas */
+  .chart-container { position: relative; height: 260px; margin-top: 16px; }
+  canvas { width: 100%; height: 100%; }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 10px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-body { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; font-size: 13px; }
+  .step-body strong { color: var(--blue); }
+
+  /* Source */
+  .source { text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+  /* Full width */
+  .full { grid-column: 1 / -1; }
+
+  canvas { border-radius: 8px; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Task Decomposition</h1>
+  <p class="sub">把任务拆成 Agent 能跑的工作流</p>
+  <div class="author">
+    <span>👤 Gary Chen</span>
+    <span>·</span>
+    <span>YouTube</span>
+  </div>
+  <div style="margin-top:12px">
+    <span class="tag">AI-Agent</span>
+    <span class="tag">Task-Decomposition</span>
+    <span class="tag">Agentic-Workflow</span>
+    <span class="tag">Skill</span>
+    <span class="tag">SOP</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="active" onclick="showPage('concept')">核心概念</button>
+  <button onclick="showPage('mega')">Mega Agent问题</button>
+  <button onclick="showPage('3c')">3C原则</button>
+  <button onclick="showPage('ticket')">Ticket案例</button>
+  <button onclick="showPage('skill')">Skill设计</button>
+  <button onclick="showPage('sop')">SOP转化</button>
+  <button onclick="showPage('mindmap')">知识图谱</button>
+</div>
+
+<!-- PAGE: Concept -->
+<div id="concept" class="page active">
+  <div class="grid">
+    <div class="card full">
+      <h2>三个核心概念的层级关系</h2>
+      <div class="chain">
+        <div class="chain-item green">
+          Human SOP
+          <div class="sub">给人看的纸本流程</div>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item blue">
+          Skill
+          <div class="sub">给 Agent 的执行单位</div>
+        </div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item purple">
+          Agentic Workflow
+          <div class="sub">多 Agent + 工具串联</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:10px;font-size:13px;color:var(--muted)">
+        <strong style="color:var(--accent)">本质区别：</strong>
+        Human SOP 是文字 + 经验谈，人类能自动补 context → Skill 把方法论打包成结构化文件夹 → Agentic Workflow 把多个 Skill + 工具串联成生产线
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Human SOP 的局限</h2>
+      <div class="quote">
+        "SOP 文件里写'申请完送主管签核'——人类会自动判断：200块以内的小金额，主管宁愿不要去烦他；但超过5000块，至少要口头知会一声。"
+      </div>
+      <h3>对 Agent 的问题</h3>
+      <table>
+        <tr><th>问题</th><th>说明</th></tr>
+        <tr><td><span class="tag tag-r">非结构化</span></td><td>一坨文字，理解成本高</td></tr>
+        <tr><td><span class="tag tag-r">无例外处理</span></td><td>没有 specify，AI 不会知道什么时候省略</td></tr>
+        <tr><td><span class="tag tag-r">维护率低</span></td><td>口头提醒比维护文档更方便</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Skill 的三大组件</h2>
+      <div class="components">
+        <div class="comp">
+          <div class="icon">📄</div>
+          <div class="name">SKILL.md</div>
+          <div class="role">核心：人类写给 Agent 的 SOP + 心法</div>
+        </div>
+        <div class="comp">
+          <div class="icon">📚</div>
+          <div class="name">references/</div>
+          <div class="role">辅助：示例输出、术语表、踩坑记录</div>
+        </div>
+        <div class="comp">
+          <div class="icon">⚙️</div>
+          <div class="name">scripts/</div>
+          <div class="role">执行：文件解析、格式转换等工程任务</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;font-size:12px;color:var(--green)">
+        命名规范：看名字就知道做什么、什么时候触发<br>
+        例如：weekly-report-drafting、pdf-processing
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>Agentic Workflow 工厂比喻</h2>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+        <div style="flex:1;min-width:180px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">👤</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue)">理解问题</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">理解用户需求</div>
+        </div>
+        <div style="flex:1;min-width:180px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">🔍</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)">查资料</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">检索数据库/文档</div>
+        </div>
+        <div style="flex:1;min-width:180px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">⚡</div>
+          <div style="font-size:13px;font-weight:700;color:var(--purple)">执动作</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">调用工具/API</div>
+        </div>
+        <div style="flex:1;min-width:180px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:24px;margin-bottom:8px">📝</div>
+          <div style="font-size:13px;font-weight:700;color:var(--yellow)">写报告</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">汇总结果输出</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted)">
+        中间调用各种工具、API、数据库，以及你之前写好的 Skills
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: Mega Agent -->
+<div id="mega" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>Mega Agent（整包丢进去）vs 分解工作流</h2>
+      <div class="compare">
+        <div class="cmp bad">
+          <h3>❌ Mega Agent（整包丢进去）</h3>
+          <li>任务太大、太模糊</li>
+          <li>输出不可预测、不可 review</li>
+          <li>推理过程不透明</li>
+          <li>出错找不到下手点</li>
+          <li>每次执行像买彩券</li>
+          <li>像个黑箱，无法 production</li>
+          <li>无法观测、无法修复</li>
+        </div>
+        <div class="cmp good">
+          <h3>✅ 分解工作流（Task Decomposition）</h3>
+          <li>每个 Task 明确 input / output</li>
+          <li>每个 Task 有明确的成功标准</li>
+          <li>每步有 log，出错可追踪</li>
+          <li>哪里坏了改哪里，对症下药</li>
+          <li>可观测、可修复</li>
+          <li>Production 级别稳定性</li>
+          <li>企业级框架标配</li>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>生活类比：清洁房间</h2>
+      <div class="quote">
+        "只说'把家打扫干净'就出门。回来发现：角落里的灰、柜子后面的东西都没动。因为你对'干净'的定义和帮手完全不一样。"
+      </div>
+      <h3>核心教训</h3>
+      <p>问题从来不是帮手够不够聪明，而是任务定义不清晰。再聪明的 Agent，如果你没有 specify 清楚，它就会用自己默认的理解去执行，结果和你的期望天差地别。</p>
+    </div>
+
+    <div class="card">
+      <h2>Mega Agent 失败案例</h2>
+      <table>
+        <tr><th>任务</th><th>Mega Agent 的典型输出</th></tr>
+        <tr><td>"帮我优化整个开发流程"</td><td>一份洋洋洒洒的优化建议 + 改一堆 config + refactor 不该动的模块</td></tr>
+        <tr><td>"帮我处理所有客户工单"</td><td>回复质量参差不齐，有的误判类型，有的漏掉紧急问题</td></tr>
+        <tr><td>"帮我做市场分析"</td><td>数据来源不明，逻辑跳跃，无法验证哪段推理是对的</td></tr>
+      </table>
+      <div style="margin-top:12px;padding:10px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:8px;font-size:12px;color:var(--red)">
+        你完全不知道哪一段推理是对的，哪一段根本不该让它自动跑
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: 3C -->
+<div id="3c" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>Task Decomposition 3C 原则</h2>
+      <div class="c3">
+        <div class="c3-card red">
+          <div class="icon">📥</div>
+          <div class="title">Clear Input</div>
+          <div class="desc">明确的输入：参数、上下文、数据来源全部结构化</div>
+        </div>
+        <div class="c3-card blue">
+          <div class="icon">📤</div>
+          <div class="title">Clear Output</div>
+          <div class="desc">明确的输出：什么格式、什么结构、什么内容</div>
+        </div>
+        <div class="c3-card green">
+          <div class="icon">✅</div>
+          <div class="title">Clear Success Criteria</div>
+          <div class="desc">明确的成功标准：可量化、可验证的衡量指标</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>3C 在企业级框架中的体现</h2>
+      <div class="chart-container" style="height:300px">
+        <canvas id="chart3C"></canvas>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>每个 Agent 都很笨，但每件事都很明确</h2>
+      <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:20px;font-size:13px;color:var(--text);text-align:center;line-height:2">
+        Mega Agent 的思路：用最强模型 + 最详细的 Prompt，试图一步到位<br>
+        <span style="color:var(--yellow)">↓</span><br>
+        Task Decomposition 的思路：把任务拆成一串小 Task，每个都有 3C<br>
+        <span style="color:var(--yellow)">↓</span><br>
+        出错了？回去看 Log → 发现是分类 Agent 误判 → 改分类 SOP 就好 → <span style="color:var(--green)">对症下药</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: Ticket -->
+<div id="ticket" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>案例：客户 Ticket 处理 — 4-Agent 工作流</h2>
+      <h3 style="margin-top:8px;color:var(--muted);font-size:12px">Human SOP（给人看）："处理客户问题，按类型分类回复，重要问题上报"</h3>
+      
+      <!-- Workflow visualization -->
+      <div style="margin-top:20px;overflow-x:auto">
+        <div style="display:flex;align-items:center;gap:10px;min-width:700px;padding:12px 0">
+          <!-- Input -->
+          <div style="flex:0 0 auto;background:rgba(96,165,250,0.1);border:1px solid var(--blue);border-radius:10px;padding:12px 16px;text-align:center;min-width:120px">
+            <div style="font-size:12px;font-weight:700;color:var(--blue)">Input</div>
+            <div style="font-size:11px;color:var(--muted)">Ticket ID</div>
+            <div style="font-size:11px;color:var(--muted)">+ 内容</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px">→</div>
+          
+          <!-- Agent 1: Search -->
+          <div style="flex:0 0 auto;background:rgba(52,211,153,0.08);border:1px solid var(--green);border-radius:10px;padding:12px 16px;text-align:center;min-width:140px">
+            <div style="font-size:13px;font-weight:700;color:var(--green)">Agent 1</div>
+            <div style="font-size:11px;color:var(--green);margin-top:2px">查资料</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Input: ticket ID</div>
+            <div style="font-size:10px;color:var(--muted)">Output: 历史记录</div>
+            <div style="font-size:10px;color:var(--green);margin-top:4px">Success: 相关度&gt;80%</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px">→</div>
+          
+          <!-- Agent 2: Classify -->
+          <div style="flex:0 0 auto;background:rgba(167,139,250,0.08);border:1px solid var(--purple);border-radius:10px;padding:12px 16px;text-align:center;min-width:140px">
+            <div style="font-size:13px;font-weight:700;color:var(--purple)">Agent 2</div>
+            <div style="font-size:11px;color:var(--purple);margin-top:2px">分类</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Input: ticket 内容</div>
+            <div style="font-size:10px;color:var(--muted)">Output: 类型标签</div>
+            <div style="font-size:10px;color:var(--purple);margin-top:4px">Success: 准确率&gt;90%</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px">→</div>
+          
+          <!-- Agent 3: QC -->
+          <div style="flex:0 0 auto;background:rgba(251,191,36,0.08);border:1px solid var(--yellow);border-radius:10px;padding:12px 16px;text-align:center;min-width:140px">
+            <div style="font-size:13px;font-weight:700;color:var(--yellow)">Agent 3</div>
+            <div style="font-size:11px;color:var(--yellow);margin-top:2px">QC 审查</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Input: 草拟回复</div>
+            <div style="font-size:10px;color:var(--muted)">Output: 审查意见</div>
+            <div style="font-size:10px;color:var(--yellow);margin-top:4px">Success: 漏检率&lt;5%</div>
+          </div>
+          <div style="color:var(--muted);font-size:20px">→</div>
+          
+          <!-- Agent 4: Send -->
+          <div style="flex:0 0 auto;background:rgba(34,211,238,0.08);border:1px solid var(--cyan);border-radius:10px;padding:12px 16px;text-align:center;min-width:120px">
+            <div style="font-size:13px;font-weight:700;color:var(--cyan)">Agent 4</div>
+            <div style="font-size:11px;color:var(--cyan);margin-top:2px">发送回复</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:4px">Input: 审核通过</div>
+            <div style="font-size:10px;color:var(--muted)">Output: 发送确认</div>
+            <div style="font-size:10px;color:var(--cyan);margin-top:4px">Success: 客户确认</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;font-size:12px;color:var(--green)">
+        ✅ 关键：每个 Agent 都很笨，但每个 Agent 只做一件很明确的事。<strong>出错了看 Log → 改那个 Skill 就好</strong>。
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>分类错误的影响范围分析</h2>
+      <div class="chart-container" style="height:240px">
+        <canvas id="chartTicket"></canvas>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+        Mega Agent 出错：整条链都要重来，不知道哪里出错。<br>
+        分解后出错：只改对应 Skill，对其他节点无影响。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: Skill -->
+<div id="skill" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>Skill 防守范围：太宽 vs 太窄</h2>
+      <div class="balance">
+        <div class="balance-side too-wide">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">范围太大</div>
+          <div style="font-size:11px">样样通，但都差强人意</div>
+          <div style="font-size:11px;color:var(--yellow);margin-top:4px">Skill 过于泛化</div>
+        </div>
+        <div class="balance-arrow">
+          <div style="font-size:24px">⚖️</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">正确平衡点</div>
+        </div>
+        <div class="balance-side good">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">范围适中</div>
+          <div style="font-size:11px">单一任务，清晰边界</div>
+          <div style="font-size:11px;color:var(--green);margin-top:4px">1 Skill = 1 任务</div>
+        </div>
+        <div class="balance-arrow">
+          <div style="font-size:24px">→</div>
+        </div>
+        <div class="balance-side too-narrow">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">范围太小</div>
+          <div style="font-size:11px">每步都读 Skill</div>
+          <div style="font-size:11px;color:var(--orange);margin-top:4px">过度干预模型</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.2);border-radius:8px;font-size:12px;color:var(--muted)">
+        <span style="color:var(--orange)">过窄的问题：</span>等于把模型当小孩子，什么都要听人类的。实际上是<strong style="color:var(--text)">不信任模型的推理能力</strong>，过度干预。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Skill 命名规范</h2>
+      <table>
+        <tr><th>好的命名</th><th>触发时机</th></tr>
+        <tr><td><span class="tag tag-g">weekly-report-drafting</span></td><td>每周报告起草</td></tr>
+        <tr><td><span class="tag tag-g">pdf-processing</span></td><td>PDF 文档处理</td></tr>
+        <tr><td><span class="tag tag-g">invoice-categorization</span></td><td>发票分类</td></tr>
+        <tr><td><span class="tag tag-b">customer-ticket-search</span></td><td>查询客户历史工单</td></tr>
+        <tr><td><span class="tag tag-b">reply-qc-check</span></td><td>回复内容质检</td></tr>
+      </table>
+      <p style="margin-top:12px;font-size:12px;color:var(--muted)">看名字就知道它做什么、什么时候该被 trigger。不需要进 Skill 内部就能判断是否适用。</p>
+    </div>
+
+    <div class="card">
+      <h2>可提取为 Skills 的知识点</h2>
+      <table>
+        <tr><th>Skill 名称</th><th>触发场景</th><th>核心内容</th></tr>
+        <tr><td><span class="tag tag-p">task-decomposition</span></td><td>把大任务交给 Agent 时</td><td>3C 原则</td></tr>
+        <tr><td><span class="tag tag-p">skill-authoring</span></td><td>创建新 Skill 时</td><td>SKILL.md + refs + scripts</td></tr>
+        <tr><td><span class="tag tag-p">mega-agent-vs-workflow</span></td><td>选方案时</td><td>Mega Agent 局限性</td></tr>
+        <tr><td><span class="tag tag-p">sop-to-agentic-workflow</span></td><td>把人工流程转化时</td><td>5 步转化流程</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: SOP to Workflow -->
+<div id="sop" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>SOP → Agentic Workflow 五步转化</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body"><strong>识别判断节点</strong><br><span style="font-size:12px;color:var(--muted)">从 Human SOP 中找出每个判断节点：哪些是例外？哪些可以省略？哪些必须做？</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body"><strong>定义 Input / Output</strong><br><span style="font-size:12px;color:var(--muted)">不是文字描述，是结构化参数。每个节点的输入输出都要明确。</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body"><strong>判断自动化边界</strong><br><span style="font-size:12px;color:var(--muted)">哪些可以自动化，哪些仍需要人类确认。非结构化的判断需要 human-in-the-loop。</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body"><strong>串联成 Workflow</strong><br><span style="font-size:12px;color:var(--muted)">每个节点 = 一个 Skill 或一个 Agent。画出完整的数据流图。</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body"><strong>定义 Success Criteria</strong><br><span style="font-size:12px;color:var(--muted)">每个节点可量化、可验证的衡量指标。如：准确率 &gt; 90%、返回时间 &lt; 5s。</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>为什么企业级框架都用 Workflow Decomposition</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px">
+        <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:20px;text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">📐</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:6px">稳定性</div>
+          <div style="font-size:12px;color:var(--muted)">任务边界清晰，输出可预测，不是每次执行都像买彩券</div>
+        </div>
+        <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.3);border-radius:12px;padding:20px;text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">👁️</div>
+          <div style="font-size:14px;font-weight:700;color:var(--blue);margin-bottom:6px">可观测性</div>
+          <div style="font-size:12px;color:var(--muted)">每个步骤有 Log，出问题可追踪到具体节点</div>
+        </div>
+        <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.3);border-radius:12px;padding:20px;text-align:center">
+          <div style="font-size:28px;margin-bottom:8px">🔧</div>
+          <div style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:6px">可修复性</div>
+          <div style="font-size:12px;color:var(--muted)">哪里坏了改哪里，对症下药，不用推翻重来</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: Mindmap -->
+<div id="mindmap" class="page">
+  <div class="grid">
+    <div class="card full">
+      <h2>Task Decomposition 知识图谱</h2>
+      <div class="chart-container" style="height:420px">
+        <canvas id="chartMind"></canvas>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>核心思维总结</h2>
+      <div style="background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(52,211,153,0.08));border:1px solid var(--accent);border-radius:14px;padding:28px;text-align:center;font-size:15px;line-height:2.2">
+        <div style="color:var(--text)">
+          任务太大、太模糊 → <span style="color:var(--yellow)">Mega Agent 注定失败</span>
+        </div>
+        <div style="color:var(--yellow);font-size:20px;margin:8px 0">↓</div>
+        <div style="color:var(--text)">
+          把任务拆成 3C 小任务 → <span style="color:var(--green)">每个 Agent 做一件明确的事</span>
+        </div>
+        <div style="color:var(--green);font-size:20px;margin:8px 0">↓</div>
+        <div style="color:var(--text)">
+          串联 Skill + 工具 → <span style="color:var(--blue)">Agentic Workflow 工厂</span>
+        </div>
+        <div style="color:var(--blue);font-size:20px;margin:8px 0">↓</div>
+        <div style="color:var(--green);font-size:14px">
+          稳定性 + 可观测性 + 可修复性 = <strong>Production 级别系统</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>潜在 Skill 清单（可立即创建）</h2>
+      <table>
+        <tr><th>Skill 名称</th><th>触发场景</th><th>核心原则</th><th>优先级</th></tr>
+        <tr>
+          <td><span class="tag tag-p">task-decomposition</span></td>
+          <td>把大任务交给 Agent 时</td>
+          <td>3C 原则：Clear Input / Output / Success Criteria</td>
+          <td><span class="tag tag-g">高</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-b">skill-authoring</span></td>
+          <td>创建新的 Skill 时</td>
+          <td>SKILL.md + references/ + scripts/ 三组件，1 Skill = 1 任务</td>
+          <td><span class="tag tag-g">高</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-y">mega-agent-vs-workflow</span></td>
+          <td>选方案时</td>
+          <td>Mega Agent = 黑箱不稳定；Workflow = 稳定可修复</td>
+          <td><span class="tag tag-y">中</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag tag-o">sop-to-agentic-workflow</span></td>
+          <td>把人工 SOP 转化时</td>
+          <td>5 步流程：识别节点 → 定 I/O → 自动化边界 → 串联 → 量化成功标准</td>
+          <td><span class="tag tag-y">中</span></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<p class="source">
+  📁 Obsidian: papers/task-decomposition-agentic-workflow/index.md | 视频: Gary Chen / YouTube | 最后更新: 2026-05-30
+</p>
+
+<script>
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+document.head.appendChild(script);
+script.onload = () => {
+  const F = { family: "-apple-system, sans-serif", size: 11 };
+  const GREEN = '#34d399', BLUE = '#60a5fa', YELLOW = '#fbbf24', RED = '#f87171', PURPLE = '#a78bfa', CYAN = '#22d3ee', ACCENT = '#6366f1';
+
+  function makeCtx(id) {
+    const c = document.createElement('canvas');
+    c.width = c.offsetWidth * 2;
+    c.height = c.offsetHeight * 2;
+    const cc = c.getContext('2d');
+    cc.scale(2, 2);
+    return { canvas: c, cc, chart: null };
+  }
+
+  // ── Chart: 3C Enterprise Impact (bar)
+  const chart3CCtx = document.getElementById('chart3C');
+  new Chart(chart3CCtx, {
+    type: 'bar',
+    data: {
+      labels: ['可预测性', '可修复性', '可观测性', '稳定性', '执行速度'],
+      datasets: [
+        { label: 'Mega Agent', data: [2, 1, 1, 2, 3], backgroundColor: RED + '60', borderColor: RED, borderWidth: 2, borderRadius: 4 },
+        { label: 'Task Decomposition', data: [9, 9, 9, 8, 7], backgroundColor: GREEN + '60', borderColor: GREEN, borderWidth: 2, borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#9ca3af', font: F } } },
+      scales: {
+        x: { ticks: { color: '#9ca3af', font: F }, grid: { color: 'rgba(31,41,55,0.6)' }, border: { color: '#1f2937' } },
+        y: { min: 0, max: 10, ticks: { color: '#9ca3af', font: F }, grid: { color: 'rgba(31,41,55,0.6)' }, border: { color: '#1f2937' }, title: { display: true, text: '评分 (0-10)', color: '#9ca3af', font: F } }
+      }
+    }
+  });
+
+  // ── Chart: Ticket cascade (scatter = error propagation)
+  const chartTicketCtx = document.getElementById('chartTicket');
+  new Chart(chartTicketCtx, {
+    type: 'bar',
+    data: {
+      labels: ['分类错误时\n影响节点数', '查找错误时\n影响节点数', 'QC错误时\n影响节点数', 'Mega Agent\n总出错率'],
+      datasets: [
+        { label: '分解工作流', data: [1, 1, 1, 8], backgroundColor: GREEN + '70', borderColor: GREEN, borderWidth: 2, borderRadius: 4 },
+        { label: 'Mega Agent', data: [4, 4, 4, 95], backgroundColor: RED + '70', borderColor: RED, borderWidth: 2, borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#9ca3af', font: F } } },
+      scales: {
+        x: { ticks: { color: '#9ca3af', font: F }, grid: { color: 'rgba(31,41,55,0.6)' }, border: { color: '#1f2937' } },
+        y: { min: 0, max: 100, ticks: { color: '#9ca3af', font: F, callback: v => v + '%' }, grid: { color: 'rgba(31,41,55,0.6)' }, border: { color: '#1f2937' }, title: { display: true, text: '影响范围 / 错误率', color: '#9ca3af', font: F } }
+      }
+    }
+  });
+
+  // ── Chart: Mindmap (radar of concepts)
+  const chartMindCtx = document.getElementById('chartMind');
+  new Chart(chartMindCtx, {
+    type: 'radar',
+    data: {
+      labels: ['Task Decomposition', '3C 原则', 'Mega Agent 局限', 'Skill 设计', 'Workflow 串联', 'SOP 转化', 'Production 稳定'],
+      datasets: [{
+        label: '掌握程度',
+        data: [9, 9, 8, 8, 8, 7, 9],
+        borderColor: ACCENT, backgroundColor: ACCENT + '25', pointBackgroundColor: ACCENT,
+        borderWidth: 2, pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 10, ticks: { display: false, maxTicks: 5 },
+          grid: { color: 'rgba(31,41,55,0.8)' },
+          angleLines: { color: 'rgba(31,41,55,0.8)' },
+          pointLabels: { color: '#9ca3af', font: { ...F, size: 12 } }
+        }
+      }
+    }
+  });
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Potential-Guided Flow Matching for Vision-Language-Action Policy Improvement</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<p>
+<h2>Abstract</h2></p><p>ForesightFlow is a self-guided flow-matching policy that augments generated action chunks with a learned success-potential trajectory, enabling a single model to propose AND score candidate actions (best-of-K) without an external critic.</p><p><h2>Key Contributions</h2></p><p>- <strong>Decoupled advantage-weighted flow matching</strong>: Exponentiated advantage weights apply only to action velocities (not potential coordinates), preventing value hallucination from overconfident scores.
+<li><strong>One-step boundary estimator</strong>: Allows advantage computation with a single stop-gradient forward pass, reducing compute overhead.</li>
+<li><strong>Self-guided best-of-K inference</strong>: Same flow model proposes and ranks K candidate actions — no separate critic network needed.</p><p><h2>Method Details</h2></p><p>ForesightFlow trains a conditional flow matching model over action chunks conditioned on vision-language inputs. Each action chunk is augmented with a learned "success-potential" scalar field. The flow model simultaneously:</li>
+1. Proposes candidate action sequences via flow interpolation
+2. Scores them via the learned potential (higher potential = more likely success)</p><p>The key architectural insight is separating the velocity field into two heads: one for action velocities (weighted by exponentiated advantages during training) and one for potential velocities (trained uniformly). This prevents failure gradients from being suppressed during policy improvement.</p><p>Applied to: 5 BEHAVIOR-1K simulation tasks + 5 real-world bimanual manipulation tasks. Uses a VLA backbone (RT-series architecture) with flow matching heads.</p><p><h2>Key Results</h2></p><p><table>
+| Setting | Result |
+|---------|--------|
+| Simulation success | Matches strongest separate-critic baseline |
+| Real-world bimanual success | Improves over imitation baselines |
+| Training compute | Reduces by <strong>38%</strong> vs. separate-critic offline RL |
+| Ablation: decoupled vs. coupled | Decoupling prevents value hallucination |
+| Ablation: one-step estimator | Preserves candidate-ranking fidelity |
+| Ablation: self-guided sampling | Improves long-horizon execution |
+</table></p><p><h2>Limitations & Future Work</h2></p><p>- Best-of-K inference at test time is computationally expensive; the one-step estimator mitigates but doesn't eliminate this.
+<li>Relies on the quality of the success-potential supervision signal — sparse reward environments may need shaped potentials.</li>
+<li>Evaluated on manipulation; generalization to other robot morphologies not tested.</p><p><h2>Relevance to Patrick's Research</h2></p><p>Directly relevant to VLA world model policy learning. The flow-matching paradigm offers an alternative to diffusion or autoregressive action generation for world-model-based control. Key idea of using "potential" as an internal world model to guide exploration is aligned with predictive architecture research.</li>
+</p>
+</body>
+</html>

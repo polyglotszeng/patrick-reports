@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Light-WAM: Efficient World Action Models with State-Fusion Action Decoding</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<!-- frontmatter omitted -->
+<p>title: "Light-WAM: Efficient World Action Models with State-Fusion Action Decoding"</p>
+<p>arxiv_id: "2606.08242"</p>
+<p>date: "2026-06-06"</p>
+<p>tags: [world-model, robot-learning, action-model, efficient-inference, manipulation]</p>
+<p>---</p>
+
+<h2>Abstract</h2>
+
+<p>Light-WAM is a lightweight World Action Model (WAM) for robot manipulation that retains the future-prediction benefits of large WAMs while drastically reducing trainable parameters and inference latency. It combines a compact video backbone with a novel StateFusionActionExpert that reads adapted states from multiple backbone layers and predicts action chunks in a single forward pass — no heavy generative action head.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Lightweight WAM architecture</strong>: 0.44B trainable parameters — orders of magnitude smaller than typical WAMs</li>
+<li><strong>StateFusionActionExpert</strong>: A new action head that fuses adapted states from multiple backbone layers through learned-query pooling and predicts action chunks in one forward pass</li>
+<li><strong>Downsampled latent-space video supervision</strong>: Future-video co-training is performed in a compact latent space, cutting training cost without losing the representation-learning benefit of video prediction</li>
+<li><strong>Inference profile</strong>: 72.03 ms latency, 4.1 GiB peak GPU memory, with improved training throughput</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>The model has two coupled components:</p>
+
+<ol>
+<li><strong>Compact video backbone</strong>: A small video transformer (≈0.44B params) encodes the current observation and a short history of frames. Future-video supervision is applied in a downsampled latent space — the backbone predicts compressed future latents, not raw pixels — which keeps the auxiliary loss cheap while still forcing the backbone to learn temporally-structured representations.</li>
+</ol>
+
+<ol>
+<li><strong>StateFusionActionExpert (action head)</strong>:</li>
+</ol>
+<ul>
+<li><strong>Multi-layer state adaptation</strong>: From each of K backbone layers, a learned adapter projects the layer's token sequence to a "state" representation. This captures both low-level visual features and high-level task structure.</li>
+<li><strong>Learned-query pooling</strong>: A small set of learned query tokens attends across the multi-layer states (cross-attention) and pools them into a fixed-size representation.</li>
+<li><strong>Action chunk prediction</strong>: A single MLP head reads the pooled representation and outputs a chunk of future actions in one forward pass — autoregressive decoding is <strong>not</strong> used.</li>
+</ul>
+
+<ol>
+<li><strong>Training objective</strong>: Joint loss = action-prediction loss (behavior cloning) + future-latent prediction loss (WAM-style auxiliary). The video loss is weighted to act as a regularizer on the backbone, not as the primary signal.</li>
+</ol>
+
+<h2>Key Results</h2>
+
+<ul>
+<li><strong>LIBERO benchmark</strong>: Maintains strong performance matching or exceeding larger WAM baselines</li>
+<li><strong>RoboTwin 2.0</strong>: Usable multi-task performance with significantly smaller model size</li>
+<li><strong>0.44B parameters</strong>, <strong>72.03 ms inference latency</strong>, <strong>4.1 GiB peak GPU memory</strong></li>
+<li>Improved training throughput versus larger WAMs</li>
+<li>PDF: https://arxiv.org/pdf/2606.08242</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>Future-video supervision is in latent space, so the backbone's generative quality (e.g., for visual planning) is not directly evaluated</li>
+<li>Action chunk prediction is monolithic — no explicit mechanism for variable-length horizons or replanning</li>
+<li>Evaluated on manipulation benchmarks; transfer to locomotion, mobile manipulation, or long-horizon tasks is open</li>
+</ul>
+
+<h2>Relevance to Patrick's Research</h2>
+
+<p>Light-WAM is relevant for two reasons: (1) it provides a concrete data point on the <strong>efficiency frontier</strong> of world-action models — useful if Patrick is tracking when WAMs become deployable in real-time control loops; (2) the StateFusionActionExpert's design (multi-layer state fusion, learned-query pooling) is a clean architectural pattern that could transfer to other multi-modal policies. The 72 ms latency number is a useful benchmark for "what does it take to close the loop with a WAM at 10+ Hz."</p>
+
+</body>
+</html>

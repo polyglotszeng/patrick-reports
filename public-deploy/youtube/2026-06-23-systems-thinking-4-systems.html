@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Systems Thinking 4 大系统 + DART 框架 — Sandeep Swadia</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .system-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .system-card {
+    background: var(--bg-card); border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .system-card.s1 { border-left: 3px solid var(--green); }
+  .system-card.s2 { border-left: 3px solid var(--blue); }
+  .system-card.s3 { border-left: 3px solid var(--yellow); }
+  .system-card.s4 { border-left: 3px solid var(--red); }
+  .system-card.s1 h4 { color: var(--green); }
+  .system-card.s2 h4 { color: var(--blue); }
+  .system-card.s3 h4 { color: var(--yellow); }
+  .system-card.s4 h4 { color: var(--red); }
+  .system-card h4 { margin: 0 0 0.5rem; font-size: 1.05rem; }
+  .system-card .cause-effect {
+    color: var(--text); font-size: 0.85rem; padding: 0.4rem 0.6rem;
+    background: var(--bg-elevated); border-radius: 6px; margin: 0.5rem 0;
+    font-style: italic;
+  }
+  .system-card .action {
+    color: var(--accent-2); font-size: 0.9rem; font-weight: 600;
+    margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);
+  }
+
+  .dart-step {
+    display: flex; align-items: center; gap: 0.8rem;
+    margin: 0.5rem 0; padding: 0.8rem 1rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .dart-step .letter {
+    background: var(--accent); color: var(--bg);
+    width: 2.5rem; height: 2.5rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1.1rem; flex-shrink: 0;
+  }
+  .dart-step .step-content { flex: 1; }
+  .dart-step .step-title { color: var(--text); font-weight: 600; font-size: 1.05rem; }
+  .dart-step .step-detail { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.3.1 TOC */
+  .toc {
+    position: fixed; top: 20px; left: 16px; width: 188px;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 0.8rem;
+    z-index: 100; font-size: 0.78rem;
+  }
+  .toc-title {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  .toc-list { list-style: none; padding: 0; margin: 0; }
+  .toc-list li { margin: 0; }
+  .toc-list a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s;
+  }
+  .toc-list a:hover { color: var(--text); background: var(--bg-elevated); }
+  .toc-list a.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  @media (max-width: 1100px) {
+    body { padding-left: 0 !important; }
+    .toc { display: none; }
+  }
+  .tab-content { scroll-margin-top: 20px; }
+  .h2-section { scroll-margin-top: 20px; }
+
+
+  
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔄 4 大系统类型（核心框架）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 4 大系统行动协议（速查）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🧪 DART 诊断框架（核心工具）</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ A 步骤 = 单问决定系统</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">❓ 3 个 confused 原因</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 问 3 个问题（任何 system 起点）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">👁️ 3 个外部视角（最关键洞察）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 火车比喻</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 3 个"站台视角"</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🚗 Binary Choice 反思</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 反共识观察</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Apple 案例</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 最难的 system：自己</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🔗 与 Patrick 工作的关联</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🗺️ Patrick 实战应用</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 立即可做（30 分钟）</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 中期（1-2 周）</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 长期</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💬 关键金句库</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⏱️ 完整时间线（44 段字幕）</a></li>
+  </ol>
+</aside>
+
+
+
+
+
+<h1>Systems Thinking 4 大系统</h1>
+<p class="subtitle">DART 诊断框架 + 3 个外部视角 — Sandeep Swadia</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=mjTgkm-h__M" target="_blank">How To Think SO CLEARLY</a></span>
+  <span><strong>主讲：</strong>Sandeep Swadia (theMITmonk)</span>
+  <span><strong>时长：</strong>19:58（1198s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p><b>AI 取代聪明人的速度比任何人预测都快</b> —— 唯一保命技能 = <b>systems thinking</b>：在 act 之前看见 hidden pattern 的能力。Sandeep 提出 <b>4 大系统类型 + DART 诊断 + 3 个外部视角</b> —— 教你在任何局面下知道"该 follow process / 找专家 / 跑实验 / 立即 act"。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">系统类型</div>
+    <div class="value">4</div>
+    <div class="sub">Clear / Complicated / Complex / Chaotic</div>
+  </div>
+  <div class="stat">
+    <div class="label">DART 步骤</div>
+    <div class="value">4</div>
+    <div class="sub">Deconstruct / Analyze / Recognize / Test</div>
+  </div>
+  <div class="stat">
+    <div class="label">外部视角</div>
+    <div class="value">3</div>
+    <div class="sub">Mentor / Data / Time</div>
+  </div>
+  <div class="stat">
+    <div class="label">Confused 原因</div>
+    <div class="value">3</div>
+    <div class="sub">hidden / incentive / delayed</div>
+  </div>
+  <div class="stat">
+    <div class="label">Van Halen 案例</div>
+    <div class="value">M&M's</div>
+    <div class="sub">400 页合同藏 1 行</div>
+  </div>
+  <div class="stat">
+    <div class="label">Tylenol 案例</div>
+    <div class="value">31M</div>
+    <div class="sub">召回 3100 万瓶</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="4systems">🔄 4 大系统</button>
+  <button class="tab" data-tab="dart">🧪 DART 诊断</button>
+  <button class="tab" data-tab="3confused">❓ 3 个 confused 原因</button>
+  <button class="tab" data-tab="external">👁️ 3 个外部视角</button>
+  <button class="tab" data-tab="binary">🚗 Binary Choice 反思</button>
+  <button class="tab" data-tab="related">🔗 Patrick 工作关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战应用</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: 4 SYSTEMS -->
+<div class="tab-content active" data-tab-content="4systems">
+  <h2 id="h2-2" class="section">🔄 4 大系统类型（核心框架）</h2>
+
+  <div class="system-grid">
+    <div class="system-card s1">
+      <h4>1. Clear System</h4>
+      <div class="cause-effect">cause-effect <b>直接可见</b> 或容易确定</div>
+      <p><b>例子</b>：烹饪 recipe · 外科术前洗手 · Van Halen 棕色 M&M's 协议</p>
+      <p style="color: var(--green); margin-top: 0.5rem;">⭐ "By looking at a bowl of M&amp;M's, the band could figure out the state of the entire system."</p>
+      <div class="action">→ Follow stable process · Checklist · 不创新</div>
+    </div>
+
+    <div class="system-card s2">
+      <h4>2. Complicated System</h4>
+      <div class="cause-effect">cause-effect <b>存在但难发现</b>，需要 analysis / expertise</div>
+      <p><b>例子</b>：chest pain 20 possible causes · mortgage 选型 · 医疗诊断 · 飞机维修</p>
+      <p style="margin-top: 0.5rem;">"找对口 expert，不是任意 expert —— 心外科不能治肺癌"</p>
+      <div class="action">→ Slow down · Analyze · 找对口 expert</div>
+    </div>
+
+    <div class="system-card s3">
+      <h4>3. Complex System</h4>
+      <div class="cause-effect">cause-effect <b>只能 hindsight 理解</b></div>
+      <p><b>例子</b>：tech company 收购失败 · 企业 AI 实施 · 养青少年</p>
+      <p style="margin-top: 0.5rem;">"上 week work 这 week fail" · 身体/脑/优先级都在变</p>
+      <p style="color: var(--yellow); margin-top: 0.5rem;">"You cannot raise a teenager with a checklist."</p>
+      <div class="action">→ Run small experiments · Adapt · Course correct</div>
+    </div>
+
+    <div class="system-card s4">
+      <h4>4. Chaotic System</h4>
+      <div class="cause-effect">cause-effect <b>完全断掉</b>，信息不完整 + 持续变</div>
+      <p><b>例子</b>：Tylenol 1982 芝加哥 · 7 人死亡 · 不知道哪些 bottle 安全</p>
+      <p style="margin-top: 0.5rem;">Johnson & Johnson 立即召回数 <b>3,100 万瓶</b></p>
+      <p style="color: var(--red); margin-top: 0.5rem;">"Stabilize first, ask later, understand later"</p>
+      <div class="action">→ Act immediately · Stabilize · Create safety</div>
+    </div>
+  </div>
+
+  <h3 id="h3-1">4 大系统行动协议（速查）</h3>
+  <table>
+    <thead>
+      <tr><th>System</th><th>Cause-Effect</th><th>行动</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge green">Clear</span></td>
+        <td>直接可见</td>
+        <td>Follow process · Checklist · <b>不创新</b></td>
+      </tr>
+      <tr>
+        <td><span class="badge blue">Complicated</span></td>
+        <td>难发现但存在</td>
+        <td>Slow down · Analyze · <b>找对口 expert</b></td>
+      </tr>
+      <tr>
+        <td><span class="badge yellow">Complex</span></td>
+        <td>Hindsight-only</td>
+        <td>Run experiments · <b>Adapt</b> · Course correct</td>
+      </tr>
+      <tr class="highlight">
+        <td><span class="badge red">Chaotic</span></td>
+        <td>断掉</td>
+        <td>Act <b>immediately</b> · Stabilize · Create safety</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 2: DART -->
+<div class="tab-content" data-tab-content="dart">
+  <h2 id="h2-3" class="section">🧪 DART 诊断框架（核心工具）</h2>
+
+  <blockquote>
+    "Real life does not come with labels. You need a framework to figure out which system you're in the middle of."
+  </blockquote>
+
+  <div class="dart-step">
+    <div class="letter">D</div>
+    <div class="step-content">
+      <div class="step-title">Deconstruct（拆解）</div>
+      <div class="step-detail">Break problem into sub-parts · <b>Parts 是 stable 还是 shifting？</b></div>
+    </div>
+  </div>
+
+  <div class="dart-step">
+    <div class="letter">A</div>
+    <div class="step-content">
+      <div class="step-title">Analyze（分析）⭐ 最重要</div>
+      <div class="step-detail">问：<b>cause-effect 是什么？</b> Obvious? Discoverable? Hindsight-only? Broken?</div>
+    </div>
+  </div>
+
+  <div class="dart-step">
+    <div class="letter">R</div>
+    <div class="step-content">
+      <div class="step-title">Recognize（识别）</div>
+      <div class="step-detail">Have I seen this before? Pattern within / across systems</div>
+    </div>
+  </div>
+
+  <div class="dart-step">
+    <div class="letter">T</div>
+    <div class="step-content">
+      <div class="step-title">Test（测试）</div>
+      <div class="step-detail">Run <b>smallest test</b> before full commit（Chaotic 系统 no time to test）</div>
+    </div>
+  </div>
+
+  <h3 id="h3-2">A 步骤 = 单问决定系统</h3>
+  <table>
+    <thead>
+      <tr><th>Cause-Effect 性质</th><th>系统</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Obvious</b></td><td><span class="badge green">Clear</span></td></tr>
+      <tr><td><b>Discoverable through analysis</b></td><td><span class="badge blue">Complicated</span></td></tr>
+      <tr><td><b>Emergent, only hindsight</b></td><td><span class="badge yellow">Complex</span></td></tr>
+      <tr><td><b>Completely broken</b></td><td><span class="badge red">Chaotic</span></td></tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "This single question tells you which system you're in. And once you know, you'll know what to do next."
+  </blockquote>
+</div>
+
+<!-- TAB 3: 3 CONFUSED -->
+<div class="tab-content" data-tab-content="3confused">
+  <h2 id="h2-4" class="section">❓ 3 个 confused 原因</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① Hidden Parts（看不见）</h4>
+      <p>看不到系统全貌，只在 part 视角</p>
+      <p style="margin-top: 0.6rem; color: var(--accent-2);">例：消防员看 smoke 是 information，普通人看是 "fire"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>② Incentive Problem（错激励）</h4>
+      <p>Reward 加到错的事上</p>
+      <p style="margin-top: 0.6rem; color: var(--accent-2);">⭐ <b>Cobra 案例</b>：英国殖民政府付钱捕 cobra → 减 cobra</p>
+      <p style="margin-top: 0.4rem;">结果：人们 <b>养殖 cobra</b> 领赏 → cobra 更多</p>
+      <p style="color: var(--text-mute); font-size: 0.85rem; margin-top: 0.4rem;">"Humans make systems messy."</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ Delayed Feedback（延迟反馈）</h4>
+      <p>Act 跟 impact delay 太大</p>
+      <p style="margin-top: 0.6rem; color: var(--accent-2);">⭐ <b>香烟 20 世纪</b>：</p>
+      <ul style="font-size: 0.9rem; margin-top: 0.4rem;">
+        <li>Satisfaction <b>几秒钟</b></li>
+        <li>Damage <b>几十年</b></li>
+        <li>电影明星 / 医生 / 士兵都抽</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-3">问 3 个问题（任何 system 起点）</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <ol style="color: var(--text); line-height: 2;">
+      <li><b>What are the hidden parts?</b></li>
+      <li><b>How are they connected?</b></li>
+      <li><b>What patterns keep repeating?</b></li>
+    </ol>
+  </div>
+</div>
+
+<!-- TAB 4: EXTERNAL -->
+<div class="tab-content" data-tab-content="external">
+  <h2 id="h2-5" class="section">👁️ 3 个外部视角（最关键洞察）</h2>
+
+  <blockquote>
+    "Each system that you live inside is <b>quietly training you</b>. The hard part is that from inside the system you usually <b>cannot see what direction is taking you</b>."
+  </blockquote>
+
+  <h3 id="h3-4">火车比喻</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>坐在 train compartment 里 · 旁边的 train 启动 → 你分不清是你的 train 在动还是它的</p>
+    <p style="margin-top: 0.5rem;"><b>从 inside 看不出来</b> · 站台上的人看得清</p>
+  </div>
+
+  <h3 id="h3-5">3 个"站台视角"</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Mentor</h4>
+      <p>在站台上 · 没 stake in your story</p>
+      <p style="color: var(--text-dim); margin-top: 0.4rem; font-size: 0.9rem;">看你 train 的客观位置</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Data</h4>
+      <p>数字不说谎</p>
+      <p style="color: var(--accent-2); margin-top: 0.4rem; font-size: 0.9rem;">"系统实际做的 vs 你以为的"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Time</h4>
+      <p>时间讲真话</p>
+      <p style="color: var(--text-dim); margin-top: 0.4rem; font-size: 0.9rem;">对比 1 年 / 1 月 / 1 周前的自己</p>
+    </div>
+  </div>
+
+  <blockquote>
+    "<b>Numbers don't care about your narrative.</b> Your biggest asset is data that shows you what the system is actually doing versus what you believe it's doing."
+  </blockquote>
+</div>
+
+<!-- TAB 5: BINARY -->
+<div class="tab-content" data-tab-content="binary">
+  <h2 id="h2-6" class="section">🚗 Binary Choice 反思</h2>
+
+  <h3 id="h3-6">反共识观察</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>商业智慧常给 <b>binary choice</b>（Ferrari vs Toyota）</p>
+    <p style="margin-top: 0.6rem;">"Most of these binary choices are just <b>limits of system design</b>, not limits of reality."</p>
+  </div>
+
+  <h3 id="h3-7">Apple 案例</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h4>🍎 反 binary 的实现</h4>
+    <ul>
+      <li><b>350 iPhone / 每分钟</b>（不是每小时）</li>
+      <li>Luxury product + mass market scale</li>
+      <li>"shouldn't exist but it does"</li>
+      <li>Steve Jobs + Tim Cook <b>20 年 build 系统</b></li>
+    </ul>
+  </div>
+
+  <h3 id="h3-8">最难的 system：自己</h3>
+  <blockquote>
+    "The <b>hardest system to redesign</b> is the one you build inside your own head. The story you've accepted about who you are, what you can become, what limits you put on yourself, that story is part of your system as well."
+  </blockquote>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <p style="font-size: 1.05rem; color: var(--text);">"You can be both a <b>Ferrari and a Toyota</b> at the same time. The world will meet you at your level of <b>audacity and hope</b>."</p>
+  </div>
+</div>
+
+<!-- TAB 6: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-7" class="section">🔗 与 Patrick 工作的关联</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 OpenSwarm / Hybrid Router / K1</h4>
+      <p><b>AI 取代聪明人</b> 速度 → 写更多 prompt 不如 build better systems</p>
+      <p>OpenSwarm = multi-agent system → 用 <b>DART 诊断</b> 当前状态</p>
+    </div>
+    <div class="card">
+      <h4>🔗 hybrid-llm-router</h4>
+      <p>5 维评分 = <b>DART 框架在 routing 上的实例</b></p>
+      <p>每次 task 分类 = 一次 Analyze 步骤</p>
+    </div>
+    <div class="card">
+      <h4>🔗 self-harness-optimization</h4>
+      <p>Self-harness loop = <b>Complex System 标准操作</b></p>
+      <p>跟养青少年 / AI 实施是同构问题</p>
+      <p>关键：build "可 adaptation" harness，不是 build "正确" harness</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman Stanford</h4>
+      <p>Sam "scale 永远 work" = 跟 Sandeep "binary choices 是 system design limits" 强呼应</p>
+      <p>真正创新 = 设计新 system</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "Stop AI"</h4>
+      <p>"AI 取代聪明人" 跟 "OpenAI 不能停" = <b>同一现象的两面</b></p>
+      <p>技术加速 vs 社会没准备好</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>"Be consistently better than yourself" = 跟 IndyDevDan 35B 本地跑 work 是 same 节奏</p>
+      <p>局部最优 = 长期积累</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-8" class="section">🗺️ Patrick 实战应用</h2>
+
+  <h3 id="h3-9">立即可做（30 分钟）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>DART 自评当前 OpenSwarm / hybrid-llm-router 状态</b>：在 4 个 system 哪？用什么 protocol？</li>
+    <li><b>找 1 个 "brown M&M"</b>：当前有什么 tiny check 可以立即验证 system 完整？</li>
+    <li><b>列 3 个 mentor / data / time 锚点</b>：谁 / 哪些数据 / 哪个时间窗能给我"站台视角"？</li>
+  </ol>
+
+  <h3 id="h3-10">中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>每周 DART review</b>（4 大系统各问 1 个问题）</li>
+    <li><b>建 feedback loop dashboard</b>：哪些 decision 是 1 周/1 月/1 年 hindsight 才发现 cause</li>
+    <li><b>避免 analysis paralysis</b>：列出 "act now" vs "wait for data" 的 threshold</li>
+  </ol>
+
+  <h3 id="h3-11">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>重设计 OpenSwarm 为 self-adapting system</b>（按 Complex 协议）</li>
+    <li><b>建 mentor network</b>（不只是技术 mentor，包括 business / personal）</li>
+    <li><b>re-imagine 个人系统</b>：哪些 "binary choices" 其实是 system design 局限？</li>
+  </ol>
+</div>
+
+<!-- TAB 8: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-9" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">核心</div>
+      <div class="text">Systems thinking is the ability to see that pattern before you act. And in a world where AI is replacing smart people faster than anyone predicted, this is the most important skill you can have.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Incentive</div>
+      <div class="text">When you attach a reward to the wrong thing, people optimize the system for the rewards and ignore the goal that the system was made for.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Van Halen</div>
+      <div class="text">By looking at a bowl of M&M's, the band could figure out the state of the entire system.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Checklist</div>
+      <div class="text">They are paying respect to the fact that they're only humans born to make mistakes.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Complex</div>
+      <div class="text">You cannot raise a teenager with a checklist. And it's not a complicated system because you cannot hire an expert.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Chaotic</div>
+      <div class="text">Stabilize first, ask later, understand later.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Chaos</div>
+      <div class="text">The moment it hits, there is no pattern to respond to. All you can do is act as quickly as you can and create safety.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">External view</div>
+      <div class="text">Numbers don't care about your narrative. Your biggest asset is data that shows you what the system is actually doing versus what you believe it's doing.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Self</div>
+      <div class="text">The hardest system to redesign is the one you build inside your own head.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Audacity</div>
+      <div class="text">You can be both a Ferrari and a Toyota at the same time. The world will meet you at your level of audacity and hope.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Improvement</div>
+      <div class="text">It is not difficult to be consistently better than yourself.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">DART</div>
+      <div class="text">This single question tells you which system you're in. And once you know, you'll know what to do next.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-10" class="section">⏱️ 完整时间线（44 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：每周有人 smart 错 · systems thinking 是关键</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:28</div>
+      <div class="what">自我介绍：homeless → monk → CEO</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:46</div>
+      <div class="what">消防员看 smoke 是 information</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:15</div>
+      <div class="what">系统 = 连接的 parts 持续 produce pattern</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:35</div>
+      <div class="what">咖啡店系统例子（order flow）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:50</div>
+      <div class="what">Part → connection → pattern</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:48</div>
+      <div class="what">🐍 <b>Cobra 案例</b>（incentive problem）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:06</div>
+      <div class="what">🚬 <b>Cigarettes 案例</b>（delayed feedback）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:03</div>
+      <div class="what">3 个 confused 原因总结</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:13</div>
+      <div class="what">🎵 <b>System 1: Clear</b>（Van Halen M&M's ⭐）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:00</div>
+      <div class="what">厨师 / 外科医生 = clear system</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what">"Checklist = respect human limitations"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:56</div>
+      <div class="what">🏥 <b>System 2: Complicated</b>（chest pain 20 causes）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:15</div>
+      <div class="what">找对口 expert，不是任意 expert</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:40</div>
+      <div class="what">🏢 <b>System 3: Complex</b>（acquisition 失败案例）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:48</div>
+      <div class="what">企业 AI 实施 = complex</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:54</div>
+      <div class="what">养青少年 = complex</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:30</div>
+      <div class="what">"Run experiments, course correct"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:48</div>
+      <div class="what">💊 <b>System 4: Chaotic</b>（Tylenol 1982 ⭐）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:30</div>
+      <div class="what">J&J 召回数 = 3,100 万瓶</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:45</div>
+      <div class="what">"Stabilize first, ask later"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:00</div>
+      <div class="what">避免 analysis paralysis</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:15</div>
+      <div class="what">"Chaos has no interest in teaching"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:50</div>
+      <div class="what">🧪 <b>DART 框架</b> 介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:00</div>
+      <div class="what">Cause-effect 4 种 → 4 系统</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:05</div>
+      <div class="what">👁️ <b>3 个外部视角</b>（mentor / data / time）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:30</div>
+      <div class="what">🚂 Train 比喻（inside vs platform）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:00</div>
+      <div class="what">🚗 Binary choices 反思（Ferrari vs Toyota）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:50</div>
+      <div class="what">"Be consistently better than yourself"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:20</div>
+      <div class="what">"Re-imagine your story"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:48</div>
+      <div class="what">"Ferrari and Toyota at the same time"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/systems-thinking-4-systems/</code></p>
+  <p>Desktop: <code>~/Desktop/systems-thinking-4-systems-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=mjTgkm-h__M">https://www.youtube.com/watch?v=mjTgkm-h__M</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+
+  // v1.3.1 TOC active section highlight
+  (function() {
+    const tocLinks = document.querySelectorAll('.toc-list a');
+    if (!tocLinks.length) return;
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('href').slice(1);
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('.toc-list a[href="#' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+</script>
+
+
+  
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

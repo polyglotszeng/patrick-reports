@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OODA Loop + Infinite Brain = the AI System Everyone's Missing — AI Impact</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .ooda {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1.2rem 0;
+  }
+  .ooda-step {
+    display: inline-block; padding: 0.5rem 1rem; margin: 0.2rem;
+    background: var(--bg-elevated); border-radius: 6px; font-size: 0.9rem;
+  }
+  .ooda-arrow { color: var(--text-mute); margin: 0 0.3rem; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 4 步 OODA</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 5 大主线</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① OODA Loop 历史（John Boyd · 1980s 军事）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ John Boyd</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ ⭐ 哲学来源</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Patrick 启示</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② ⭐ OODA Loop "假图" 流传</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 真相</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Patrick 启示</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ AI = 强大 Observe/Decide/Act + 缺 ORIENT</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ ⭐ 核心 quote</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Patrick 启示</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ ⭐ Infinite Brain = ORIENT 解药</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 定义</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 类比</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ vs Second Brain</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ ⭐ OODA + Infinite Brain + GTD 整合</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 3 大框架整合</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ ⭐ GTD 核心</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Ingestion 系统</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ ⭐ Disposition = Next Step</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Disposition 定义</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ Routing</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ ⭐ Hybrid LLM Router 实战</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⑦ ⭐ Wager = Predicted Impact</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Wager 哲学</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 3 步</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ 适用</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⑧ ⭐ Wager Verdict = Close Loop</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ Verdict</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ 闭环</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ = Scientific method to AI</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔗 与 Patrick 工作的关联（⭐ 强制 section · 18 card）</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-32" data-toc-target="h3-32">↳ 长期</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（精选 30+）</a></li>
+  </ol>
+</aside>
+
+
+<h1>OODA Loop + Infinite Brain = the AI System Everyone's Missing</h1>
+<p class="subtitle">AI Impact — Orient is Missing · Infinite Brain = ORIENT 解药 · Wager Verdict = close the loop</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=yP4p3reZUcU" target="_blank">OODA Loop + Infinite Brain</a></span>
+  <span><strong>频道：</strong>AI Impact</span>
+  <span><strong>语言：</strong>English (auto-generated)</span>
+  <span><strong>时长：</strong>15.0 min (545 raw · 76 paras)</span>
+  <span><strong>日期：</strong>2026-06-24</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"AI is great at observing data, deciding, and acting. But what AI is not getting better at on its own is <i>ORIENT</i>. Knowing all of the details about you, what you care about, who you are, what are the details on the work that you're doing. This ORIENT layer is completely what's missing in almost every AI system."</b></p>
+  <p style="margin-top: 0.6rem;"><b>5 大主线</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>OODA Loop = John Boyd 1980s</b>（Observe → Orient → Decide → Act · 军事）</li>
+    <li>⭐ <b>AI 缺 ORIENT</b>（Observe 10,000/h · Decide 完美 · Act 完美 · <b>Orient = gap</b>）</li>
+    <li><b>Infinite Brain = ORIENT 解药</b>（knowledge graph + PKM）</li>
+    <li>⭐ <b>Disposition + Wager</b>（next step + predicted impact）</li>
+    <li>⭐ <b>Wager Verdict</b>（scientific method · evaluate ROI · close loop）</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">AI Observe/Act 能力</div>
+    <div class="value">10,000/h</div>
+    <div class="sub">vs 人类 100/h</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">旧时代 Data 公司</div>
+    <div class="value">$30K/月</div>
+    <div class="sub">被 AI 完全替代</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">1 人用 Claude Code</div>
+    <div class="value">200 workflows</div>
+    <div class="sub">vs 旧时代咨询 5-6/月</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Newsletter 处理</div>
+    <div class="value">10x</div>
+    <div class="sub">"I can now do 10 times as many"</div>
+  </div>
+  <div class="stat red">
+    <div class="label">⭐ 缺失的 OODA 环节</div>
+    <div class="value">ORIENT</div>
+    <div class="sub">"the missing piece"</div>
+  </div>
+  <div class="stat">
+    <div class="label">Wager</div>
+    <div class="value">"predict ROI"</div>
+    <div class="sub">Verdict = did it work?</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心</button>
+  <button class="tab" data-tab="t1">① OODA 历史</button>
+  <button class="tab" data-tab="t2">② 假图真相</button>
+  <button class="tab" data-tab="t3">③ AI 缺 ORIENT</button>
+  <button class="tab" data-tab="t4">④ Infinite Brain</button>
+  <button class="tab" data-tab="t5">⑤ OODA+GTD</button>
+  <button class="tab" data-tab="t6">⑥ Disposition</button>
+  <button class="tab" data-tab="t7">⑦ Wager</button>
+  <button class="tab" data-tab="t8">⑧ Wager Verdict</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🔥 核心论点</h2>
+
+  <blockquote>
+    "AI is great at observing data, deciding, and acting. But what AI is not getting better at on its own is <b>ORIENT</b>. This ORIENT layer is completely what's missing in almost every AI system."
+  </blockquote>
+
+  <h3 id="h3-1">4 步 OODA</h3>
+  <div class="ooda">
+    <span class="ooda-step">① <b>Observe</b> · 数据</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">② <b>ORIENT</b> · 解读</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">③ <b>Decide</b> · 决策</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">④ <b>Act</b> · 执行</span>
+    <div style="margin-top: 0.8rem; color: var(--text-dim); font-size: 0.9rem;">
+      ⭐ "ORIENT = capital O" (Boyd 强调 orient 是关键环节)
+    </div>
+  </div>
+
+  <h3 id="h3-2">5 大主线</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① OODA 历史</h4>
+      <p>John Boyd · 1980s 军事</p>
+      <p style="margin-top: 0.4rem;">"Fighter pilot wins every time"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⭐ AI 缺 ORIENT</h4>
+      <p>10,000/h 观察 vs 100/h 人类</p>
+      <p style="margin-top: 0.4rem;">"Orient 完全 missing"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>④ Infinite Brain</h4>
+      <p>Knowledge graph + PKM</p>
+      <p style="margin-top: 0.4rem;">"Improvement from Second Brain"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>⭐ Disposition + Wager</h4>
+      <p>Next step + predicted impact</p>
+      <p style="margin-top: 0.4rem;">T0/T1/T2/T3 routing</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>⭐ Wager Verdict</h4>
+      <p>Scientific method · verify ROI</p>
+      <p style="margin-top: 0.4rem;">"Did it?"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① OODA Loop 历史（John Boyd · 1980s 军事）</h2>
+
+  <h3 id="h3-3">John Boyd</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>美国顶尖 fighter pilot</li>
+    <li>后期 apply 到 physics · war · business</li>
+    <li>4 步：Observe → Orient → Decide → Act</li>
+    <li>原始有 12 步，后压缩到 4 步</li>
+    <li>用 OODA loop 击败 enemy（不需摧毁整个军队）</li>
+  </ul>
+
+  <h3 id="h3-4">⭐ 哲学来源</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p style="font-size: 1.05rem;">Boyd 实际哲学 = <b>Gödel's incompleteness + Heisenberg's uncertainty + 2nd law of thermodynamics</b></p>
+    <p style="margin-top: 0.4rem;">= 完整 philosophical foundation for decision-making</p>
+  </div>
+
+  <h3 id="h3-5">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>Discover Looped Transformer</b> 同源（"4 步哲学"）</p>
+  </div>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② ⭐ OODA Loop "假图" 流传</h2>
+
+  <div class="card" style="border-left: 3px solid var(--red); margin-bottom: 1rem;">
+    <p style="font-size: 1.1rem;"><b>"This OODA loop here is actually FAKE. He never wrote this. John Boyd never wrote this."</b></p>
+  </div>
+
+  <h3 id="h3-6">真相</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Boyd 1980s tape-recorded lectures（private to military）</li>
+    <li>上传到 YouTube = 现代人才看到</li>
+    <li>Boyd 实际画过 "<b>more like this</b>"（decision → observation · action → observation · 短链路）</li>
+    <li>Boyd 公开说 "<b>he did not think a loop made the most sense</b>"</li>
+    <li>"<b>capital O</b>"（orient 是 big O，其他 lowercase）</li>
+  </ul>
+
+  <h3 id="h3-7">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>Kun "stars ≠ quality"</b> 同源（"**流传 ≠ 真实**"）</p>
+  </div>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ AI = 强大 Observe/Decide/Act + 缺 ORIENT</h2>
+
+  <table>
+    <thead>
+      <tr><th>OODA 步</th><th>AI 能力</th><th>数据</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge green">Observe</span></td>
+        <td>极强 · 10,000/h vs 人类 100/h</td>
+        <td>Jove 旧公司 $30K/月 业务被 AI 完全替代</td>
+      </tr>
+      <tr class="highlight">
+        <td><span class="badge red">Orient</span></td>
+        <td><b>❌ 缺失</b></td>
+        <td>"<b>Orient 层完全 what's missing</b>"</td>
+      </tr>
+      <tr>
+        <td><span class="badge green">Decide</span></td>
+        <td>极强 · 决定快</td>
+        <td>甚至 deterministic system 不需要 AI</td>
+      </tr>
+      <tr>
+        <td><span class="badge green">Act</span></td>
+        <td>极强 · 10,000/h</td>
+        <td>computer use · OpenClaw · presentations</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-8">⭐ 核心 quote</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p>"<b>AI is already at the point where it can observe 10,000 things in an hour, where a human maybe could observe 100. And also, I think that it could take 10,000 actions an hour. The one gap as to why AI is not doing 10,000 things at once is actually the ORIENTATION layer that's missing here.</b>"</p>
+  </div>
+
+  <h3 id="h3-9">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>OpenSquilla MetaSkill + L8 Captain + FDE Advisor</b> 同源（"**所有都缺 taste / orientation**"）</p>
+  </div>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ ⭐ Infinite Brain = ORIENT 解药</h2>
+
+  <h3 id="h3-10">定义</h3>
+  <blockquote>
+    "All the nodes of knowledge that you have about your company, your pricing, your contacts, your strategy, all the details about your clients, your communication, having all that stored in one place."
+  </blockquote>
+
+  <h3 id="h3-11">类比</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"<b>Bookkeeping analogy</b>: receipts in box vs categorized accounting system."</p>
+    <p style="margin-top: 0.4rem;">= <b>结构化</b>才能给 AI 用</p>
+  </div>
+
+  <h3 id="h3-12">vs Second Brain</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>"<b>Improvement from the Second Brains that people used to build</b>"</li>
+    <li>不止 knowledge base · 还加 <b>commands · rules · agents · workflows · skills · tools</b></li>
+    <li>兼容 <b>Obsidian + Claude Code + Codex</b></li>
+  </ul>
+
+  <h3 id="h3-13">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>v1.3.0 vault + 5 工具</b> = "**完整的 Infinite Brain**"</p>
+  </div>
+</div>
+
+<!-- TAB 6: T5 -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ ⭐ OODA + Infinite Brain + GTD 整合</h2>
+
+  <h3 id="h3-14">3 大框架整合</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① OODA Loop</h4>
+      <p>decision-making</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② Infinite Brain</h4>
+      <p>knowledge + memory + tools</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>③ GTD</h4>
+      <p>Getting Things Done</p>
+      <p style="margin-top: 0.4rem;">"Capture everything"</p>
+    </div>
+  </div>
+
+  <h3 id="h3-15">⭐ GTD 核心</h3>
+  <blockquote>
+    "<b>Capture everything. Everything had to flow through the system.</b> You couldn't have a task in your mind."
+  </blockquote>
+
+  <h3 id="h3-16">Ingestion 系统</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Gmail ingest</li>
+    <li>Slack ingest</li>
+    <li><b>YouTube scripts ingest</b>（"Instead of watching a YouTube video, I just take the script and document anything relevant"）</li>
+    <li>Blog ingest</li>
+    <li><b>Meeting recordings</b>（"uploads my transcripts straight to the Infinite Brain"）</li>
+    <li>Twitter / X</li>
+  </ul>
+
+  <h3 id="h3-17">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>Discover "Spectral Stability"</b>（不 unbounded）+ <b>Howie "Heartbeat mode"</b>（24/7 monitor）= "**知识流过系统**"</p>
+  </div>
+</div>
+
+<!-- TAB 7: T6 -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ ⭐ Disposition = Next Step</h2>
+
+  <h3 id="h3-18">Disposition 定义</h3>
+  <blockquote>
+    "<b>Whatever could be the next kind of action step, the next step from this new observation is called a disposition.</b> It could be action, could be a new knowledge, could be an update to a document."
+  </blockquote>
+
+  <h3 id="h3-19">Routing</h3>
+  <table>
+    <thead>
+      <tr><th>层级</th><th>模型</th><th>用途</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1. Deterministic</td>
+        <td>无 AI</td>
+        <td>Spam filter · archive</td>
+      </tr>
+      <tr>
+        <td>2. Baby AI</td>
+        <td>Haiku</td>
+        <td>Basic categorization · cheap</td>
+      </tr>
+      <tr class="highlight">
+        <td>3. Opus-level</td>
+        <td>Claude Sonnet/Opus</td>
+        <td><b>Major work</b> · new idea · client work</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-20">⭐ Hybrid LLM Router 实战</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>T0 = deterministic · T1 = Haiku · T2 = Sonnet · T3 = Opus</p>
+  </div>
+
+  <h3 id="h3-21">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>Hybrid LLM Router + OpenSquilla MetaSkill</b> 同源（"**multi-tier routing**"）</p>
+  </div>
+</div>
+
+<!-- TAB 8: T7 -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-9" class="section">⑦ ⭐ Wager = Predicted Impact</h2>
+
+  <h3 id="h3-22">Wager 哲学</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p style="font-size: 1.05rem;">"<b>We make what's called a wager, which is we think if we improve the knowledge graph, if we take this person's meta ad strategy and implement it, that we will see an improvement.</b> The AI before it actually makes the change drafts the wager. Here's how much we think this would impact things in a month or two."</p>
+  </div>
+
+  <h3 id="h3-23">3 步</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>AI 起草 wager（预测 ROI）</li>
+    <li>存 database</li>
+    <li>1-2 月后 verify</li>
+  </ol>
+
+  <h3 id="h3-24">适用</h3>
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>❌ 不适用</h4>
+      <ul>
+        <li>"Hey, this is like my address"</li>
+        <li>Trivial · 已知</li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>✅ 适用</h4>
+      <ul>
+        <li>Sales campaign</li>
+        <li>Website change</li>
+        <li>Meta ad strategy</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-25">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>"Wager Verdict"</b>（科学方法）+ <b>"Scientific method to AI"</b> 同源</p>
+  </div>
+</div>
+
+<!-- TAB 9: T8 -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-10" class="section">⑧ ⭐ Wager Verdict = Close Loop</h2>
+
+  <h3 id="h3-26">Verdict</h3>
+  <blockquote>
+    "<b>We bet that this is going to improve efficiency by 3%, ROAS by 2%, profitability by 1%. Did it.</b>"
+  </blockquote>
+
+  <h3 id="h3-27">闭环</h3>
+  <div class="ooda">
+    <span class="ooda-step">① Intake</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">② Observation</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">③ Disposition (routing)</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">④ Action</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">⑤ <b>Wager</b> = 预测</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">⑥ <b>Verdict</b> = 验证</span><span class="ooda-arrow">→</span>
+    <span class="ooda-step">⑦ Feedback → knowledge graph</span>
+  </div>
+
+  <h3 id="h3-28">= Scientific method to AI</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"<b>It's almost like adding the scientific method to your AI.</b> You're able to take new ideas in very quickly, automate them, adjust them. You're also able to evaluate if the changes you're making are improving things."</p>
+  </div>
+
+  <h3 id="h3-29">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>Discover 4-class self-check + Matt B 7 Loops + Matt P Senior 10x</b> = "**close the loop with verification**"</p>
+  </div>
+</div>
+
+<!-- TAB 10: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-11" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section · 18 card）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 L8 Principal (Kun)</h4>
+      <p>Kun "Captain + crew + ship" = Decide/Act</p>
+      <p>AI Impact "Orient is missing"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Kun OODA 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 AI-First Peter</h4>
+      <p>Peter "Self-Improving Skills" = Wager</p>
+      <p>AI Impact "Wager = predict then verify"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：close-the-loop 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Airtable Howie</h4>
+      <p>Howie "Close the loop + teach taste"</p>
+      <p>AI Impact "Close the loop with Wager Verdict"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：taste + verification</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Looped World Model (Discover)</h4>
+      <p>Discover "Looped Transformer T=100"</p>
+      <p>AI Impact "OODA Loop (Boyd 1980s)"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：iterative loop 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B "autonomous agentic loop"</p>
+      <p>AI Impact "OODA loop (军事 → AI)"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：loop 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla MetaSkill</h4>
+      <p>OpenSquilla "agent 编排 + skill 蒸馏"</p>
+      <p>AI Impact "Infinite Brain = knowledge + skills"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：self-improvement 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 DeepSeek Billion Dollar</h4>
+      <p>DeepSeek "40% → 80% utilization" = prioritize thinking</p>
+      <p>AI Impact "Orient is missing" = prioritize orient</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：prioritization 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 OpenAI FDE 40B</h4>
+      <p>FDE "AI 落地 + Lesson learned"</p>
+      <p>AI Impact "AI 缺 ORIENT"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：都 "AI needs human orient"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>AI Impact "10,000 actions/h" = scale via AI</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency"</p>
+      <p>AI Impact "T0/T1/T2/T3 + Wager = top 1% system"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：top-performer 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant Clone Yourself</h4>
+      <p>Bryant "Clone 500-1000x"</p>
+      <p>AI Impact "10,000 actions/h vs 100/h = 100x leverage"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale via leverage</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White Open Source</h4>
+      <p>Matt W "Open source democratize"</p>
+      <p>AI Impact "Infinite Brain = open-source repo, free"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：democratize 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon Mythos</h4>
+      <p>Moon "Mythos deliberately changes behavior"</p>
+      <p>AI Impact "Wager Verdict = verify before deploy"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：verify before trust</p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 "用户掌控 + 极简 + 自扩展"</p>
+      <p>AI Impact "Infinite Brain = user knowledge + harness"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：v1.3.0 = Infinite Brain 笔记层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Systems "feedback loop + stability"</p>
+      <p>AI Impact "OODA + Wager Verdict = systems feedback"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：systems feedback 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ Telegram bot (6 工具 #1)</h4>
+      <p>AI Impact "Capture every Telegram message → Infinite Brain"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：GTD 实战</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ Content Multiplier (#2)</h4>
+      <p>AI Impact "Disposition: action = 1 md → 3 channels"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Disposition = 3 Act</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ 4-Answer Checker (#3)</h4>
+      <p>AI Impact "Wager Verdict: verify before ship"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Wager = 4-class check</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ Heartbeat (#4) + Poisson Router (#5)</h4>
+      <p>AI Impact "Observe 30-min interval" + "Disposition T0/T1/T2/T3"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Observe + Disposition</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-12" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-30">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>建 Patrick Infinite Brain 模式</b>：
+      <ul>
+        <li>5 工具（Telegram / Content / Checker / Heartbeat / Router）= 5 OODA 环节</li>
+        <li>v1.3.0 vault = knowledge graph</li>
+      </ul>
+    </li>
+    <li><b>跑 OODA Loop</b>：
+      <ul>
+        <li>Observe = Heartbeat 30-min + Telegram 实时</li>
+        <li>Orient = 5 工具 + v1.3.0 vault</li>
+        <li>Decide = Poisson Router complexity</li>
+        <li>Act = Content Multiplier × 3</li>
+      </ul>
+    </li>
+    <li><b>建 Wager 系统</b>：
+      <ul>
+        <li>每次 build action 前 = AI 起草 wager</li>
+        <li>1-2 月后 = verdict</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-31">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "OODA + Infinite Brain" 完整 OS</b>：
+      <ul>
+        <li>跨 8 video + 5 工具整合</li>
+      </ul>
+    </li>
+    <li><b>Disposition 3-tier routing 实战</b>：
+      <ul>
+        <li>T0 = deterministic (heartbeat filter)</li>
+        <li>T1 = Haiku (basic categorization)</li>
+        <li>T2 = Sonnet (medium)</li>
+        <li>T3 = Opus (major)</li>
+      </ul>
+    </li>
+    <li><b>Wager Verdict dashboard</b>：
+      <ul>
+        <li>追踪每次 action 预测 vs 实际</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-32">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "Scientific Method to AI"</b>：
+      <ul>
+        <li>Hypothesis = Wager</li>
+        <li>Experiment = Action</li>
+        <li>Result = Verdict</li>
+        <li>Knowledge = verdict feedback</li>
+      </ul>
+    </li>
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享 "OODA + Infinite Brain"</li>
+        <li>v1.3.0 + 5 工具 + Wager</li>
+      </ul>
+    </li>
+    <li><b>持续 "Orient layer" 升级</b>：
+      <ul>
+        <li>每次 fail verdict = orientation 缺口</li>
+        <li>每次 success verdict = orientation 强</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 12: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">核心 (Orient Missing)</div>
+      <div class="text">AI is great at observing data, deciding, and acting. But what AI is not getting better at on its own is <b>ORIENT.</b></div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ 10,000 vs 100</div>
+      <div class="text">AI is already at the point where it can observe <b>10,000 things in an hour, where a human maybe could observe 100.</b> The one gap as to why AI is not doing 10,000 things at once is actually the ORIENTATION layer.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ 假图真相</div>
+      <div class="text">This OODA loop here is actually <b>FAKE. He never wrote this. John Boyd never wrote this.</b></div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Boyd 反对 Loop</div>
+      <div class="text">He did not think a <b>loop</b> made the most sense because that would actually go against a lot of his ideas.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Infinite Brain</div>
+      <div class="text">Infinite Brain is an <b>improvement from the Second Brains</b> that people used to build.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Bookkeeping 类比</div>
+      <div class="text">It's almost like <b>bookkeeping</b>. If it's just receipts in a box, the AI can't do much. If you categorize them, you can build great financial systems.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">GTD Capture</div>
+      <div class="text"><b>Capture everything. Everything had to flow through the system.</b> You couldn't have a task in your mind.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">YouTube Scripts</div>
+      <div class="text">Instead of watching a YouTube video, I just <b>take the script and document anything that's relevant for my brain.</b> Then I say, also, make a plan for how to implement it. And then AI just does all the work for me.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ Disposition</div>
+      <div class="text">Whatever could be the next kind of action step, the next step from this new observation is called a <b>disposition.</b> It could be action, could be a new knowledge, could be an update to a document.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Wager</div>
+      <div class="text">We make what's called a <b>wager</b>, which is we think if we improve the knowledge graph, that we will see an improvement.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Wager Detail</div>
+      <div class="text">The AI before it actually makes the change drafts the wager. <b>Here's how much we think this would impact things in a month or two.</b></div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Wager Verdict</div>
+      <div class="text">We bet that this is going to improve <b>efficiency by 3%, ROAS by 2%, profitability by 1%.</b> Did it.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Scientific Method</div>
+      <div class="text">It's almost like <b>adding the scientific method to your AI.</b> Take new ideas in very quickly, automate them, adjust them. Evaluate if the changes are improving things.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Boyd 哲学来源</div>
+      <div class="text">John Boyd combined <b>Gödel's incompleteness, Heisenberg's uncertainty, and the second law of thermodynamics</b> to create the OODA philosophy.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Disposition Routing</div>
+      <div class="text">Routed to <b>deterministic system, baby AI (Haiku), or Opus-level AI</b> based on importance.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Wager 不适用</div>
+      <div class="text">Maybe if it's just like, hey, this is my address, <b>you don't need a wager to know that.</b> But sales campaign, people make changes and never come back and test.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">AI Impact Open Source</div>
+      <div class="text">We've just <b>open-sourced the Infinite Brain.</b> We're opening it to everybody.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（精选 30+）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 "OODA loop is the missing piece of AI"（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:24</div>
+      <div class="what">"<b>OODA invented by John Boyd</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:35</div>
+      <div class="what">"<b>Best fighter pilot ever</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:37</div>
+      <div class="what">"Applied to physics, war, military"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:49</div>
+      <div class="what">4 步：Observe → Orient → Decide → Act</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">"Lectures on tape recorders uploaded to YouTube"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:35</div>
+      <div class="what">"Gödel + Heisenberg + 2nd Law of Thermodynamics"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:59</div>
+      <div class="what">⭐ "This OODA loop here is actually FAKE"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:04</div>
+      <div class="what">Boyd 实际画过 "more like this"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:20</div>
+      <div class="what">"he did not think a loop made the most sense"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:24</div>
+      <div class="what">"capital O = orient"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:30</div>
+      <div class="what">"AI is great at observing data"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:43</div>
+      <div class="what">"$30,000 a month data ingestion company"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:55</div>
+      <div class="what">"SQL queries, API integration with AI"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:00</div>
+      <div class="what">⭐ "AI is not getting better at on its own is ORIENT"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:08</div>
+      <div class="what">⭐ "This ORIENT layer is completely what's missing"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:24</div>
+      <div class="what">"build 200 workflows at once with Claude Code"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:35</div>
+      <div class="what">"observe 10,000 things in an hour, human 100"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:55</div>
+      <div class="what">"act 10,000 actions an hour"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:57</div>
+      <div class="what">⭐ "10,000 things at once blocked by ORIENT layer"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:58</div>
+      <div class="what">⭐ "Solution = Infinite Brain"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:08</div>
+      <div class="what">"All nodes of knowledge = pricing, contacts, strategy"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:21</div>
+      <div class="what">"Bookkeeping = receipts in box vs categorized accounting"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:36</div>
+      <div class="what">"Improvement from Second Brain"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:48</div>
+      <div class="what">"PKM + commands + rules + agents + workflows + skills + tools"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:59</div>
+      <div class="what">"Obsidian + Claude Code + Codex"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:06</div>
+      <div class="what">"memory for AI chats → knowledge base over time"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:12</div>
+      <div class="what">"2 problems: sitting there + mediocre content"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:20</div>
+      <div class="what">"GTD (Getting Things Done) framework"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:24</div>
+      <div class="what">"Capture everything. Everything had to flow through the system."</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:32</div>
+      <div class="what">"Email + Slack + YouTube + Blogs + Meeting"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:36</div>
+      <div class="what">"Instead of watching YouTube, I take the script and document anything relevant"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:45</div>
+      <div class="what">"meeting recording tool → uploads transcripts straight to Infinite Brain"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:55</div>
+      <div class="what">"deterministic (spam filter) vs AI (Haiku) vs Opus-level"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:58</div>
+      <div class="what">⭐ "Disposition = next step from observation"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:25</div>
+      <div class="what">⭐ "Wager = AI predicts impact before making change"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:35</div>
+      <div class="what">"Wager: 'we think this improves efficiency 3%'"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:50</div>
+      <div class="what">⭐ "Wager Verdict = did it?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:00</div>
+      <div class="what">"Wager → StarMind metrics → evaluate"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:15</div>
+      <div class="what">⭐ "Almost like adding the scientific method to your AI"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:20</div>
+      <div class="what">"OODA + GTD + Scientific method into harness"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what">"Open-sourced for free"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:50</div>
+      <div class="what">"School community = AI superpowers"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/ooda-loop-infinite-brain-ai-impact/</code></p>
+  <p>Desktop: <code>~/Desktop/ooda-loop-infinite-brain-ai-impact-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=yP4p3reZUcU">https://www.youtube.com/watch?v=yP4p3reZUcU</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

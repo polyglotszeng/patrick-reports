@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEW LOOPED World Model (Looped Transformer w/ 1B AI) — Discover AI</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .chain {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.3rem; margin: 1rem 0;
+  }
+  .chain-step {
+    display: inline-block; padding: 0.4rem 0.8rem; margin: 0.2rem;
+    background: var(--bg-elevated); border-radius: 6px;
+    color: var(--accent-2); font-size: 0.9rem;
+  }
+  .chain-arrow { color: var(--text-mute); margin: 0 0.3rem; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大主线</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① Code Reasoning Internal Lifecycle（前置论文）</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Kun et al. 06-16-2026 论文（China U）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 核心问题</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 答案</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② 4 Answer Classes</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Patrick 启示</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ World Model = Internal Simulator</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 核心定义</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 实战场景</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Patrick 启示</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ ⭐ Looped Transformer = Reuse Same Block</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 核心机制</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 为什么</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ ⭐ 新 scaling dimension</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ ⭐ Architecture = Encoder + Recurrent Block + D</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 5 大组件</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 3 大关键组件</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ ⭐ Deferred Decoding</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ ⭐ Update Rule = 5 步 Recurrence</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ 简化版 Update Rule</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 5 步详解</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Patrick 启示</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⑦ ⭐ Spectral Stability = Eigenvalues in [0,1] + </a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ 问题</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ 修法 1: Spectral Stability</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 修法 2: Kullback-Leibler Divergence</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⑧ ⭐ Variable Loop Count = Poisson Distribution</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ 核心 insight</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ ⭐ Poisson Distribution</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ 3 大优势</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ 长期</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（精选）</a></li>
+  </ol>
+</aside>
+
+
+<h1>NEW LOOPED World Model</h1>
+<p class="subtitle">Looped Transformer w/ 1B AI — Discover AI (2026-06-16 paper)</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=AnKOc8OUzp4" target="_blank">NEW LOOPED World Model (Looped Transformer w/ 1B AI)</a></span>
+  <span><strong>频道：</strong>Discover AI</span>
+  <span><strong>语言：</strong>English (auto-generated)</span>
+  <span><strong>时长：</strong>34.8 min (942 raw · 189 paras)</span>
+  <span><strong>论文日期：</strong>2026-06-16</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"Instead of stacking many unique layers, we could repeatedly reuse the same block, the same transformer block, and we just loop it. And the model we're talking today is a 1 billion little model. So, really a tiny tiny model."</b></p>
+  <p style="margin-top: 0.6rem;"><b>5 大主线</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Code Reasoning Internal Lifecycle</b>（Layer 27 = first answer 出现）</li>
+    <li><b>World Model = Internal Simulator</b>（机器人 + reality evolution）</li>
+    <li>⭐ <b>Looped Transformer = Reuse Same Block</b>（不是 bigger · 也不是 more data · 是 iterative thinking）</li>
+    <li>⭐ <b>10-100x Compute Saving</b>（"significantly fewer parameters" · 1B tiny）</li>
+    <li>⭐ <b>Variable Loop Count</b>（Poisson distribution training · inference adapt）</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">Looped World Model</div>
+    <div class="value">1B params</div>
+    <div class="sub">"tiny tiny model"</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">Compute Saving</div>
+    <div class="value">10-100x</div>
+    <div class="sub">vs non-looped baseline</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">Hyconnect Loop Transformer</div>
+    <div class="value">50%</div>
+    <div class="sub">fewer params (MIT 04/2026)</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Recurrent Block</div>
+    <div class="value">T=100</div>
+    <div class="sub">shared parameters loops</div>
+  </div>
+  <div class="stat red">
+    <div class="label">Answer 出现</div>
+    <div class="value">Layer 27</div>
+    <div class="sub">first answer 位置</div>
+  </div>
+  <div class="stat">
+    <div class="label">Loop Count</div>
+    <div class="value">Poisson</div>
+    <div class="sub">variable computational depths</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心</button>
+  <button class="tab" data-tab="t1">① Code Lifecycle</button>
+  <button class="tab" data-tab="t2">② 4 Answer Classes</button>
+  <button class="tab" data-tab="t3">③ World Model</button>
+  <button class="tab" data-tab="t4">④ Looped Transformer</button>
+  <button class="tab" data-tab="t5">⑤ Architecture</button>
+  <button class="tab" data-tab="t6">⑥ Update Rule</button>
+  <button class="tab" data-tab="t7">⑦ Spectral Stability</button>
+  <button class="tab" data-tab="t8">⑧ Variable Loop</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🔥 核心论点</h2>
+
+  <blockquote>
+    "Instead of stacking many unique layers, we could <b>repeatedly reuse the same block, the same transformer block, and we just loop it.</b> And the model we're talking today is a 1 billion little model. So, really a tiny tiny model."
+  </blockquote>
+
+  <h3 id="h3-1">5 大主线</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① Code Reasoning Lifecycle</h4>
+      <p>Layer 27 = first answer 出现</p>
+      <p style="margin-top: 0.4rem;">"**Very first layers are very important**"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② 4 Answer Classes</h4>
+      <p>correct / over-processed / mis-resolved / un-resulted</p>
+      <p style="margin-top: 0.4rem;">决定 AI 输出</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>③ World Model</h4>
+      <p>Internal simulator for AI</p>
+      <p style="margin-top: 0.4rem;">predicts reality evolution</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>④ ⭐ Looped Transformer</h4>
+      <p>Reuse same block · T=100</p>
+      <p style="margin-top: 0.4rem;">"<b>NOT bigger models · IS iterative thinking</b>"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>⑤ ⭐ Compute Saving</h4>
+      <p>10-100x cheaper · 1B tiny</p>
+      <p style="margin-top: 0.4rem;">"same quality or better"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① Code Reasoning Internal Lifecycle（前置论文）</h2>
+
+  <h3 id="h3-2">Kun et al. 06-16-2026 论文（China U）</h3>
+  <div class="card" style="border-left: 3px solid var(--blue); margin-bottom: 1rem;">
+    <p style="font-size: 1.05rem;">"<b>Tracing the internet life cycle of code reasoning in LLMs.</b>"</p>
+  </div>
+
+  <h3 id="h3-3">核心问题</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>"<b>When the AI writes code, what is happening inside?</b>"</li>
+    <li>"<b>When does the model first know the answer?</b>"</li>
+    <li>"<b>Layer 27 in the transformer architecture?</b>"</li>
+  </ul>
+
+  <h3 id="h3-4">答案</h3>
+  <blockquote>
+    "<b>The very first layers are very important for the understanding of the code generation.</b>"
+  </blockquote>
+
+  <h3 id="h3-5">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**Answer 早就知道**" = "**looping = explicit early answer + refine**"</p>
+  </div>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② 4 Answer Classes</h2>
+
+  <table>
+    <thead>
+      <tr><th>Class</th><th>描述</th><th>结果</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge green">Correct</span></td>
+        <td>Output resolved early</td>
+        <td>✅ 正确</td>
+      </tr>
+      <tr>
+        <td><span class="badge yellow">Over-processed</span></td>
+        <td>Too many layers · sudden peak shift</td>
+        <td>❌ "**over processed**"</td>
+      </tr>
+      <tr>
+        <td><span class="badge red">Mis-resolved</span></td>
+        <td>Output shifts to wrong peak</td>
+        <td>❌ "**two which is incorrect**"</td>
+      </tr>
+      <tr>
+        <td><span class="badge red">Un-resulted</span></td>
+        <td>"**Mountain range**" of possible solutions · no clear peak</td>
+        <td>❌ "**complete nonsense**"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-6">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**4 classes 决定 AI 输出**" = "**Looped Model 避免 over-process**"</p>
+  </div>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ World Model = Internal Simulator</h2>
+
+  <h3 id="h3-7">核心定义</h3>
+  <blockquote>
+    "<b>World model is essentially an internal simulator for this particular AI system that predicts how reality will now evolve over time if this particular robot is now in the interaction with the environment.</b>"
+  </blockquote>
+
+  <h3 id="h3-8">实战场景</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>机器人 step forward</li>
+    <li>机器人 pick up can of Coke</li>
+    <li>= 预测 reality 演化</li>
+  </ul>
+
+  <h3 id="h3-9">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**World model = L8 Principal / FDE 用**"（agent 跑活前提）</p>
+  </div>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ ⭐ Looped Transformer = Reuse Same Block</h2>
+
+  <h3 id="h3-10">核心机制</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"<b>Instead of stacking many unique layers, we could now repeatedly reuse the same block, the same transformer block, and we just loop it.</b>"</p>
+  </div>
+
+  <h3 id="h3-11">为什么</h3>
+  <blockquote>
+    "Why should we suddenly not have here this deep deep transformer with multiple layers? Why only a transformer block to loop? Well, <b>it is all about time, money, and the parameter we can reuse.</b> And if you have one block where we loop over, <b>this is a significant amount in the reduction of time and money and compute.</b>"
+  </blockquote>
+
+  <h3 id="h3-12">⭐ 新 scaling dimension</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"<b>It's not about bigger models. It's not about more data for the training or for the post-training, but it is a more iterative thinking that inside is happening the same model.</b>"</p>
+  </div>
+
+  <h3 id="h3-13">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>= 跟 <b>DeepSeek "Billion Dollar Problem"</b>（40% → 80% utilization）+ <b>L8 Principal "Agent Agnostic"</b> + <b>Matt B 7 Loops</b> = <b>完全同源 scaling via loop, not bigger</b></p>
+  </div>
+</div>
+
+<!-- TAB 6: T5 -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ ⭐ Architecture = Encoder + Recurrent Block + Deferred Decoding</h2>
+
+  <h3 id="h3-14">5 大组件</h3>
+  <pre style="background: var(--bg-card); padding: 1rem; border-radius: 8px; color: var(--text); font-size: 0.85rem; border: 1px solid var(--border);">Inputs (observation + action)
+    ↓
+Encoder (observation + action)
+    ↓
+Prelude + Coder + Recurrent Block (shared transformer · loop T times)
+    ↓
+Decoder (deferred)
+    ↓
+Final State</pre>
+
+  <h3 id="h3-15">3 大关键组件</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Prelude</h4>
+      <p>准备</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Coder</h4>
+      <p>编码 latent space</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>Recurrent Block</h4>
+      <p>共享 transformer = ⭐ <b>最核心</b></p>
+    </div>
+  </div>
+
+  <h3 id="h3-16">⭐ Deferred Decoding</h3>
+  <blockquote>
+    "<b>We encode, and then we think think think, and then we just have here only at the very end the decoding step.</b>"
+  </blockquote>
+
+  <h3 id="h3-17">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= 跟 <b>L8 Principal "Codex + skill 反复"</b> + <b>Peter Yang "Self-Improving Loop"</b> = <b>同源 "defer until ready" 哲学</b></p>
+  </div>
+</div>
+
+<!-- TAB 7: T6 -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ ⭐ Update Rule = 5 步 Recurrence</h2>
+
+  <h3 id="h3-18">简化版 Update Rule</h3>
+  <pre style="background: var(--bg-card); padding: 1rem; border-radius: 8px; color: var(--text); font-size: 0.85rem; border: 1px solid var(--border);">h_{t+1} = α · h_t + Action Injection + Non-linear Transformer Refinement
+然后 repeat = T=100 times</pre>
+
+  <h3 id="h3-19">5 步详解</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>Prev hidden state</b> = "because the system will not evolve here and have a discontinuity, nature will stay more or less the same"</li>
+    <li><b>Inject observation or action</b> = "if I picked up a bottle of Coke from the table"</li>
+    <li><b>Non-linear transformer refinement</b> = "<b>this is where the intelligence comes into play, this is the third element where we have now everything from the transformer and MLP and non-linearity</b>"</li>
+    <li><b>Repeat</b> = "how we loop, it couldn't be easier"</li>
+    <li><b>T=100 loops</b> = "all the shared parameters that are simply looped here for particular T T equal 100 times"</li>
+  </ol>
+
+  <h3 id="h3-20">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**Loop = 5 步 recurrence**" = "**L8 Principal 迭代哲学物理化**"</p>
+  </div>
+</div>
+
+<!-- TAB 8: T7 -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-9" class="section">⑦ ⭐ Spectral Stability = Eigenvalues in [0,1] + KL</h2>
+
+  <h3 id="h3-21">问题</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p>"<b>A latent update can easily explode or drift away.</b>"</p>
+  </div>
+
+  <h3 id="h3-22">修法 1: Spectral Stability</h3>
+  <blockquote>
+    "They added a particular term, a <b>spectral stability constraint on the retention part of the dynamics.</b> And it parameterizes the I diagonal continuous time matrix with a <b>negative entity entry</b>, and this brings it back here the <b>eigen values where in the interval between 0 and 1.</b>"
+  </blockquote>
+
+  <blockquote>
+    "<b>The point is each loop step preserves the boundness instead of apply amplifying the state uncontrollable. So, everything is here in control.</b>"
+  </blockquote>
+
+  <h3 id="h3-23">修法 2: Kullback-Leibler Divergence</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"<b>We have a Kullback-Leibler divergence, and this makes sure we stay and we just go a little baby steps.</b>"</p>
+  </div>
+
+  <h3 id="h3-24">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**Spectral stability + KL = 数值稳定**" = "**OpenSquilla MetaSkill 持续 refine 但不爆**"</p>
+  </div>
+</div>
+
+<!-- TAB 9: T8 -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-10" class="section">⑧ ⭐ Variable Loop Count = Poisson Distribution</h2>
+
+  <h3 id="h3-25">核心 insight</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">"<b>During the training, the loop count is not fixed, and this is also something beautiful, you know?</b> Normally, you have 100, 200, 500, but now this is really dependent, do we still need to continue to loop, or maybe we already have converged here to the best possible solution."</p>
+  </div>
+
+  <h3 id="h3-26">⭐ Poisson Distribution</h3>
+  <blockquote>
+    "<b>The pre-print samples the number of loop iterations from a Poisson distribution, so the model sees variable computational depths in its training phase,</b> and hopefully then in the inference run, it will also apply this and says, hey, this is a simple run for 10 runs. I don't need to run this 500 times."
+  </blockquote>
+
+  <h3 id="h3-27">3 大优势</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Robust for changing loop counts at inference</li>
+    <li>"<b>Simple run = 10 loops</b>" · "<b>Complex run = 500 loops</b>"</li>
+    <li>Total world model loss = observation + reward + continuation prediction</li>
+  </ul>
+
+  <h3 id="h3-28">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= "**Poisson loop count = 动态 depth**" = "**L8 Principal / OpenClaw dynamic = 自适应**"</p>
+  </div>
+</div>
+
+<!-- TAB 10: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-11" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B "autonomous agentic loop"</p>
+      <p>Discover AI "loop transformer T=100 times"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 loop 哲学 · 不同 scale</p>
+    </div>
+    <div class="card">
+      <h4>🔗 L8 Principal (Kun)</h4>
+      <p>Kun "Captain + crew + ship"</p>
+      <p>Discover AI "Shared block + loop + iteration"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 efficiency 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 AI-First Playbook (Peter Yang)</h4>
+      <p>Peter "Self-Improving Skills"</p>
+      <p>Discover AI "Looped Transformer + fixed point iteration"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 iterative refinement 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 DeepSeek "Billion Dollar Problem"</h4>
+      <p>DeepSeek "40% → 80% utilization"</p>
+      <p>Discover AI "10-100x compute saving"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 efficiency via routing</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw "Multi-Agent Latent"</h4>
+      <p>OpenClaw "multi-agent + latent state"</p>
+      <p>Discover AI "single block + latent space + T=100 loops"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 latent 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Senior 10x / Harness"</h4>
+      <p>Matt P "Harness > Model"</p>
+      <p>Discover AI "Shared block (harness) > Bigger model"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 efficiency 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 OpenAI "FDE 40B"</h4>
+      <p>FDE "AI 落地 + Lesson learned"</p>
+      <p>Discover AI "4 Answer Classes（avoid over-process）"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：都 "avoid premature answer"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Airtable Howie "Top 1%"</h4>
+      <p>Howie "Tinker mindset + Top 1% deployed"</p>
+      <p>Discover AI "Tiny 1B model + looped = competitive with bigger"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 "small + smart" 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>Discover AI "scale via loop (NOT via bigger model)"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：Sam scale 升级版 = scale via loop</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency"</p>
+      <p>Discover AI "1B model + smart loop > bigger model"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 "small + smart" 哲学</p>
+    </div>
+    <div class="card">
+      <h�>🔗 Bryant "Clone Yourself"</h4>
+      <p>Bryant "Clone 500-1000x"</p>
+      <p>Discover AI "1 block × 100 loops = effective 100x depth"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 "replicate for leverage" 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Open Source"</h4>
+      <p>Matt W "Open source democratize"</p>
+      <p>Discover AI "1B tiny model = democratize to home computer"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 democratize 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon "Anthropic Mythos"</h4>
+      <p>Moon "Mythos deliberately changes behavior"</p>
+      <p>Discover AI "4 Answer Classes (over-processed = wrong)"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：都 "control loop output"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 "用户掌控 + 极简 + 自扩展"</p>
+      <p>Discover AI "Shared block (simple) + loop (defer) + variable depth"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：v1.3.0 = Discover AI 笔记层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Systems "feedback loop + stability"</p>
+      <p>Discover AI "T=100 loops + Spectral stability"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：同源 systems stability 哲学</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-12" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-29">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>理解 Looped Transformer 哲学</b>：
+      <ul>
+        <li>跟 L8 Principal "agent loop" = 同样哲学</li>
+        <li>v1.3.0 dashboard 模板 = "**T=N loops = T=100 loops = iterative refinement**"</li>
+      </ul>
+    </li>
+    <li><b>测 Variable Loop Count</b>：
+      <ul>
+        <li>不同 task 不同 loop count</li>
+        <li>简单 task 10 loops · 复杂 task 100 loops</li>
+      </ul>
+    </li>
+    <li><b>借鉴 Spectral Stability</b>：
+      <ul>
+        <li>v1.3.0 笔记不要 "<b>over-process</b>"</li>
+        <li>4 Answer Classes self-check（correct / over / mis / un）</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-30">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "Looped OS"</b>：
+      <ul>
+        <li>跨 8 skill 整合：Matt B + L8 + Peter + DeepSeek + OpenClaw + Matt P + FDE + Howie</li>
+        <li>关键：每 skill 都有 "<b>loop</b>" 哲学</li>
+      </ul>
+    </li>
+    <li><b>build Patrick "4 Answer Classes" check</b>：
+      <ul>
+        <li>v1.3.0 笔记生成后 4 class self-check</li>
+        <li>Over-processed = 警告</li>
+        <li>Un-resulted = 重做</li>
+      </ul>
+    </li>
+    <li><b>测 Poisson Loop Count</b>：
+      <ul>
+        <li>不同 task 难度不同 loop count</li>
+        <li>动态 depth = 自适应</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-31">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "Spectral Stability"</b>：
+      <ul>
+        <li>v1.3.0 笔记 growth 不要 unbounded</li>
+        <li>KL 监控笔记 diversity</li>
+      </ul>
+    </li>
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享 "Looped Transformer 哲学"</li>
+        <li>v1.3.0 + Discover AI workflow</li>
+      </ul>
+    </li>
+    <li><b>持续 1B Tiny Model 探索</b>：
+      <ul>
+        <li>跟 local LLM 哲学（IndyDevDan）</li>
+        <li>tiny + looped = competitive with bigger</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 12: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">⭐ 核心 (Looped)</div>
+      <div class="text">Instead of stacking many unique layers, we could now <b>repeatedly reuse the same block, the same transformer block, and we just loop it.</b></div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Scaling 哲学</div>
+      <div class="text"><b>It's not about bigger models. It's not about more data for the training or for the post-training, but it is a more iterative thinking that inside is happening the same model.</b></div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Compute Saving</div>
+      <div class="text">We have saving of <b>10 to 100 times off our compute</b>, which is amazing. And you know what? They're almost at the same quality and sometimes even a little bit better.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">World Model</div>
+      <div class="text"><b>World model is essentially an internal simulator</b> for this particular AI system that predicts how reality will now evolve over time.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Update Rule</div>
+      <div class="text"><b>Each loop step preserves the boundness instead of apply amplifying the state uncontrollable.</b></div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Spectral Stability</div>
+      <div class="text">Parameterizes the I diagonal continuous time matrix with a <b>negative entity entry</b>, and this brings it back the eigen values where in the interval between 0 and 1.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Variable Loop</div>
+      <div class="text"><b>The pre-print samples the number of loop iterations from a Poisson distribution</b>, so the model sees variable computational depths in its training phase.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Inference 灵活</div>
+      <div class="text">This is a simple run for 10 runs. I don't need to run this 500 times.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Code Lifecycle</div>
+      <div class="text"><b>The very first layers are very important for the understanding of the code generation.</b></div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ 4 Classes</div>
+      <div class="text"><b>Mountain range of possible solution. And just if the peak is above a certain threshold, now suddenly this is the answer, which is complete nonsense.</b></div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Deferred Decoding</div>
+      <div class="text">We encode, and then we <b>think think think, and then we just have only at the very end the decoding step.</b></div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Parameter Efficiency</div>
+      <div class="text">Parameter efficiency of up to <b>100 times better than compared model</b>. This makes it maybe possible to bring it to home computer devices.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Intelligence 位置</div>
+      <div class="text">Non-linear transformer refinement. <b>This is where the intelligence comes into play.</b></div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">T=100 Loops</div>
+      <div class="text">All the <b>shared parameters that are simply looped here for particular T T equal 100 times.</b></div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">KL Divergence</div>
+      <div class="text">We have a Kullback-Leibler divergence, and this makes sure <b>we stay and we just go a little baby steps.</b></div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Layer 27</div>
+      <div class="text"><b>Layer 27 in the transformer architecture?</b> When does the model first know the answer?</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">2024 Looped</div>
+      <div class="text">K layer transformer looped L times <b>nearly matches the performance of a K×L non-looped model.</b></div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Hyconnect (MIT)</div>
+      <div class="text">Hyperconnected loop transformer are able to outperform the depth match transformer, and our manifold constraint hyperconnection transformer, and they are <b>up to 50% fewer parameters, and have the same performance.</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 "<b>We have now looped world models</b>"（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:20</div>
+      <div class="what">📄 论文日期 2026-06-16</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:30</div>
+      <div class="what">🔬 Code Reasoning Lifecycle 论文（China U）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:48</div>
+      <div class="what">"Making it linearly recoverable through many layers"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:08</div>
+      <div class="what">"Layer 27 in the transformer architecture"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:33</div>
+      <div class="what">4 Answer Classes 介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:42</div>
+      <div class="what">"Very first layers are very important"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:54</div>
+      <div class="what">"Over processed" = 突然错</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:58</div>
+      <div class="what">"Un-resulted = complete nonsense"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:00</div>
+      <div class="what">"4 classes"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:38</div>
+      <div class="what">"How reasoning unfolds inside the model is the most important question"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:00</div>
+      <div class="what">"World model = internal simulator"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:00</div>
+      <div class="what">⭐ "<b>Instead of stacking many unique layers, we could now repeatedly reuse the same block, the same transformer block, and we just loop it</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:24</div>
+      <div class="what">"It is all about time, money, and the parameter we can reuse"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:22</div>
+      <div class="what">⭐ "It's not about bigger models. It's about iterative thinking"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:38</div>
+      <div class="what">"1 billion little model"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:42</div>
+      <div class="what">"Test time compute scaling"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:00</div>
+      <div class="what">Looped World Model 论文（June 16 2026）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:20</div>
+      <div class="what">⭐ 2 loops: latent reasoning (inner) + optimization</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:43</div>
+      <div class="what">"Encode in new mathematical space with certain topology"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:06</div>
+      <div class="what">⭐ "<b>Deferred decoding</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what">⭐ "<b>Saving of 10 to 100 times off our compute</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:50</div>
+      <div class="what">Architecture: Inputs + Encoder + Prelude + Coder + Recurrent Block + Decoder</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:30</div>
+      <div class="what">⭐ "<b>Parameter efficiency of up to 100 times better</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:40</div>
+      <div class="what">"Bring it to home computer devices"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:10</div>
+      <div class="what">Fable 5 视频 ref（recursive loop in artifacts）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:40</div>
+      <div class="what">"World models = how environment evolves in accordance with the action"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:45</div>
+      <div class="what">2024 looped transform ref（Google + Toyota）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:10</div>
+      <div class="what">"K layer transformer looped L times nearly matches performance of K×L non-looped"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:00</div>
+      <div class="what">Hyperconnected Loop Transformer（MIT 2026-04）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:15</div>
+      <div class="what">"50% fewer parameters same performance"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:00</div>
+      <div class="what">"Promising backbone for world models"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:30</div>
+      <div class="what">"Competitive or superior in predictive accuracy"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:50</div>
+      <div class="what">"Fixed point iteration"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:00</div>
+      <div class="what">"Builds a latent guess + refines by eye repeatedly"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:00</div>
+      <div class="what">"What did I just see? What did I just do? What latent state? What will I see next?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:20</div>
+      <div class="what">Recurrent block = shared parameters looped T=100 times</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:30</div>
+      <div class="what">Update Rule 5 步</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:40</div>
+      <div class="what">"Because the system will not evolve here and have a discontinuity"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:50</div>
+      <div class="what">"Action + Non-linear transformer refinement = intelligence"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:10</div>
+      <div class="what">"T=100 loops"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:20</div>
+      <div class="what">"Tension between depth and deployment cost"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:25</div>
+      <div class="what">"1 to 100 times cheaper"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:30</div>
+      <div class="what">"Spectral stability constraint"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:50</div>
+      <div class="what">⭐ "Negative entity entry → eigenvalues in [0, 1]"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:00</div>
+      <div class="what">"Each loop step preserves the boundness"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:20</div>
+      <div class="what">"KL divergence = stay a little baby steps"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:40</div>
+      <div class="what">"Loop count is not fixed during training"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:50</div>
+      <div class="what">⭐ "<b>Poisson distribution = variable computational depths</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:00</div>
+      <div class="what">"Simple run = 10 loops · I don't need 500"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:15</div>
+      <div class="what">"Robust for changing loop counts at inference"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:30</div>
+      <div class="what">"Total loss = observation + reward + continuation"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/looped-world-model-1b-ai-discover/</code></p>
+  <p>Desktop: <code>~/Desktop/looped-world-model-1b-ai-discover-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=AnKOc8OUzp4">https://www.youtube.com/watch?v=AnKOc8OUzp4</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

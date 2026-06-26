@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Exp-18 IBKR TWS API 抓 NQ-100 季度 OHLC</title>
+<style>
+  :root { --bg:#0d1117; --fg:#e6edf3; --muted:#7d8590; --accent:#58a6ff;
+          --ok:#3fb950; --warn:#d29922; --err:#f85149; --border:#30363d; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.65 -apple-system,"SF Pro Text","Helvetica Neue",
+         "PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--fg); }
+  .wrap { max-width:920px; margin:0 auto; padding:32px 28px 80px; }
+  h1 { font-size:32px; font-weight:700; margin:0 0 8px; color:var(--accent); }
+  .sub { color:var(--muted); margin:0 0 32px; font-size:14px; }
+  h2 { font-size:22px; font-weight:600; margin:36px 0 12px; padding-bottom:8px;
+       border-bottom:1px solid var(--border); color:var(--fg); }
+  h3 { font-size:17px; font-weight:600; margin:20px 0 8px; color:var(--accent); }
+  p, li { color:var(--fg); }
+  code { background:#161b22; padding:2px 6px; border-radius:4px; font:13px/1.4
+         "SF Mono","Monaco",monospace; color:#79c0ff; border:1px solid var(--border); }
+  pre { background:#161b22; border:1px solid var(--border); border-radius:8px;
+        padding:14px 16px; overflow-x:auto; margin:12px 0; }
+  pre code { background:transparent; padding:0; border:none; color:var(--fg); }
+  .tldr { background:#161b22; border:1px solid var(--border); border-left:4px solid
+          var(--accent); padding:14px 18px; border-radius:6px; margin:16px 0; }
+  .tldr ol { margin:8px 0 0; padding-left:20px; }
+  .tldr li { margin:4px 0; }
+  .falsify { background:linear-gradient(180deg, #2d1518 0%, #1d0d10 100%);
+             border:1px solid var(--err); border-left:4px solid var(--err);
+             padding:14px 18px; border-radius:6px; margin:16px 0; }
+  .falsify h3 { color:var(--err); margin:0 0 8px; }
+  .falsify ol { margin:6px 0 0; padding-left:22px; }
+  .falsify li { margin:6px 0; }
+  .falsify code { color:#ffa198; }
+  .ok { color:var(--ok); font-weight:600; }
+  .warn { color:var(--warn); }
+  .err { color:var(--err); }
+  table { width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; }
+  th, td { padding:8px 12px; border:1px solid var(--border); text-align:left; }
+  th { background:#161b22; color:var(--accent); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0; }
+  .card { background:#161b22; border:1px solid var(--border); border-radius:6px; padding:14px; }
+  .card h4 { margin:0 0 6px; font-size:14px; color:var(--accent); }
+  .card p { margin:0; font-size:13px; color:var(--muted); }
+  .step { display:flex; gap:14px; align-items:flex-start; margin:14px 0; }
+  .num { flex:0 0 32px; height:32px; border-radius:50%; background:var(--accent);
+         color:#0d1117; font-weight:700; display:flex; align-items:center;
+         justify-content:center; }
+  .num-text { flex:1; }
+  .num-text strong { color:var(--fg); }
+  .num-text span { color:var(--muted); }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .footer { margin-top:60px; padding-top:20px; border-top:1px solid var(--border);
+            color:var(--muted); font-size:13px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:10px;
+          background:var(--accent); color:#0d1117; font-size:12px; font-weight:600; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Exp-18: IBKR TWS API 抓 NQ-100 季度 OHLC</h1>
+<p class="sub">2026-06-12 · Patrick 量化助手 · 周末直接跑 · 5 falsification 内嵌</p>
+
+<div class="tldr">
+  <strong>30 秒 TL;DR</strong>
+  <ol>
+    <li>Mac 装 IBKR TWS → 申请 paper 账户 → 开 API 端口 7497</li>
+    <li>申请 FRED API key (5 分钟免费, 邮件拿 32 位 key)</li>
+    <li><code>pip3 install ib_insync fredapi yfinance pandas tqdm</code></li>
+    <li><code>export FRED_API_KEY=你的key</code> 加进 <code>~/.zshrc</code></li>
+    <li><code>cd ~/Desktop &amp;&amp; python3 exp18_ibkr_fetch.py</code></li>
+    <li>5~10 分钟跑完, 产出 <code>exp18_real_data/panel_quarterly_30x16.csv</code> (480 行)</li>
+  </ol>
+</div>
+
+<!-- ========== Section 1: 准备 ========== -->
+<h2>1. 准备: 4 件事</h2>
+
+<div class="grid2">
+  <div class="card">
+    <h4>① IBKR TWS</h4>
+    <p>下载 <a href="https://www.interactivebrokers.com/en/trading/tws.php">tws-latest-macosx-x64.dmg</a>, paper 账户登录 (前缀 DU)</p>
+  </div>
+  <div class="card">
+    <h4>② FRED API key</h4>
+    <p><a href="https://fred.stlouisfed.org/docs/api/api_key.html">fred.stlouisfed.org</a> 邮箱注册, 收邮件拿 32 位 key</p>
+  </div>
+  <div class="card">
+    <h4>③ Python 3.9+</h4>
+    <p>Mac 自带, 验证 <code>python3 --version</code></p>
+  </div>
+  <div class="card">
+    <h4>④ NQ-100 CSV</h4>
+    <p><code>~/Desktop/nq100_complete_v2.csv</code> (105 公司, 已在)</p>
+  </div>
+</div>
+
+<h3>端口 &amp; API 配置 (TWS 里)</h3>
+<pre><code>TWS → Edit → Global Configuration → API → Settings
+  ☑ Enable ActiveX and Socket Clients
+  ☑ Allow connections from localhost only
+  Socket port: 7497  (paper 默认)
+  Trusted IP:  127.0.0.1
+  Client ID:   18    (任意 1-32, 脚本默认 18)
+</code></pre>
+
+<!-- ========== Section 2: 一键跑 ========== -->
+<h2>2. 一键跑 (3 命令)</h2>
+
+<pre><code># 1) 装依赖
+pip3 install --user --break-system-packages ib_insync fredapi yfinance pandas tqdm
+
+# 2) 设 key (持久化)
+echo 'export FRED_API_KEY="abcdef1234567890abcdef1234567890"' >> ~/.zshrc
+source ~/.zshrc
+
+# 3) 跑
+cd ~/Desktop
+python3 exp18_ibkr_fetch.py
+</code></pre>
+
+<p>跑完预期 (5~10 分钟):</p>
+<pre><code>[Step 1/4] 抓 30 公司 OHLC ... [████████████████████] 30/30
+[Step 2/4] 抓 FRED 4 宏观 ✓
+[Step 3/4] 合并 panel ✓ panel 已保存: panel_quarterly_30x16.csv (480 行)
+[Step 4/4] 5 Falsification 健康检查
+  F1 公司数: 30/30 ✓     F2 季度数: 16/16 ✓
+  F3 NaN 率: 0.00% ✓     F4 价格 sanity: ✓
+  F5 宏观列: 0.0% NaN ✓
+  Falsification: 5/5 通过
+</code></pre>
+
+<!-- ========== Section 3: 5 Falsification ========== -->
+<h2>3. 5 Falsification 框架 <span class="pill">核心</span></h2>
+
+<div class="falsify">
+<h3>跑完自动检查 5 项 — 任何 1 项 ✗ 都判数据不可用</h3>
+<ol>
+  <li><strong>F1 公司数 = 30</strong> — 实际 30 个 ticker, 少一个 = 重抓</li>
+  <li><strong>F2 季度数 = 16</strong> — 每公司 16 财年季度, min/max 都 16</li>
+  <li><strong>F3 NaN &lt; 5%</strong> — OHLC 5 列 NaN 率均值 &lt; 5%</li>
+  <li><strong>F4 价格 sanity</strong> — 全 close &gt; 0, 无 ±200% 极端跳变</li>
+  <li><strong>F5 4 宏观列存在</strong> — VIX/NDX/10Y/USD_CNY 都有且 NaN &lt; 50%</li>
+</ol>
+<p style="margin-top:10px;">检查报告: <code>exp18_real_data/sanity_check_report.json</code> (JSON, 5 项 pass/fail)</p>
+</div>
+
+<!-- ========== Section 4: 产出 & 续传 ========== -->
+<h2>4. 产出 + 断点续传</h2>
+
+<h3>输出文件 (<code>~/Desktop/exp18_real_data/</code>)</h3>
+<table>
+  <tr><th>文件</th><th>大小</th><th>内容</th></tr>
+  <tr><td><code>panel_quarterly_30x16.csv</code></td><td>~50 KB</td><td><strong>核心产物</strong> 480 行 panel</td></tr>
+  <tr><td><code>ticker_NVDA.csv</code> × 30</td><td>~5 KB each</td><td>单公司季度 OHLC (断点缓存)</td></tr>
+  <tr><td><code>exp18_fetch.log</code></td><td>~50 KB</td><td>全程日志</td></tr>
+  <tr><td><code>sanity_check_report.json</code></td><td>~1 KB</td><td>5 falsification 结果</td></tr>
+</table>
+
+<h3>断点续传机制</h3>
+<p>每个 ticker 抓完立即存盘, 重跑自动跳过已有的。跑到一半挂了?</p>
+<pre><code>python3 exp18_ibkr_fetch.py
+# 日志: 断点续传: 已跳过 20 个, 待抓 10 个
+# 只重抓失败的那 10 个
+</code></pre>
+
+<h3>panel 字段</h3>
+<pre><code>ticker, date, FY, Q, open, high, low, close, volume,
+VIX, NDX, rate_10Y, USD_CNY
+NVDA, 2022-03-31, FY22, Q1, 273.3, 295.5, 252.0, 287.1, 8765432100,
+27.3, 14858.0, 2.34, 6.38
+</code></pre>
+
+<!-- ========== Section 5: 错 & 下一步 ========== -->
+<h2>5. 错误速查 + 下一步</h2>
+
+<h3>常见错误</h3>
+<table>
+  <tr><th>报错</th><th>原因</th><th>修法</th></tr>
+  <tr>
+    <td>IBKR connection timeout</td>
+    <td>TWS 没开 / 端口错</td>
+    <td><code>lsof -iTCP:7497</code> 确认 LISTEN</td>
+  </tr>
+  <tr>
+    <td>FRED Invalid API key</td>
+    <td>key 错 / 没点邮件激活</td>
+    <td><code>echo $FRED_API_KEY</code> 重新登 FRED 查</td>
+  </tr>
+  <tr>
+    <td>yfinance 429</td>
+    <td>限流 (周末凌晨几乎不触发)</td>
+    <td>脚本内 <code>sleep(0.5)</code> 已保护, 改 <code>1.0</code></td>
+  </tr>
+  <tr>
+    <td>ib_insync ImportError</td>
+    <td>没装 / 装到别的 Python</td>
+    <td><code>pip3 install --user ib_insync</code> 重装</td>
+  </tr>
+</table>
+
+<h3>下一步: 验证真 alpha</h3>
+<pre><code># 1) 备份原 Exp-17 脚本
+cp ~/Desktop/exp17_run.py ~/Desktop/exp17_run_real.py
+
+# 2) 改读 panel (一行)
+# DESK / "nq100_complete_v2.csv" → DESK / "exp18_real_data" / "panel_quarterly_30x16.csv"
+
+# 3) 重跑 GBDT
+python3 exp17_run_real.py
+
+# 4) 判定
+# R² > 0.4 仍稳 → 真 alpha
+# R² 暴跌 < 0.1 → 之前过拟合训练知识
+</code></pre>
+
+<p>Skill 关联:</p>
+<ul>
+  <li><a href="https://hermes-agent.nousresearch.com/docs">Hermes Agent Docs</a></li>
+  <li>前置: Exp-11~17 NQ-100 7 个实验 (sandbox 拉不到真实 OHLC 唯一瓶颈)</li>
+  <li>后置: Exp-19+ 真实 alpha 验证 + live trading 部署</li>
+</ul>
+
+<div class="footer">
+  作者: Patrick 量化助手 · Exp-18 · 2026-06-12 · 一次性 ~$10/月 (IBKR live 市场数据费, paper 免费)
+  <br>脚本: <code>~/Desktop/exp18_ibkr_fetch.py</code> (503 行, 中文注释) · 详细 README: <code>~/Desktop/exp18_ibkr_setup.md</code>
+</div>
+
+</div>
+</body>
+</html>

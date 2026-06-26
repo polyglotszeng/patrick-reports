@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>DesignCourse · Claude Code AI SaaS · 推测课程框架</title>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --bg-card: #141414;
+  --bg-elevated: #1a1a1a;
+  --border: #2a2a2a;
+  --border-hover: #383838;
+  --text: #fff;
+  --text-dim: #c8c8c8;
+  --text-muted: #888;
+  --accent: #00e472;
+  --accent-hover: #00c964;
+  --accent-muted: rgba(0,228,114,.1);
+  --yellow: #fbbf24;
+  --red: #ef4444;
+  --blue: #60a5fa;
+  --purple: #c084fc;
+  --cyan: #22d3ee;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  padding: 2.5rem 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #0d1f15 0%, #0d0d0d 100%);
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(0,228,114,0.18), transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  background: linear-gradient(135deg, #00e472, #b0ffd0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.5px;
+}
+.hero .subtitle {
+  color: var(--text-dim);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+.hero .meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.hero .meta strong { color: #b0ffd0; }
+
+.warning-banner {
+  background: rgba(251,191,36,0.08);
+  border: 1px solid var(--yellow);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  padding: 1rem 1.4rem;
+  margin-bottom: 2rem;
+  font-size: 0.92rem;
+}
+.warning-banner b { color: var(--yellow); }
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+.stat-card:hover { background: var(--bg-elevated); border-color: var(--accent); }
+.stat-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), #b0ffd0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.4rem;
+}
+
+.section { margin-bottom: 3rem; }
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #b0ffd0;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.section-title::before { content: "▸"; color: var(--accent); }
+
+/* MODULE GRID */
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1rem;
+}
+.module-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+  transition: all 0.2s;
+}
+.module-card:hover {
+  background: var(--bg-elevated);
+  transform: translateY(-1px);
+}
+.module-card.m0 { border-left-color: #60a5fa; }
+.module-card.m1 { border-left-color: #00e472; }
+.module-card.m2 { border-left-color: #c084fc; }
+.module-card.m3 { border-left-color: #22d3ee; }
+.module-card.m4 { border-left-color: #fbbf24; }
+.module-card.m5 { border-left-color: #f472b6; }
+.module-card.m6 { border-left-color: #4ade80; }
+.module-card.m7 { border-left-color: #ff6b35; }
+.module-card.m8 { border-left-color: #94a3b8; }
+.module-card.m9 { border-left-color: #c084fc; }
+.module-num {
+  font-family: monospace;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+.module-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+.module-bullets {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.module-bullets ul {
+  margin-left: 1.2rem;
+  margin-top: 0.3rem;
+}
+.module-bullets li { margin: 0.2rem 0; }
+
+/* RESEARCH CONNECTIONS */
+.research-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+.research-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem 1.4rem;
+}
+.research-card h3 {
+  font-size: 1rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.research-card p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin: 0.4rem 0;
+}
+
+/* PLANS */
+.plan-card {
+  background: linear-gradient(135deg, rgba(0,228,114,0.08), rgba(176,255,208,0.04));
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1rem;
+}
+.plan-card h3 {
+  color: #b0ffd0;
+  margin-bottom: 0.5rem;
+}
+
+/* FALSIFICATION */
+.falsif-list {
+  list-style: none;
+  counter-reset: f;
+}
+.falsif-list li {
+  counter-increment: f;
+  background: var(--bg-card);
+  border-left: 3px solid var(--yellow);
+  padding: 0.8rem 1rem 0.8rem 3rem;
+  margin-bottom: 0.6rem;
+  border-radius: 0 6px 6px 0;
+  position: relative;
+  font-size: 0.92rem;
+}
+.falsif-list li::before {
+  content: counter(f) ". ⚠";
+  position: absolute;
+  left: 0.8rem;
+  color: var(--yellow);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  body { padding: 1.5rem 1rem; }
+  .hero h1 { font-size: 1.6rem; }
+  .module-grid { grid-template-columns: 1fr; }
+}
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🎓 DesignCourse · Claude Code AI SaaS 课程框架</h1>
+  <p class="subtitle">"Build a Modern AI-Infused SaaS with Claude Code" · Gary Simon 主讲</p>
+  <div class="meta">
+    <span><strong>平台</strong> DesignCourse</span>
+    <span><strong>URL</strong> designcourse.com/app/course/claude-code-ai-saas</span>
+    <span><strong>状态</strong> ⚠️ 推测性框架（课程在登录墙后）</span>
+    <span><strong>生成</strong> 2026-06-10</span>
+  </div>
+</div>
+
+<div class="warning-banner">
+  <b>⚠️ 重要警告</b>：本框架基于公开描述 + 同类课程趋势 + Gary Simon 2025-2026 教学风格推断，<b>未与真课程大纲核对</b>。实际课程可能有 30-50% 差异（模块数、技术栈、项目交付物）。<b>使用前请登录 designcourse.com 核对</b>。
+</div>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-num">10</div>
+    <div class="stat-label">推测模块</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">50+</div>
+    <div class="stat-label">推测关键技能点</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">4</div>
+    <div class="stat-label">研究方向关联</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">3</div>
+    <div class="stat-label">动手计划选项</div>
+  </div>
+</div>
+
+<!-- MODULES -->
+<div class="section">
+  <h2 class="section-title">📚 10 个推测模块（基于趋势与同类课程）</h2>
+  <div class="module-grid">
+
+    <div class="module-card m0">
+      <div class="module-num">MODULE 0</div>
+      <div class="module-title">课程介绍与心智模型</div>
+      <div class="module-bullets">
+        <ul>
+          <li>AI-Infused SaaS vs 传统 SaaS</li>
+          <li>Claude Code vs Cursor / Bolt / Lovable</li>
+          <li>最终交付物：1 个完整 SaaS 应用</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m1">
+      <div class="module-num">MODULE 1</div>
+      <div class="module-title">项目规划与架构</div>
+      <div class="module-bullets">
+        <ul>
+          <li>Idea 选择：市场需求 → PRD</li>
+          <li>Tech stack (Next.js + Supabase + Stripe + shadcn-ui)</li>
+          <li>数据模型 + Pricing model</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m2">
+      <div class="module-num">MODULE 2</div>
+      <div class="module-title">Claude Code 基础</div>
+      <div class="module-bullets">
+        <ul>
+          <li>安装与配置 (CLI / VSCode / Cursor)</li>
+          <li>CLAUDE.md 与 memory 文件</li>
+          <li>Slash commands + subagents</li>
+          <li>MCP (Model Context Protocol) 服务</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m3">
+      <div class="module-num">MODULE 3</div>
+      <div class="module-title">项目脚手架与基础架构</div>
+      <div class="module-bullets">
+        <ul>
+          <li>Claude Code 生成 Next.js 14 app router</li>
+          <li>配置 shadcn-ui + Tailwind 主题</li>
+          <li>Supabase (auth + database + storage)</li>
+          <li>Stripe (subscriptions + one-time)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m4">
+      <div class="module-num">MODULE 4</div>
+      <div class="module-title">核心功能实现</div>
+      <div class="module-bullets">
+        <ul>
+          <li>用户认证 (sign up / login / OAuth / magic link)</li>
+          <li>Dashboard (基于角色的 UI)</li>
+          <li>CRUD (产品/订单/订阅)</li>
+          <li>AI 集成 (OpenAI / Anthropic API + streaming)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m5">
+      <div class="module-num">MODULE 5</div>
+      <div class="module-title">AI 功能深度集成 ⭐</div>
+      <div class="module-bullets">
+        <ul>
+          <li>嵌入 Claude API 作为产品功能</li>
+          <li>Prompt engineering + streaming UI</li>
+          <li>成本控制 (caching / rate limiting)</li>
+          <li>Guardrails (防 prompt injection)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m6">
+      <div class="module-num">MODULE 6</div>
+      <div class="module-title">UI/UX 打磨</div>
+      <div class="module-bullets">
+        <ul>
+          <li>Design system + components library</li>
+          <li>动效与微交互 (framer-motion)</li>
+          <li>暗色主题 / 响应式 / 无障碍</li>
+          <li>Landing + pricing page 设计</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m7">
+      <div class="module-num">MODULE 7</div>
+      <div class="module-title">部署与生产化</div>
+      <div class="module-bullets">
+        <ul>
+          <li>Vercel 部署 + preview environments</li>
+          <li>环境变量管理</li>
+          <li>Monitoring (Sentry / PostHog)</li>
+          <li>性能优化 (Core Web Vitals)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m8">
+      <div class="module-num">MODULE 8</div>
+      <div class="module-title">营销与增长</div>
+      <div class="module-bullets">
+        <ul>
+          <li>SEO (Next.js metadata + sitemap)</li>
+          <li>启动策略 (PH / Twitter / Reddit)</li>
+          <li>分析 (Mixpanel / Amplitude)</li>
+          <li>A/B 测试基础</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module-card m9">
+      <div class="module-num">MODULE 9</div>
+      <div class="module-title">商业化与扩展</div>
+      <div class="module-bullets">
+        <ul>
+          <li>支付墙设计 (trial / paywall / upgrade)</li>
+          <li>Customer success + onboarding</li>
+          <li>反馈循环与迭代</li>
+          <li>AI agent 化（让产品自己做生意）</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RESEARCH -->
+<div class="section">
+  <h2 class="section-title">🔗 与你 4 研究方向的关联</h2>
+  <div class="research-grid">
+
+    <div class="research-card">
+      <h3>🤖 AI Agent 经济学</h3>
+      <p><strong>直接对应</strong>: Module 5 (AI 成本控制) + Module 9 (agent 化商业)</p>
+      <p>复用你的 Exp 01 (LLM 成本基准), Exp 05 (本地 LLM benchmark), Exp 06 (Hermes3 能力边界)</p>
+      <p><strong>新角度</strong>: Solo agent 商业模式 (Artisan $30M ARR, Lindy, $5K/月)</p>
+    </div>
+
+    <div class="research-card">
+      <h3>🌍 世界模型 / 具身智能</h3>
+      <p><strong>弱关联</strong>: 课程主要是 Web SaaS</p>
+      <p>如果产品涉及 3D 视觉 (AR/VR/3D 扫描) 会用到</p>
+      <p><strong>复用</strong>: 你 Vision3D 项目有相关代码</p>
+    </div>
+
+    <div class="research-card">
+      <h3>🧠 个人 AI OS / 认知增强</h3>
+      <p><strong>强关联</strong>: Module 2 (CLAUDE.md / memory) 就是个人 AI OS 核心</p>
+      <p>把你学到的 "memory 3 层" 模式应用到课程项目</p>
+      <p>用 Telos Interview 风格的目标设定 + 课程作为增强你能力的 agent 系统</p>
+    </div>
+
+    <div class="research-card">
+      <h3>📊 量化 + AI</h3>
+      <p><strong>中等关联</strong>: Module 8 营销增长 + Module 9 商业化用到数据驱动</p>
+      <p>A/B 测试与你的 quant 101 alphas 思路一致</p>
+      <p>任何 SaaS 都可视为一个 portfolio (用户 = assets)</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- PLANS -->
+<div class="section">
+  <h2 class="section-title">🎯 3 个动手计划选项</h2>
+
+  <div class="plan-card">
+    <h3>Plan A: 学完课程后启动 1 个真实 SaaS</h3>
+    <p>1. 用课程大纲做骨架</p>
+    <p>2. 边学边建 (不只听，做 100%)</p>
+    <p>3. 选细分领域 (AI + 设计师工具？AI + 中文用户？AI + 量化平台？)</p>
+    <p>4. 3 个月内 MVP，6 个月内付费用户</p>
+  </div>
+
+  <div class="plan-card">
+    <h3>Plan B: 提取课程"AI 工作流"应用到 ArcStore</h3>
+    <p>ArcStore 已有 Web + 后端。用 Claude Code 重新做一次 (v2 优化)，借鉴课程的 Stripe + Supabase + shadcn 模式</p>
+  </div>
+
+  <div class="plan-card">
+    <h3>Plan C: 课程作为研究材料</h3>
+    <p>不是为了做 SaaS，是为了研究"如何用 AI 教人做 AI SaaS"。写一篇"AI 教育产品分析"研究笔记 (对应研究方向 1 + 3)</p>
+  </div>
+</div>
+
+<!-- FALSIFICATION -->
+<div class="section">
+  <h2 class="section-title">⚠️ 5 个 Falsification 必记录</h2>
+  <ol class="falsif-list">
+    <li>课程实际模块数可能 <b>不是 10</b>，可能是 6-15 之间任意值</li>
+    <li>技术栈可能 <b>不是 Next.js + Supabase + Stripe</b>，Gary Simon 也常用 Astro / SvelteKit / Firebase</li>
+    <li>最终项目可能 <b>不是 SaaS</b>，可能是 API 工具 / 浏览器插件 / CLI 工具 / AI 代理</li>
+    <li>课程可能 <b>重点不在 AI 工程</b>，而在 UI 设计 + Claude Code 作为辅助编程工具</li>
+    <li>本框架 <b>全部基于公开推断</b>，登录后可能发现结构差异巨大</li>
+  </ol>
+</div>
+
+<footer>
+  <p>📅 Generated 2026-06-10 · Hermes Agent · ⚠️ 推测性框架（需 Patrick 登录核对）</p>
+  <p style="margin-top:0.4rem;">来源: designcourse.com + Gary Simon 2025-2026 教学风格 + 同类课程趋势</p>
+</footer>
+
+</body>
+</html>

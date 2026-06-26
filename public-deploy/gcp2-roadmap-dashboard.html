@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCP-2.0 量化+AI 方向研究路线 — 2026-06-11</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-card-hover: #1c2128;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --text-bright: #f0f6fc;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --orange: #db6d28;
+    --purple: #bc8cff;
+    --cyan: #39c5cf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+  }
+  h1 {
+    color: var(--text-bright);
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .meta-item strong { color: var(--text-bright); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    background: transparent;
+    color: var(--text-dim);
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* TL;DR section */
+  .tldr {
+    background: linear-gradient(135deg, #161b22 0%, #1c2128 100%);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .tldr h2 {
+    color: var(--text-bright);
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .tldr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .tldr-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .tldr-label {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .tldr-text { color: var(--text); font-size: 14px; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  th {
+    background: #1c2128;
+    color: var(--text-bright);
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: var(--bg-card-hover); }
+  .status-ok { color: var(--green); font-weight: 600; }
+  .status-fail { color: var(--red); font-weight: 600; }
+  .status-warn { color: var(--yellow); font-weight: 600; }
+
+  /* Direction cards */
+  .directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .direction-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .direction-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    color: var(--text-bright);
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .card-stars { color: var(--yellow); font-size: 14px; }
+  .card-target {
+    color: var(--accent);
+    font-size: 13px;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+  .card-section {
+    margin-bottom: 10px;
+  }
+  .card-label {
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .card-text { color: var(--text); font-size: 13px; }
+  .card-mini-exp {
+    background: var(--bg);
+    border-left: 3px solid var(--green);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+  .card-risk {
+    background: var(--bg);
+    border-left: 3px solid var(--red);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+  .card-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .skill-tag {
+    background: #0d1117;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+
+  /* Timeline */
+  .timeline {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .timeline h2 {
+    color: var(--text-bright);
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 100px 80px 1fr 200px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .timeline-row:last-child { border-bottom: none; }
+  .timeline-row.header {
+    color: var(--text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .week-label {
+    background: var(--accent);
+    color: var(--bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .week-label.w5-8 { background: var(--purple); }
+  .direction-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dir-a { background: rgba(63, 185, 80, 0.15); color: var(--green); }
+  .dir-b { background: rgba(210, 153, 34, 0.15); color: var(--yellow); }
+  .dir-c { background: rgba(188, 140, 255, 0.15); color: var(--purple); }
+  .dir-d { background: rgba(57, 197, 207, 0.15); color: var(--cyan); }
+  .dir-multi { background: rgba(139, 148, 158, 0.15); color: var(--text-dim); }
+  .exp-text { color: var(--text); font-size: 13px; }
+  .fallback-text { color: var(--text-dim); font-size: 12px; font-style: italic; }
+
+  /* Bar chart for 8 weeks */
+  .barchart {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .barchart h2 {
+    color: var(--text-bright);
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .bar-label {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .bar-track {
+    background: var(--bg);
+    height: 28px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: var(--bg);
+    font-size: 12px;
+    font-weight: 600;
+    transition: width 0.3s;
+  }
+  .bar-fill.mini { background: var(--accent); }
+  .bar-fill.deep { background: var(--purple); }
+  .bar-duration {
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: right;
+  }
+
+  /* Falsification */
+  .falsification-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .fals-card {
+    background: var(--bg-card);
+    border: 1px solid var(--red);
+    border-left: 4px solid var(--red);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .fals-num {
+    color: var(--red);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .fals-title {
+    color: var(--text-bright);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .fals-body { color: var(--text); font-size: 13px; }
+
+  /* Decision */
+  .decision-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 768px) {
+    .decision-grid { grid-template-columns: 1fr; }
+  }
+  .decision-card {
+    background: var(--bg-card);
+    border: 2px solid var(--yellow);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .decision-num {
+    color: var(--yellow);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .decision-title {
+    color: var(--text-bright);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .decision-body { color: var(--text); font-size: 13px; }
+  .decision-recommend {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(210, 153, 34, 0.1);
+    border-radius: 4px;
+    color: var(--yellow);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Skills list */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .skill-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .skill-num {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .skill-name {
+    color: var(--accent);
+    font-size: 13px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  .skill-role { color: var(--text-dim); font-size: 12px; }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 30px;
+    color: var(--text-dim);
+    font-size: 12px;
+    text-align: center;
+  }
+  .summary-box {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1) 0%, rgba(188, 140, 255, 0.1) 100%);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 24px 0;
+    color: var(--text-bright);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .summary-box strong { color: var(--accent); }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>🚀 GCP-2.0 量化+AI 方向下一代研究路线</h1>
+  <div class="subtitle">NQ-100 系列 7 实验收官 → 4 方向 × 8 周 × 最小实验节奏</div>
+  <div class="meta">
+    <div class="meta-item">📅 <strong>2026-06-11</strong></div>
+    <div class="meta-item">📋 <strong>Exp-20</strong> (GCP-1.1.0 协议)</div>
+    <div class="meta-item">🟡 提案待决策 (W2 前 IBKR)</div>
+    <div class="meta-item">📍 接续 Exp-11~17</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="overview">📊 总览</button>
+  <button class="tab" data-tab="experiments">🔬 7 实验收官</button>
+  <button class="tab" data-tab="directions">🎯 4 方向</button>
+  <button class="tab" data-tab="timeline">📅 8 周时间线</button>
+  <button class="tab" data-tab="falsification">⚠️ 5 Falsification + 2 决策</button>
+</nav>
+
+<!-- Tab 1: Overview -->
+<div class="tab-content active" id="overview">
+
+  <div class="tldr">
+    <h2>TL;DR (6 数字)</h2>
+    <div class="tldr-grid">
+      <div class="tldr-item">
+        <div class="tldr-label">① 7 实验核心结论</div>
+        <div class="tldr-text">NQ-100 静态回测框架成熟, 5 因子 + Regime 可复刻, 但 30 样本 GBDT 100% 过拟合, 真实 OOS = 0</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">② 3 个 falsification</div>
+        <div class="tldr-text">GBDT 过拟合 / Exp-12 0.45 是 overfit 上限 / 季度扩无新信息</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">③ 4 个新方向</div>
+        <div class="tldr-text">A 因子增强 + B 周期量化 + C 组合优化 + D AI 增强, 并行 4 最小实验</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">④ 8 周 4 最小实验</div>
+        <div class="tldr-text">W1 A2 insider / W2 B1 月度 regime / W3 C1 风险平价 / W4 D3 LLM codegen</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">⑤ 2 个决策点</div>
+        <div class="tldr-text">W2 前 IBKR $10/月 / W4 末失败率 >50% 跳 deep-dive</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">⑥ 1 句话后续</div>
+        <div class="tldr-text">周末就能起 W1 A2, 不需要等 IBKR 决策</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-box">
+    <strong>GCP-2.0 = 4 方向 × 8 周 × 最小实验节奏</strong>, 突破 NQ-100 7 实验收官后"沙箱天花板": 接 Exp-18 真实数据 (决策 1 IBKR $10/月) + 启因子增强 (A) / 周期量化 (B) / 组合优化 (C) / AI 增强 (D) 4 方向, 每方向 1 最小实验 (W1-W4 共 4h) + 失败兜底, W5-W8 deep-dive 4 方向各 3-4h, W4 末根据 W1-W4 失败率决定是否 deep-dive, W8 末无条件收工启 GCP-3.0。
+  </div>
+
+  <div class="barchart">
+    <h2>📅 8 周时间线 (横向 bar chart)</h2>
+    <div class="bar-row">
+      <div class="bar-label">W1 (8/3)</div>
+      <div class="bar-track"><div class="bar-fill mini" style="width: 6%;">A2 insider trading · 30 min</div></div>
+      <div class="bar-duration">最小实验</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W2 (8/10)</div>
+      <div class="bar-track"><div class="bar-fill mini" style="width: 12%;">B1 月度 regime · 1h</div></div>
+      <div class="bar-duration">最小实验</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W3 (8/17)</div>
+      <div class="bar-track"><div class="bar-fill mini" style="width: 12%;">C1 风险平价 · 1h</div></div>
+      <div class="bar-duration">最小实验</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W4 (8/24)</div>
+      <div class="bar-track"><div class="bar-fill mini" style="width: 6%;">D3 LLM codegen · 30 min</div></div>
+      <div class="bar-duration">最小实验</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W5 (8/31)</div>
+      <div class="bar-track"><div class="bar-fill deep" style="width: 40%;">A1+A2 deep-dive · 3-4h</div></div>
+      <div class="bar-duration">deep-dive</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W6 (9/7)</div>
+      <div class="bar-track"><div class="bar-fill deep" style="width: 40%;">B3+B4 deep-dive · 3-4h</div></div>
+      <div class="bar-duration">deep-dive</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W7 (9/14)</div>
+      <div class="bar-track"><div class="bar-fill deep" style="width: 40%;">C2+C3 deep-dive · 3-4h</div></div>
+      <div class="bar-duration">deep-dive</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">W8 (9/21)</div>
+      <div class="bar-track"><div class="bar-fill deep" style="width: 40%;">D1+D4 deep-dive · 3-4h</div></div>
+      <div class="bar-duration">deep-dive</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tab 2: Experiments -->
+<div class="tab-content" id="experiments">
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin-bottom: 16px;">🔬 NQ-100 系列 7 实验收官总结</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>实验</th>
+        <th>状态</th>
+        <th>关键发现</th>
+        <th>真实 alpha 验证</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Exp-11</strong> 4 Plan</td>
+        <td class="status-ok">✅ 完成</td>
+        <td>C 增长 +79.2% vs QQQ +59.3% (4 年回测)</td>
+        <td>已用真实价格 (2022-2025)</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-12</strong> 5 因子</td>
+        <td class="status-ok">✅ 完成</td>
+        <td>+30.9pp 改善 (中等场景)</td>
+        <td>30 样本 overfit 上限</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-13</strong> FF5 分解</td>
+        <td class="status-ok">✅ 完成</td>
+        <td>84% 收益来自市场 β, 5 因子残余 ~16%</td>
+        <td>已用真实价格</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-14</strong> Regime Filter</td>
+        <td class="status-ok">✅ 完成</td>
+        <td>+12.3pp 改善 (BULL/NORMAL/BEAR 过滤)</td>
+        <td>已用真实价格</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-15</strong> GBDT</td>
+        <td class="status-fail">❌ 失败</td>
+        <td>Test R²&lt;0.05 (沙箱), Train R²=0.95</td>
+        <td>需真实数据</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-16</strong> GBDT-Regime</td>
+        <td class="status-fail">❌ 失败</td>
+        <td>GBDT 在 regime 切换下完全没生效</td>
+        <td>需真实数据</td>
+      </tr>
+      <tr>
+        <td><strong>Exp-17</strong> 季度扩</td>
+        <td class="status-warn">⚠️ 工程就绪</td>
+        <td>480 样本 panel 合成立</td>
+        <td>需真实数据 (工程合成立)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 style="color: var(--text-bright); font-size: 16px; margin: 24px 0 12px;">核心 falsification (3 个)</h3>
+
+  <div class="falsification-grid">
+    <div class="fals-card">
+      <div class="fals-num">Falsification #1</div>
+      <div class="fals-title">30 样本 GBDT 100% 过拟合</div>
+      <div class="fals-body">Exp-15 train R²=0.95, test R²&lt;0.05, 差距 &gt;0.9。根因: 30 季度样本远小于 5 因子 × 5 弱学习器参数。推论: 任何非线性方法在 &lt;500 样本下都不能用。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #2</div>
+      <div class="fals-title">Exp-12 in-sample 0.45 → 0.95 是 overfit 上限</div>
+      <div class="fals-body">5 因子 vs 单因子的 R² 改善从 0.45 → 0.95 是 in-sample 复刻, 真实 OOS 应接近 0。GCP-2.0 必须强制 OOS 测试 (4-fold TS-CV)。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #3</div>
+      <div class="fals-title">季度数据扩无新信息</div>
+      <div class="fals-body">linear interpolation 与同季 rolling 强相关 (ρ &gt;0.9), 480 样本是"工程就绪"不是"alpha 增量"。数据扩需真实高频或新数据源。</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tab 3: Directions -->
+<div class="tab-content" id="directions">
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin-bottom: 16px;">🎯 4 个 GCP-2.0 新方向</h2>
+
+  <div class="directions-grid">
+
+    <div class="direction-card">
+      <div class="card-header">
+        <div class="card-title">A. 因子增强</div>
+        <div class="card-stars">⭐⭐⭐⭐</div>
+      </div>
+      <div class="card-target">目标: 找 5 因子之外新 alpha, 突破 Exp-12 0.45 上限</div>
+      <div class="card-section">
+        <div class="card-label">子方向</div>
+        <div class="card-text">A1 替代数据 (API) / A2 行为金融 (SEC EDGAR) / A3 跨资产 (FRED) / A4 NLP alpha</div>
+      </div>
+      <div class="card-mini-exp">
+        <div class="card-label" style="color: var(--green);">W1 最小实验 (8/3, 30 min)</div>
+        <div class="card-text"><strong>A2 insider trading</strong> — SEC Form 4 拉 30 公司 × 16 季度, 算 IC vs 5 因子残差</div>
+      </div>
+      <div class="card-section" style="margin-top: 12px;">
+        <div class="card-label">预期</div>
+        <div class="card-text">1-2 个新 IC&gt;0.03 因子, 联合 IC 0.5+</div>
+      </div>
+      <div class="card-risk">
+        <div class="card-label" style="color: var(--red);">风险</div>
+        <div class="card-text">数据稀疏, Patrick 不会用 insider trading 数据做实际投资</div>
+      </div>
+      <div class="card-skills">
+        <span class="skill-tag">nq100-quant-backtest</span>
+        <span class="skill-tag">local-llm-benchmark</span>
+        <span class="skill-tag">nasdaq-financials</span>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="card-header">
+        <div class="card-title">B. Regime Quant</div>
+        <div class="card-stars">⭐⭐⭐⭐⭐</div>
+      </div>
+      <div class="card-target">目标: 静态 Regime 升级为动态多周期</div>
+      <div class="card-section">
+        <div class="card-label">子方向</div>
+        <div class="card-text">B1 月度 regime / B2 行业 regime / B3 因子 regime / B4 HMM 转换概率</div>
+      </div>
+      <div class="card-mini-exp">
+        <div class="card-label" style="color: var(--green);">W2 最小实验 (8/10, 1h)</div>
+        <div class="card-text"><strong>B1 月度 regime</strong> — 4-fold TS-CV, 5 因子 IC × 3 regime</div>
+      </div>
+      <div class="card-section" style="margin-top: 12px;">
+        <div class="card-label">预期</div>
+        <div class="card-text">BULL 期间 IC 0.08, BEAR -0.05 (regime 切换是关键信号)</div>
+      </div>
+      <div class="card-risk">
+        <div class="card-label" style="color: var(--red);">风险</div>
+        <div class="card-text">60 样本月度不够 HMM 训练 (B4 降级)</div>
+      </div>
+      <div class="card-skills">
+        <span class="skill-tag">nq100-quant-backtest</span>
+        <span class="skill-tag">world-model-tracker</span>
+        <span class="skill-tag">distributed-research-playbook</span>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="card-header">
+        <div class="card-title">C. Portfolio Construction</div>
+        <div class="card-stars">⭐⭐⭐</div>
+      </div>
+      <div class="card-target">目标: 5 因子 alpha → 可投资组合</div>
+      <div class="card-section">
+        <div class="card-label">子方向</div>
+        <div class="card-text">C1 风险平价 / C2 Black-Litterman / C3 Kelly 仓位 / C4 再平衡频率</div>
+      </div>
+      <div class="card-mini-exp">
+        <div class="card-label" style="color: var(--green);">W3 最小实验 (8/17, 1h)</div>
+        <div class="card-text"><strong>C1 风险平价 vs 等权</strong> — FY22-FY25 4 年回测</div>
+      </div>
+      <div class="card-section" style="margin-top: 12px;">
+        <div class="card-label">预期</div>
+        <div class="card-text">风险平价 Max DD 从 -49% → -35% (≥5pp 改善)</div>
+      </div>
+      <div class="card-risk">
+        <div class="card-label" style="color: var(--red);">风险</div>
+        <div class="card-text">简化模型, 没含交易成本 (~0.1%/笔)</div>
+      </div>
+      <div class="card-skills">
+        <span class="skill-tag">nq100-quant-backtest</span>
+        <span class="skill-tag">equity-portfolio-backtest</span>
+      </div>
+    </div>
+
+    <div class="direction-card">
+      <div class="card-header">
+        <div class="card-title">D. AI-Augmented</div>
+        <div class="card-stars">⭐⭐⭐⭐</div>
+      </div>
+      <div class="card-target">目标: LLM 加速量化研究全流程</div>
+      <div class="card-section">
+        <div class="card-label">子方向</div>
+        <div class="card-text">D1 LLM 因子合成 / D2 AutoML / D3 回测代码生成 / D4 报告自动生成</div>
+      </div>
+      <div class="card-mini-exp">
+        <div class="card-label" style="color: var(--green);">W4 最小实验 (8/24, 30 min)</div>
+        <div class="card-text"><strong>D3 LLM codegen 跑通</strong> — 1 prompt → Hermes → backtest.py → 跑 → 报告</div>
+      </div>
+      <div class="card-section" style="margin-top: 12px;">
+        <div class="card-label">预期</div>
+        <div class="card-text">1 周研究效率 +5x, 8 周路线压缩到 2 周</div>
+      </div>
+      <div class="card-risk">
+        <div class="card-label" style="color: var(--red);">风险</div>
+        <div class="card-text">hermes3 codegen OK, 但多步 planning 不行 (silent bug)</div>
+      </div>
+      <div class="card-skills">
+        <span class="skill-tag">local-llm-benchmark</span>
+        <span class="skill-tag">nq100-quant-backtest</span>
+        <span class="skill-tag">agent-orchestration</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Tab 4: Timeline -->
+<div class="tab-content" id="timeline">
+
+  <div class="timeline">
+    <h2>📅 8 周执行表 (W1-W4 最小实验 + W5-W8 deep-dive)</h2>
+    <div class="timeline-row header">
+      <div>周</div>
+      <div>方向</div>
+      <div>最小实验</div>
+      <div>失败兜底</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label">W1 (8/3)</div>
+      <div><span class="direction-tag dir-a">A2</span></div>
+      <div class="exp-text">SEC Form 4 拉 30 公司 × 16 季度, 算 IC vs 5 因子残差 (30 min)</div>
+      <div class="fallback-text">→ A3 跨资产 (FRED 1 行)</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label">W2 (8/10)</div>
+      <div><span class="direction-tag dir-b">B1</span></div>
+      <div class="exp-text">4-fold TS-CV, 5 因子 IC × 3 regime (BULL/NORMAL/BEAR), 1h</div>
+      <div class="fallback-text">→ B2 行业 regime</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label">W3 (8/17)</div>
+      <div><span class="direction-tag dir-c">C1</span></div>
+      <div class="exp-text">等权 vs 风险平价, FY22-FY25 4 年回测, 1h</div>
+      <div class="fallback-text">→ C4 再平衡频率</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label">W4 (8/24)</div>
+      <div><span class="direction-tag dir-d">D3</span></div>
+      <div class="exp-text">1 prompt → Hermes 出 backtest.py → 跑 → 出报告, 30 min</div>
+      <div class="fallback-text">→ D1 LLM 因子合成</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label w5-8">W5 (8/31)</div>
+      <div><span class="direction-tag dir-a">A1+A2</span></div>
+      <div class="exp-text">替代数据 API 集成 (3-4h 完整实验)</div>
+      <div class="fallback-text">失败 → 记 falsification</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label w5-8">W6 (9/7)</div>
+      <div><span class="direction-tag dir-b">B3+B4</span></div>
+      <div class="exp-text">因子 regime + HMM 转换概率 (3-4h)</div>
+      <div class="fallback-text">失败 → 记 falsification</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label w5-8">W7 (9/14)</div>
+      <div><span class="direction-tag dir-c">C2+C3</span></div>
+      <div class="exp-text">Black-Litterman + Kelly 仓位 (3-4h)</div>
+      <div class="fallback-text">失败 → 记 falsification</div>
+    </div>
+    <div class="timeline-row">
+      <div class="week-label w5-8">W8 (9/21)</div>
+      <div><span class="direction-tag dir-d">D1+D4</span></div>
+      <div class="exp-text">LLM 因子 + 报告自动生成 (3-4h)</div>
+      <div class="fallback-text">失败 → 收工, 启 GCP-3.0</div>
+    </div>
+  </div>
+
+  <div class="tldr" style="margin-top: 20px;">
+    <h2>🎯 关键设计原则</h2>
+    <div class="tldr-grid">
+      <div class="tldr-item">
+        <div class="tldr-label">W1-W4 = 4 方向各 1 最小实验, 总计 4h</div>
+        <div class="tldr-text">每个 30min~1h, 周末就能起 1 个, 失败即降级 fallback</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">W5-W8 = 4 方向 deep-dive, 各 3-4h</div>
+        <div class="tldr-text">只在 W1-W4 失败率 ≤ 50% 才启动</div>
+      </div>
+      <div class="tldr-item">
+        <div class="tldr-label">失败率统计: W4 末算</div>
+        <div class="tldr-text">失败数 ≥ 3 (4 中 3) → 跳过 deep-dive</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Tab 5: Falsification & Decisions -->
+<div class="tab-content" id="falsification">
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin-bottom: 16px;">⚠️ GCP-2.0 5 Falsification 框架</h2>
+
+  <div class="falsification-grid">
+    <div class="fals-card">
+      <div class="fals-num">Falsification #1</div>
+      <div class="fals-title">数据扩边际递减</div>
+      <div class="fals-body">Exp-12 5 因子 + 新 1 因子 (A 方向) IC 提升 &lt; 0.01。含义: 新数据源没有 alpha 增量。应对: 收工 A 方向, 启 GCP-3.0 寻找非因子路线。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #2</div>
+      <div class="fals-title">Regime 切换频率低</div>
+      <div class="fals-body">16 季度 3 label 切换次数 &lt; 5 次。含义: B 方向 regime 本身是 hindsight bias, 统计上无意义。应对: B 方向降级为"regime 辅助"而非主线。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #3</div>
+      <div class="fals-title">风险平价 vs 等权差异 &lt; 2%</div>
+      <div class="fals-body">Sharpe / Max DD 改善 &lt; 2pp。含义: C 方向简化模型陷阱, 交易成本 / regime 切换吃掉 alpha。应对: 需引入 BL (C2) 或 Kelly (C3) 才有可能突破。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #4</div>
+      <div class="fals-title">LLM codegen 幻觉</div>
+      <div class="fals-body">生成的 backtest.py 有 syntax error / 跑不通 / 输出与 baseline 偏差 &gt;5%。含义: D 方向 LLM 不可靠。应对: 限制 LLM 用法 (D1 因子合成, D3 模板填充), 不依赖 D4 自动报告。</div>
+    </div>
+    <div class="fals-card">
+      <div class="fals-num">Falsification #5</div>
+      <div class="fals-title">新方向投入 ROI 不明</div>
+      <div class="fals-body">1 周 + Mac 资源 vs 1-3pp 改善。含义: GCP-2.0 整体方向 ROI 不明, 可能不如"接 IBKR 抓真实数据"单方向。应对: W4 末算总 ROI, &lt; 3pp/方向 提前收工, 启 GCP-3.0。</div>
+    </div>
+  </div>
+
+  <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+    <h3 style="color: var(--text-bright); font-size: 16px; margin-bottom: 12px;">🎯 GCP-2.0 成功标准 (W8 末评判)</h3>
+    <ul style="color: var(--text); margin-left: 20px; line-height: 1.8;">
+      <li>至少 2/4 方向 falsification 通过 (即实际有 alpha 增量)</li>
+      <li>至少 1 个方向 deep-dive 完成 (W5-W8)</li>
+      <li>IBKR 真实数据已对接 (决策 1 是)</li>
+      <li>GCP-2.0 报告 (本文件) → GCP-3.0 提案</li>
+    </ul>
+  </div>
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin: 30px 0 16px;">🟡 2 个决策点 (Patrick)</h2>
+
+  <div class="decision-grid">
+    <div class="decision-card">
+      <div class="decision-num">决策 1 · 触发 W2 前 (8/10)</div>
+      <div class="decision-title">是否投 ~$10/月 IBKR 抓真实季度 OHLC?</div>
+      <div class="decision-body">
+        <p><strong>选项 A</strong>: 投 $10/月 — IBKR paper trading + TWS API 抓 4 年日级 OHLC (~10 万样本)</p>
+        <p style="margin-top: 8px;"><strong>选项 B</strong>: 不投, 用免费数据 — GBDT/HMM/LLM 在 &lt;500 样本下不能用</p>
+        <p style="margin-top: 8px;"><strong>选项 C</strong>: 找免费替代 — Tiingo / Alpha Vantage / Polygon.io</p>
+      </div>
+      <div class="decision-recommend">推荐: A. 投 $10/月 IBKR (决策成本低, 解锁 4 方向真实验证)</div>
+    </div>
+
+    <div class="decision-card">
+      <div class="decision-num">决策 2 · 触发 W4 末 (8/28)</div>
+      <div class="decision-title">W1-W4 失败率 &gt; 50% 是否跳过 W5-W8 deep-dive?</div>
+      <div class="decision-body">
+        <p><strong>判定标准</strong>: W1-W4 4 最小实验中, 失败 (falsification 命中) 多少个?</p>
+        <p style="margin-top: 8px;"><strong>≤ 50% 失败</strong> (≤2 个) → 启动 W5-W8 deep-dive, 每方向 3-4h</p>
+        <p style="margin-top: 8px;"><strong>&gt; 50% 失败</strong> (≥3 个) → 跳过 W5-W8, 收工 GCP-2.0, 启 GCP-3.0</p>
+      </div>
+      <div class="decision-recommend">推荐: 看 W1-W4 实际数据决定, 不预先承诺</div>
+    </div>
+  </div>
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin: 30px 0 16px;">🔗 8 个关联 skill</h2>
+
+  <div class="skills-grid">
+    <div class="skill-card">
+      <div class="skill-num">01</div>
+      <div>
+        <div class="skill-name">nq100-quant-backtest</div>
+        <div class="skill-role">主回测框架 (IC / TS-CV)</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">02</div>
+      <div>
+        <div class="skill-name">nasdaq-financials</div>
+        <div class="skill-role">NQ-100 成分股 + 财务</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">03</div>
+      <div>
+        <div class="skill-name">local-llm-benchmark</div>
+        <div class="skill-role">LLM 路由 (hermes3/qwen3)</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">04</div>
+      <div>
+        <div class="skill-name">equity-portfolio-backtest</div>
+        <div class="skill-role">组合优化 (BL/Kelly)</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">05</div>
+      <div>
+        <div class="skill-name">world-model-tracker</div>
+        <div class="skill-role">HMM / 状态机</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">06</div>
+      <div>
+        <div class="skill-name">agent-orchestration</div>
+        <div class="skill-role">subagent 协调</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">07</div>
+      <div>
+        <div class="skill-name">distributed-research-playbook</div>
+        <div class="skill-role">8 周研究节奏</div>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="skill-num">08</div>
+      <div>
+        <div class="skill-name">gene-capsule-protocol</div>
+        <div class="skill-role">GCP-1.1.0 框架</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 style="color: var(--text-bright); font-size: 20px; margin: 30px 0 16px;">🛡️ 失败兜底 (Patrick 不需要完美)</h2>
+
+  <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+    <p style="color: var(--text); margin-bottom: 12px;"><strong style="color: var(--text-bright);">4 方向任一失败</strong>: 记录 falsification, 切换 fallback (A→A3 / B→B2 / C→C4 / D→D1)</p>
+    <p style="color: var(--text); margin-bottom: 12px;"><strong style="color: var(--text-bright);">全部失败</strong>: 收工, GCP-2.0 提前结束, 启 GCP-3.0 全新研究路线 (量化+AI 方向就是 8 周)</p>
+    <p style="color: var(--text);"><strong style="color: var(--text-bright);">时间盒保护</strong>: 即使所有方向都成功, W8 末必须收工 — 防 in-sample 陷阱 / 防资源耗尽 / 防路线漂移</p>
+  </div>
+
+</div>
+
+<footer>
+  📄 完整版: <code>/Users/patrick/Desktop/exp20-gcp2-roadmap-2026-06-11.md</code> (13KB, 8 章节)<br>
+  📚 Vault 简版: <code>/Users/patrick/Documents/Obsidian Vault/llm-wiki/research-log/quant-ai/2026-06-11-gcp2-roadmap.md</code> (4KB)<br>
+  🌐 Dashboard: <code>/Users/patrick/Desktop/gcp2-roadmap-dashboard.html</code> (本文件, 5 tab)<br>
+  <br>
+  © 2026 Patrick · GCP-1.1.0 协议 · 中文输出
+</footer>
+
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

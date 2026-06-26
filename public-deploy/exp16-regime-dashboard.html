@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exp-16 Regime-Gated LightGBM · 诚实失败分析 v3</title>
+<style>
+:root {
+  --bg: #0a0a0f; --bg-card: #13131a; --bg-elevated: #1a1a24;
+  --border: #2a2a3a; --border-hover: #3f3f4f;
+  --text: #e0e0e0; --text-dim: #a0a0b0; --text-muted: #6b7280;
+  --accent: #00e472; --accent-dim: rgba(0,228,114,0.12);
+  --yellow: #fbbf24; --red: #ef4444; --blue: #3b82f6; --purple: #a78bfa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; padding: 1.5rem; font-size: 13px; line-height: 1.5; }
+.hero { background: linear-gradient(135deg, var(--accent-dim), transparent); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+.hero h1 { background: linear-gradient(135deg, var(--accent), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero-meta { color: var(--text-dim); font-size: 0.9rem; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem; }
+.summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+.summary-card .v { font-size: 1.5rem; font-weight: 700; }
+.summary-card .v.good { color: var(--accent); }
+.summary-card .v.bad { color: var(--red); }
+.summary-card .v.warn { color: var(--yellow); }
+.summary-card .l { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
+.section h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 0.4rem 0.9rem; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-dim); }
+.tab:hover { border-color: var(--accent); color: var(--text); }
+.tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; padding: 0.5rem; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 600; }
+td { padding: 0.5rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--bg-elevated); }
+.good { color: var(--accent); font-weight: 600; }
+.bad { color: var(--red); font-weight: 600; }
+.warn { color: var(--yellow); font-weight: 600; }
+.bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+.bar-name { width: 140px; color: var(--text-dim); font-size: 0.85rem; }
+.bar-track { flex: 1; background: var(--bg-elevated); border-radius: 4px; height: 18px; position: relative; }
+.bar-fill { background: var(--accent); height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 0.5rem; color: #000; font-weight: 600; font-size: 0.75rem; }
+.bar-fill.bear { background: var(--red); }
+.bar-fill.bull { background: var(--accent); }
+.bar-fill.normal { background: var(--yellow); }
+.falsification { background: var(--bg-elevated); border-left: 3px solid var(--red); padding: 0.6rem 1rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--text-dim); }
+.falsification b { color: var(--red); }
+.insight { background: rgba(0,228,114,0.05); border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin: 0.5rem 0; font-size: 0.85rem; }
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.compare-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+.compare-card h3 { color: var(--accent); font-size: 0.95rem; margin-bottom: 0.4rem; }
+.compare-card .body { color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; }
+.footer { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 2rem 0 1rem; }
+.regime-tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.regime-tag.bear { background: rgba(239,68,68,0.2); color: var(--red); }
+.regime-tag.bull { background: rgba(0,228,114,0.2); color: var(--accent); }
+.regime-tag.normal { background: rgba(251,191,36,0.2); color: var(--yellow); }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<div class="hero">
+  <h1>🧪 Exp-16 Regime-Gated LightGBM · 诚实失败分析 v3</h1>
+  <div class="hero-meta">
+    2026-06-11 · 30 公司 × 4 财年 = 120 样本 × 95 维特征 (含 4 宏观) · 沙箱 + 训练知识
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="v good">+0.0%</div><div class="l">vs Exp-15 RMSE 改善</div></div>
+    <div class="summary-card"><div class="v good">+0.45</div><div class="l">Exp-12 线性 R² (赢)</div></div>
+    <div class="summary-card"><div class="v warn">30/30/60</div><div class="l">子模型样本 (太少)</div></div>
+    <div class="summary-card"><div class="v bad">0/4</div><div class="l">宏观进 Top 5</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🧭 切换视图</h2>
+  <div class="tabs">
+    <div class="tab active" data-tab="hypothesis">🎯 假设 vs 实际</div>
+    <div class="tab" data-tab="compare">⚔️ 3 模型对比</div>
+    <div class="tab" data-tab="submodels">🧩 3 子模型 CV</div>
+    <div class="tab" data-tab="top">🏆 Top 特征</div>
+    <div class="tab" data-tab="falsif">⚠️ 5 Falsification</div>
+  </div>
+
+  <div class="tab-content active" id="tab-hypothesis">
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3>📍 Exp-15 失败分析</h3>
+        <div class="body">
+          • Test R²=0.752 漂亮数字来自循环依赖 label<br>
+          • Top 1 特征 <code>profitability_z</code> = 5 因子非线性组合<br>
+          • 30 公司 × 1 期 = 30 样本 → 信号被跨 regime 混合稀释<br>
+          • 跨 FY22 熊 / FY23-24 牛 / FY25 中, 混合学不到 conditional α
+        </div>
+      </div>
+      <div class="compare-card">
+        <h3>💡 Exp-16 假设</h3>
+        <div class="body">
+          • 训练 <b>3 个 regime 子模型</b> (BEAR/NORMAL/BULL)<br>
+          • 预测时先识别 regime → 选对应子模型<br>
+          • 预期: 比 Exp-15 改善 <b class="good">+20-30%</b><br>
+          • 4 财年 → 4 财年 panel, 4 宏观特征 (VIX/QQQ_MA/10Y/USD)
+        </div>
+      </div>
+    </div>
+    <div class="insight">
+      <b>🎯 实际结果</b>: RMSE <b>0.9146 → 0.9146 (+0.0%)</b>, R² <b>-0.0012 → -0.0012</b>
+      原因: Test=FY25 全部 30 样本都被分到 NORMAL 子模型, gating 等于单 NORMAL 模型, 没切换.
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-compare">
+    <p style="color:var(--text-dim);margin-bottom:1rem">Train: FY22-24 (90 样本) / Test: FY25 (30 样本). Exp-12 线性 5 因子是基线, Exp-15/16 都是 GBDT 类.</p>
+    <table>
+      <thead><tr><th>模型</th><th>Test RMSE</th><th>Test R²</th><th>Sharpe</th><th>Top 1 特征</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td><b>Exp-12 5 因子线性</b> (Ridge)</td><td class="good">0.680</td><td class="good">+0.447</td><td class="good">1.66</td><td>value_composite</td><td class="good">⭐ 赢</td></tr>
+        <tr><td>Exp-15 单一 GBDT (95 特征)</td><td>0.915</td><td class="bad">-0.001</td><td>1.13</td><td>PEG</td><td class="bad">❌ 输</td></tr>
+        <tr><td>Exp-16 Regime-Gated (3 子模型)</td><td>0.915</td><td class="bad">-0.001</td><td>1.13</td><td>PEG</td><td class="bad">❌ 同 Exp-15</td></tr>
+      </tbody>
+    </table>
+    <div class="insight" style="margin-top:1rem">
+      <b>关键洞察</b>: NQ-100 30 公司 × 4 财年 = <b>120 样本</b> 不够 GBDT. 95 维特征在 90 训练样本上严重过拟合.
+      <br><br>
+      <b>短期建议</b>: 维持 <span class="regime-tag bear">Exp-12 5 因子</span> + <span class="regime-tag bull">Exp-14 Regime</span> 组合 (线性 + 动态权重, 改善 +12.3pp 已实测).
+      <br>
+      <b>中期建议</b>: 启动 <b>Exp-17 季度数据</b> (30 公司 × 4 财年 × 4 季度 = 480 样本), 直接解决 4 个 falsification.
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-submodels">
+    <p style="color:var(--text-dim);margin-bottom:1rem">3 个子模型 (BEAR/NORMAL/BULL) 的 5-fold time-series CV 结果. 样本数: 30 / 30 / 60.</p>
+    <div class="bar">
+      <span class="bar-name"><span class="regime-tag bear">BEAR</span> (n=30)</span>
+      <div class="bar-track"><div class="bar-fill bear" style="width: 89%">CV RMSE 0.89 ± 0.11</div></div>
+    </div>
+    <div class="bar">
+      <span class="bar-name"><span class="regime-tag normal">NORMAL</span> (n=30)</span>
+      <div class="bar-track"><div class="bar-fill normal" style="width: 84%">CV RMSE 0.84 ± 0.34 ⚠</div></div>
+    </div>
+    <div class="bar">
+      <span class="bar-name"><span class="regime-tag bull">BULL</span> (n=60)</span>
+      <div class="bar-track"><div class="bar-fill bull" style="width: 95%">CV RMSE 0.95 ± 0.08</div></div>
+    </div>
+    <table style="margin-top:1rem">
+      <thead><tr><th>子模型</th><th>样本数</th><th>CV RMSE</th><th>Top 1 特征</th><th>Top 5 含宏观?</th></tr></thead>
+      <tbody>
+        <tr><td><span class="regime-tag bear">BEAR</span></td><td>30</td><td>0.89 ± 0.11</td><td>debt_to_equity</td><td class="bad">❌ 否</td></tr>
+        <tr><td><span class="regime-tag normal">NORMAL</span></td><td>30</td><td>0.84 ± 0.34</td><td>profitability_z</td><td class="bad">❌ 否</td></tr>
+        <tr><td><span class="regime-tag bull">BULL</span></td><td>60</td><td>0.95 ± 0.08</td><td>PEG</td><td class="bad">❌ 否</td></tr>
+      </tbody>
+    </table>
+    <div class="falsification">
+      <b>⚠️ 高方差警告</b>: NORMAL 子模型 CV std=0.34 (其他 0.08-0.11), 5-fold 第 1 fold R²=+0.75 但第 0 fold R²=-4.56, 极不稳定. 30 样本的 GBDT 不可靠.
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-top">
+    <p style="color:var(--text-dim);margin-bottom:1rem">3 个子模型 vs Exp-15 单一 GBDT 的 Top 5 特征. 4 个宏观特征 (VIX/QQQ_MA/10Y/USD_CNY) 均未进任何 Top 5.</p>
+    <h3 style="color:var(--accent);font-size:1rem;margin:0.8rem 0 0.4rem">🐻 BEAR 子模型 Top 5</h3>
+    <div class="bar"><span class="bar-name">debt_to_equity</span><div class="bar-track"><div class="bar-fill bear" style="width: 100%">0.536 ⭐</div></div></div>
+    <div class="bar"><span class="bar-name">ROE_proxy</span><div class="bar-track"><div class="bar-fill bear" style="width: 22%">0.119</div></div></div>
+    <div class="bar"><span class="bar-name">PEG</span><div class="bar-track"><div class="bar-fill bear" style="width: 21%">0.111</div></div></div>
+    <div class="bar"><span class="bar-name">profitability_z</span><div class="bar-track"><div class="bar-fill bear" style="width: 7%">0.039</div></div></div>
+    <div class="bar"><span class="bar-name">revenue_yoy_25</span><div class="bar-track"><div class="bar-fill bear" style="width: 6%">0.034</div></div></div>
+
+    <h3 style="color:var(--accent);font-size:1rem;margin:1.2rem 0 0.4rem">⚖️ NORMAL 子模型 Top 5</h3>
+    <div class="bar"><span class="bar-name">profitability_z</span><div class="bar-track"><div class="bar-fill normal" style="width: 100%">⭐</div></div></div>
+    <div class="bar"><span class="bar-name">ROIC_proxy</span><div class="bar-track"><div class="bar-fill normal" style="width: 60%">...</div></div></div>
+    <div class="bar"><span class="bar-name">rd_intensity</span><div class="bar-track"><div class="bar-fill normal" style="width: 40%">...</div></div></div>
+
+    <h3 style="color:var(--accent);font-size:1rem;margin:1.2rem 0 0.4rem">🐂 BULL 子模型 Top 5</h3>
+    <div class="bar"><span class="bar-name">PEG</span><div class="bar-track"><div class="bar-fill bull" style="width: 100%">⭐</div></div></div>
+    <div class="bar"><span class="bar-name">profitability_z</span><div class="bar-track"><div class="bar-fill bull" style="width: 60%">...</div></div></div>
+    <div class="bar"><span class="bar-name">revenue_cagr_3y</span><div class="bar-track"><div class="bar-fill bull" style="width: 40%">...</div></div></div>
+  </div>
+
+  <div class="tab-content" id="tab-falsif">
+    <div class="falsification">
+      <b>1. 小样本 + 95 维过拟合</b><br>
+      GBDT 在 30-60 样本根本学不到稳定信号. CV R² 多数负值 = 模型比均值预测还差. 真实市场 R² 预期 < 0.05.
+    </div>
+    <div class="falsification">
+      <b>2. 宏观特征方差为 0 (致命)</b><br>
+      4 个宏观 (VIX/QQQ_MA/10Y/USD_CNY) 是整财年级别 (4 个值), 同财年 30 家公司宏观值完全相同 → 方差为 0, GBDT 无法学. 需季度级别宏观.
+    </div>
+    <div class="falsification">
+      <b>3. Regime 标签粗糙</b><br>
+      整个 FY22 标 BEAR, FY23-24 标 BULL, FY25 标 NORMAL. 但 FY22 内有 4 季度, H1 加息熊, H2 反弹 → regime 不一致. 需月度滚动 regime.
+    </div>
+    <div class="falsification">
+      <b>4. Test 阶段只触发 NORMAL</b><br>
+      Test=FY25 全部 30 样本都被分到 NORMAL 子模型 → gating 等于单 NORMAL 模型, 无 regime 切换, 等于没 gating.
+    </div>
+    <div class="falsification">
+      <b>5. 线性 5 因子反而赢</b><br>
+      Exp-12 Ridge Test R²=+0.447 (正) > Exp-15/16 GBDT R²=-0.001. 95 维特征在 90 训练样本上过拟合, 线性模型反而泛化好.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  🤖 Generated by Hermes Agent · 2026-06-11 · 数据源: Nasdaq 公开 API + 训练知识 · 关联 skill: nq100-quant-backtest v1.0.0<br>
+  ⚠️ 本仪表板不构成投资建议, 投资有风险, 请咨询持牌专业人士
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    const tab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

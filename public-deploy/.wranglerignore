@@ -1,0 +1,65 @@
+# Cloudflare Workers Static Assets exclusion list.
+# When workers builds run `wrangler deploy`, it treats the entire
+# repository root as the assets directory (per wrangler.jsonc's
+# `assets.directory: "."`). We need to exclude non-public files
+# to keep the deploy bundle under 25 MiB.
+#
+# Without this, the `.git/objects/pack/*.pack` files (often >25 MiB)
+# blow past the Workers 25 MiB total asset limit and fail with:
+#   [ERROR] Asset too large. ... We found a file .../.git/...
+#      with a size of 27.4 MiB.
+#
+# 06-24 13:47 log: wrangler tried to bundle .git/pack-d2a5....pack
+# (27.4 MiB) and aborted the entire deploy. So the latest commit
+# WAS deployed to CF, but the deploy *job* failed mid-bundle, leaving
+# CF serving stale state from before this run.
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Build artefacts of the wrapper repo itself (this is just a deploy
+# repo — there are no source files to build, all assets are pre-built)
+node_modules/
+**/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 06-27: neo-labs-build/ is the Next.js SOURCE for /neo-labs/ deploy
+# (build output goes to neo-labs/, not neo-labs-build/). neo-labs-build/
+# holds 666 MB of source code + node_modules with 134 MB swc binaries
+# that crash the 25 MiB Workers asset limit.
+neo-labs-build/
+
+# 06-27: agentic-3d-mvp/ is untracked local development scratch with
+# 72 MB of Swift toolchain binaries (.pcm files) — not part of deploy.
+agentic-3d-mvp/
+
+# 06-27: .github/ contains local workflow files (cf-pages-deploy.yml is
+# the original GH Action config but deploy actually runs via CF Workers
+# GitHub App, not this workflow).
+.github/
+
+# Python tooling
+__pycache__/
+*.pyc
+.venv/
+
+# Deploy-time scratch files we created to force-rebuild (06-24)
+.deploy-trigger
+.deploy-marker
+
+# Anything specifically labelled as not-public
+**/.env
+**/.env.*
+**/secrets.json

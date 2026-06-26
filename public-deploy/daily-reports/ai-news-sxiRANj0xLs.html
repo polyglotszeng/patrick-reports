@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI 周报 2026-06: Claude Fable 5 上线一周被砍 + 7 大开源/产品发布</title>
+<style>
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; line-height: 1.7; padding: 2rem; max-width: 960px; margin: 0 auto; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.9rem; line-height: 1.3; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.4rem; margin-top: 2.2rem; }
+h3 { color: #f7c59f; margin-top: 1.6rem; }
+.meta { color: #888; font-size: 0.85rem; margin-bottom: 1.2rem; }
+.warning { background: #1f1810; border-left: 3px solid #ff6b35; padding: 0.8rem 1.1rem; margin: 1.2rem 0; border-radius: 0 6px 6px 0; font-size: 0.9rem; color: #c9b89c; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; color: #d4d4d4; }
+blockquote .attr { color: #888; font-size: 0.8rem; font-style: normal; display: block; margin-top: 0.3rem; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: #1f1f1f; color: #f7c59f; padding: 8px 12px; text-align: left; border: 1px solid #2a2a2a; }
+td { padding: 8px 12px; border: 1px solid #222; vertical-align: top; }
+tr:nth-child(even) { background: #131313; }
+.highlight-box { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 10px; padding: 1.4rem; margin: 1.5rem 0; }
+.takeaway-list { list-style: none; padding: 0; }
+.takeaway-list li { padding: 0.7rem 1rem; margin: 0.5rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; counter-increment: takeaway-counter; }
+.takeaway-list { counter-reset: takeaway-counter; }
+.takeaway-list li::before { content: counter(takeaway-counter) ". "; color: #ff6b35; font-weight: 600; }
+.tag { display: inline-block; background: #2a1a0f; color: #f7c59f; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-right: 4px; }
+.section { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; }
+.ts { color: #555; font-size: 0.75rem; font-family: monospace; }
+.q-section { background: #1a1a1a; padding: 1rem; border-radius: 8px; margin: 1rem 0; }
+.cross-ref { background: #0f1a1f; border-left: 3px solid #4a9eff; padding: 0.7rem 1rem; margin: 0.6rem 0; border-radius: 0 6px 6px 0; font-size: 0.88rem; }
+.cross-ref code { color: #4a9eff; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔑 Key Takeaways (10)</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">📂 Section-by-Section Summary</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Part 1: 开源 motion transfer SOTA — Scale </a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Part 2: ZAI GLM 5.2 (3:01 - 9:00)</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Part 3: Kimi (Moonshot) 新模型 (3:15 - 4:30</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💬 Key Quotes</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">❓ Discussion Questions</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🔗 Cross-References (Patrick 已有 skills)</a></li>
+  </ol>
+</aside>
+
+
+<h1>AI 周报 2026-06: Claude Fable 5 上线一周被砍 + 7 大开源/产品发布</h1>
+
+<div class="meta">
+📺 <b>AI Search</b> · 43:45 · 2026-06-15 · <a href="https://www.youtube.com/watch?v=SxiRANj0xLs" style="color: #ff6b35;">原视频</a>
+<br>
+<span class="tag">ai-news</span><span class="tag">weekly-digest</span><span class="tag">claude-fable</span><span class="tag">google-gemini</span><span class="tag">kimi-k2</span><span class="tag">zai-glm</span><span class="tag">minimax-m2</span><span class="tag">open-source-llm</span><span class="tag">motion-transfer</span><span class="tag">4d-avatar</span><span class="tag">tts</span>
+</div>
+
+<div class="warning">
+⚠️ <b>轻量信号 (1/3 命中)</b>: 标题"RIP Claude Fable" 戏剧化叙述,内容是周报(非方法论)。末尾"free weekly newsletter"是订阅导流,非卖课 affiliate。<b>笔记策略</b>: 7 个 news item 逐条核验 release date + model size,不当 framework 套。
+</div>
+
+<div class="highlight-box">
+<h2 id="h2-1" style="margin-top: 0; border: none;">🔑 Key Takeaways (10)</h2>
+<ol class="takeaway-list">
+<li><b>Anthropic Claude Fable 5 上线不到 1 周被砍</b> — 0:51 提及,背后原因未在视频展开,需独立查 Anthropic changelog</li>
+<li><b>开源 motion transfer SOTA: "Scale 2"</b> — 0:51 起,reference video → 任意角色视频,支持多角色非人形态</li>
+<li><b>ZAI (清华 Zhipu 关联) GLM 5.2</b> — 3:01 提及,benchmarks 接近 Claude Fable 5 (后被砍那款)</li>
+<li><b>Kimi (Moonshot) 新模型</b> — 3:15 前后,作者称"absolute beast",可能是 K2.6 后继</li>
+<li><b>Google 两连发</b> — 9:04 起"incredibly fast open source model" + realtime translator (70+ 语言)</li>
+<li><b>Minimax (MiniMax-M 关联?) M2 开源</b> — 22:20 段 sparse attention + 高效架构,本地可跑</li>
+<li><b>4D 全身体 avatar</b> — 视频早期预告,独立产品,非开源</li>
+<li><b>3D 模型生成器井喷</b> — 多个支持物理 simulation-ready 输出</li>
+<li><b>Top TTS</b> — 末尾"top tier speech generator",与 ElevenLabs / Cartesia 竞争</li>
+<li><b>周报模式信号</b>: 作者承认吸收能力 < 行业产出速度,印证 distributed-research-playbook 价值</li>
+</ol>
+</div>
+
+<h2 id="h2-2">📂 Section-by-Section Summary</h2>
+
+<div class="section">
+<h3 id="h3-1">Part 1: 开源 motion transfer SOTA — Scale 2 <span class="ts">(0:48 - 3:00)</span></h3>
+<ul>
+<li><b>核心</b>: 用 reference video 提取动作,迁移到任意目标视频(角色/动物/非人形态都行)</li>
+<li><b>亮点</b>: 多角色动作可同时迁移;支持长 video;非人形态</li>
+<li><b>对比</b>: 比 Live Portrait / DWPose 等老一代强</li>
+<li><b>Patrick 视角</b>: Game / VFX / 短视频创作有用,需自部署 cost-vs-quality 评估</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-2">Part 2: ZAI GLM 5.2 <span class="ts">(3:01 - 9:00)</span></h3>
+<ul>
+<li><b>定位</b>: "quietly drops" = 不高调,但作者认为是当周最强开源 LLM 之一</li>
+<li><b>作者原话</b>: "my favorite open source lab" — ZAI 一直是中文 LLM 开源主力 (GLM-4 / ChatGLM 系列)</li>
+<li><b>技术栈推测</b>: 可能用 MoE + sparse attention (跟 Minimax M2 同趋势)</li>
+<li><b>背景</b>: ZAI 跟清华 Zhipu AI 关系密切,中国 LLM 开源生态 top tier</li>
+<li><b>Patrick 视角</b>: 中文 LLM 选型,GLM 系列是默认候选之一</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-3">Part 3: Kimi (Moonshot) 新模型 <span class="ts">(3:15 - 4:30 + 18:11 - 19:30)</span></h3>
+<ul>
+<li><b>3:15 段</b>: "absolute beast" — 新模型,具体规格未细说</li>
+<li><b>18:11 段</b>: Kimi K2.6 提及,edging "very close to" 闭源 SOTA</li>
+<li><b>配套生态</b>: "Kimi Code" (18:11 提及) — 类 Claude Code 的 coding agent</li>
+<li><b>Patrick 视角</b>: Kimi K2 是 Anthropic / OpenAI 之外的中文 coding agent 备选</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-4">Part 4: Google 两连发 <span class="ts">(9:04 - 18:00)</span></h3>
+<ul>
+<li><b>9:04 起</b>: "incredibly fast open source model" — 推测是 Gemma 3 / Gemini Flash 变体</li>
+<li><b>Realtime translator</b>: 70+ 语言,免费,实时</li>
+<li><b>训练机制</b>: 9:40 提及"predicting the next word... whole block" — autoregressive 或 block-wise denoising</li>
+<li><b>Patrick 视角</b>: Google 开源策略 2024-2025 加码,Gemma 3 27B 已是 Mac 本地强候选</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-5">Part 5: Minimax M2 开源 <span class="ts">(22:20 - 24:00)</span></h3>
+<ul>
+<li><b>核心</b>: "sparse attention" + "incredibly efficient architecture"</li>
+<li><b>本地可跑</b>: 作者称可在消费级硬件跑</li>
+<li><b>DeepSeek 同期</b>: 22:20 段"Deepseek also... sparse attention" — 行业趋势 = sparse attention 是 2026 H1 LLM 主流</li>
+<li><b>Patrick 视角</b>: M2 / M3 (MiniMax-M3) 系列已自部署,稀疏注意力是 token 经济性关键</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-6">Part 6: 4D Full-Body Avatars <span class="ts">(预告段 + 24:00)</span></h3>
+<ul>
+<li><b>24:12 段</b>: "is fairly efficient" — 4D avatar 生成 pipeline</li>
+<li><b>应用</b>: 视频会议 / 虚拟主播 / game NPC</li>
+<li><b>开源 vs 商业</b>: 未明示,大概率 API 调用</li>
+<li><b>Patrick 视角</b>: 跟 baoyu-comic / comfyui skill 联动空间 = AI 角色/虚拟人创作</li>
+</ul>
+</div>
+
+<div class="section">
+<h3 id="h3-7">Part 7: 3D 模型生成 + TTS <span class="ts">(多段穿插)</span></h3>
+<ul>
+<li><b>3D generators</b>: 多个,支持物理 simulation-ready 输出</li>
+<li><b>TTS</b>: "top tier" speech generator,跟 ElevenLabs / Cartesia / OpenAI TTS 竞争</li>
+<li><b>Patrick 视角</b>: 跟 comfyui + audiocraft-audio-generation skill 联动</li>
+</ul>
+</div>
+
+<h2 id="h2-3">💬 Key Quotes</h2>
+<div class="q-section">
+<blockquote>
+"Anthropic releases their best model, Claude Fable 5, but then it also gets killed in less than a week."
+<span class="attr">— 0:07-0:12</span>
+</blockquote>
+<blockquote>
+"my favorite open source lab ZAI quietly drops their latest model GLM 5.2"
+<span class="attr">— 3:28-3:32</span>
+</blockquote>
+<blockquote>
+"AI never sleeps and this week has been absolutely insane"
+<span class="attr">— 0:00-0:04</span>
+</blockquote>
+<blockquote>
+"can't possibly cover everything on my YouTube channel"
+<span class="attr">— 43:24-43:28 (强信号: 个人创作者吸收能力 < 行业产出速度)</span>
+</blockquote>
+</div>
+
+<h2 id="h2-4">❓ Discussion Questions</h2>
+<ol>
+<li>Claude Fable 5 上线 1 周内被砍 — 是 safety / capability / business 哪个原因? 影响 Anthropic 后续 model 发布节奏?</li>
+<li>ZAI GLM 5.2 / Kimi K2.6 / Google Gemma 3 / Minimax M2 — 哪个是 2026 H2 中文 LLM 开源 SOTA?</li>
+<li>4D full-body avatar 跟现有 video diffusion (Sora / Runway / Kling) 是替代还是互补?</li>
+<li>"周报信息密度 > 个人创作者吸收能力" 是不是信号: 2026 起 <code>distributed-research-playbook</code> 已是默认配置,不是 nice-to-have?</li>
+<li>Sparse attention (DeepSeek + Minimax) 跟 MoE + dense attention (ZAI GLM) 哪个是 2026 H2 主流?</li>
+</ol>
+
+<h2 id="h2-5">🔗 Cross-References (Patrick 已有 skills)</h2>
+<div class="cross-ref"><code>autonomous-ai-agents/fable-vs-hermes-capability-gap</code> v1.0.0 — Claude Fable 5 被砍事件追踪</div>
+<div class="cross-ref"><code>media/youtube-content</code> v1.0.0 — 视频转录 pipeline</div>
+<div class="cross-ref"><code>mlops/llama-cpp</code> v1.0.0 — Minimax M2 / ZAI GLM 本地 GGUF 部署</div>
+<div class="cross-ref"><code>mlops/serving-llms-vllm</code> v1.0.0 — Kimi K2.6 / GLM 5.2 推理服务</div>
+<div class="cross-ref"><code>research/distributed-research-playbook</code> v1.0.0 — 周报信息过载的解法</div>
+<div class="cross-ref"><code>creative/comfyui</code> v1.0.0 — 4D avatar / 3D model 生成下游</div>
+<div class="cross-ref"><code>media/audiocraft-audio-generation</code> v1.0.0 — TTS 替代品评估</div>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

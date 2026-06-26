@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Sam Altman @ Stanford CS183 (2024) — Scale + ChatGPT 故事 + AI Utility</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .story-step {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 0.5rem 0; padding: 0.7rem 0.9rem;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .story-step .step-num {
+    background: var(--accent); color: var(--bg);
+    width: 1.8rem; height: 1.8rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+  }
+  .story-step .step-content { flex: 1; }
+  .story-step .step-title { color: var(--text); font-weight: 600; }
+  .story-step .step-detail { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Sam Altman @ Stanford CS183</h1>
+<p class="subtitle">2024 年 41 分钟访谈：Scale 哲学 + ChatGPT 故事 + AI 作为新 Utility + 3 个未来 Fork</p>
+
+<div class="meta-bar">
+  <span><strong>主讲：</strong>Sam Altman (OpenAI CEO)</span>
+  <span><strong>场景：</strong>Stanford CS183 访谈</span>
+  <span><strong>时长：</strong>41:07（2467s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17 整理</span>
+</div>
+
+<div class="hero">
+  <h2>核心论点</h2>
+  <p><b>AI 时代唯一"反共识但正确"的认知 = "scale 永远比共识认为的更有效"。</b>Sam 用 YC 批次规模、神经网络 scaling、OpenAI 内部组织为例：找到"小规模已经在 working 的东西" → 推到前所未有的规模 → <b>几乎 always 出 interesting results</b>。</p>
+  <p style="margin-top: 0.5rem;"><b>教育是 Sam 自承的最大 prediction error</b>："我以为 ChatGPT 上线 1 年内教育会大改，3.5 年过去了<b>没看到任何系统性变化</b>。"</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">AGI 目标</div>
+    <div class="value">2028.3</div>
+    <div class="sub">Full end-to-end researcher</div>
+  </div>
+  <div class="stat">
+    <div class="label">AI intern</div>
+    <div class="value">2026.9</div>
+    <div class="sub">500K A100-equivalent GPUs</div>
+  </div>
+  <div class="stat">
+    <div class="label">Codex 拐点</div>
+    <div class="value">5.5</div>
+    <div class="sub">2024 初真变好</div>
+  </div>
+  <div class="stat">
+    <div class="label">民主化概率</div>
+    <div class="value">80%</div>
+    <div class="sub">Sam 评估</div>
+  </div>
+  <div class="stat">
+    <div class="label">H100 价差</div>
+    <div class="value">5x</div>
+    <div class="sub">long-term vs spot</div>
+  </div>
+  <div class="stat">
+    <div class="label">Sam 给学生建议</div>
+    <div class="value">inference</div>
+    <div class="sub">cheap & abundant</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="scale">📈 Scale 哲学</button>
+  <button class="tab" data-tab="chatgpt">🚀 ChatGPT 故事</button>
+  <button class="tab" data-tab="codex">💻 Codex / Code</button>
+  <button class="tab" data-tab="utility">⚡ AI = 新 Utility</button>
+  <button class="tab" data-tab="goals">🎯 OpenAI 目标</button>
+  <button class="tab" data-tab="forks">🔀 3 个未来 Fork</button>
+  <button class="tab" data-tab="yann">⚔️ 反驳 Yann LeCun</button>
+  <button class="tab" data-tab="edu">🎓 Education</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: SCALE -->
+<div class="tab-content active" data-tab-content="scale">
+  <h2 class="section">Scale 哲学（Sam 最重要的洞察）</h2>
+
+  <blockquote>
+    "I offer no theory that I find satisfying to explain it... but empirically it does seem to be true, which is <b>all of the most interesting things I have observed in my career</b> in watching other things happen. All of the most interesting ones have had something to do with <b>emergent properties that scale</b> or scale continuing to provide returns far beyond what the consensus thinks will work."
+  </blockquote>
+
+  <h3>3 个 scale 案例</h3>
+  <table>
+    <thead>
+      <tr><th>案例</th><th>共识认为</th><th>实际发生</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>神经网络 scaling</b></td>
+        <td>"已知能 scale，不需要再试"</td>
+        <td>LLM 能力持续突破</td>
+      </tr>
+      <tr>
+        <td><b>YC batch size</b></td>
+        <td>"太多公司，应该缩到 10 个/batch"</td>
+        <td><b>批次网络效应</b> — 50+ 公司/batch 反而更好</td>
+      </tr>
+      <tr>
+        <td><b>OpenAI compute scale</b></td>
+        <td>"10K-100K GPUs 不可能"</td>
+        <td>GPT-4 训练需要 ~25K H100s 集群</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>为什么大多数人不敢 scale</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🔧 Stuff breaks</h4>
+      <p>"Stuff breaks at accelerating rate and in an unpredictable way as you scale"</p>
+    </div>
+    <div class="card">
+      <h4>👥 聪明人劝退</h4>
+      <p>"There are always very smart people who say why you shouldn't do this"</p>
+    </div>
+    <div class="card">
+      <h4>🧠 类比陷阱</h4>
+      <p>突破需要 <b>first principles reasoning</b>，类比推理不 work</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--accent);">
+    <h4>💡 Sam 类比</h4>
+    <p>"We did not evolve to be good at thinking about exponentials. People have a hard time imagining that scaling laws are going to continue exponentially."</p>
+  </div>
+</div>
+
+<!-- TAB 2: CHATGPT -->
+<div class="tab-content" data-tab-content="chatgpt">
+  <h2 class="section">ChatGPT 创业故事（核心）</h2>
+
+  <h3>2020-2022 时间线</h3>
+
+  <div class="story-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">GPT-3 阶段（2020 夏）</div>
+      <div class="step-detail">API 推出 → <b>"shockingly bad"</b>（vs 现在模型）· 唯一 work 的商业用例：copyrighting</div>
+    </div>
+  </div>
+
+  <div class="story-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Twitter 走红</div>
+      <div class="step-detail">一个月后 API 莫名走红 · 人们用 API key <b>chat with it</b>（但 OpenAI 不想做 chatbot）</div>
+    </div>
+  </div>
+
+  <div class="story-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">决策：Build Chatbot（2022 秋）</div>
+      <div class="step-detail">"We can build a good chatbot. People clearly want that."<br>本意是 research demo → 目的让其他公司 pay API</div>
+    </div>
+  </div>
+
+  <div class="story-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">5 天 emergency 转向</div>
+      <div class="step-detail">每天 traffic shot up → 跌 → "hype cycle" → 第二天创新高 · Sam 第 4-5 天说："I know how this works"</div>
+    </div>
+  </div>
+
+  <div class="story-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-title">2 个月 crazy scaling</div>
+      <div class="step-detail">"Business model later, just don't run out of compute bills" · ChatGPT 上线 → rest is history</div>
+    </div>
+  </div>
+
+  <blockquote>
+    "Under the YC principle of <b>see what your users love and do that</b>."
+  </blockquote>
+  <blockquote>
+    "When something really starts growing and it's not very good, you have like a <b>guaranteed hit on your hands</b>."
+  </blockquote>
+</div>
+
+<!-- TAB 3: CODEX -->
+<div class="tab-content" data-tab-content="codex">
+  <h2 class="section">Codex / Code 故事</h2>
+
+  <h3>ChatGPT 前计划</h3>
+  <div class="card">
+    <ul>
+      <li>内部原本要 <b>all in on code</b></li>
+      <li>"Coding 是模型控制 computer 的方式"</li>
+      <li>"Robotics 是控制物理世界"</li>
+      <li>模型够 smart + actuators（写 code + 驱动 robot）= <b>真正能做事</b></li>
+    </ul>
+  </div>
+
+  <h3>实际进度</h3>
+  <table>
+    <thead>
+      <tr><th>时间</th><th>事件</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>早期</td>
+        <td>Codex 进展一般</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>2024 初</b></td>
+        <td>Codeex <b>真正变好</b>（5.5 是 inflection point）</td>
+      </tr>
+      <tr>
+        <td>2024+</td>
+        <td>用户做 "incredible things"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Pipeline 现状</h3>
+  <div class="phase-flow" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0;">
+    <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>Pre-training</h4></div>
+    <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>Mid-training</h4></div>
+    <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>Post-training</h4></div>
+    <div class="card" style="flex: 1; min-width: 150px; text-align: center;"><h4>RL + Supervised</h4></div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow); margin-top: 1rem;">
+    <h4>⚠️ Sam 自评</h4>
+    <p>"这 pipeline 有点怪，不太像 optimal solution。我们肯定会 <b>major rewrite</b>，但不知道何时。"</p>
+  </div>
+</div>
+
+<!-- TAB 4: UTILITY -->
+<div class="tab-content" data-tab-content="utility">
+  <h2 class="section">⚡ AI = 新 Utility（最深刻框架）</h2>
+
+  <blockquote>
+    "We are in the process of <b>creating a new utility</b>. This doesn't happen very often. You know, electricity is a utility, internet's a utility, water, I guess there's not a lot of these."
+  </blockquote>
+
+  <h3>Electricity 类比</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h4>💡 早期 electricity 公司</h4>
+    <ul>
+      <li><b>没卖 electricity</b> — 没人知道要</li>
+      <li><b>卖 light at night</b>（"我们不卖电，是卖夜里的光"）</li>
+      <li>副业："By the way, 你可以用同个东西洗衣"</li>
+      <li>用户："太远了我不信"</li>
+    </ul>
+  </div>
+
+  <blockquote>
+    "Even if we're totally right that intelligence is going to become this new utility... I kind of don't think the right way for us to analogize that is <b>'we're selling intelligence'</b> because people are just like somehow not resonating. I don't know what our equivalent of 'we're selling you light at night' is going to be."
+  </blockquote>
+
+  <h3>Jensen vs Sam utility 视角</h3>
+  <table>
+    <thead>
+      <tr><th>视角</th><th>主张</th><th>抽象层级</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Jensen</b></td>
+        <td>Compute 是 utility</td>
+        <td>硬件层（chips）</td>
+      </tr>
+      <tr>
+        <td><b>Sam</b></td>
+        <td>Intelligence 是 utility</td>
+        <td>服务层（tokens）</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>真实答案</b></td>
+        <td>消费者看到 <b>tokens</b>，hardware 被抽象掉</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem;">
+    <h4>📱 类比：手机</h4>
+    <p>"Pay for cell phone bill... you think about access to the whole system and the <b>particular hardware at the base station</b> and how it connects to the internet. You don't think about that as much."</p>
+  </div>
+</div>
+
+<!-- TAB 5: GOALS -->
+<div class="tab-content" data-tab-content="goals">
+  <h2 class="section">OpenAI 关键目标（2026-2028）</h2>
+
+  <table>
+    <thead>
+      <tr><th>时间</th><th>目标</th><th>意义</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>2026 年 9 月</b></td>
+        <td>用 <b>500K A100-equivalent GPUs</b> 作 AI research intern</td>
+        <td>Compute scale 极限</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>2028 年 3 月</b></td>
+        <td>Full end-to-end very talented researcher（能发明完整新架构）</td>
+        <td>AGI 实质突破</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--yellow);">
+    <h4>⚠️ 注意</h4>
+    <p>这些是 Sam <b>2024 年</b>在 Stanford 讲的目标，<b>可能已更新</b>。但 framework 仍 valid。</p>
+  </div>
+
+  <h3>跟 Nate Herk "Stop AI" 视频关联</h3>
+  <div class="card">
+    <p>OpenAI 6/8 文章 "Built to Benefit Everyone" 跟 Sam 在 Stanford 讲的目标完全一致：</p>
+    <ul>
+      <li>Sam 在 Stanford: "2028.3 = full researcher" → OpenAI 文章: "2028.3 = AI 自动化研究员"</li>
+      <li>Sam 在 Stanford: "democratization utility" → OpenAI 文章: "personal AGI for everyone"</li>
+      <li>Sam 在 Stanford: "international regulation" → OpenAI 文章: "international coordination"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 6: FORKS -->
+<div class="tab-content" data-tab-content="forks">
+  <h2 class="section">🔀 3 个未来 Fork（10 年视角）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>① 民主化 vs 集中</h4>
+      <p>"How much is this technology going to be <b>very widely democratized</b> versus how much is it going to sit in a few companies."</p>
+      <p style="margin-top: 0.6rem;"><b>Sam 概率：80% 民主路径</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>② Compute 分配</h4>
+      <p>"How specifically how we distribute compute."</p>
+      <p style="margin-top: 0.6rem;">H100 / Blackwell <b>5x 价差</b> · "Compute shortage forever"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>③ 经济模型</h4>
+      <p>UBI vs ownership vs capitalism？</p>
+      <p style="margin-top: 0.6rem;">Sam 偏好 <b>citizen wealth fund</b>（不是现金分红）</p>
+    </div>
+  </div>
+
+  <h3>Fork 1：民主化</h3>
+  <div class="card">
+    <ul>
+      <li>Default trajectory: 集中到少数公司 → "成为地球财富重要部分"</li>
+      <li>这<b>显然 terrible</b> → OpenAI 会努力推民主</li>
+      <li><b>Utility 模型</b> = 防止集中</li>
+      <li>"集中 → alignment failure + 脆弱世界"</li>
+    </ul>
+  </div>
+
+  <blockquote>
+    "The risk of keeping this concentrated in a handful of companies <b>even though we would be one of these companies</b> is not something we should tolerate."
+  </blockquote>
+
+  <h3>Fork 2：Compute 短缺</h3>
+  <table>
+    <thead>
+      <tr><th>现状（2024 视角）</th><th>Sam 预测</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>H100 / Blackwell 大幅短缺</td>
+        <td>"As long as we can continue to make progress... there will be a <b>shortage forever</b>"</td>
+      </tr>
+      <tr>
+        <td>Long-term vs spot 价差 5x</td>
+        <td>Demand 永远 &gt; supply</td>
+      </tr>
+      <tr>
+        <td>"几乎全部 gone for this year"</td>
+        <td>"100 个 personal agents 一直 work for you"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>⚠️ Why are people not freaking out?</h4>
+    <p>"People assume we will make big inference gains on the hardware we have... I also think there is a tsunami of hardware coming <b>but maybe the demand tsunami is even bigger</b>."</p>
+  </div>
+
+  <h3>Fork 3：经济模型</h3>
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ Sam 偏好：Citizen Wealth Fund</h4>
+      <ul>
+        <li><b>Ownership stake</b> &gt; 现金分红</li>
+        <li>参考 Norwegian Sovereign Wealth Fund（1.5% 全球公开公司）</li>
+        <li>"As leverage shifts from <b>labor to capital</b>"</li>
+        <li>美国政府已是最大雇主 = 已有 redistribution</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ Sam 不偏好：纯 UBI</h4>
+      <ul>
+        <li>"Fixed monthly cash dividend"</li>
+        <li>不利用 human psychology</li>
+        <li>"I funded a big UBI study a while ago"</li>
+        <li>但看了 startup 投资后改想法</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    "I would love to see... that we find a way to have something like a <b>citizens wealth fund</b> in the country or in the world eventually where you basically <b>own a slice of capitalism</b>."
+  </blockquote>
+</div>
+
+<!-- TAB 7: YANN -->
+<div class="tab-content" data-tab-content="yann">
+  <h2 class="section">⚔️ 反驳 Yann LeCun（"LLMs 是死胡同"）</h2>
+
+  <h3>Sam 的回应</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>已超人类</h4>
+      <p>LLMs <b>已经远超人类</b>在某些方面</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>仍差人远</h4>
+      <p><b>长 horizon + 高 judgment</b> 任务</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>数学突破</h4>
+      <p>昨天模型 <b>disprove 一个数学 conjecture</b>（smart scientists 之前说"不会发生"）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>需要 World Model</h4>
+      <p>但 robotics 显然需要 · <b>赌 LLM scaling 不 work 感觉 misguided</b></p>
+    </div>
+  </div>
+
+  <blockquote>
+    "Field held back by <b>a generation of scientists</b> who just were way too certain on what scaling was not going to produce and then some people just looked at the graphs and said, 'Well, it looks like it's continuing beautifully. Let's keep going.'"
+  </blockquote>
+
+  <h3>On "I told you so"</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h4>Sam 的态度</h4>
+    <p>"The data is quite strong on our side and I don't think it'd be that fun to say I told you so."</p>
+    <p style="margin-top: 0.6rem; color: var(--text-mute);">"You were like she was nervous. You're still going on about it. Like the data is quite strong on our side."</p>
+  </div>
+
+  <h3>On critics + identity</h3>
+  <blockquote>
+    "If you make your identity about a particular thing is going to work or not work and then the science disproves you and you're too hung up on your identity, you can't let it go. You can't see the truth. <b>I think this is a form of insanity.</b>"
+  </blockquote>
+</div>
+
+<!-- TAB 8: EDU -->
+<div class="tab-content" data-tab-content="edu">
+  <h2 class="section">🎓 Education 没变（Sam 最大 prediction error）</h2>
+
+  <h3>Sam 2022 预期</h3>
+  <div class="card">
+    <p>"ChatGPT 上线 → 1 年学生 cheating → 教育系统大改 → 教得更好"</p>
+  </div>
+
+  <h3>2024 现实</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>❌ Prediction error</h4>
+    <p>"I struggle to point to any <b>significant systemic change</b> that I've seen in the education system at large in the three and a half years since ChatGPT launched."</p>
+  </div>
+
+  <h3>Sam 的担心</h3>
+  <blockquote>
+    "If we continue to teach and evaluate students as if we were in a pre-agi world, it's not going to work and it is going to lead to like <b>atrophy of learning how to think</b>."
+  </blockquote>
+
+  <h3>仍要学的</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>✍️ Writing</h4>
+      <p>Sam 自述靠 writing 来 think</p>
+    </div>
+    <div class="card">
+      <h4>💻 Programming</h4>
+      <p>同样 meta skill</p>
+    </div>
+    <div class="card">
+      <h4>🧠 Meta Skill of Thinking</h4>
+      <p>"Machines can do better, but useful to teach"</p>
+    </div>
+  </div>
+
+  <h3>Sam 选课建议</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <ul>
+      <li>大一 <b>3 个 intro sem</b> 一季</li>
+      <li>"<b>Shallow understanding of lots of different fields</b> was an incredible thing"</li>
+      <li>如果只上 CS + physics，会少很多 perspective</li>
+      <li>对 Patrick 启示：<b>跨学科 exposure</b> 价值巨大</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 9: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Scale 哲学</div>
+      <div class="text">"All of the most interesting things I have observed in my career have had something to do with emergent properties that scale or scale continuing to provide returns far beyond what the consensus thinks will work."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">民主化</div>
+      <div class="text">"The risk of keeping this concentrated in a handful of companies even though we would be one of these companies is not something we should tolerate."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">"I told you so"</div>
+      <div class="text">"AI is just going to keep going. And I think this is considered I don't think this is like widely believed yet."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Education</div>
+      <div class="text">"I struggle to point to any significant systemic change that I've seen in the education system at large in the three and a half years since ChatGPT launched."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Identity</div>
+      <div class="text">"If you make your identity about a particular thing is going to work or not work and then the science disproves you... I think this is a form of insanity."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">给学生</div>
+      <div class="text">"No matter what you all do, we're going to have incredible models. I promise here like pretty quickly. But I think we have not invested enough in being able to deliver at scale huge amounts of cheap intelligence."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Exponentials</div>
+      <div class="text">"We did not evolve to be good at thinking about exponentials. People have a hard time imagining that scaling laws are going to continue exponentially."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">YC principle</div>
+      <div class="text">"Under the YC principle of see what your users love and do that."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Guaranteed hit</div>
+      <div class="text">"When something really starts growing and it's not very good, you have like a guaranteed hit on your hands."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Light at night</div>
+      <div class="text">"I don't think the right way for us to analogize that is 'we're selling intelligence' because people are just like somehow not resonating. I don't know what our equivalent of 'we're selling you light at night' is going to be."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Compute 短缺</div>
+      <div class="text">"As long as we can continue to make progress on this there will be a shortage forever and things will be bid among above what the price we think the price should be."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Citizen wealth fund</div>
+      <div class="text">"I would love to see... that we find a way to have something like a citizens wealth fund in the country or in the world eventually where you basically own a slice of capitalism."</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 class="section">⏱️ 完整时间线（76 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:09</div>
+      <div class="what">Welcome Sam Olen（笔误 → Sam Altman）</div>
+      <div class="note">Stanford CS183 2014 vs 2024</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:18</div>
+      <div class="what">CS183 2014 vs 2024 对比</div>
+      <div class="note">"everything about starting a startup has changed"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:16</div>
+      <div class="what">创业建议大改</div>
+      <div class="note">100 人团队 vs 1 人 + token</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:05</div>
+      <div class="what">AGI effort 现状</div>
+      <div class="note">2014 = 4 个公司之一 · 现在 "find something not obvious"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:37</div>
+      <div class="what">📈 <b>Scale 哲学</b></div>
+      <div class="note">emergent property 框架</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:50</div>
+      <div class="what">YC batch size 案例</div>
+      <div class="note">"不 work" 反共识 → network effect</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:50</div>
+      <div class="what">没人是天才</div>
+      <div class="note">大家都看 graphs 然后 keep going</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:31</div>
+      <div class="what">Scale = systems problem</div>
+      <div class="note">按 reasons 拆解</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:17</div>
+      <div class="what">人类 at scale 难组织</div>
+      <div class="note">"human side hardest to refactor"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:01</div>
+      <div class="what">多数人不会 scale</div>
+      <div class="note">"for non-specific reasons"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:30</div>
+      <div class="what">🚀 <b>ChatGPT 故事</b></div>
+      <div class="note">GPT-3 API 早期</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:45</div>
+      <div class="what">"Shockingly bad"</div>
+      <div class="note">copyrighting 是唯一 work</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:54</div>
+      <div class="what">看到用户在 chat</div>
+      <div class="note">"build a good chatbot"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:48</div>
+      <div class="what">5 天 emergency 转向</div>
+      <div class="note">"I know how this works"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:11</div>
+      <div class="what">"Business model later"</div>
+      <div class="note">"don't run out of compute bills"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:40</div>
+      <div class="what">💻 <b>Codex 故事</b></div>
+      <div class="note">all in on code 计划</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:36</div>
+      <div class="what">5.5 = inflection point</div>
+      <div class="note">2024 初真变好</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:20</div>
+      <div class="what">Pipeline 现状</div>
+      <div class="note">pre-train → mid → post → RL+supervised</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:57</div>
+      <div class="what">⚡ <b>Utility 框架</b></div>
+      <div class="note">"creating a new utility"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:07</div>
+      <div class="what">Electricity 早期</div>
+      <div class="note">"sell light at night"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:03</div>
+      <div class="what">Jensen vs Sam utility</div>
+      <div class="note">compute vs tokens</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:40</div>
+      <div class="what">🎯 <b>AI intern 目标</b></div>
+      <div class="note">2026.9 = 500K GPUs</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:55</div>
+      <div class="what">final project 介绍</div>
+      <div class="note">one-person frontier lab</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:36</div>
+      <div class="what">💡 Sam 给学生建议</div>
+      <div class="note">"work on inference"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:50</div>
+      <div class="what">⚔️ <b>Yann LeCun LLM 死胡同</b></div>
+      <div class="note">Sam 回应</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:40</div>
+      <div class="what">数学 conjecture 被 disprove</div>
+      <div class="note">"smart scientists said it won't happen"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:17</div>
+      <div class="what">"Held back by generation of scientists"</div>
+      <div class="note">"look at the graphs, keep going"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:53</div>
+      <div class="what">"I told you so 不 bothered"</div>
+      <div class="note">"data is quite strong"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">31:40</div>
+      <div class="what">🎓 <b>Education 没变</b></div>
+      <div class="note">"prediction error for me"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">32:40</div>
+      <div class="what">Meta skill of thinking</div>
+      <div class="note">writing + programming 仍要教</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">33:30</div>
+      <div class="what">Sam 选课建议</div>
+      <div class="note">"intro sem 跨学科"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">34:46</div>
+      <div class="what">🌶️ Spiciest take</div>
+      <div class="note">"AI keeps going"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">35:42</div>
+      <div class="what">🔀 <b>Fork 1：民主化 vs 集中</b></div>
+      <div class="note">"utility 模型"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:00</div>
+      <div class="what">80% 民主概率</div>
+      <div class="note">"very strong safety argument"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:45</div>
+      <div class="what">🔀 <b>Fork 2：Compute 分配</b></div>
+      <div class="note">"5x 价差"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">38:12</div>
+      <div class="what">Norwegian Sovereign Wealth Fund</div>
+      <div class="note">1.5% 全球公司</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">38:55</div>
+      <div class="what">UBI vs ownership stake</div>
+      <div class="note">Sam 偏好 ownership</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">39:12</div>
+      <div class="what">💰 <b>Citizen wealth fund 提案</b></div>
+      <div class="note">"own a slice of capitalism"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">39:31</div>
+      <div class="what">H100 / Blackwell 5x</div>
+      <div class="note">"almost all gone for this year"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">40:10</div>
+      <div class="what">"Compute shortage forever"</div>
+      <div class="note">demand &gt; supply 永远</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">40:50</div>
+      <div class="what">"100 个 personal agents"</div>
+      <div class="note">"uncapped demand"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">41:00</div>
+      <div class="what">Closing</div>
+      <div class="note">"Thank you for coming"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/sam-altman-stanford-cs183-2026/</code></p>
+  <p>Desktop: <code>~/Desktop/sam-altman-stanford-cs183-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=F_7M4Hc-usM">https://www.youtube.com/watch?v=F_7M4Hc-usM</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+</body>
+</html>

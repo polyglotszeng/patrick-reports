@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gamma-World: Generative Multi-Agent World Modeling Beyond Two Players</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="WEEKEND_REPLACE" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<p>
+<h1>Gamma-World: Generative Multi-Agent World Modeling Beyond Two Players</h1></p><p><h2>Abstract</h2></p><p>Gamma-World presents a generative multi-agent world model for interactive video simulation that extends beyond single-agent or two-player settings. It introduces Simplex Rotary Agent Encoding, a parameter-free extension of 3D RoPE that represents agents as vertices of a regular simplex in rotary angle space, enabling permutation-symmetric agent identities without learned per-slot embeddings. Sparse Hub Attention reduces cross-agent attention from quadratic to linear complexity. A full-context diffusion teacher is distilled into a causal student with KV caching for real-time 24 FPS action-responsive generation. The model generalizes from two to four players without retraining.</p><p><h2>Key Contributions</h2></p><p>- First generative multi-agent world model supporting scalable agent counts (beyond two players) with principled permutation symmetry
+<li>Simplex Rotary Agent Encoding: parameter-free agent identity using regular simplex geometry in 3D RoPE space</li>
+<li>Sparse Hub Attention: reduces cross-agent attention from O(n²) to O(n) via learnable hub tokens</li>
+<li>Real-time inference: 24 FPS action-responsive generation via diffusion distillation and KV caching</li>
+<li>Generalizes 2→4 players without additional training</p><p><h2>Method Details</h2></p><p><strong>Architecture</strong>: Gamma-World builds on video diffusion transformer architecture extended for multi-agent control.</p><p><strong>Simplex Rotary Agent Encoding</strong>: Each agent is assigned a unique phase in a rotary embedding space structured as a regular simplex (3 vertices in 3D, 4 in 4D, etc.). This ensures:</li>
+<li>Permutation symmetry: any permutation of agent identities produces the same encoding</li>
+<li>Distinct phases: each agent has a unique angle</li>
+<li>Parameter-free: no learned embeddings per agent slot</li>
+<li>Scalable: works for any number of agents without architecture changes</p><p><strong>Sparse Hub Attention</strong>: Instead of all-to-all cross-agent attention (quadratic in agent count), learnable hub tokens mediate interactions. Each agent attends to/from hub tokens, reducing complexity to O(n) in number of agents.</p><p><strong>Distillation for Real-Time</strong>: A full-context diffusion teacher (processes entire video at once) is distilled into a causal student that generates temporal blocks sequentially with KV caching, enabling action-responsive generation at 24 FPS.</p><p><strong>Training</strong>: The model is trained in multiplayer virtual environments with ground-truth state information. Agents remain independently controllable and permutation-symmetric.</p><p><h2>Key Results</h2></p><p><table></li>
+| Metric | Gamma-World | Slot-based Baseline | Dense-attention Baseline |
+|--------|-------------|--------------------|-----------------------|
+| Video fidelity | Higher | Lower | Lower |
+| Action controllability | Higher | Lower | Lower |
+| Inter-agent consistency | Higher | Lower | Lower |
+| Generalization | 2→4 players, no retrain | N/A | N/A |
+| Inference speed | 24 FPS (causal student) | N/A | N/A |
+</table></p><p><h2>Limitations and Future Work</h2></p><p>- Currently demonstrated in multiplayer virtual environments; real-world embodied agents not yet tested
+<li>Performance on heterogeneous agents (different types/abilities) not thoroughly explored</li>
+<li>Long-horizon consistency across very long trajectories (>minutes) remains challenging</li>
+<li>Real-world deployment requires sim-to-real transfer which is not addressed</p><p><h2>Relevance to Patrick's Research</h2></p><p>Multi-agent world modeling is an important frontier beyond single-agent video prediction. The parameter-free simplex encoding is an elegant solution to the permutation symmetry problem that could inspire other world model architectures. The linear-scaling attention mechanism is critical for practical deployment. This connects to Voyager/NVIDIA world model work and generalizes single-agent world models (like Sora/VDM) to multi-agent settings.</p><p>---</li>
+*Source: <a href="https://arxiv.org/abs/2605.28816">arXiv:2605.28816</a> | PDF: <a href="https://arxiv.org/pdf/2605.28816">2605.28816.pdf</a>*
+</p>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Karpathy Auto Research 3-File System</title>
+<style>
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, "PingFang SC", sans-serif; line-height: 1.7; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2rem; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.4rem; margin-top: 2.5rem; }
+h3 { color: #f7c59f; }
+.warning { background: linear-gradient(135deg, #2a1a0a, #1a0f08); border: 2px solid #ff6b35; border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1.5rem 0; }
+.warning-title { color: #ff6b35; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.warning ol { margin: 0.4rem 0 0 1.2rem; padding: 0; }
+.warning li { margin: 0.3rem 0; color: #d0c0b0; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; color: #c0c0c0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: #1f1f1f; color: #f7c59f; padding: 10px; text-align: left; border: 1px solid #2a2a2a; font-size: 0.9rem; }
+td { padding: 8px 10px; border: 1px solid #222; font-size: 0.88rem; }
+tr:nth-child(even) td { background: #131313; }
+.takeaway-list { list-style: none; padding: 0; }
+.takeaway-list li { padding: 0.8rem 1rem; margin: 0.6rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; }
+.takeaway-list li::before { content: "▸ "; color: #ff6b35; font-weight: 700; }
+.cover-card { background: linear-gradient(135deg, #1a1a1a, #161616); border: 1px solid #ff6b35; border-radius: 12px; padding: 1.4rem 1.6rem; margin: 1.2rem 0; }
+.cover-stat { display: inline-block; margin-right: 1.5rem; }
+.cover-stat .num { font-size: 1.8rem; color: #ff6b35; font-weight: 700; }
+.cover-stat .label { color: #888; font-size: 0.85rem; }
+.coverage-bar { background: #1a1a1a; border-radius: 6px; height: 24px; margin: 0.8rem 0; overflow: hidden; position: relative; }
+.coverage-fill { background: linear-gradient(90deg, #ff6b35, #f7c59f); height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 0.5rem; color: #0d0d0d; font-weight: 700; font-size: 0.85rem; }
+.opp-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 1.2rem 1.4rem; margin: 0.8rem 0; transition: 0.2s; }
+.opp-box.p0 { border-left: 4px solid #ff3b30; }
+.opp-box.p1 { border-left: 4px solid #ff9500; }
+.opp-box.p2 { border-left: 4px solid #ffcc00; }
+.opp-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-right: 0.6rem; }
+.opp-tag.p0 { background: #ff3b30; color: #0d0d0d; }
+.opp-tag.p1 { background: #ff9500; color: #0d0d0d; }
+.opp-tag.p2 { background: #ffcc00; color: #0d0d0d; }
+.opp-title { color: #f7c59f; font-weight: 700; font-size: 1.05rem; }
+.opp-time { color: #888; font-size: 0.8rem; margin-top: 0.4rem; }
+.file-box { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 1rem 1.2rem; margin: 0.6rem 0; }
+.file-name { color: #ff6b35; font-weight: 700; font-family: monospace; }
+.file-role { color: #888; font-size: 0.85rem; }
+.honesty { background: #1a0f08; border: 1px dashed #ff6b35; border-radius: 8px; padding: 1rem 1.2rem; margin: 1.5rem 0; color: #d0c0b0; }
+.check { color: #34c759; }
+.cross { color: #ff3b30; }
+.partial { color: #ffcc00; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">▎ 3-File System 核心</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">▎ 3 Must + 3 Nice 适用标准</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">▎ 7 个可应用场景 (真实 fit 评估)</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">▎ 8 个 Key Takeaways</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">▎ Framework → Self-Apply Mapping (Patrick 现有系统)</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">▎ 3 个新机会 (P0 / P1 / P2)</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">▎ 关键洞察</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">▎ Discussion Questions</a></li>
+  </ol>
+</aside>
+
+
+<h1>Karpathy Auto Research 3-File System</h1>
+
+<div class="warning">
+  <div class="warning-title">⚠️ 3 警告信号 (红旗模板命中 1 项, 折扣分数)</div>
+  <ol>
+    <li><b>Clickbait 数字:</b> 标题「701x」是 Eric Su 二次引用, Karpathy 原数据是 5-min loop × 83 iter = <b>11% IQ 提升</b>, 不是 701x</li>
+    <li><b>卖课频道:</b> Dream Labs AI 是 affiliate 卖课频道, 描述引导「join our private community」私域社群</li>
+    <li><b>Mock 数据:</b> Case 2/3 全部是 Claude Code mock 的 predicted metrics, 视频自己承认「mock data」, 只有 Case 1 是真实跑</li>
+  </ol>
+</div>
+
+<div class="cover-card">
+  <div class="cover-stat"><div class="num">3</div><div class="label">File 结构</div></div>
+  <div class="cover-stat"><div class="num">3+3</div><div class="label">Must + Nice 标准</div></div>
+  <div class="cover-stat"><div class="num">3</div><div class="label">真实 Case</div></div>
+  <div class="cover-stat"><div class="num">60%</div><div class="label">Patrick 现有系统覆盖率</div></div>
+  <div style="margin-top:0.6rem; color:#888; font-size:0.85rem;">频道: Dream Labs AI · 时长 ~24 min · 日期 2026-06-14 · 来源: <a href="https://www.youtube.com/watch?v=4JpwNnw0-jI" style="color:#ff6b35;">youtube.com/watch?v=4JpwNnw0-jI</a></div>
+</div>
+
+<h2 id="h2-1">▎ 3-File System 核心</h2>
+
+<div class="file-box">
+  <div class="file-name">📄 instructions.md</div>
+  <div class="file-role">人持有 · 任务定义 + 迭代方向 · Karpathy 原名 program.md</div>
+</div>
+<div class="file-box">
+  <div class="file-name">📄 asset.{html|md|py|...}</div>
+  <div class="file-role">AI 自由改 · 要优化的目标 (代码/邮件/广告/...) · Karpathy 原名 train.md</div>
+</div>
+<div class="file-box">
+  <div class="file-name">📄 scoring.{py|json}</div>
+  <div class="file-role">人持有 (锁定) · 客观评分机制, AI <b>不能动</b> · Karpathy 原名 prepare.md</div>
+</div>
+
+<blockquote>核心安全约束: scoring 文件是「judge the judge」防御模式 — AI 不能写这个文件, 否则会 grade inflation 给自己刷分。本质是 evolutionary biology + natural selection: AI 是 mutation, scoring 是 fitness function, asset 是 genome。</blockquote>
+
+<h2 id="h2-2">▎ 3 Must + 3 Nice 适用标准</h2>
+
+<table>
+<tr><th>档位</th><th>#</th><th>标准</th><th>✅ 适合</th><th>❌ 不适合</th></tr>
+<tr><td rowspan="3"><b>Must-Have</b></td><td>1</td><td>可客观评分</td><td>load time / opens / CTR / CPC</td><td>「更好看」「更有趣」</td></tr>
+<tr><td>2</td><td>快速反馈环</td><td>seconds / hours</td><td>SEO 排名 10 天 / pricing 6 月</td></tr>
+<tr><td>3</td><td>AI 能改 asset</td><td>本地 HTML / API / config</td><td>已发布 YouTube 视频</td></tr>
+<tr><td rowspan="3"><b>Nice-to-Have</b></td><td>4</td><td>高 feedback volume</td><td>50K impressions/day</td><td>50/day</td></tr>
+<tr><td>5</td><td>便宜试错</td><td>image model / LLM 调用</td><td>雇 designer $thousands</td></tr>
+<tr><td>6</td><td>consistent 测量棒</td><td>split test fresh audience</td><td>同列表反复测 (list fatigue)</td></tr>
+</table>
+
+<h2 id="h2-3">▎ 7 个可应用场景 (真实 fit 评估)</h2>
+
+<table>
+<tr><th>场景</th><th>Asset</th><th>Scoring</th><th>真实 fit</th><th>来源 / 备注</th></tr>
+<tr><td>1. coding efficiency</td><td>源码</td><td>load time ms</td><td><span class="check">✅</span></td><td>Karpathy 原 case</td></tr>
+<tr><td>2. 冷邮件 outreach</td><td>subject + body</td><td>positive reply rate</td><td><span class="partial">⚠️</span></td><td>Nick Serev, 24h 偏长</td></tr>
+<tr><td>3. Instagram DM</td><td>DM script</td><td>replies / booking</td><td><span class="partial">⚠️</span></td><td>「book calls, stay human」</td></tr>
+<tr><td>4. 网站 load speed</td><td>HTML/CSS/JS</td><td>load time ms</td><td><span class="check">✅</span></td><td>视频 Case 1 (真实跑)</td></tr>
+<tr><td>5. 销售文案</td><td>sales page</td><td>conversion rate</td><td><span class="partial">⚠️</span></td><td>反馈环 1-24h</td></tr>
+<tr><td>6. 视频 watch time</td><td>YouTube script</td><td>retention %</td><td><span class="cross">❌</span></td><td>已发布视频 AI 不能改</td></tr>
+<tr><td>7. Facebook ads</td><td>ad copy + image</td><td>CPC</td><td><span class="partial">⚠️</span></td><td>视频 Case 3, 长尾 mock</td></tr>
+</table>
+
+<div class="honesty">
+<b>诚实折扣:</b> 3 个 case 实际只有 Case 1 是 Claude Code 真实跑出来 (800ms → 90.5ms, mock website). Case 2/3 全部是 mockup 模拟, 视频里 Dream Labs 自己说「mock data」. 实际生产前需要 24h+ 真实 A/B test 验证.
+</div>
+
+<h2 id="h2-4">▎ 8 个 Key Takeaways</h2>
+<ol class="takeaway-list">
+<li>3 文件信任分离是核心, scoring 必须 lock — system design 而非 prompt trick</li>
+<li>3 Must-Have 缺一不可: 客观评分 + 快速反馈 + AI 能改 asset</li>
+<li>3 Nice-to-Have 强化: 高 volume + 便宜试错 + consistent 测量棒</li>
+<li>Karpathy 原 case: 5-min loop × 83 iter = 11% IQ 提升 (不是 701x — title clickbait)</li>
+<li>3 案例真实匹配度: 网站 ✅ / 冷邮件 ⚠️ / Facebook ads ❌ (越界)</li>
+<li>Eric Su 真实观点: 30 iter/年 → 36,500 iter/年, 数量级跳变才是核心 insight</li>
+<li>AI 不能动 scoring = 游戏化防御 (reproduces Hermes 权限模型同源思路)</li>
+<li>本质 evolutionary biology: AI 是 mutation, scoring 是 fitness, asset 是 genome</li>
+</ol>
+
+<h2 id="h2-5">▎ Framework → Self-Apply Mapping (Patrick 现有系统)</h2>
+
+<table>
+<tr><th>#</th><th>Karpathy 3-File 组件</th><th>Patrick 现有映射</th><th>状态</th><th>说明</th></tr>
+<tr><td>1</td><td>instructions.md (人持有)</td><td><code>~/.claude/CLAUDE.md</code> + <code>~/.hermes/memories/</code></td><td><span class="check">✅</span></td><td>已有, 概念一致</td></tr>
+<tr><td>2</td><td>asset (AI 自由改)</td><td>code files / obsidian notes / skills</td><td><span class="check">✅</span></td><td>已有, AI 已在改</td></tr>
+<tr><td>3</td><td>scoring.md (人持有, 锁定)</td><td>test suite + CI + linter + eval harness</td><td><span class="check">✅</span></td><td>已有, 但分散</td></tr>
+<tr><td>4</td><td>3 Must 标准 (objectivity / speed / access)</td><td>无显式「auto-research 适用性 checklist」</td><td><span class="partial">⚠️</span></td><td>分散在 6-step-eval-sop / gcp-skill-registry, 未集中</td></tr>
+<tr><td>5</td><td>3 Nice 标准 (volume / cost / consistency)</td><td>无</td><td><span class="cross">❌</span></td><td>缺</td></tr>
+<tr><td>6</td><td>5-min 迭代循环 (evolutionary loop)</td><td>无显式 loop 机制</td><td><span class="cross">❌</span></td><td>当前 AI 执行是 1-shot / 1-iter, 没循环迭代</td></tr>
+<tr><td>7</td><td>judge-the-judge 防御 (scoring 不可改)</td><td>git-guardrails (rm -rf 拦截)</td><td><span class="partial">⚠️</span></td><td>有 1 案例, 缺通用框架</td></tr>
+<tr><td>8</td><td>Karpathy「肉电脑」讽刺 + Eric Su 数量级</td><td>无现成数字/数量级观察笔记</td><td><span class="cross">❌</span></td><td>缺洞察, 可沉淀到 ai-mastery-verbs</td></tr>
+</table>
+
+<div class="cover-card">
+  <div style="color:#f7c59f; font-weight:700; margin-bottom:0.4rem;">📊 总体覆盖率</div>
+  <div class="coverage-bar"><div class="coverage-fill" style="width:42.5%">3 ✅ / 2 ⚠️ / 3 ❌ = 42.5%</div></div>
+  <div style="color:#888; font-size:0.85rem; margin-top:0.4rem;">3 个文件架构基本一致, 5 步循环 + judge-the-judge 防御 + 6 项标准 (must+nice) 是 Patrick 系统没有的</div>
+</div>
+
+<h2 id="h2-6">▎ 3 个新机会 (P0 / P1 / P2)</h2>
+
+<div class="opp-box p0">
+  <span class="opp-tag p0">P0 · 5 min</span><span class="opp-title">建 skill: ai-auto-research-3file</span>
+  <p style="color:#c0c0c0; margin:0.5rem 0;">把 Karpathy 3-file 拆解做成 Hermes skill: 1) 评估 metric 是否满足 3 must + 3 nice → 2) 拆分 instructions/asset/scoring 3 文件 → 3) Claude Code 跑 5-min loop 模板 → 4) judge-the-judge 防御 (scoring 不可改).</p>
+  <div class="opp-time">⏱ 5 min · 1 个 SKILL.md + 1 个 prompt 模板 · 立即可复用于: site load speed / skill 自我优化 / 任何可测 metric</div>
+</div>
+
+<div class="opp-box p1">
+  <span class="opp-tag p1">P1 · 30 min</span><span class="opp-title">实验: 给 1 个现有 skill 加 5-min loop</span>
+  <p style="color:#c0c0c0; margin:0.5rem 0;">挑 1 个高频 skill (e.g. video-to-obsidian) 加 5-min loop: scoring = .md 长度 + 关键 takeaway 数 + 红旗命中数. AI 跑 5-min × N iter 优化输出结构. 验证 Karpathy 11% 提升在 Hermes skill 上的复现度.</p>
+  <div class="opp-time">⏱ 30 min · 1 实验 + 1 benchmark · 数字落地: 提升 5% / 10% / 0% 都有数据</div>
+</div>
+
+<div class="opp-box p2">
+  <span class="opp-tag p2">P2 · 2 hour</span><span class="opp-title">建框架: hermes-eval-harness (judge-the-judge 通用化)</span>
+  <p style="color:#c0c0c0; margin:0.5rem 0;">把 git-guardrails / 6-step-eval-sop / six-step-eval-sop 合并为统一「judge-the-judge」框架: 人持有 scoring, AI 持有 asset, instructions 是接口契约. 配套 skill: 任何 AI 输出都有可量化 + AI 不可改的 scoring 通道.</p>
+  <div class="opp-time">⏱ 2 hour · 1 框架 + 3 skill 合并 + 1 end-to-end test · 长期沉淀: 整个 Hermes 系统可观测性</div>
+</div>
+
+<h2 id="h2-7">▎ 关键洞察</h2>
+<blockquote>「The bottleneck no longer is compute. It is your program MD, which is the instructions you're giving your agent.」— Dream Labs AI</blockquote>
+<blockquote>「Most marketing teams will run 30 experiments a year, but the next generation will run 36,500 experiments per year easily.」— Eric Su</blockquote>
+<blockquote>「One day Frontier AI research used to be done by meat computers... synchronize with each other once in a while using soundwave interconnect.」— Karpathy (讽刺「人肉同步」慢)</blockquote>
+
+<h2 id="h2-8">▎ Discussion Questions</h2>
+<ol>
+<li>Karpathy 3 文件系统对你现有 3-层 agent (planning / exec / eval) 是否可整合? 哪一层 = scoring?</li>
+<li>你的业务里哪个 metric <b>同时满足 3 must + 3 nice</b>? 剔除 list fatigue 风险后剩几个?</li>
+<li>长期跑 auto research, scoring 文件怎么防「AI 改 scoring 给自己刷分」的攻击面? (Hermes 现有 git-guardrails 是 1 案例)</li>
+<li>30 → 36,500 experiments/year 数量级跳变对你的 R&D ROI 意味着什么? 跟 Patrick 私募尽调 5 维 (估值/营收/跑道/增长/风险) 哪个维度有交叉?</li>
+</ol>
+
+<div class="honesty">
+<b>本分析基于:</b> 视频自动字幕转录 (English, ASR, 时长 ~24 min) + Karpathy 原 repo README (85K stars GitHub) + Eric Su 二次引用 (Twitter) + Patrick 现有 238 skills 目录覆盖度人工核对. 3 个案例中只有 Case 1 是真实 Claude Code 跑出来, Case 2/3 是 Dream Labs 自承 mock 数据. 评估表中「Patrick 现有映射」为 Hermes skills 目录 grep 结果, 不排除遗漏.
+</div>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

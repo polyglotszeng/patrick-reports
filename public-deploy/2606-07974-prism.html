@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PRISM: PRior-guided Imagination Sampling in World Models</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<!-- frontmatter omitted -->
+<p>title: "PRISM: PRior-guided Imagination Sampling in World Models"</p>
+<p>arxiv_id: "2606.07974"</p>
+<p>date: "2026-06-06"</p>
+<p>tags: [world-model, jepa, model-based-rl, mpc, planning, continuous-control]</p>
+<p>---</p>
+
+<h2>Abstract</h2>
+
+<p>PRISM tackles model-based continuous control with a learned latent (JEPA-style) world model and argues that the bottleneck is not the simulator's fidelity but <strong>which candidate actions the planner evaluates</strong>. It re-uses the world model's frozen encoder to predict a state-conditioned Gaussian action prior, then fuses that prior into the planner's sampling distribution through a parameter-free, precision-weighted Product-of-Gaussians update — no extra VLM, no extra visual encoder.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Action prior from the world model itself</strong>: A lightweight MLP head on the frozen JEPA encoder predicts a state-conditioned Gaussian prior, eliminating the need for an independent VLM or visual encoder</li>
+<li><strong>Precision-weighted Product-of-Gaussians fusion</strong>: Closed-form, parameter-free integration of the learned prior with the planner's sampling distribution — confident where the prior is confident, hands off where it isn't</li>
+<li><strong>Task-agnostic and minimal</strong>: One extra MLP, no new datasets, no auxiliary losses; applicable to any latent world model that exposes a frozen encoder</li>
+<li><strong>Strong empirical gains on standard continuous-control tasks</strong>: +35 percentage points on Cube, +32 percentage points on PushT over vanilla world-model-based MPC, with no significant inference overhead</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>The architecture is a standard JEPA-style latent world model — a vision encoder that maps observations to latents, and a latent dynamics predictor that rolls out future latent states conditioned on actions. On top of this:</p>
+
+<ol>
+<li><strong>Frozen encoder + prior MLP</strong>: The encoder weights are frozen; a small MLP is trained to read the encoder's representation of the current state and emit the parameters (μ, σ) of a state-conditioned Gaussian over candidate actions. Training uses the same dataset as the world model — expert demonstrations are not used as demonstrations but as labels for action supervision.</li>
+<li><strong>Planner sampling distribution</strong>: A model-predictive-control (MPC) planner samples candidate action sequences from a base distribution (typically CEM with isotropic Gaussian proposals).</li>
+<li><strong>Product-of-Gaussians fusion (precision-weighted)</strong>: At each planning step, the base distribution's precision (1/σ²) is added to the prior's precision, and the fused mean is the precision-weighted sum. This is parameter-free, closed-form, and degrades gracefully to the base sampler when the prior is uncertain.</li>
+<li><strong>Closed-loop rollouts</strong>: The world model scores each sampled trajectory; the first action of the best-scoring sequence is executed, and the process repeats.</li>
+</ol>
+
+<p>The key insight is that the world model already encodes the agent's action intuition — extracting it via a single MLP head avoids the architectural bloat of pairing the world model with a separate large VLM.</p>
+
+<h2>Key Results</h2>
+
+<ul>
+<li><strong>Cube task</strong>: +35 percentage points success rate over vanilla world-model-based MPC</li>
+<li><strong>PushT task</strong>: +32 percentage points success rate over vanilla world-model-based MPC</li>
+<li><strong>No significant inference overhead</strong> versus the baseline MPC planner</li>
+<li>Ablations isolate the contribution of (a) re-using the world model encoder vs. a fresh encoder, and (b) Product-of-Gaussians fusion vs. mean-only or variance-only fusion</li>
+<li>PDF: https://arxiv.org/pdf/2606.07974</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>Evaluated on short-horizon continuous-control tasks (Cube, PushT); scaling to longer-horizon tasks, language-conditioned goals, or higher-dimensional action spaces is open</li>
+<li>The prior is Gaussian and unimodal; multi-modal action distributions (e.g., branching strategies) are not explicitly modeled</li>
+<li>The paper assumes the world model is JEPA-style latent; applicability to pixel-space generative world models (e.g., video diffusion) is not explored</li>
+</ul>
+
+<h2>Relevance to Patrick's Research</h2>
+
+<p>PRISM sits at the intersection of Patrick's interests: JEPA-style latent world models, model-based planning, and the question of how a world model is actually *used* rather than how accurately it predicts. The architectural minimalism — one MLP, no new modules — is a useful counterpoint to the "throw a VLM at it" trend in action prior learning. The +35pp / +32pp numbers also provide a clean baseline for comparing any future action-prior work.</p>
+
+</body>
+</html>

@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Sensor Tower《2026 State of AI》报告解读（最佳拍档）— 整合 Dashboard</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大主线</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① ChatGPT 跌下神坛</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 10 亿 MAU 创纪录</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ ⭐ 真实受众跌破 50%</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ ⭐ Claude 增长奇迹</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② Agentic Shopping = 电商核心变革</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ GenAI 推荐流量全面增长</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ ⭐ 增长最猛品类</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ ⭐ 零售平台分化</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ ChatGPT 广告 7 倍增长</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ ⭐ ChatGPT 广告爆发</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 早期集中赛道</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 限制品类</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ AI 全面主流化</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ ⭐ 20 万应用搭载 AI</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ ⭐ 品类下载涨幅</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ 营收</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ 用户跨平台切换常态化</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ ⭐ ChatGPT 是多数竞品的流量来源</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 各产品对外导流占比</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ ⭐ 使用场景分化</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ 付费订阅 = 行业增长新引擎</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ ⭐ Claude ARPPU 暴涨 5 倍</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ ⭐ 全球 AI 应用内购（2026 H1）</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ 使用时长（2026 H1）</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⑦ 头部厂商广告策略分化</a></li>
+      <li><a class="h3-link" href="#h3-32" data-toc-target="h3-32">↳ ⭐ OpenAI 渠道</a></li>
+      <li><a class="h3-link" href="#h3-33" data-toc-target="h3-33">↳ ⭐ Anthropic 渠道（电视 + 网络流媒体）</a></li>
+      <li><a class="h3-link" href="#h3-34" data-toc-target="h3-34">↳ Google 渠道</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⑧ 全应用搭载 AI</a></li>
+      <li><a class="h3-link" href="#h3-39" data-toc-target="h3-39">↳ ⭐ 20 万应用 + 100 亿下载</a></li>
+      <li><a class="h3-link" href="#h3-40" data-toc-target="h3-40">↳ ⭐ 健康 +651% / 金融 +536%</a></li>
+      <li><a class="h3-link" href="#h3-41" data-toc-target="h3-41">↳ 新增 AI 功能 4 大赛道（涨幅 > 180%）</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔗 与 Patrick 工作的关联（⭐ 17 card）</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-46" data-toc-target="h3-46">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-47" data-toc-target="h3-47">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-48" data-toc-target="h3-48">↳ 长期</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（精选）</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">🔗 资源</a></li>
+      <li><a class="h3-link" href="#h3-49" data-toc-target="h3-49">↳ 主要链接</a></li>
+      <li><a class="h3-link" href="#h3-50" data-toc-target="h3-50">↳ 5 大 AI 助手</a></li>
+      <li><a class="h3-link" href="#h3-51" data-toc-target="h3-51">↳ 2 大 AI 购物助手</a></li>
+  </ol>
+</aside>
+
+
+<h1>Sensor Tower《2026 State of AI》报告解读</h1>
+<p class="subtitle">最佳拍档（主持：大飞）· 27.4 min 中文深度解读 + Sensor Tower 报告中文翻译 + 整合分析</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=MxpuORrjc1E" target="_blank">State of AI 2026 报告解读</a></span>
+  <span><strong>频道：</strong>最佳拍档</span>
+  <span><strong>报告：</strong><a href="https://sensortower.com/blog/state-of-ai-2026" target="_blank">Sensor Tower State of AI 2026</a></span>
+  <span><strong>语言：</strong>中文（zh-Hans）</span>
+  <span><strong>时长：</strong>27.4 min (553 raw · 57 paras)</span>
+  <span><strong>报告日期：</strong>2026-06</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"2026 年生成式 AI 行业已走完野蛮生长的初期阶段。流量增长重心从新增下载转向用户留存、付费转化、跨行业落地。AI 不再是独立品类，而是成为整个互联网的行为层 + 商业层。"</b></p>
+  <p style="margin-top: 0.6rem;"><b>5 大主线</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li>⭐ <b>ChatGPT 跌下神坛</b>（10 亿 MAU 创纪录 / 真实受众跌破 50% / Claude +452%）</li>
+    <li>⭐ <b>Agentic Shopping 爆发</b>（Rufus 转化率 2x / Sparky 客单价 +35% / Walmart AI 流量 1.5%+）</li>
+    <li>⭐ <b>ChatGPT 广告 7 倍增长</b>（3 个月 / OpenAI 广告 +800% / Anthropic +1184%）</li>
+    <li>⭐ <b>AI 全面主流化</b>（20 万应用 / 13 亿美元 AI 宣传广告 / 健康类搜索 +651%）</li>
+    <li>⭐ <b>市场从单一主导 → 多玩家竞争</b>（Gemini 28% / Claude 14% 美国 / 用户跨平台切换常态化）</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">ChatGPT 10 亿 MAU</div>
+    <div class="value">3 年</div>
+    <div class="sub">史上最快（快过 TikTok/YouTube/IG）</div>
+  </div>
+  <div class="stat red">
+    <div class="label">ChatGPT 真实受众</div>
+    <div class="value">< 50%</div>
+    <div class="sub">2026/3 首次跌破 50%</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">Claude 真实受众 YoY</div>
+    <div class="value">+452%</div>
+    <div class="sub">美国份额 4.4% → 14%</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">2026 H1 AI 内购</div>
+    <div class="value">$4B</div>
+    <div class="sub">YoY +36%（Claude ARPPU +452%）</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Anthropic 广告 YoY</div>
+    <div class="value">+1184%</div>
+    <div class="sub">OpenAI +800% / 印度 +912%</div>
+  </div>
+  <div class="stat">
+    <div class="label">AI 宣传广告</div>
+    <div class="value">$1.3B</div>
+    <div class="sub">2026 前 5 月（1670 亿曝光）</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心</button>
+  <button class="tab" data-tab="t1">① ChatGPT 跌下</button>
+  <button class="tab" data-tab="t2">② Agentic Shopping</button>
+  <button class="tab" data-tab="t3">③ ChatGPT 广告</button>
+  <button class="tab" data-tab="t4">④ AI 主流化</button>
+  <button class="tab" data-tab="t5">⑤ 跨平台</button>
+  <button class="tab" data-tab="t6">⑥ 付费订阅</button>
+  <button class="tab" data-tab="t7">⑦ 广告策略</button>
+  <button class="tab" data-tab="t8">⑧ 全应用 AI</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+  <button class="tab" data-tab="links">🔗 资源</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🔥 核心论点</h2>
+
+  <blockquote>
+    "2026 年生成式 AI 行业已走完野蛮生长的初期阶段。<b>流量增长重心从新增下载转向用户留存、付费转化、跨行业落地</b>。AI 不再是独立品类，而是成为整个互联网的行为层 + 商业层。"
+  </blockquote>
+
+  <h3 id="h3-1">5 大主线</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>① ChatGPT 跌下</h4>
+      <p>10 亿 MAU 创纪录 / 跌破 50%</p>
+      <p style="margin-top: 0.4rem;">Claude <b>+452%</b> · Anthropic 拒绝国防部</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② Agentic Shopping</h4>
+      <p>Amazon Rufus / Walmart Sparky</p>
+      <p style="margin-top: 0.4rem;">Rufus <b>2x 转化率</b> · Sparky <b>客单价 +35%</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ ChatGPT 广告</h4>
+      <p>3 个月涨 7x</p>
+      <p style="margin-top: 0.4rem;">OpenAI <b>+800%</b> · Anthropic <b>+1184%</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>④ AI 主流化</h4>
+      <p>20 万应用 / 100 亿下载</p>
+      <p style="margin-top: 0.4rem;">健康 <b>+651%</b> · 金融 <b>+536%</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>⑤ 跨平台</h4>
+      <p>Gemini 28% / Claude 10%</p>
+      <p style="margin-top: 0.4rem;">用户 <b>无忠诚</b> · 跨平台切换常态化</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① ChatGPT 跌下神坛</h2>
+
+  <h3 id="h3-2">10 亿 MAU 创纪录</h3>
+  <div class="card" style="border-left: 3px solid var(--green); margin-bottom: 1rem;">
+    <p style="font-size: 1.05rem;">"ChatGPT 在 2026 年 5 月达 <b>10 亿月活</b>，仅用 3 年（vs TikTok/YouTube/Instagram 都更慢）。"</p>
+  </div>
+
+  <h3 id="h3-3">⭐ 真实受众跌破 50%</h3>
+  <table>
+    <thead>
+      <tr><th>排名</th><th>产品</th><th>2026 Q2 全球份额</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>ChatGPT</td>
+        <td><b>46%</b>（首次跌破 50% · 2026/3）</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Google Gemini</td>
+        <td>28%</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Claude</td>
+        <td>10%</td>
+      </tr>
+      <tr>
+        <td>其他</td>
+        <td>--</td>
+        <td>16%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-4">⭐ Claude 增长奇迹</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>真实受众 <b>+452% YoY</b>（5 月）</li>
+    <li>美国份额 <b>4.4% → 14%</b>（同期）</li>
+    <li><b>2026/3/1-5 日下载量 > ChatGPT</b>（历史首次）</li>
+  </ul>
+
+  <h3 id="h3-5">⭐ OpenAI vs 国防部 = 用户大迁徙</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p style="font-size: 1.05rem;">OpenAI 与美国国防部合作 → ChatGPT 卸载峰值 <b>+202%</b>（3 月 9-15 日那周）→ 同期 Anthropic 拒绝合作 → 用户转 Claude</p>
+  </div>
+
+  <h3 id="h3-6">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>Moon "Mythos deliberately changes behavior"</b> 警告 → OpenAI 合作 = Mythos safety net 失败 → 警示</p>
+  </div>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② Agentic Shopping = 电商核心变革</h2>
+
+  <h3 id="h3-7">GenAI 推荐流量全面增长</h3>
+  <p>AI 助手正日益影响消费者在线发现和评估产品的方式。Q4 2024 → Q1 2026，<b>所有主要零售品类都实现增长</b>。</p>
+
+  <h3 id="h3-8">⭐ 增长最猛品类</h3>
+  <table>
+    <thead>
+      <tr><th>品类</th><th>增长情况</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>计算机与消费电子</b></td>
+        <td>涨幅近 <b>4 倍</b>（0.2% → 0.8%）</td>
+      </tr>
+      <tr>
+        <td>家居园艺 + 户外运动</td>
+        <td>全部 > <b>0.35%</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-9">⭐ 零售平台分化</h3>
+  <table>
+    <thead>
+      <tr><th>平台</th><th>AI 流量占比</th><th>策略</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Walmart / Target</b></td>
+        <td><b>>1.5%</b></td>
+        <td>主动与 AI 集成</td>
+      </tr>
+      <tr>
+        <td>Amazon</td>
+        <td>~0.5%</td>
+        <td>屏蔽爬虫 + 封闭</td>
+      </tr>
+      <tr>
+        <td>Temu / Shein</td>
+        <td>~0.3%</td>
+        <td>跨境弱</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-10">⭐ Rufus vs Sparky</h3>
+  <div class="compare">
+    <div class="cmp good">
+      <h4>🟢 Amazon Rufus</h4>
+      <ul>
+        <li>转化率 <b>2x 普通用户</b>（40% vs 20%）</li>
+        <li>停留时长 <b>60 min vs 15 min</b></li>
+        <li>大促差距进一步拉大</li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>🟢 Walmart Sparky</h4>
+      <ul>
+        <li>月活占比 <b>+27%</b>（5 月）</li>
+        <li>日均活跃 <b>+50%</b></li>
+        <li>客单价 <b>+35%</b></li>
+        <li>周活翻倍</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-11">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>Airtable Howie "Virtual Twin" = Agentic Shopping 终极形态</b></p>
+  </div>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ ChatGPT 广告 7 倍增长</h2>
+
+  <h3 id="h3-12">⭐ ChatGPT 广告爆发</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p style="font-size: 1.05rem;">2 月开始测试 → <b>5 月底广告总量涨 7x</b>（3 个月）</p>
+  </div>
+
+  <h3 id="h3-13">早期集中赛道</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>零售购物 / 软件工具（合计 ~50%）</li>
+    <li>家居园艺 / 服饰 / 消费电子 / 影音娱乐 / 外卖配送 / 教育求职 / 旅游预订 / 金融服务</li>
+  </ul>
+
+  <h3 id="h3-14">限制品类</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>金融：仅认证合作方</li>
+    <li>博彩 / 医疗医药：严格限制</li>
+  </ul>
+
+  <h3 id="h3-15">⭐ AI 品牌广告投放</h3>
+  <table>
+    <thead>
+      <tr><th>厂商 / 区域</th><th>同比涨幅</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Anthropic</b></td>
+        <td><b>+1184%</b></td>
+      </tr>
+      <tr>
+        <td>印度</td>
+        <td>+912%</td>
+      </tr>
+      <tr>
+        <td><b>OpenAI</b></td>
+        <td><b>+800%</b></td>
+      </tr>
+      <tr>
+        <td>日本</td>
+        <td>+710%</td>
+      </tr>
+      <tr>
+        <td>英国</td>
+        <td>+500%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-16">13 亿美元 AI 宣传广告（2026 前 5 月）</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>同比 <b>+48%</b> · 1670 亿曝光 · 同比 +46%</p>
+    <p style="margin-top: 0.4rem;">健康 <b>+165%</b> · 金融/工业/影音均 > 60%</p>
+  </div>
+
+  <h3 id="h3-17">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>"AI 工具本身成为新广告阵地"</b> = Google/Meta/TikTok 之后的<b>第 4 数字广告渠道</b></p>
+  </div>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ AI 全面主流化</h2>
+
+  <h3 id="h3-18">⭐ 20 万应用搭载 AI</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">全球 <b>> 20 万</b> iOS/Google Play 应用在描述中提 AI</p>
+    <p style="margin-top: 0.4rem;">2026 H1 累计下载 <b>~100 亿次</b>（YoY +25%，对比 2023 H1 涨 173%）</p>
+  </div>
+
+  <h3 id="h3-19">⭐ 品类下载涨幅</h3>
+  <table>
+    <thead>
+      <tr><th>品类</th><th>同比涨幅</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>健康</b></td>
+        <td><b>+651%</b> ⭐</td>
+      </tr>
+      <tr>
+        <td><b>金融服务</b></td>
+        <td><b>+536%</b> ⭐</td>
+      </tr>
+      <tr>
+        <td>办公软件 / 求职教育</td>
+        <td>翻倍</td>
+      </tr>
+      <tr>
+        <td>求职 / 教育 / 生活 / 健康 / 金融 / 购物</td>
+        <td>全部 > 40%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-20">营收</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>2026 H1 AI 应用内购 <b>$12B</b>（YoY +61%）</li>
+    <li>纯 GenAI 工具 = $4B</li>
+    <li><b>ChatGPT 单一 > $2.5B</b></li>
+    <li>剔除 GenAI 工具后 = YoY +40%</li>
+  </ul>
+
+  <h3 id="h3-21">新增 AI 功能 4 大赛道（涨幅 > 180%）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>视频剪辑</li>
+    <li>图片编辑</li>
+    <li>AI 内容生成</li>
+    <li>AI 虚拟陪伴</li>
+  </ol>
+</div>
+
+<!-- TAB 6: T5 -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ 用户跨平台切换常态化</h2>
+
+  <h3 id="h3-22">⭐ ChatGPT 是多数竞品的流量来源</h3>
+  <table>
+    <thead>
+      <tr><th>竞品</th><th>ChatGPT 贡献的外部流量</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Google Gemini</td>
+        <td>7%</td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>8%</td>
+      </tr>
+      <tr>
+        <td>DeepSeek</td>
+        <td>9%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-23">各产品对外导流占比</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>ChatGPT：5%（用户粘性强）</li>
+    <li>DeepSeek：20%</li>
+    <li>Grok：19%</li>
+    <li><b>Claude：留存粘性最强</b>（竞品流入 > 自身流出）</li>
+  </ul>
+
+  <h3 id="h3-24">⭐ 使用场景分化</h3>
+  <table>
+    <thead>
+      <tr><th>产品</th><th>核心场景</th><th>关联流量</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Grok</b></td>
+        <td>加密货币交易者</td>
+        <td>普通人群的 <b>4 倍</b></td>
+      </tr>
+      <tr>
+        <td><b>Claude</b></td>
+        <td>高端旅行 / 轻奢消费</td>
+        <td>LinkedIn / GitHub 各 <b>20%</b></td>
+      </tr>
+      <tr>
+        <td>ChatGPT / Perplexity</td>
+        <td>电商购物调研</td>
+        <td>购物网站 <b>4.5% / 4.2%</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-25">月度使用时长（用户粘性）</h3>
+  <table>
+    <thead>
+      <tr><th>产品</th><th>2025 Q1</th><th>2026 Q1</th><th>变化</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>ChatGPT</b></td>
+        <td>215 min</td>
+        <td>215 min</td>
+        <td>小幅下滑</td>
+      </tr>
+      <tr>
+        <td><b>DeepSeek</b></td>
+        <td>57 min</td>
+        <td><b>189 min</b></td>
+        <td><b>+231%</b></td>
+      </tr>
+      <tr>
+        <td>Gemini</td>
+        <td>14 min</td>
+        <td><b>100 min</b></td>
+        <td><b>+614%</b></td>
+      </tr>
+      <tr>
+        <td>Claude</td>
+        <td>40 min</td>
+        <td><b>120 min</b></td>
+        <td><b>+200%</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-26">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>Bryant "Clone Yourself 500-1000x" + OpenClaw multi-agent</b> = 单一工具不足以覆盖所有场景</p>
+  </div>
+</div>
+
+<!-- TAB 7: T6 -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ 付费订阅 = 行业增长新引擎</h2>
+
+  <h3 id="h3-27">⭐ Claude ARPPU 暴涨 5 倍</h3>
+  <table>
+    <thead>
+      <tr><th>产品</th><th>2025/9</th><th>2026/5</th><th>涨幅</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Claude</b></td>
+        <td>< $0.5</td>
+        <td><b>$2.76</b></td>
+        <td><b>+452%</b></td>
+      </tr>
+      <tr>
+        <td>Perplexity</td>
+        <td colspan="3">同步上涨</td>
+      </tr>
+      <tr>
+        <td>Grok</td>
+        <td colspan="3">同步上涨</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-28">⭐ 全球 AI 应用内购（2026 H1）</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>$4B</b> 收入（YoY +36%）</li>
+    <li>下载增速放缓（2025 H2 26% → 2026 H1 7%）</li>
+    <li>付费增长加速（YoY +36%）</li>
+    <li>核心驱动：Claude / Grok / Perplexity 完善付费订阅</li>
+  </ul>
+
+  <h3 id="h3-29">使用时长（2026 H1）</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>全球总使用时长 <b>360 亿小时</b>（YoY 翻倍）</li>
+    <li>总打开会话 <b>9650 亿次</b>（vs 2 年前 +12 倍）</li>
+    <li>网页端访问 670 亿次（YoY +28%）</li>
+    <li>网页端时长 230 亿小时（YoY +41%）</li>
+  </ul>
+
+  <h3 id="h3-30">区域付费收入</h3>
+  <table>
+    <thead>
+      <tr><th>区域</th><th>2026 Q1 内购</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>北美</b></td>
+        <td><b>$7.3 亿</b>（全球最高）</td>
+      </tr>
+      <tr>
+        <td>欧洲</td>
+        <td>$5.21 亿</td>
+      </tr>
+      <tr>
+        <td>亚洲</td>
+        <td>$3.3 亿</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-31">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>Howie "Virtual Twin = Singularity is happening"</b> → 付费意愿 = 真需求</p>
+  </div>
+</div>
+
+<!-- TAB 8: T7 -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-9" class="section">⑦ 头部厂商广告策略分化</h2>
+
+  <h3 id="h3-32">⭐ OpenAI 渠道</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>YouTube（<1% → <b>15%</b>）/ LinkedIn（→ <b>16%</b>）</li>
+    <li>推 Codex + 开发者</li>
+    <li>减少加州/德州/佛州饱和州 → 中西部/南部/山地州</li>
+  </ul>
+
+  <h3 id="h3-33">⭐ Anthropic 渠道（电视 + 网络流媒体）</h3>
+  <blockquote>
+    "Anthropic 跳出 LinkedIn 单一渠道 → <b>电视 + 网络流媒体</b>（覆盖泛大众）"
+  </blockquote>
+
+  <h3 id="h3-34">Google 渠道</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Instagram + TikTok 大众社交</li>
+    <li>CapCut 创作者平台</li>
+  </ul>
+
+  <h3 id="h3-35">⭐ 超级碗策略</h3>
+  <table>
+    <thead>
+      <tr><th>策略</th><th>厂商</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>仅 NFL 常规赛</td>
+        <td>Copilot / Gemini</td>
+      </tr>
+      <tr>
+        <td>加码超级碗</td>
+        <td>ChatGPT / Claude / Genspark / Base44</td>
+      </tr>
+      <tr>
+        <td><b>100% 电视预算投超级碗</b></td>
+        <td>Genspark + Base44</td>
+      </tr>
+      <tr>
+        <td>活动后下载单日涨幅</td>
+        <td><b>+485%</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-36">渠道分配（2026 Q1）</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>Instagram：<b>10% → 18%</b></li>
+    <li>Facebook：<b>6% → 16%</b></li>
+    <li>移动端应用内广告：<b>25% → 8%</b>（下滑）</li>
+    <li>线性电视 + 桌面视频：上涨</li>
+  </ul>
+
+  <h3 id="h3-37">创意内容定位变化</h3>
+  <table>
+    <thead>
+      <tr><th>厂商</th><th>创意演变</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>ChatGPT</b></td>
+        <td>2025 H1 = 54% 学习 → 2026 = 28% 日常 + 16% 中小企业</td>
+      </tr>
+      <tr>
+        <td>Gemini</td>
+        <td>聚焦图像生成 + 教育（合计 76%）</td>
+      </tr>
+      <tr>
+        <td>Copilot</td>
+        <td>实用工具（日常 48% + 办公 24%）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-38">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>"广告战 = Agent War"</b> = AI 时代的渠道之战</p>
+  </div>
+</div>
+
+<!-- TAB 9: T8 -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-10" class="section">⑧ 全应用搭载 AI</h2>
+
+  <h3 id="h3-39">⭐ 20 万应用 + 100 亿下载</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"当下 AI 不再局限于专门的生成式 AI 聊天工具——<b>全品类移动应用大规模搭载 AI 功能</b>"</p>
+  </div>
+
+  <h3 id="h3-40">⭐ 健康 +651% / 金融 +536%</h3>
+  <table>
+    <thead>
+      <tr><th>细分</th><th>应用 AI 案例</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>金融</td>
+        <td>AI 投资 / 票据识别</td>
+      </tr>
+      <tr>
+        <td>游戏</td>
+        <td>AI 对手 / AI 路况</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-41">新增 AI 功能 4 大赛道（涨幅 > 180%）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>视频剪辑（自动字幕、抠图、智能追踪）</li>
+    <li>图片编辑（文生图、音效增强）</li>
+    <li>AI 内容生成</li>
+    <li>AI 虚拟陪伴</li>
+  </ol>
+
+  <h3 id="h3-42">⭐ AI 陪伴 vs 传统约会</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>AI 陪伴</th><th>传统约会</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>美国市场时长</td>
+        <td><b>持续上涨</b></td>
+        <td><b>逐年下滑</b></td>
+      </tr>
+      <tr>
+        <td>使用逻辑</td>
+        <td>持续情感交互</td>
+        <td>匹配成功后流失</td>
+      </tr>
+      <tr>
+        <td>下载初期留存</td>
+        <td>门槛更高（需自定义）</td>
+        <td>表现更好（滑动匹配）</td>
+      </tr>
+      <tr>
+        <td>长期留存</td>
+        <td><b>更强</b></td>
+        <td>弱（一次性匹配）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-43">13 亿美元 AI 宣传广告（2026 前 5 月）</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>总投入 <b>$1.3B</b>（YoY +48%）</li>
+    <li>1670 亿曝光（YoY +46%）</li>
+    <li>健康 <b>+165%</b> · 金融/工业/影音 > 60%</li>
+    <li>软件类 ~7 万条 AI 素材</li>
+    <li>百思买 AI 硬件投放曝光 <b>> 20 亿次</b></li>
+  </ul>
+
+  <h3 id="h3-44">GenAI 原生厂商占比</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>2024：仅占 AI 广告总预算 <b>5%</b></li>
+    <li>2026 前 5 月：升至 <b>18%</b></li>
+    <li>曝光占比翻 4 倍至 <b>23%</b></li>
+  </ul>
+
+  <h3 id="h3-45">Patrick 启示</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>= <b>OpenClaw "Virtual Twin"</b> = AI 陪伴的长期价值模型</p>
+  </div>
+</div>
+
+<!-- TAB 10: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-11" class="section">🔗 与 Patrick 工作的关联（⭐ 17 card）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 5 工具（OODA + Infinite Brain）</h4>
+      <p>Telegram / Content / Checker / Heartbeat / Router</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：报告"如何应对"实战 = 5 大主动 loop</p>
+    </div>
+    <div class="card">
+      <h4>🔗 L8 Principal (Kun)</h4>
+      <p>"Captain + crew + ship"</p>
+      <p>Gemini 28% + Claude 10% = 多 harness</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale via Claude</p>
+    </div>
+    <div class="card">
+      <h4>🔗 AI-First Peter</h4>
+      <p>"Self-Improving Skills + 1 person = 3 outlets"</p>
+      <p>Claude ARPPU 5x = 1 user 高 LTV</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：高 LTV users</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Airtable Howie</h4>
+      <p>"Tinker + Top 1% + Virtual Twin"</p>
+      <p>Claude 14% 美国 = Top 1% 集中</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：AI 是行为层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Looped World Model (Discover)</h4>
+      <p>"Looped Transformer T=100"</p>
+      <p>ChatGPT 3 年 10 亿 = 100x scale</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale via loop</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OODA + Infinite Brain (AI Impact)</h4>
+      <p>"Orient is missing"</p>
+      <p>多 AI 工具切换 = Infinite Brain 实战</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Orient + Multi-tool</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw Multi-Agent</h4>
+      <p>"multi-agent + latent state"</p>
+      <p>多 AI 互为流量 = multi-agent</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：multi-agent 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 FDE 40B</h4>
+      <p>"AI 落地 + Lesson learned"</p>
+      <p>ChatGPT 卸载 +202% → Claude 涨 = 用户反馈</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：AI 商业化落地</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>"scale 永远 work"</p>
+      <p>ChatGPT 10 亿 MAU + Claude +452%</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>"Top 1% + High-Agency"</p>
+      <p>Claude 14% 美国 + Anthropic 拒合作</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Top 1% + High-Agency</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant Clone Yourself</h4>
+      <p>"Clone 500-1000x"</p>
+      <p>10 亿 MAU = 1 产品全球克隆</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：scale 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White Open Source</h4>
+      <p>"Open source democratize"</p>
+      <p>Walmart / Target 主动集成 = democratize</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：democratize</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon "Anthropic Mythos"</h4>
+      <p>"Mythos deliberately changes behavior"</p>
+      <p>OpenAI 国防部合作 → Mythos safety net 失败</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：企业决策 = 用户信任</p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>"用户掌控 + 极简 + 自扩展"</p>
+      <p>20 万应用 + 100 亿下载 = 自扩展生态</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：v1.3.0 = 报告笔记层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>"Complex system · cause-effect"</p>
+      <p>AI 行业 7 大生态变量 = systems feedback</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：systems 哲学</p>
+    </div>
+    <div class="card">
+      <h4>🔗 ChatGPT/Anthropic Subscription</h4>
+      <p>"monthly fee"</p>
+      <p>Claude ARPPU $2.76 = 订阅制落地</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：订阅制商业模式</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Karpathy Auto-Research 3-File</h4>
+      <p>"3-File pattern"</p>
+      <p>3 个 AI 助手 = 用户 3-tool workflow</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：多源研究</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-12" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-46">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>建 Patrick AI 监控 dashboard</b>：
+      <ul>
+        <li>Telegram bot = 5 大 AI 工具新闻</li>
+        <li>Heartbeat 30-min 监控 AI 行业 news</li>
+      </ul>
+    </li>
+    <li><b>跑 Agentic Shopping 实战</b>：
+      <ul>
+        <li>测 Rufus / Sparky 类似工具</li>
+        <li>= Patrick 自己的 shopping 体验升级</li>
+      </ul>
+    </li>
+    <li><b>测 Claude 高付费场景</b>：
+      <ul>
+        <li>Patrick 用 Claude 处理专业工作</li>
+        <li>跟 OpenAI ChatGPT 分工</li>
+      </ul>
+    </li>
+    <li><b>建 Wager 系统</b>：
+      <ul>
+        <li>每次 AI 工具决策 = AI 起草 wager + 1-2 月后 verdict</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-47">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "AI 工具组合"</b>：
+      <ul>
+        <li>跨 4 video + 1 report + 5 工具</li>
+        <li>= 多 AI 协作 + OODA + Infinite Brain + Wager</li>
+      </ul>
+    </li>
+    <li><b>跑 AI 广告策略</b>：
+      <ul>
+        <li>Patrick 个人品牌测试 GenAI 相关广告</li>
+        <li>= 报告"OODA 实操"</li>
+      </ul>
+    </li>
+    <li><b>测跨 AI 工具切换 workflow</b>：
+      <ul>
+        <li>Claude + ChatGPT + Gemini + Perplexity</li>
+        <li>= 报告"用户跨平台行为"实战</li>
+      </ul>
+    </li>
+    <li><b>建 Disposition 路由</b>：
+      <ul>
+        <li>T0/T1/T2/T3 = Claude ARPPU 5x 验证</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-48">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "AI Market Intelligence"</b>：
+      <ul>
+        <li>持续监控 Sensor Tower 报告</li>
+        <li>= "Infinite Brain for AI Market"</li>
+      </ul>
+    </li>
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享"AI 行业 2026 报告"</li>
+        <li>v1.3.0 + 报告 + 5 工具 + Wager</li>
+      </ul>
+    </li>
+    <li><b>持续 OODA 实操</b>：
+      <ul>
+        <li>每次 fail verdict = ORIENT 缺口</li>
+        <li>每次 success verdict = ORIENT 强</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 12: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">⭐ Bigger Picture</div>
+      <div class="text">2026 年生成式 AI 行业已走完野蛮生长的初期阶段。AI 不再是独立品类，而是成为整个互联网的行为层 + 商业层。</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ 10 亿 MAU</div>
+      <div class="text">ChatGPT 用 <b>3 年达到 10 亿月活</b>，比 TikTok/YouTube/Instagram 都快。</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ 跌破 50%</div>
+      <div class="text">ChatGPT 真实受众首次跌破 <b>50%</b>（2026/3）。</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Claude +452%</div>
+      <div class="text">Claude 真实受众 <b>+452% YoY</b>，美国份额从 4.4% 升至 14%。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Rufus 转化率</div>
+      <div class="text">Rufus 用户转化率 <b>接近普通用户 2 倍</b>（40% vs 20%）。</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ Sparky 客单价</div>
+      <div class="text">Walmart Sparky 客单价<b>比普通用户高 35%</b>。</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ ChatGPT 广告</div>
+      <div class="text">ChatGPT 广告总量 <b>3 个月涨 7 倍</b>。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ AI 品牌广告</div>
+      <div class="text">AI 品牌投放 OpenAI <b>+800%</b> / Anthropic <b>+1184%</b>。</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ 超级碗</div>
+      <div class="text">Genspark + Base44 把 100% 电视预算投超级碗 → 下载单日 <b>+485%</b>。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ Claude ARPPU</div>
+      <div class="text">Claude ARPPU 从 &lt;$0.5 涨到 <b>$2.76</b>（+452%）。</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ AI 全面主流化</div>
+      <div class="text"><b>20 万应用 + 13 亿美元 AI 宣传广告 + 100 亿下载</b> = AI 全面主流化。</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ 健康 + 金融</div>
+      <div class="text">健康类应用 AI 搜索涨幅 <b>+651%</b>，金融服务 <b>+536%</b>。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">⭐ 4 维度</div>
+      <div class="text">AI 行业 2026 报告：<b>C 端用户行为 / 电商变革 / 广告生态 / 区域市场差异</b>。</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Anthropic 拒合作</div>
+      <div class="text">Anthropic 拒绝五角大楼合作 → 用户大迁徙到 Claude = <b>High-Agency</b> 实战。</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ 美国厂商</div>
+      <div class="text">美国厂商贡献 <b>60% 下载 / 85% 付费</b> = 全球 AI 助手主导。</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 "2026 AI 市场结构性转变"（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:36</div>
+      <div class="what">⭐ 报告核心结论 #1 = 市场高度集中但用户无忠诚（89% / 前 3）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:04</div>
+      <div class="what">"ChatGPT 真实受众首次跌破 50%（2026/3）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:31</div>
+      <div class="what">"2026 H1 行业增长从下载 → 付费"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:57</div>
+      <div class="what">⭐ "Claude ARPPU 从 <$0.5 涨到 $2.76"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:28</div>
+      <div class="what">⭐ 报告核心结论 #2 = Agentic Shopping 重构电商</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:01</div>
+      <div class="what">"Rufus 转化率 2x + Sparky 客单价 +35%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:29</div>
+      <div class="what">⭐ 报告核心结论 #3 = AI 成为流量 + 广告新阵地</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:42</div>
+      <div class="what">"健康 +651% / 金融 +536% / 办公翻倍"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:02</div>
+      <div class="what">⭐ 报告核心结论 #4 = AI 不再独立品类 = 行为层</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:07</div>
+      <div class="what">⭐ "ChatGPT 10 亿 MAU（3 年创纪录）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:33</div>
+      <div class="what">"前三名占 89% 时长 / Gemini 28% / Claude 10%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:05</div>
+      <div class="what">"OpenAI 国防部合作 → 卸载 +202% / Claude +452%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:42</div>
+      <div class="what">"2026/3/1-5 Claude 下载 > ChatGPT（历史首次）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:09</div>
+      <div class="what">"流失率 ChatGPT 12.7% → 14.5% / Claude 留存向 ChatGPT 靠拢"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:37</div>
+      <div class="what">⭐ "Agentic Shopping = 5 品类 AI 流量全部增长"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:57</div>
+      <div class="what">"电子产品 +4 倍 / Walmart 1.5%+ / Amazon 屏蔽爬虫"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:37</div>
+      <div class="what">"Rufus 停留 60 min vs 普通 15 min / Sparky 客单价 +35%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:22</div>
+      <div class="what">"ChatGPT 广告 7x（3 个月）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:43</div>
+      <div class="what">"OpenAI +800% / Anthropic +1184%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:02</div>
+      <div class="what">"13 亿美元 AI 宣传广告 / 1670 亿曝光"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:22</div>
+      <div class="what">⭐ 报告第二大部分 = 全球大盘</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:55</div>
+      <div class="what">"$4B 2026 H1 内购（YoY +36%）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:09</div>
+      <div class="what">"使用时长 360 亿小时（YoY 翻倍）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:39</div>
+      <div class="what">"印度 130 亿访问 / 美国 80 亿访问"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:03</div>
+      <div class="what">"亚洲 13 季度首次下滑"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:23</div>
+      <div class="what">"巴西下载超中国升至全球第三"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:48</div>
+      <div class="what">"美国厂商贡献 60% 下载 / 85% 付费"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:32</div>
+      <div class="what">"AI 助手集中度 89% / 陪伴 66% / 内容生成 <40%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:21</div>
+      <div class="what">"ChatGPT 是 Gemini 7% / Claude 8% 流量来源"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:50</div>
+      <div class="what">⭐ 报告第三大部分 = AI 消费者行为</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:00</div>
+      <div class="what">"ChatGPT 女性 32% → 35% / Copilot 33% → 39%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:24</div>
+      <div class="what">"Grok 加密货币 4x / Claude 高端旅行"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:14</div>
+      <div class="what">"ChatGPT 215 min/月 / DeepSeek 57 → 189 min"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:44</div>
+      <div class="what">"Claude LinkedIn 20% / ChatGPT 购物 4.5%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:53</div>
+      <div class="what">⭐ 报告第四部分 = GenAI 品牌营销</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:13</div>
+      <div class="what">"美国 +3 倍 / 印度 +912% / 日本 +710%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:49</div>
+      <div class="what">"Instagram 10% → 18% / Facebook 6% → 16%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:17</div>
+      <div class="what">"Anthropic 跳出 LinkedIn → 电视"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:47</div>
+      <div class="what">"Genspark + Base44 100% 电视预算投超级碗 → +485% 下载"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:28</div>
+      <div class="what">"ChatGPT 减少加州 → 中西部 / 南部"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:55</div>
+      <div class="what">⭐ 报告第五部分 = 全应用 AI 渗透</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:12</div>
+      <div class="what">"20 万应用 + 100 亿下载（YoY +25%）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:30</div>
+      <div class="what">"健康 +651% / 金融 +536%"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:09</div>
+      <div class="what">"$12B 2026 H1 AI 应用内购（ChatGPT 单一 > $2.5B）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:41</div>
+      <div class="what">"新增 AI 功能 4 大赛道：剪辑/编辑/生成/陪伴"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:13</div>
+      <div class="what">"AI 陪伴美国时长持续涨 / 传统约会下滑"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:45</div>
+      <div class="what">⭐ 报告第六部分 = AI 数字广告趋势</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:09</div>
+      <div class="what">"13 亿 AI 宣传广告（YoY +48%）"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:17</div>
+      <div class="what">"健康 +165% / 软件 7 万条 AI 素材"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:57</div>
+      <div class="what">"百思买 AI 硬件投放曝光 > 20 亿次"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">27:37</div>
+      <div class="what">🎯 "AI 不再是独立品类 = 行为层 + 商业层"（结尾）</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: LINKS -->
+<div class="tab-content" data-tab-content="links">
+  <h2 id="h2-15" class="section">🔗 资源</h2>
+
+  <h3 id="h3-49">主要链接</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>📺 <a href="https://www.youtube.com/watch?v=MxpuORrjc1E">State of AI 2026 报告解读（最佳拍档）</a></li>
+    <li>📄 <a href="https://sensortower.com/blog/state-of-ai-2026">Sensor Tower State of AI 2026 原文</a></li>
+    <li>🇨🇳 <a href="./report-chinese-translation.md">报告中文翻译（同目录）</a></li>
+  </ul>
+
+  <h3 id="h3-50">5 大 AI 助手</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>ChatGPT</b>（OpenAI · 美国 · 10 亿 MAU / 跌破 50%）</li>
+    <li><b>Google Gemini</b>（Google · 28% 全球）</li>
+    <li><b>Claude</b>（Anthropic · 美国 14% / +452% YoY）</li>
+    <li><b>DeepSeek</b>（中国 · +231% 使用时长）</li>
+    <li><b>Grok</b>（xAI · 加密货币 4x）</li>
+  </ul>
+
+  <h3 id="h3-51">2 大 AI 购物助手</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Amazon Rufus</b>（2x 转化率 / 停留 60 min）</li>
+    <li><b>Walmart Sparky</b>（客单价 +35% / 周活翻倍）</li>
+  </ul>
+
+  <h3 id="h3-52">6 大广告渠道</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>YouTube / LinkedIn（OpenAI 主投）</li>
+    <li>Instagram / TikTok / CapCut（Google 主投）</li>
+    <li>电视 + 网络流媒体（Anthropic 主投）</li>
+    <li>NFL 黄金时段 + 超级碗（ChatGPT / Claude / Genspark / Base44）</li>
+  </ul>
+
+  <h3 id="h3-53">新晋 AI 厂商</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Genspark AI</b>（100% 电视预算投超级碗）</li>
+    <li><b>Base44</b>（100% 电视预算投超级碗）</li>
+  </ul>
+
+  <h3 id="h3-54">6 大应用 AI 渗透品类</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>健康（+651%） / 金融服务（+536%）</li>
+    <li>办公软件 / 求职教育 / 生活服务 / 购物</li>
+  </ul>
+
+  <h3 id="h3-55">Patrick 实战资源</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>v1.3.0 dashboard</b>（笔记层）</li>
+    <li><b>5 工具</b>：Telegram / Content / Checker / Heartbeat / Router</li>
+    <li><b>6 视频</b>：L8 / Peter / Howie / Discover / OODA / FDE</li>
+    <li><b>v1.5.0 video-to-obsidian pipeline</b>（1 步丢链接）</li>
+    <li><b>v1.4.2 toc-sidebar-batch</b>（hover-expand TOC）</li>
+  </ul>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/sensor-tower-state-of-ai-2026/</code></p>
+  <p>Desktop: <code>~/Desktop/sensor-tower-state-of-ai-2026-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=MxpuORrjc1E">https://www.youtube.com/watch?v=MxpuORrjc1E</a></p>
+  <p>报告原文: <a href="https://sensortower.com/blog/state-of-ai-2026">https://sensortower.com/blog/state-of-ai-2026</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

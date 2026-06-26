@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NQ-100 Top 10 Deep-Dive · 2026-06-11</title>
+<style>
+:root {
+  --bg: #0a0a0f; --bg-card: #13131a; --bg-elevated: #1a1a24;
+  --border: #2a2a3a; --border-hover: #3f3f4f;
+  --text: #e0e0e0; --text-dim: #a0a0b0; --text-muted: #6b7280;
+  --accent: #00e472; --yellow: #fbbf24; --red: #ef4444; --blue: #3b82f6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; padding: 1.5rem; font-size: 14px; line-height: 1.5; }
+.hero { background: linear-gradient(135deg, rgba(0,228,114,0.12), rgba(0,228,114,0.02)); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+.hero h1 { background: linear-gradient(90deg, #00e472, #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.4rem; }
+.hero .sub { color: var(--text-dim); font-size: 0.9rem; }
+.warning { background: rgba(251,191,36,0.08); border-left: 3px solid var(--yellow); padding: 0.8rem 1rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem; font-size: 0.88rem; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+.stat .v { font-size: 1.6rem; font-weight: 800; background: linear-gradient(90deg, var(--accent), #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
+.stat .l { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; margin-top: 0.3rem; }
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.section h2 { font-size: 1.05rem; color: var(--text); margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 0.8rem; }
+.card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; transition: border 0.2s; }
+.card:hover { border-color: var(--accent); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+.card-title { display: flex; align-items: center; gap: 0.5rem; }
+.rank { background: var(--accent); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 0.8rem; }
+.ticker { font-size: 1.2rem; font-weight: 800; }
+.name { color: var(--text-dim); font-size: 0.85rem; }
+.rating { font-size: 0.9rem; }
+.mcap-big { font-size: 1.4rem; font-weight: 800; background: linear-gradient(90deg, var(--accent), #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.mcap-label { color: var(--text-muted); font-size: 0.7rem; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0.6rem 0; padding: 0.6rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.metric { text-align: center; }
+.metric .l { color: var(--text-muted); font-size: 0.65rem; }
+.metric .v { font-family: 'SF Mono', Menlo, monospace; font-size: 0.85rem; font-weight: 600; }
+.metric .v.green { color: var(--accent); }
+.metric .v.red { color: var(--red); }
+.metric .v.yellow { color: var(--yellow); }
+.business-row { font-size: 0.78rem; color: var(--text-dim); padding: 0.2rem 0; }
+.business-label { color: var(--text-muted); }
+.footer-row { display: flex; justify-content: space-between; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+.sector-tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; color: #fff; }
+.esg-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: #000; }
+.recommend { font-size: 0.78rem; color: var(--accent); font-weight: 600; }
+.falsif { background: rgba(239,68,68,0.06); border-left: 3px solid var(--red); padding: 0.5rem 0.8rem; margin-bottom: 0.4rem; font-size: 0.85rem; border-radius: 0 4px 4px 0; }
+footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 2rem 0; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🏆 NASDAQ-100 市值 Top 10 Deep-Dive</h1>
+  <p class="sub">2026-06-11 · Solo Agent 投资分析 · 10 家公司 · 业务+护城河+风险+4 Plan 资产配置</p>
+</div>
+
+<div class="warning">
+  ⚠️ <b>本报告不构成投资建议</b>. 沙箱无实时市场数据, 用 Nasdaq 公开 API (财务) + 训练知识 (业务/CEO/ESG). 5 个 falsification 在底部. 投资有风险, 请咨询持牌专业人士.
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="v">$20.2T</div><div class="l">Top 10 总市值</div></div>
+  <div class="stat"><div class="v">71%</div><div class="l">占 NQ-100</div></div>
+  <div class="stat"><div class="v">$2.7T</div><div class="l">总营收 FY25</div></div>
+  <div class="stat"><div class="v">$650B</div><div class="l">总净利 FY25</div></div>
+  <div class="stat"><div class="v">32.9x</div><div class="l">加权 PE</div></div>
+  <div class="stat"><div class="v">24.0%</div><div class="l">加权净利率</div></div>
+</div>
+
+<div class="section">
+  <h2>📋 10 家公司卡片 (按市值排序)</h2>
+  <div class="card-grid">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#1</span>
+          <span class="ticker">NVDA</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">NVIDIA Corporation Common Stock</div>
+      <div class="mcap-big">$4,300B</div>
+      <div class="mcap-label">市值 · 营收 $216B · 净利 $120.1B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">35.8x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v green">+65.5%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">55.6%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#00c853">AAA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> GPU + CUDA 生态 + AI 算力龙头</div>
+      <div class="business-row"><span class="business-label">结构:</span> 数据中心 70% · 游戏 7%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> CUDA + 制程领先</div>
+      <div class="business-row"><span class="business-label">风险:</span> 客户自研 ASIC</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#3b82f6">Technology</span>
+        <span class="recommend">Plan C 6-8%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#2</span>
+          <span class="ticker">AAPL</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Apple Inc. Common Stock</div>
+      <div class="mcap-big">$4,100B</div>
+      <div class="mcap-label">市值 · 营收 $416B · 净利 $112.0B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">36.6x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+6.4%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">26.9%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#ffc107">BBB</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> iPhone + 服务 + Apple Intelligence</div>
+      <div class="business-row"><span class="business-label">结构:</span> iPhone 48% · 服务 23%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 25亿设备 + 自研芯片</div>
+      <div class="business-row"><span class="business-label">风险:</span> 中国营收下滑</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#3b82f6">Technology</span>
+        <span class="recommend">所有 Plan 5-8%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#3</span>
+          <span class="ticker">MSFT</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Microsoft Corporation Common Stock</div>
+      <div class="mcap-big">$3,700B</div>
+      <div class="mcap-label">市值 · 营收 $282B · 净利 $101.8B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">36.3x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+14.9%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">36.1%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#00c853">AAA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> Azure + Copilot + OpenAI 独家</div>
+      <div class="business-row"><span class="business-label">结构:</span> 智能云 43% · 生产力 28%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> OpenAI + 企业 IT</div>
+      <div class="business-row"><span class="business-label">风险:</span> AI capex 烧钱</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#3b82f6">Technology</span>
+        <span class="recommend">Plan A+C+D 6-8%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#4</span>
+          <span class="ticker">AMZN</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Amazon.com, Inc. Common Stock</div>
+      <div class="mcap-big">$2,500B</div>
+      <div class="mcap-label">市值 · 营收 $717B · 净利 $77.7B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">32.2x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+12.4%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v yellow">10.8%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#4caf50">AA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> AWS + Marketplace + 广告增长</div>
+      <div class="business-row"><span class="business-label">结构:</span> 北美电商 50% · AWS 18%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> AWS + Marketplace</div>
+      <div class="business-row"><span class="business-label">风险:</span> 员工工会</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#a855f7">Consumer Cyclical</span>
+        <span class="recommend">Plan A+C 4-6%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#5</span>
+          <span class="ticker">GOOGL</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Alphabet Inc. Class A Common Stock</div>
+      <div class="mcap-big">$2,100B</div>
+      <div class="mcap-label">市值 · 营收 $403B · 净利 $132.2B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">15.9x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+15.1%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">32.8%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#4caf50">AA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> Search 90% + Gemini + YouTube</div>
+      <div class="business-row"><span class="business-label">结构:</span> Search 50% · YouTube 11%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 搜索 90% + AI 转型</div>
+      <div class="business-row"><span class="business-label">风险:</span> 反垄断拆分</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#666">Communication</span>
+        <span class="recommend">价值王 Plan B+D 6-8%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#6</span>
+          <span class="ticker">META</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Meta Platforms, Inc. Class A Common Stock</div>
+      <div class="mcap-big">$1,400B</div>
+      <div class="mcap-label">市值 · 营收 $201B · 净利 $60.5B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">23.2x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v green">+22.2%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">30.1%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#4caf50">AA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> 3B 用户 + AI 广告 + Reels 增长</div>
+      <div class="business-row"><span class="business-label">结构:</span> 广告 97% · Reality Labs 3%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 3B 用户 + AI 广告</div>
+      <div class="business-row"><span class="business-label">风险:</span> Reality Labs 烧钱</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#666">Communication</span>
+        <span class="recommend">Plan C+D 3-5%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#7</span>
+          <span class="ticker">AVGO</span>
+        </div>
+        <span class="rating">⭐⭐⭐</span>
+      </div>
+      <div class="name">Broadcom Inc. Common Stock</div>
+      <div class="mcap-big">$1,300B</div>
+      <div class="mcap-label">市值 · 营收 $64B · 净利 $23.1B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">56.2x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v green">+23.9%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v green">36.2%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#8bc34a">A</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> AI ASIC 龙头 + 网络芯片</div>
+      <div class="business-row"><span class="business-label">结构:</span> AI 半导体 47% · 网络 23%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> TPU 独家 + 网络 60%</div>
+      <div class="business-row"><span class="business-label">风险:</span> PE 56x 估值高</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#3b82f6">Technology</span>
+        <span class="recommend">Plan C 限 3%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#8</span>
+          <span class="ticker">TSLA</span>
+        </div>
+        <span class="rating">⭐⭐</span>
+      </div>
+      <div class="name">Tesla, Inc. Common Stock</div>
+      <div class="mcap-big">$1,200B</div>
+      <div class="mcap-label">市值 · 营收 $95B · 净利 $3.8B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">316.3x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v red">-2.9%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v red">4.0%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#4caf50">AA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> EV + FSD + Optimus humanoid</div>
+      <div class="business-row"><span class="business-label">结构:</span> 汽车 84% · 储能 11%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 充电网络 + FSD 数据</div>
+      <div class="business-row"><span class="business-label">风险:</span> 中国 EV + PE 316x</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#a855f7">Consumer Cyclical</span>
+        <span class="recommend">❌ 不推荐</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#9</span>
+          <span class="ticker">COST</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Costco Wholesale Corporation Common Stock</div>
+      <div class="mcap-big">$410B</div>
+      <div class="mcap-label">市值 · 营收 $275B · 净利 $8.1B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">50.6x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+8.2%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v red">2.9%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#00c853">AAA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> 会员锁定 + 议价 + 防御</div>
+      <div class="business-row"><span class="business-label">结构:</span> 会员 89% · 其他 11%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 会员锁定 + 议价</div>
+      <div class="business-row"><span class="business-label">风险:</span> 通胀转嫁有限</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#84cc16">Consumer Defensive</span>
+        <span class="recommend">Plan A+D 防御 2-3%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="rank">#10</span>
+          <span class="ticker">NFLX</span>
+        </div>
+        <span class="rating">⭐⭐⭐⭐</span>
+      </div>
+      <div class="name">Netflix, Inc. Common Stock</div>
+      <div class="mcap-big">$400B</div>
+      <div class="mcap-label">市值 · 营收 $45B · 净利 $11.0B</div>
+      <div class="metrics">
+        <div class="metric"><div class="l">PE</div><div class="v">36.4x</div></div>
+        <div class="metric"><div class="l">增速</div><div class="v ">+15.9%</div></div>
+        <div class="metric"><div class="l">净利率</div><div class="v yellow">24.3%</div></div>
+        <div class="metric"><div class="l">ESG</div><div class="v"><span class="esg-badge" style="background:#4caf50">AA</span></div></div>
+      </div>
+      <div class="business-row"><span class="business-label">业务:</span> 3亿订阅 + 广告 tier 突破</div>
+      <div class="business-row"><span class="business-label">结构:</span> 订阅 93% · 广告 11%</div>
+      <div class="business-row"><span class="business-label">护城河:</span> 3亿订阅 + 内容飞轮</div>
+      <div class="business-row"><span class="business-label">风险:</span> 内容回报下降</div>
+      <div class="footer-row">
+        <span class="sector-tag" style="background:#666">Communication</span>
+        <span class="recommend">Plan C 2-3%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🎯 4 Plan 资产配置建议 (Top 10 部分)</h2>
+  <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+    <thead>
+      <tr style="background: var(--bg-elevated);">
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Ticker</th>
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Plan A 等权 80</th>
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Plan B 价值 20</th>
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Plan C 增长 15</th>
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Plan D ESG 50</th>
+        <th style="text-align: left; padding: 0.6rem 0.4rem;">Plan E 混合</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">NVDA</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5% (核心 PE 合理)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67% (核心)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AAA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">6%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">AAPL</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (BBB)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">4%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">MSFT</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AAA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">4%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">AMZN</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">5%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">GOOGL</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">10% (2 slot, 价值王)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AAA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">5%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">META</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AAA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">6%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">AVGO</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">0% (PE 56x 高)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (A)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">3%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">TSLA</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">0% (PE 316x)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">0%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AAA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">0%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">COST</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">0%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (AA)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">4%</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 0.5rem 0.4rem; font-weight: 700;">NFLX</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">1.25%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">5%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent);">6.67%</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--text-dim);">2% (BBB)</td>
+        <td style="padding: 0.5rem 0.4rem; color: var(--accent); font-weight: 600;">0%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>🏆 多维度 Top 3</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 0.6rem;">
+    <div>
+      <h3 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.4rem;">💎 净利率 (盈利质量)</h3>
+      <ol style="padding-left: 1.2rem; font-size: 0.88rem;">
+        <li><b>NVDA 55.6%</b> ⭐ 史上最高</li>
+        <li>MSFT 36.0%</li>
+        <li>AVGO 35.9%</li>
+      </ol>
+    </div>
+    <div>
+      <h3 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.4rem;">🚀 增速 (成长性)</h3>
+      <ol style="padding-left: 1.2rem; font-size: 0.88rem;">
+        <li><b>NVDA +75%</b> ⭐ AI 王者</li>
+        <li>META +22%</li>
+        <li>AVGO +23%</li>
+      </ol>
+    </div>
+    <div>
+      <h3 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.4rem;">💰 价值 (低 PE)</h3>
+      <ol style="padding-left: 1.2rem; font-size: 0.88rem;">
+        <li><b>GOOGL 16.0x</b> ⭐ 隐藏 Waymo</li>
+        <li>META 23.3x</li>
+        <li>AMZN 32.1x</li>
+      </ol>
+    </div>
+    <div>
+      <h3 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.4rem;">🌱 ESG (治理)</h3>
+      <ol style="padding-left: 1.2rem; font-size: 0.88rem;">
+        <li><b>5 家 AAA</b> NVDA/MSFT/GOOGL/META/TSLA</li>
+        <li>2 家 AA: AMZN/COST</li>
+        <li>1 家 A: AVGO</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>⚠️ 5 个 Falsification (Top 10 视角)</h2>
+  <ol style="padding-left: 1.2rem;">
+    <li class="falsif"><b>估值集中度</b>: Top 3 (NVDA+AAPL+MSFT) = $12.1T = 42% NQ-100, 任何 1 家 20% 跌 → 8%+ 影响</li>
+    <li class="falsif"><b>AI 主题集中度</b>: 8/10 (NVDA/MSFT/GOOGL/META/AMZN/AAPL/AVGO/NFLX) 强 AI 相关, 主题破灭 → 半数 Top 10 崩</li>
+    <li class="falsif"><b>TSLA PE 316x 不可持续</b>: 净利 $4B, 增速 -3%, 赌 Optimus/FSD/Robotaxi 不及预期</li>
+    <li class="falsif"><b>地缘 + 反垄断</b>: 中国 (NVDA/AVGO/META) + 欧盟 (AAPL/MSFT/AMZN) + 美国 (GOOGL 拆分 Chrome)</li>
+    <li class="falsif"><b>ESG 失真</b>: MSFT AAA 但 OpenAI 关系风险, TSLA AAA 但工会治理差</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h2>🔬 4 研究方向关联 (Top 10 视角)</h2>
+  <ul style="list-style: none; padding: 0;">
+    <li style="padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+      <b style="color: var(--accent);">AI Agent 经济学 (8/10 强相关)</b>: NVDA (GPU) / MSFT (Copilot) / GOOGL (Gemini) / META (Andromeda) / AMZN (Bedrock) / AAPL (本地 AI) / AVGO (ASIC) / NFLX (推荐)
+    </li>
+    <li style="padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+      <b style="color: var(--accent);">世界模型 (5/10)</b>: NVDA Cosmos / META V-JEPA / TSLA FSD / GOOGL Genie 2 / AMZN Zoox
+    </li>
+    <li style="padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+      <b style="color: var(--accent);">个人 AI OS (4/10)</b>: AAPL (iOS 18) / MSFT (Copilot 跨设备) / GOOGL (Pixel Gemini) / META (Meta AI)
+    </li>
+    <li style="padding: 0.4rem 0;">
+      <b style="color: var(--accent);">量化 + AI (3/10 主导)</b>: AVGO (AI ASIC 100% 受益) / MSFT (Azure ML) / GOOGL (Vertex AI + TPU)
+    </li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>🎯 投资建议总结 (Patrick 偏好版)</h2>
+  <ol style="padding-left: 1.2rem; line-height: 1.7;">
+    <li><b>必买 Top 5 核心 (60% 仓位)</b>: GOOGL 10% / NVDA 8% / MSFT 8% / AAPL 8% / META 6%</li>
+    <li><b>机会性 Top 5 (15% 仓位)</b>: AMZN 4% / NFLX 3% / COST 2% / AVGO 3% / TSLA 0-2%</li>
+    <li><b>现金 (25%)</b>: T-Bills 等机会 + 危机套利 (2026 H2 可能)</li>
+    <li><b>已排除</b>: INTC/WBD/RIVN/LCID/BIDU (营收负增长 / 价值陷阱 / 转型失败)</li>
+  </ol>
+</div>
+
+<footer>
+  <p>📅 Generated 2026-06-11 · Hermes Agent · 数据: Nasdaq 公开 API + 训练知识</p>
+  <p style="margin-top: 0.4rem;">⚠️ 本仪表板不构成投资建议, 仅作研究用途 · 详见每家公司 deep-dive markdown</p>
+</footer>
+
+</body>
+</html>

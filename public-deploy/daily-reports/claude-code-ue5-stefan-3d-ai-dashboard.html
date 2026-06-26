@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Claude Code × UE5 实战 — Stefan 3D AI 教程</title>
+<style>
+  :root {
+    --bg: #0d0d10;
+    --bg-card: #16161b;
+    --bg-elevated: #1c1c22;
+    --border: #2a2a32;
+    --text: #e8e8ea;
+    --text-dim: #a8a8b2;
+    --text-mute: #6a6a76;
+    --accent: #ff6b35;
+    --accent-2: #f7c59f;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7;
+    padding: 2rem 1rem 4rem;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  /* hero */
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  /* stats cards */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  /* tabs */
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active {
+    color: var(--accent-2);
+    background: var(--bg-card);
+    border-color: var(--border);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* section heading */
+  h2.section {
+    font-size: 1.35rem;
+    color: var(--accent-2);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  /* cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  /* tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-elevated);
+    color: var(--accent-2);
+    font-weight: 600;
+  }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+
+  /* comparison */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.2rem 0;
+  }
+  .cmp {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+  }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  /* timeline */
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item {
+    position: relative;
+    padding: 0.5rem 0 1rem 1.3rem;
+  }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  /* quote */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.6rem 1rem;
+    margin: 1rem 0;
+    background: var(--bg-card);
+    color: var(--text-dim);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+  }
+
+  /* flow */
+  .phase-flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    color: var(--text);
+    text-align: center;
+  }
+  .phase.green { border-color: var(--green); color: var(--green); }
+  .phase.blue { border-color: var(--blue); color: var(--blue); }
+  .phase.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .phase.red { border-color: var(--red); color: var(--red); }
+  .phase-arrow { color: var(--text-mute); font-size: 1.1rem; }
+
+  /* badges */
+  .badge {
+    display: inline-block;
+    padding: 0.15em 0.55em;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--bg-elevated);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-mute);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">安装架构：2 plugins + 2 MCP + 依赖</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 数据流</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">6 个 Milestone 流程</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">调试 Loop：截图驱动</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">最终评估：Stefan 诚实结论</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 适合谁 / 不适合谁</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">资产工作流：vibe coding 必学</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 分工边界（重要）</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">复用要点：我能直接用</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 关键时间戳（复用时跳读）</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">完整时间线（101 段字幕）</a></li>
+  </ol>
+</aside>
+
+
+<h1>Claude Code × UE5 实战</h1>
+<p class="subtitle">免费 MCP 套件，从安装到做出可玩 endless runner</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=iRcrZjOt5H8" target="_blank">Claude Code Took Over Unreal Engine 5 and Built a Game</a></span>
+  <span><strong>频道：</strong>Stefan 3D AI</span>
+  <span><strong>时长：</strong>16:45（1004s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-16</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p>一个月试错后，Stefan 找到 <b>2 个完全免费 + 真正能用的 MCP 插件</b>，让 Claude Code 直接驱动 Unreal Engine 5.7 完成可玩 endless runner。<b>唯一付费是 Claude 本身</b>，且 Claude 可被任何兼容 Coding Agent 替代。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">Plugin 数</div>
+    <div class="value">2</div>
+    <div class="sub">Unreal Claude + Vibe UE</div>
+  </div>
+  <div class="stat">
+    <div class="label">价格</div>
+    <div class="value">$0</div>
+    <div class="sub">除 Claude API 外</div>
+  </div>
+  <div class="stat">
+    <div class="label">Milestone</div>
+    <div class="value">6</div>
+    <div class="sub">每步 1 prompt + commit</div>
+  </div>
+  <div class="stat">
+    <div class="label">最贵单任务</div>
+    <div class="value">14K</div>
+    <div class="sub">tokens / 15 min（Opus 4.8）</div>
+  </div>
+  <div class="stat">
+    <div class="label">UE 版本</div>
+    <div class="value">5.7</div>
+    <div class="sub">需重启 Editor</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="arch">🏗️ 架构</button>
+  <button class="tab" data-tab="flow">🔄 6 个 Milestone</button>
+  <button class="tab" data-tab="debug">🐞 调试 Loop</button>
+  <button class="tab" data-tab="eval">⚖️ 评估</button>
+  <button class="tab" data-tab="assets">🎨 资产工作流</button>
+  <button class="tab" data-tab="reuse">♻️ 我能用</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: ARCH -->
+<div class="tab-content active" data-tab-content="arch">
+  <h2 id="h2-2" class="section">安装架构：2 plugins + 2 MCP + 依赖</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>🧩 Unreal Claude</h4>
+      <p><span class="badge blue">MCP 插件</span></p>
+      <ul>
+        <li>截图 viewport</li>
+        <li>在 UE 里移动对象</li>
+        <li>GitHub stars 多，社区活跃</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🌐 Web UE / Vibe UE</h4>
+      <p><span class="badge blue">MCP 插件</span></p>
+      <ul>
+        <li>编辑 Blueprint</li>
+        <li>跑 Python 脚本</li>
+        <li>需免费 API key（不付费不用他们 agent）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🤖 Claude Code (Desktop)</h4>
+      <p><span class="badge yellow">调度层</span></p>
+      <ul>
+        <li>用 <code>CLAUDE.md</code> 写好所有流程</li>
+        <li>可换 Cursor / Codex / OpenCode</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🎮 Unreal Engine 5.7</h4>
+      <p><span class="badge green">运行时</span></p>
+      <ul>
+        <li>安装 MCP 后需重启 Editor</li>
+        <li>前置：Node.js + MS C++ 库</li>
+        <li>缺失让 Claude 自己装</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-1">数据流</h3>
+  <div class="phase-flow">
+    <div class="phase blue">用户 prompt</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase yellow">Claude Code 解析</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase green">MCP 调用（截图/脚本）</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase blue">UE 执行</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase green">screenshot 自检</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase yellow">git commit</div>
+  </div>
+</div>
+
+<!-- TAB 2: FLOW -->
+<div class="tab-content" data-tab-content="flow">
+  <h2 id="h2-3" class="section">6 个 Milestone 流程</h2>
+  <p style="color: var(--text-dim);">每个 milestone = 1 prompt + git commit + 截图自检</p>
+
+  <div class="card">
+    <h4>① 清理场景 <span class="badge">0:55</span></h4>
+    <p>删 accessories，保留 third-person character + 灯光天空。Claude 会问合理问题（"keep lighting in sky?" → "Yes"）</p>
+  </div>
+
+  <div class="card">
+    <h4>② Endless runner 核心 <span class="badge">6:00</span></h4>
+    <p>清空关卡，生成 infinite pass。Claude 主动用 <code>Unreal Claude</code> 截 viewport 验证 — "plane + character standing on it"。变量：<code>tile length</code>, <code>path length</code>。</p>
+  </div>
+
+  <div class="card">
+    <h4>③ 自动跑动 + 相机 <span class="badge">8:00</span></h4>
+    <p>改自动前进（不按 W），相机从顶部俯视。Python 脚本调相机位置。</p>
+  </div>
+
+  <div class="card">
+    <h4>④ 三车道 + A/D 切换 <span class="badge">9:15</span></h4>
+    <p>逻辑 3 lane 切换。<span class="badge red">Blueprint spaghetti 重灾区</span> — 节点位置永远不完美。</p>
+  </div>
+
+  <div class="card">
+    <h4>⑤ 障碍 + 金币 + 随机化 <span class="badge">10:45</span></h4>
+    <p>单任务耗时 <b>15 min / 14,000 tokens（Opus 4.8）</b> — 需选 milestone 拆分。</p>
+  </div>
+
+  <div class="card">
+    <h4>⑥ UI（HUD）<span class="badge">12:00</span></h4>
+    <p>分数、金币、Game Over、Retry 屏。设计"doubtful" — 概念先跑通，美观后补。</p>
+  </div>
+
+  <blockquote>
+    "If you give the superficial task, you might expect fastest way, but that's not guaranteed. That will be scalable? No."
+  </blockquote>
+</div>
+
+<!-- TAB 3: DEBUG -->
+<div class="tab-content" data-tab-content="debug">
+  <h2 id="h2-4" class="section">调试 Loop：截图驱动</h2>
+
+  <div class="phase-flow">
+    <div class="phase red">发现 bug</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase blue">截图给 Claude</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase yellow">prompt "see X"</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase green">Claude 修</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase blue">git commit</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Bug 现象</th>
+        <th>修复方式</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>走左右边 = game over（误判）</td>
+        <td>截图 → Claude 调整 collision trigger 范围</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>桥之间有 gap（穿模）</td>
+        <td>截图 → Claude 调 <code>tile length</code> + 拼接逻辑</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>障碍钻入 bridge</td>
+        <td>截图 → 修 + 顺便关 toon shader（多余效果）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:1rem;">
+    <h4>💡 关键 insight</h4>
+    <p>Claude <b>自带 viewport screenshot tool</b>，可独立 "is character on plane?" 自检。Stefan 把这做成 milestone 完成的硬性条件：截图显示正确 → 才 commit。</p>
+  </div>
+</div>
+
+<!-- TAB 4: EVAL -->
+<div class="tab-content" data-tab-content="eval">
+  <h2 id="h2-5" class="section">最终评估：Stefan 诚实结论</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 优点</h4>
+      <ul>
+        <li><b>逻辑质量好</b>：3 lane 切换、障碍、金币都跑通</li>
+        <li><b>截图自检循环</b>让 Claude 自我 debug</li>
+        <li><b>可调试</b>：教新手 "Ask why? What is this node?"</li>
+        <li>对<b>初学者</b>加速极大</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 限制</h4>
+      <ul>
+        <li>Blueprint 节点<b>位置永远不完美</b>（always spaghetti）</li>
+        <li><b>泛 prompt 必失败</b> — "make a game" 不可扩展</li>
+        <li>14K tokens / 15 min = <b>贵 + 慢</b>，要选 milestone</li>
+        <li><b>不擅长图像生成</b>，资产/背景用 ChatGPT image / Meshy</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-2">适合谁 / 不适合谁</h3>
+  <table>
+    <thead>
+      <tr><th style="width:50%">✅ 适合</th><th>❌ 不适合</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>懂逻辑 / 概念 / 知道 game 该怎么搭的人</td>
+        <td>完全没想法 + "make a game"</td>
+      </tr>
+      <tr>
+        <td>想把 UE 当工具加快原型的人</td>
+        <td>想要 pixel-perfect blueprint 美观</td>
+      </tr>
+      <tr>
+        <td>愿意截图 debug + 写详细 prompt</td>
+        <td>想要"一次 prompt 出完整游戏"</td>
+      </tr>
+      <tr>
+        <td>学习者（问 "why this node?"）</td>
+        <td>想要免费 Claude（Opus 14K token 烧钱）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "I definitely think that is gonna be a full replacement. If you can describe the logic that you want, it can be very, very helpful, especially for the beginners."
+  </blockquote>
+</div>
+
+<!-- TAB 5: ASSETS -->
+<div class="tab-content" data-tab-content="assets">
+  <h2 id="h2-6" class="section">资产工作流：vibe coding 必学</h2>
+
+  <div class="phase-flow">
+    <div class="phase yellow">ChatGPT image / Meshy 预生成</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase blue">拆出独立 asset（带命名）</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase green">zip 拖入 UE + 截图</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase yellow">prompt Claude 替换</div>
+  </div>
+
+  <div class="card">
+    <h4>提示词模板</h4>
+    <p style="font-family: ui-monospace, SFMono-Regular, monospace; background: var(--bg-elevated); padding: 0.8rem; border-radius: 6px; color: var(--accent-2);">
+      "replace obstacle with [asset], coin with [asset], keep logic"
+    </p>
+    <p>Claude 按名字自动匹配，无需手写代码。</p>
+  </div>
+
+  <h3 id="h3-3">分工边界（重要）</h3>
+  <table>
+    <thead>
+      <tr><th>任务</th><th>谁来做</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>3D 模型 / 纹理 / 背景</td><td><span class="badge blue">ChatGPT image / Meshy / Tripo</span></td></tr>
+      <tr><td>Blueprint 逻辑</td><td><span class="badge green">Claude</span></td></tr>
+      <tr><td>Python 调相机 / 场景清理</td><td><span class="badge green">Claude</span></td></tr>
+      <tr><td>资产拖入 + 命名匹配</td><td><span class="badge yellow">Claude（截图辅助）</span></td></tr>
+      <tr><td>Blueprint 节点位置</td><td><span class="badge red">人工微调</span></td></tr>
+      <tr><td>最终视觉 / 美观</td><td><span class="badge red">人工</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 6: REUSE -->
+<div class="tab-content" data-tab-content="reuse">
+  <h2 id="h2-7" class="section">复用要点：我能直接用</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>1️⃣ CLAUDE.md 模板化</h4>
+      <p>核心："use MCP X for screenshots, MCP Y for blueprints, commit after every milestone"。完整版 Stefan 在视频描述里给订阅者。</p>
+    </div>
+    <div class="card">
+      <h4>2️⃣ Milestone = commit 节奏</h4>
+      <p>UE 大项目拆 6 个 milestone，每个 1 prompt + commit。失败可回滚。</p>
+    </div>
+    <div class="card">
+      <h4>3️⃣ 截图驱动 debug</h4>
+      <p>Claude 自带 viewport screenshot tool，milestone 完成 = 截图证据。</p>
+    </div>
+    <div class="card">
+      <h4>4️⃣ 资产走外部</h4>
+      <p>ChatGPT image / Meshy 预生成，不要 Claude 做资产生成。</p>
+    </div>
+    <div class="card">
+      <h4>5️⃣ 任务边界</h4>
+      <p>只让 Claude 做<b>逻辑 + 集成</b>，不做<b>资产生成 + 蓝图美化</b>。</p>
+    </div>
+    <div class="card">
+      <h4>6️⃣ 替代 Claude</h4>
+      <p>Cursor / Codex / OpenCode 走同 MCP 协议（Unreal Claude + Vibe UE 是 open source），不锁 Claude API。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-4">关键时间戳（复用时跳读）</h3>
+  <table>
+    <thead>
+      <tr><th>时段</th><th>主题</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>0:00 - 0:55</td><td>Hook：一个月试错，找到 2 插件</td></tr>
+      <tr><td>0:55 - 3:15</td><td>介绍 Unreal Claude + Web UE</td></tr>
+      <tr><td>3:15 - 4:30</td><td>安装 + API key 设置</td></tr>
+      <tr><td>4:30 - 5:30</td><td><b>Git 必备性</b></td></tr>
+      <tr><td>5:30 - 6:00</td><td>Milestone 1：清理场景</td></tr>
+      <tr><td>6:00 - 8:00</td><td>Milestone 2：endless runner 核心</td></tr>
+      <tr><td>8:00 - 9:15</td><td>Milestone 3：自动跑动 + 相机</td></tr>
+      <tr><td>9:15 - 10:45</td><td>Milestone 4：三车道</td></tr>
+      <tr><td>10:45 - 12:00</td><td>Milestone 5：障碍 + 金币（15min / 14K tokens）</td></tr>
+      <tr><td>12:00 - 12:45</td><td>Milestone 6：UI</td></tr>
+      <tr><td>12:45 - 14:30</td><td>资产生成（ChatGPT）→ 丢入 UE</td></tr>
+      <tr><td>14:30 - 16:30</td><td>调试 3 个 bug（截图驱动）</td></tr>
+      <tr><td>16:30 - 16:45</td><td>最终评估 + 适用人群</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 7: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-8" class="section">完整时间线（101 段字幕）</h2>
+  <p style="color: var(--text-mute); font-size: 0.85rem;">从 0:00 到 16:44 的关键节点</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：一个月试错，找免费 plugin</div>
+      <div class="note">"I spent over a month trying to get Claude code actually work in UE5"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:55</div>
+      <div class="what">2 个免费 plugin 介绍</div>
+      <div class="note">Unreal Claude (screenshot) + Web UE (blueprint + python)</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:15</div>
+      <div class="what">安装 + API key</div>
+      <div class="note">Vibe UE 需 sign in 拿 free key（不付费）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:30</div>
+      <div class="what">Git 必备性</div>
+      <div class="note">"AI agents work extremely nice with Git" — 让 Claude 装 Git</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:30</div>
+      <div class="what">Milestone 1：清理场景</div>
+      <div class="note">删 accessories，保 third-person + light/sky</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:00</div>
+      <div class="what">Milestone 2：endless runner 核心</div>
+      <div class="note">Claude 自截 viewport 验证 "plane + character"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:00</div>
+      <div class="what">Milestone 3：自动跑动 + 相机俯视</div>
+      <div class="note">Python 脚本调相机</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:15</div>
+      <div class="what">Milestone 4：三车道 + A/D 切换</div>
+      <div class="note">Blueprint spaghetti 出现</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:45</div>
+      <div class="what">Milestone 5：障碍 + 金币</div>
+      <div class="note">15 min / 14,000 tokens (Opus 4.8) — 最贵单任务</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:00</div>
+      <div class="what">Milestone 6：UI HUD</div>
+      <div class="note">分数 + 金币 + Game Over + Retry</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:45</div>
+      <div class="what">资产生成（外部 AI）</div>
+      <div class="note">ChatGPT image → 拆 asset → zip 拖入 → 截图让 Claude 认</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:30</div>
+      <div class="what">Bug 1：左右边误判 game over</div>
+      <div class="note">截图 → Claude 修 collision</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:00</div>
+      <div class="what">Bug 2：桥之间有 gap</div>
+      <div class="note">截图 → Claude 调 tile length</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:30</div>
+      <div class="what">Bug 3：障碍钻入 bridge</div>
+      <div class="note">截图 → 修 + 关 toon shader</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:00</div>
+      <div class="what">PBR 桥材质 + 抛光</div>
+      <div class="note">首生成错，补 maps 后好</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:30</div>
+      <div class="what">最终评估 + 适用人群</div>
+      <div class="note">"gonna be a full replacement... especially for beginners"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/claude-code-ue5-stefan-3d-ai/</code></p>
+  <p>Desktop: <code>~/Desktop/claude-code-ue5-stefan-3d-ai-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=iRcrZjOt5H8">https://www.youtube.com/watch?v=iRcrZjOt5H8</a></p>
+</footer>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

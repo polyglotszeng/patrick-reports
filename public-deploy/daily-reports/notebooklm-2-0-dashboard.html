@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NotebookLM 2.0：Agent + 文件输出 + Your Data</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🔥 1.0 vs 2.0 对比</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">📄 文件输出（10% 价值）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Demo 1: PowerPoint</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Demo 2: Excel</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Demo 3: Chart（自动建议升级）</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🤖 Agent 能力（90% 价值）⭐</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 之前 vs 现在</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Demo: Gym 创业 → Agent 推荐</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 关键保留：Grounded AI 不被 erode</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">💎 Cortex Chrome Extension（Paul's Sponsor）</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 9 大功能</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 价格</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🧠 关键心智转变</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 立即可做（30 分钟）</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 中期（1-2 周）</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 长期</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💬 关键金句库</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⏱️ 完整时间线（32 段字幕）</a></li>
+  </ol>
+</aside>
+
+
+<h1>NotebookLM 2.0</h1>
+<p class="subtitle">Agent + 文件输出 + Your Data — Paul J Lipsky</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=rvg0wuMC5_s" target="_blank">NotebookLM 2.0 Is Here and It's Incredible</a></span>
+  <span><strong>频道：</strong>Paul J Lipsky</span>
+  <span><strong>时长：</strong>11:10（670s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-18</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>NotebookLM UI 不变，但底层跑 Gemini 3.5 + 抗重力 secure cloud computer + 新 agent 能力。</b><b>2 大升级</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>文件输出</b>：PDF / Excel / PowerPoint / charts 直接生成（<b>下载式 + 可编辑</b>）— native Studio 是 static image 不可编辑</li>
+    <li><b>Agent 能力</b>：基于已有 chat + sources，<b>主动建议缺失 sources</b>（vs 之前 web search 不考虑已有内容）</li>
+  </ol>
+  <p style="margin-top: 0.6rem;"><b>关键心智转变</b>：notebook 不只是"<b>学新信息</b>" → 也是"<b>grounded in your data</b>"</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">底层模型</div>
+    <div class="value">Gemini 3.5</div>
+    <div class="sub">+ thinking process</div>
+  </div>
+  <div class="stat">
+    <div class="label">基础设施</div>
+    <div class="value">Anti-gravity</div>
+    <div class="sub">每 notebook = secure cloud computer</div>
+  </div>
+  <div class="stat">
+    <div class="label">文件输出</div>
+    <div class="value">5+ 格式</div>
+    <div class="sub">PDF/Excel/PPT/Chart/Docs</div>
+  </div>
+  <div class="stat">
+    <div class="label">Agent 价值</div>
+    <div class="value">90%</div>
+    <div class="sub">vs 文件输出 10%</div>
+  </div>
+  <div class="stat">
+    <div class="label">Sponsor</div>
+    <div class="value">Cortex</div>
+    <div class="sub">$3.75/月 或 $99 终身</div>
+  </div>
+  <div class="stat">
+    <div class="label">最大保留</div>
+    <div class="value">Grounded AI</div>
+    <div class="sub">不 erode source 哲学</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="1vs2">🔥 1.0 vs 2.0</button>
+  <button class="tab" data-tab="files">📄 文件输出 (10%)</button>
+  <button class="tab" data-tab="agent">🤖 Agent (90%)</button>
+  <button class="tab" data-tab="cortex">💎 Cortex Sponsor</button>
+  <button class="tab" data-tab="shift">🧠 心智转变</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: 1vs2 -->
+<div class="tab-content active" data-tab-content="1vs2">
+  <h2 id="h2-2" class="section">🔥 1.0 vs 2.0 对比</h2>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>1.0（之前）</th><th>2.0（现在）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Studio 输出</b></td>
+        <td>Static images on slides（不可编辑）</td>
+        <td><span class="badge green">真正的 PPT 文件（可编辑）</span></td>
+      </tr>
+      <tr>
+        <td><b>数据表</b></td>
+        <td>仅导出 Google Sheets</td>
+        <td><span class="badge green">Excel 文件</span></td>
+      </tr>
+      <tr>
+        <td><b>PDF / Docs</b></td>
+        <td><span class="badge red">❌ 不支持</span></td>
+        <td><span class="badge green">直接生成</span></td>
+      </tr>
+      <tr>
+        <td><b>Chart</b></td>
+        <td>仅 Studio 内嵌</td>
+        <td><span class="badge green">独立 PNG 文件</span></td>
+      </tr>
+      <tr class="highlight">
+        <td><b>Agent</b></td>
+        <td>仅被动 chat</td>
+        <td><span class="badge green">主动建议缺失 sources</span></td>
+      </tr>
+      <tr>
+        <td><b>Web search</b></td>
+        <td>不考虑 notebook 已有内容</td>
+        <td><span class="badge green">基于已有内容推荐新 source</span></td>
+      </tr>
+      <tr>
+        <td><b>底层</b></td>
+        <td>旧 Gemini</td>
+        <td><span class="badge green">Gemini 3.5</span></td>
+      </tr>
+      <tr>
+        <td><b>隐私</b></td>
+        <td>在 Google 服务器</td>
+        <td><span class="badge green">每 notebook = 1 台 secure cloud computer</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 2: FILES -->
+<div class="tab-content" data-tab-content="files">
+  <h2 id="h2-3" class="section">📄 文件输出（10% 价值）</h2>
+
+  <blockquote>
+    "If you're only focused on these new file formats, <b>you're only tapping into 10% of what makes this update so incredible</b>."
+  </blockquote>
+
+  <h3 id="h3-1">Demo 1: PowerPoint</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p><b>场景</b>：开 gym 创业 → 选 franchise vs independent</p>
+    <p style="margin-top: 0.5rem;"><b>Prompt</b>："create a PowerPoint for me that I can use as a pitch deck for local investors for my new gym"</p>
+    <p style="margin-top: 0.5rem;"><b>输出</b>：.pptx 文件（<b>可编辑 + 看起来 professional</b>）</p>
+    <p style="margin-top: 0.5rem;">→ 也可 upload 到 Google Slides</p>
+  </div>
+
+  <h3 id="h3-2">Demo 2: Excel</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p><b>Prompt</b>："take this same research and create an Excel file with all the likely projections"</p>
+    <p style="margin-top: 0.5rem;"><b>输出</b>：.xlsx 文件</p>
+    <p style="margin-top: 0.5rem;">→ 也可 upload 到 Google Sheets</p>
+  </div>
+
+  <h3 id="h3-3">Demo 3: Chart（自动建议升级）</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p><b>Prompt</b>："compare my gym's sales to what I spend on ads"</p>
+    <p style="margin-top: 0.5rem;"><b>Agent 主动建议</b>："Do you want me to turn this monthly ad spend and revenue data into a clean visual chart?"</p>
+    <p style="margin-top: 0.5rem;"><b>输出</b>：PNG chart（"the more money we spend on ads, the more the business makes exponentially"）</p>
+  </div>
+
+  <h3 id="h3-4">Demo 4: Your Data Workout Tracker</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p><b>场景</b>：手机输入 pull-ups 训练数据</p>
+    <p style="margin-top: 0.5rem;"><b>Prompt</b>："create a chart that maps my progress of the number of pull-ups against my workout schedule"</p>
+    <p style="margin-top: 0.5rem;"><b>输出</b>：PNG chart</p>
+    <p style="margin-top: 0.5rem;">→ 清晰看出 "训练越久越强 / 旅行周下降"</p>
+  </div>
+</div>
+
+<!-- TAB 3: AGENT -->
+<div class="tab-content" data-tab-content="agent">
+  <h2 id="h2-4" class="section">🤖 Agent 能力（90% 价值）⭐</h2>
+
+  <blockquote>
+    "The problem with this search box is that <b>it wouldn't consider what is already in your notebook</b>."
+  </blockquote>
+
+  <h3 id="h3-5">之前 vs 现在</h3>
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>❌ 之前：web search 独立</h4>
+      <ul>
+        <li>搜结果不考虑 notebook 已有 sources</li>
+        <li>用户手动 add sources</li>
+        <li>重复信息</li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>✅ 现在：Agent 智能推荐</h4>
+      <ul>
+        <li>读所有已有 sources + chat 历史</li>
+        <li><b>推断缺失</b></li>
+        <li>主动建议新 topic</li>
+        <li>用户 approve 才 import</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-6">Demo: Gym 创业 → Agent 推荐</h3>
+  <div class="phase-flow" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 1rem 0;">
+    <div class="card" style="flex: 1; min-width: 180px; border-left: 3px solid var(--blue);">
+      <h4 style="color: var(--blue);">① User</h4>
+      <p>"Based on what we've talked about, what are we missing here? What topics should we add as sources?"</p>
+    </div>
+    <div class="card" style="flex: 1; min-width: 180px; border-left: 3px solid var(--yellow);">
+      <h4 style="color: var(--yellow);">② Agent</h4>
+      <p>分析已有 sources + chat → 推荐：<br>
+      - 本地人口统计<br>
+      - 商业租赁指南</p>
+    </div>
+    <div class="card" style="flex: 1; min-width: 180px; border-left: 3px solid var(--green);">
+      <h4 style="color: var(--green);">③ User approve</h4>
+      <p>"yes let's look at local demographics"</p>
+    </div>
+    <div class="card" style="flex: 1; min-width: 180px; border-left: 3px solid var(--purple);">
+      <h4 style="color: var(--purple);">④ Agent</h4>
+      <p>自动 research → import → sources 更新</p>
+    </div>
+  </div>
+
+  <h3 id="h3-7">关键保留：Grounded AI 不被 erode</h3>
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <h4>✅ 关键保证</h4>
+    <ul>
+      <li><b>Research 找新 source</b> → 用户 approve 后才 import（不会自动污染）</li>
+      <li><b>Chat 回答</b> → 仍只用 notebook 内 sources（<b>不幻觉</b>）</li>
+      <li>= <b>grounded AI 哲学保留</b></li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 4: CORTEX -->
+<div class="tab-content" data-tab-content="cortex">
+  <h2 id="h2-5" class="section">💎 Cortex Chrome Extension（Paul's Sponsor）</h2>
+
+  <p style="color: var(--text-dim);">Paul 的 NotebookLM 几个 NotebookLM 原生没有的按钮 = Cortex 加的</p>
+
+  <h3 id="h3-8">9 大功能</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>功能</th><th>描述</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>下载任意 source</td><td>一键下载所有源文件</td></tr>
+      <tr><td>2</td><td>导出 Studio</td><td>一键导出所有 artifacts</td></tr>
+      <tr><td>3</td><td><b>manage notebooks</b></td><td>总览所有 notebook</td></tr>
+      <tr><td>4</td><td>collections</td><td>组织 / 分类 notebook</td></tr>
+      <tr><td>5</td><td>favorites</td><td>收藏常用</td></tr>
+      <tr><td>6</td><td>快速 audio overview</td><td>列内直接生成</td></tr>
+      <tr class="highlight">
+        <td>7</td><td><b>podcast feed ⭐</b></td><td>auto-add audio to RSS → 手机 podcast app 订阅</td>
+      </tr>
+      <tr><td>8</td><td>merge notebooks</td><td>合并多个 notebook</td></tr>
+      <tr><td>9</td><td>bulk import + templates</td><td>批量导入 + 模板库</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-9">价格</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>免费版</h4>
+      <p>基础功能</p>
+    </div>
+    <div class="card">
+      <h4>$3.75/月</h4>
+      <p>所有功能</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⭐ $99 终身</h4>
+      <p>+ 30% 折扣码（视频里）</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <h4>💡 Paul 用法</h4>
+    <p>所有 audio overview 自动 → <b>podcast feed</b></p>
+    <p>跑步 / 开车时听 notebook summary</p>
+    <p style="margin-top: 0.6rem; color: var(--green); font-weight: 600;">= notebook 真正"随身可用"</p>
+  </div>
+</div>
+
+<!-- TAB 5: SHIFT -->
+<div class="tab-content" data-tab-content="shift">
+  <h2 id="h2-6" class="section">🧠 关键心智转变</h2>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>旧 NotebookLM</th><th>新 NotebookLM 2.0</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>用途</b></td>
+        <td>学新信息（external sources）</td>
+        <td><b>也支持 your data</b></td>
+      </tr>
+      <tr>
+        <td><b>数据源</b></td>
+        <td>别人网站 / YouTube / 文件</td>
+        <td><b>你手机输入的数据</b>（workout tracker）</td>
+      </tr>
+      <tr>
+        <td><b>输出</b></td>
+        <td>Static artifacts</td>
+        <td><b>真正的可编辑文件</b></td>
+      </tr>
+      <tr class="highlight">
+        <td><b>AI 行为</b></td>
+        <td>被动 Q&A</td>
+        <td><b>主动推荐</b>（"你缺这个 source"）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "In the past, notebooks were really for one purpose, which was to <b>learn new information</b>. But with this new notebook LM, you can create notebooks that are <b>grounded in your data</b>."
+  </blockquote>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <h4>⚠️ 关键保留（NotebookLM 灵魂）</h4>
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "I was afraid it would begin to erode what makes Notebook LM so special, which is the fact that it is <b>grounded in the sources that you give it</b>. But, I'm happy to say that <b>that erosion is not happening</b>."
+    </blockquote>
+  </div>
+</div>
+
+<!-- TAB 6: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-7" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 K1（Agent Native KG）</h4>
+      <p><b>NotebookLM 2.0 agent ≈ K1 agent</b></p>
+      <ul>
+        <li>K1：5 schema 多模态 KG → 推断 + 主动建议</li>
+        <li>NotebookLM 2.0：基于已有 sources → 主动建议缺失 sources</li>
+      </ul>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同构</b>："看已有 → 推断缺失 → 主动补全"</p>
+      <p style="margin-top: 0.4rem;">→ 差异：K1 open / NotebookLM closed</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>NotebookLM 2.0 内部用 Gemini 3.5</p>
+      <p>但 <b>不支持 local model</b> = 跟 hybrid 哲学冲突</p>
+      <p style="margin-top: 0.4rem;">→ 机会：用 hybrid-llm-router build <b>本地 notebook system</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent</h4>
+      <p><b>NotebookLM = 极简 but closed</b></p>
+      <p><b>Pi = 极简 + open + terminal</b></p>
+      <p style="margin-top: 0.4rem;">→ 两者都强调 "harness 简单 + 用户自己扩"</p>
+      <p>→ 机会：用 Pi + Cortex 思路 build "本地 NotebookLM"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>NotebookLM 2.0 = <b>反例</b>：closed + 不可本地</p>
+      <p style="margin-top: 0.4rem;">→ 机会：Patrick 可用 K1 + 本地 LLM build <b>自己的 NotebookLM 替代</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman "intelligence 移到 harness"</h4>
+      <p>NotebookLM 2.0 = harness 升级（Gemini 3.5 + agent）</p>
+      <p style="margin-top: 0.4rem;">→ Cortex 扩展 = harness 的 harness</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "AI 品牌糟糕"</h4>
+      <p>NotebookLM 2.0 = Google 闭源 = <b>不透明</b></p>
+      <p>Cortex = 透明扩展（用户掌控）</p>
+      <p style="margin-top: 0.4rem;">→ 跟 "blue and purple slop" 形成对比</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Self-Harness Optimization</h4>
+      <p>Cortex = <b>第三方 self-harness</b>（用户加在 NotebookLM 上）</p>
+      <p>Paul 的 hack：browser 按钮 + 自动化 = 自助扩展</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Video Notes Dashboard v1.3.0</h4>
+      <p>v1.3.0 哲学："用户掌控 + 极简 + 自己扩展"</p>
+      <p>NotebookLM 2.0 同源</p>
+      <p>→ 差异：v1.3.0 全 open source / NotebookLM closed</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-8" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-10">立即可做（30 分钟）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>创建 NotebookLM notebook 试用 2.0：
+      <ul>
+        <li>上传 Patrick 工作笔记 / skill / 视频 dashboard index.md</li>
+        <li>试 "create PDF/PPT/Excel" 命令</li>
+        <li>试 agent "what am I missing" 命令</li>
+      </ul>
+    </li>
+    <li>装 Cortex（免费版够用）：
+      <ul>
+        <li>试用 podcast feed（听自己的工作笔记）</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-11">中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>用 NotebookLM 整理 Patrick 工作知识库：
+      <ul>
+        <li>OpenSwarm / hybrid-llm-router / K1 等 13+ 视频笔记</li>
+        <li>agent 自动推荐缺失主题</li>
+      </ul>
+    </li>
+    <li>Cortex podcast feed：
+      <ul>
+        <li>自动把所有 video 笔记 → audio overview → 跑步听</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-12">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>用 K1 + Pi Agent build <b>"Open NotebookLM"</b>：
+      <ul>
+        <li>5 schema KG + Pi 4 tools + hybrid router</li>
+        <li>完全本地 + 开放 + grounded AI</li>
+      </ul>
+    </li>
+    <li>OpenSwarm 多 notebook 协同：
+      <ul>
+        <li>每个 agent 一个 notebook</li>
+        <li>Pi 编排跨 notebook 查询</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 8: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-9" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Hook</div>
+      <div class="text">This is the new Notebook LM. And I know, it looks exactly the same as the old Notebook LM. But <b>under the hood, they've added something incredible</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">10%</div>
+      <div class="text">If you're only focused on these new file formats, <b>you're only tapping into 10% of what makes this update so incredible</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Agent 90%</div>
+      <div class="text">The problem with this search box is that <b>it wouldn't consider what is already in your notebook</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Grounded 保留</div>
+      <div class="text">I was afraid it would begin to erode what makes Notebook LM so special, which is the fact that it is <b>grounded in the sources that you give it</b>. But, I'm happy to say that <b>that erosion is not happening</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">心智转变</div>
+      <div class="text">In the past, notebooks were really for one purpose, which was to <b>learn new information</b>. But with this new notebook LM, you can create notebooks that are <b>grounded in your data</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Agent 升级</div>
+      <div class="text">Now, prior to this update, if you wanted to add sources, you would have to do them manually, or you can use this web search function on the left. The problem with this search box is that <b>it wouldn't consider what is already in your notebook</b>.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Cortex</div>
+      <div class="text">Anytime you generate an audio overview, you can use an automation to <b>automatically add it to a podcast feed</b> that you can subscribe to on your phone.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-10" class="section">⏱️ 完整时间线（32 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：NotebookLM UI 不变，under the hood 大改</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:36</div>
+      <div class="what">Paul 用例：gym 创业分析</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">🔥 <b>2 大升级介绍</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:37</div>
+      <div class="what">Studio 限制（static image）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:55</div>
+      <div class="what">📄 <b>文件输出演示</b>：PowerPoint（可编辑）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:34</div>
+      <div class="what">Excel 输出演示</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:10</div>
+      <div class="what">"Only 10% of what's new"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:15</div>
+      <div class="what">💎 Sponsor：Paul 的 Cortex 扩展介绍</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:46</div>
+      <div class="what">Cortex 功能清单（podcast feed 等）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:46</div>
+      <div class="what">Cortex 价格 + 30% 折扣</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:56</div>
+      <div class="what">🤖 <b>90% 新能力：底层更新</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:00</div>
+      <div class="what">Gemini 3.5 + thinking process</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:15</div>
+      <div class="what">抗重力 + secure cloud computer</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:30</div>
+      <div class="what">🤖 <b>Agent 演示</b>：基于已有 → 推荐缺失</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:25</div>
+      <div class="what">"Yes look at demographics" → 自动 import</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:10</div>
+      <div class="what">2 大能力组合 = 强大 workflow</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:20</div>
+      <div class="what">Ad spend vs sales demo</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:46</div>
+      <div class="what">Chart 生成 demo</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:46</div>
+      <div class="what">Workout tracker demo（your data）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:16</div>
+      <div class="what">🧠 <b>关键心智转变</b>：notebooks = grounded in your data</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:36</div>
+      <div class="what">关键保留：grounded AI 不被 erode</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:00</div>
+      <div class="what">"research 找 source → 必须 approve 才 import"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:21</div>
+      <div class="what">Access 滚动推出（评论里 update）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:33</div>
+      <div class="what">总结：NotebookLM vs Gemini 选哪个</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:42</div>
+      <div class="what">Closing + next video 推荐</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/notebooklm-2-0/</code></p>
+  <p>Desktop: <code>~/Desktop/notebooklm-2-0-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=rvg0wuMC5_s">https://www.youtube.com/watch?v=rvg0wuMC5_s</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

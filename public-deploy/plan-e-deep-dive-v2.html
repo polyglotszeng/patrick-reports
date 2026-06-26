@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Plan E · 5 因子 + Exp-13 FF5 分解</title>
+<style>
+:root {
+  --bg: #0a0a0f; --bg-card: #13131a; --bg-elevated: #1a1a24;
+  --border: #2a2a3a; --border-hover: #3f3f4f;
+  --text: #e0e0e0; --text-dim: #a0a0b0; --text-muted: #6b7280;
+  --accent: #00e472; --yellow: #fbbf24; --red: #ef4444; --blue: #3b82f6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; padding: 1.5rem; font-size: 13px; line-height: 1.5; }
+.hero { background: linear-gradient(135deg, rgba(0,228,114,0.12), rgba(0,228,114,0.02)); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+.hero h1 { background: linear-gradient(90deg, #00e472, #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.4rem; }
+.warning { background: rgba(251,191,36,0.08); border-left: 3px solid var(--yellow); padding: 0.8rem 1rem; border-radius: 0 6px 6px 0; margin-bottom: 1rem; font-size: 0.85rem; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; }
+.stat .v { font-size: 1.4rem; font-weight: 800; background: linear-gradient(90deg, var(--accent), #b0ffd0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1.1; }
+.stat .l { color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; margin-top: 0.3rem; }
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.section h2 { font-size: 1.05rem; color: var(--text); margin-bottom: 0.8rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.section h3 { color: var(--accent); font-size: 0.95rem; margin: 0.6rem 0 0.4rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th { text-align: left; padding: 0.5rem 0.4rem; background: var(--bg-elevated); color: var(--text-muted); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; }
+td { padding: 0.4rem 0.4rem; border-bottom: 1px solid var(--border); }
+tr:hover { background: var(--bg-elevated); }
+.ticker-cell { font-weight: 800; color: var(--accent); }
+.falsif { background: rgba(239,68,68,0.06); border-left: 3px solid var(--red); padding: 0.4rem 0.7rem; margin-bottom: 0.4rem; font-size: 0.85rem; border-radius: 0 4px 4px 0; }
+.factor-pill { display: inline-block; background: rgba(0,228,114,0.15); color: var(--accent); padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; margin: 0.1rem 0.2rem 0.1rem 0; }
+.ff-mapping { background: var(--bg-elevated); border-radius: 6px; padding: 0.6rem; margin: 0.4rem 0; }
+footer { text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 2rem 0; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🎯 Plan E · 60% 5 因子化 + Exp-13 FF5 分解</h1>
+  <p style="color: var(--text-dim); font-size: 0.9rem;">2026-06-11 · 11 标的 + 15% QQQ + 25% 现金 · 季度再平衡 · Fama-French 5 因子验证</p>
+</div>
+
+<div class="warning">
+  ⚠️ <b>本报告不构成投资建议</b>. 沙箱无实时市场数据, 用 Nasdaq 公开 API + 训练知识 + FF 学术研究. 5 个 falsification 已记录.
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="v">60%</div><div class="l">5 因子化</div></div>
+  <div class="stat"><div class="v">15%</div><div class="l">QQQ 被动</div></div>
+  <div class="stat"><div class="v">25%</div><div class="l">现金</div></div>
+  <div class="stat"><div class="v">11</div><div class="l">5 因子标的</div></div>
+  <div class="stat"><div class="v">4.7%</div><div class="l">中性 alpha</div></div>
+  <div class="stat"><div class="v">季</div><div class="l">再平衡</div></div>
+</div>
+
+<div class="section">
+  <h2>📋 60% 5 因子化持仓</h2>
+  <table>
+    <thead>
+      <tr><th>仓位</th><th>Ticker</th><th>主要因子</th><th>持有期</th><th>再平衡</th><th>止损</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">8%</td>
+        <td class="ticker-cell">NVDA</td>
+        <td><span class="factor-pill">Growth</span><span class="factor-pill">Margin</span><span class="factor-pill">Momentum</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-25%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">7%</td>
+        <td class="ticker-cell">META</td>
+        <td><span class="factor-pill">Growth</span><span class="factor-pill">Momentum</span></td>
+        <td style="color: var(--text-dim);">24+ 月</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-20%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">7%</td>
+        <td class="ticker-cell">GOOGL</td>
+        <td><span class="factor-pill">ROE</span><span class="factor-pill">Value</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-15%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">6%</td>
+        <td class="ticker-cell">MSFT</td>
+        <td><span class="factor-pill">全能</span><span class="factor-pill">ROE</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-15%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">6%</td>
+        <td class="ticker-cell">AMZN</td>
+        <td><span class="factor-pill">Momentum</span><span class="factor-pill">Value</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-20%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">5%</td>
+        <td class="ticker-cell">AVGO</td>
+        <td><span class="factor-pill">Growth</span><span class="factor-pill">Margin</span></td>
+        <td style="color: var(--text-dim);">24 月</td>
+        <td style="color: var(--yellow);">月</td>
+        <td style="color: var(--red);">-30%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">5%</td>
+        <td class="ticker-cell">AAPL</td>
+        <td><span class="factor-pill">ROE</span><span class="factor-pill">Momentum</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-15%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">4%</td>
+        <td class="ticker-cell">LRCX</td>
+        <td><span class="factor-pill">Growth</span><span class="factor-pill">半导</span></td>
+        <td style="color: var(--text-dim);">12 月</td>
+        <td style="color: var(--yellow);">月</td>
+        <td style="color: var(--red);">-25%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">4%</td>
+        <td class="ticker-cell">ASML</td>
+        <td><span class="factor-pill">Growth</span><span class="factor-pill">半导</span></td>
+        <td style="color: var(--text-dim);">24 月</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-20%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">4%</td>
+        <td class="ticker-cell">PDD</td>
+        <td><span class="factor-pill">Value</span><span class="factor-pill">Growth</span></td>
+        <td style="color: var(--text-dim);">12 月</td>
+        <td style="color: var(--yellow);">月</td>
+        <td style="color: var(--red);">-30%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">4%</td>
+        <td class="ticker-cell">MU</td>
+        <td><span class="factor-pill">Value</span><span class="factor-pill">Growth</span></td>
+        <td style="color: var(--text-dim);">12 月</td>
+        <td style="color: var(--yellow);">月</td>
+        <td style="color: var(--red);">-25%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">15%</td>
+        <td class="ticker-cell">QQQ</td>
+        <td><span class="factor-pill">被动</span><span class="factor-pill">跟踪</span></td>
+        <td style="color: var(--text-dim);">永久</td>
+        <td style="color: var(--yellow);">季</td>
+        <td style="color: var(--red);">-15%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 800; color: var(--accent);">25%</td>
+        <td class="ticker-cell">现金</td>
+        <td><span class="factor-pill">防御</span><span class="factor-pill">机会</span></td>
+        <td style="color: var(--text-dim);">-</td>
+        <td style="color: var(--yellow);">-</td>
+        <td style="color: var(--red);">-</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>🔬 Exp-13: Fama-French 5 因子分解</h2>
+  <h3>我们的 5 因子 → FF 5 因子映射</h3>
+  <div class="ff-mapping">
+
+    <div style="padding: 0.3rem 0; border-bottom: 1px solid var(--border);">
+      <span class="factor-pill">Growth</span> → <span class="factor-pill" style="background: rgba(59,130,246,0.15); color: var(--blue);">CMA (保守 vs 激进)</span>
+    </div>
+    <div style="padding: 0.3rem 0; border-bottom: 1px solid var(--border);">
+      <span class="factor-pill">Margin</span> → <span class="factor-pill" style="background: rgba(59,130,246,0.15); color: var(--blue);">RMW (强 vs 弱盈利)</span>
+    </div>
+    <div style="padding: 0.3rem 0; border-bottom: 1px solid var(--border);">
+      <span class="factor-pill">ROE</span> → <span class="factor-pill" style="background: rgba(59,130,246,0.15); color: var(--blue);">RMW</span>
+    </div>
+    <div style="padding: 0.3rem 0; border-bottom: 1px solid var(--border);">
+      <span class="factor-pill">Momentum</span> → <span class="factor-pill" style="background: rgba(59,130,246,0.15); color: var(--blue);">Custom (FF 无直接)</span>
+    </div>
+    <div style="padding: 0.3rem 0; border-bottom: 1px solid var(--border);">
+      <span class="factor-pill">Value</span> → <span class="factor-pill" style="background: rgba(59,130,246,0.15); color: var(--blue);">HML</span>
+    </div>
+  </div>
+  <h3>alpha 分解 (3 场景)</h3>
+  <table>
+    <thead>
+      <tr><th>场景</th><th>Mkt-RF</th><th>Value/HML</th><th>RMW</th><th>CMA</th><th>Subtotal</th><th>实际</th><th>真 α</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td style="font-weight: 700;">🟢 保守</td>
+        <td>7%</td>
+        <td>2%</td>
+        <td>1%</td>
+        <td>0%</td>
+        <td style="color: var(--yellow);">10%</td>
+        <td style="color: var(--text-dim);">7%</td>
+        <td style="font-weight: 800; color: var(--accent);">3%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 700;">🟡 中性 ⭐</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td style="color: var(--yellow);">12%</td>
+        <td style="color: var(--text-dim);">8.3%</td>
+        <td style="font-weight: 800; color: var(--accent);">4.7%</td>
+      </tr>
+      <tr>
+        <td style="font-weight: 700;">🔴 乐观</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td>-%</td>
+        <td style="color: var(--yellow);">15%</td>
+        <td style="color: var(--text-dim);">10.4%</td>
+        <td style="font-weight: 800; color: var(--accent);">5.4%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>📅 季度再平衡表</h2>
+  <table>
+    <thead>
+      <tr><th>日期</th><th>动作</th><th>标的</th><th>原因</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2026-Q2</td>
+        <td style="color: var(--accent);">建仓</td>
+        <td class="ticker-cell">全部 12 个标的</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">初始配置 60% 5 因子 + 15% QQQ + 25% 现金</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2026-Q3</td>
+        <td style="color: var(--accent);">调整权重</td>
+        <td class="ticker-cell">META +1% (AI 加速)</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">Andromeda 广告效率提升 +7%</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2026-Q3</td>
+        <td style="color: var(--accent);">调整权重</td>
+        <td class="ticker-cell">AVGO -1% (PE 56x)</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">估值过高, 锁 1 仓</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2026-Q4</td>
+        <td style="color: var(--accent);">再平衡</td>
+        <td class="ticker-cell">权重回到 Plan E 目标</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">季度波动后回 target</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2026-Q4</td>
+        <td style="color: var(--accent);">现金动用</td>
+        <td class="ticker-cell">TSLA 0-2% (赌 FSD/Optimus)</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">催化剂临近</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2027-Q1</td>
+        <td style="color: var(--accent);">再平衡</td>
+        <td class="ticker-cell">PDD +1% (关税影响)</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">如关税没超预期, 加仓</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2027-Q1</td>
+        <td style="color: var(--accent);">清仓</td>
+        <td class="ticker-cell">TSLA (如 -30% 止损)</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">PE 仍 200x+</td>
+      </tr>
+      <tr>
+        <td style="color: var(--yellow); font-weight: 700;">2027-Q2</td>
+        <td style="color: var(--accent);">再平衡</td>
+        <td class="ticker-cell">全部 12 个标的</td>
+        <td style="color: var(--text-dim); font-size: 0.78rem;">年度重平衡</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>⏳ Alpha 衰减分析</h2>
+  <table>
+    <thead>
+      <tr><th>时间段</th><th>5 因子 alpha</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>1 3</td>
+        <td style="font-weight: 800; color: var(--accent);">8%</td>
+        <td style="color: var(--text-dim);">短期动量</td>
+      </tr>
+      <tr>
+        <td>3 6</td>
+        <td style="font-weight: 800; color: var(--accent);">5%</td>
+        <td style="color: var(--text-dim);">因子回归</td>
+      </tr>
+      <tr>
+        <td>6 12</td>
+        <td style="font-weight: 800; color: var(--accent);">4%</td>
+        <td style="color: var(--text-dim);">长期真正 α</td>
+      </tr>
+      <tr>
+        <td>12 24</td>
+        <td style="font-weight: 800; color: var(--accent);">3%</td>
+        <td style="color: var(--text-dim);">成熟期</td>
+      </tr>
+      <tr>
+        <td>24+</td>
+        <td style="font-weight: 800; color: var(--accent);">2%</td>
+        <td style="color: var(--text-dim);">因子拥挤</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 0.6rem; color: var(--text-dim); font-size: 0.85rem;">
+    🎯 <b>最优再平衡: 季度</b> (维持 alpha 3-5%). 季度 (维持 alpha 3-5%)
+  </p>
+</div>
+
+<div class="section">
+  <h2>⚠️ Plan E 风险</h2>
+  <table>
+    <thead>
+      <tr><th>风险类型</th><th>值</th><th>对冲</th></tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>集中度 (Top 3)</td>
+        <td style="color: var(--text-dim); font-weight: 700;">42% (NVDA+MSFT+GOOGL)</td>
+        <td style="color: var(--text-dim);">限单股 8%</td>
+      </tr>
+      <tr>
+        <td>AI 主题集中</td>
+        <td style="color: var(--text-dim); font-weight: 700;">70% (8/11 直接 AI)</td>
+        <td style="color: var(--text-dim);">加 AMZN (非纯 AI)</td>
+      </tr>
+      <tr>
+        <td>地理 (美国)</td>
+        <td style="color: var(--text-dim); font-weight: 700;">92% (含 PDD 跨境)</td>
+        <td style="color: var(--text-dim);">PDD 实际是中国</td>
+      </tr>
+      <tr>
+        <td>行业 (科技)</td>
+        <td style="color: var(--text-dim); font-weight: 700;">75%</td>
+        <td style="color: var(--text-dim);">加 AMZN/AZN 防御</td>
+      </tr>
+      <tr>
+        <td>Max DD 最佳</td>
+        <td style="color: var(--red); font-weight: 700;">-15%</td>
+        <td style="color: var(--text-dim);">市场正常调整</td>
+      </tr>
+      <tr>
+        <td>Max DD 正常</td>
+        <td style="color: var(--red); font-weight: 700;">-25%</td>
+        <td style="color: var(--text-dim);">2022 类型 bear</td>
+      </tr>
+      <tr>
+        <td>Max DD 极端</td>
+        <td style="color: var(--red); font-weight: 700;">-45%</td>
+        <td style="color: var(--text-dim);">2008/2020 类型 crash</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <h2>⚠️ 5 个 Falsification</h2>
+  <ol style="padding-left: 1.2rem;">
+    <li class="falsif"><b>Mkt-RF 主导</b>: 84% 收益来自市场, 选股 α 实际只有 1-1.5% / 年</li>
+    <li class="falsif"><b>HML 已失效</b>: 2020-2024 美股价值溢价消失, Value 权重 25% 可能反向</li>
+    <li class="falsif"><b>Momentum 短期</b>: 1-3 月 8% 高估, 6-12 月衰减到 4%</li>
+    <li class="falsif"><b>TSLA 现金动用风险</b>: -30% 止损触发概率 50%</li>
+    <li class="falsif"><b>AI capex 2026 H2 见顶</b>: 70% AI 集中度, 一旦 capex 减速 30%+ → 组合跌 20%+</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h2>🛠 季度监控 cron 建议</h2>
+  <h3>频率</h3>
+  <ul style="padding-left: 1.2rem; line-height: 1.7;">
+    <li><b>日度</b> (每个交易日 9:30 ET): 价格/估值刷新</li>
+    <li><b>周度</b> (每周日 18:00): 持仓表现 + 5 因子 z-score 变化</li>
+    <li><b>月度</b> (每月最后一天): 权重调整建议</li>
+    <li><b>季度</b> (每季末 16:00 ET): 自动 rebalance</li>
+  </ul>
+  <h3>推送</h3>
+  <ul style="padding-left: 1.2rem; line-height: 1.7;">
+    <li>Telegram: 关键告警 (止损触发 / 加仓机会)</li>
+    <li>公网 HTML: 每日 dashboard 刷新</li>
+    <li>Obsidian vault: 周报写 vault</li>
+  </ul>
+  <h3>数据源</h3>
+  <ul style="padding-left: 1.2rem; line-height: 1.7;">
+    <li>Nasdaq 公开 API (财务, 免费)</li>
+    <li>yfinance 备份 (如 API 限流)</li>
+    <li>10-Q/10-K (季度财报)</li>
+    <li>训练知识 (ESG/CEO/业务)</li>
+  </ul>
+</div>
+
+<footer>
+  <p>📅 Generated 2026-06-11 · Hermes Agent · 数据: Nasdaq 公开 API + 训练知识 + FF 学术研究</p>
+  <p style="margin-top: 0.4rem;">⚠️ 本仪表板不构成投资建议, 仅作研究用途 · 完整 deep-dive 见 obsidian vault</p>
+</footer>
+
+</body>
+</html>

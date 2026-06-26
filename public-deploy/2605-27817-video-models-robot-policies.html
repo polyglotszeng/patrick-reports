@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>VERA: Video-to-Embodied Robot Action Model</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="WEEKEND_REPLACE" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<p>
+<h1>VERA: Turning Video Models into Generalist Robot Policies</h1></p><p><strong>Authors:</strong> Sizhe Lester Li, Evan Kim, Xingjian Bai, Tong Zhao, Tao Pang, Max Simchowitz, Vincent Sitzmann (MIT CSAIL)  
+<strong>arXiv:</strong> <a href="https://arxiv.org/abs/2605.27817">2605.27817</a>  
+<strong>Submitted:</strong> 26 May 2026  
+<strong>Conference:</strong> CoRL 2026  
+<strong>Categories:</strong> cs.RO, cs.AI, cs.CV, cs.LG  
+<strong>Project:</strong> <a href="https://vera.csail.mit.edu">vera.csail.mit.edu</a></p><p><h2>Abstract</h2></p><p>Video generative models have emerged as a promising robotics backbone. Rather than jointly fine-tuning video models with action-labeled data (as in robot foundation models), this paper decouples video planning from action prediction: the video planner is left unchanged while an embodiment-specific inverse dynamics model (IDM) is trained separately. The approach, called VERA (Video-to-Embodied Robot Action Model), combines an action-free video world model with a Jacobian-based IDM that maps pixel motion to actions. VERA achieves strong performance across simulated and real-world benchmarks including zero-shot Panda arm manipulation and 16-DoF Allegro-hand dexterous cube re-orientation.</p><p><h2>Key Contributions</h2></p><p>- <strong>Decoupled video planning + IDM architecture</strong>: Unlike robot foundation models that jointly predict observations and actions, VERA keeps the video world model frozen and learns a separate embodiment-specific inverse dynamics model (IDM) based on the robot embodiment Jacobian.
+<li><strong>Jacobian-IDM (J-IDM) design</strong>: Predicts actions by inverting a learned tangent map between action perturbations and pixel motion. The J-IDM is data-efficient (works with limited action data) and scales to high-dimensional action spaces (16-DoF dexterous hands).</li>
+<li><strong>Cross-embodiment generalization</strong>: The same frozen video planner can be paired with different embodiment-specific J-IDMs to control different robots, without retraining the video model.</p><p><h2>Method Details</h2></p><p><h3>Video World Model</h3></li>
+The video planner is treated as a frozen, action-free world model that generates future video frames from current observations. The paper does not specify which specific video model is used, but the architecture details (Appendix A.1) describe a video tokenizer and decoder, diffusion-forcing training objective, and multi-view formatting with temporal context and look-ahead.</p><p><h3>Jacobian Inverse Dynamics Model (J-IDM)</h3>
+The core technical contribution is the J-IDM, which maps predicted pixel motions to robot actions:</p><p>1. <strong>Embodiment Jacobian</strong>: Models the relationship between action perturbations (joint velocity changes) and resulting pixel motion in the image space.
+2. <strong>Image-space Jacobian field</strong>: Learned function that predicts how pixel regions will change given action perturbations.
+3. <strong>Forward-to-Inverse conversion</strong>: Instead of training an IDM directly on action labels, the method first trains a forward model (action → pixel motion), then analytically inverts it via the Jacobian to get actions from observed pixel motion.
+4. <strong>Training objective</strong>: Joint forward-inverse training with consistency losses ensuring the forward and inverse mappings are coherent.</p><p><h3>Closed-Loop Policy</h3>
+VERA operates in closed-loop: the video model generates future frames, the J-IDM extracts actions from predicted pixel motion, and the robot executes actions while re-observing for the next step. The authors use closed-loop replanning at test time.</p><p><h2>Key Results</h2></p><p><table>
+| Benchmark | VERA Performance | Baseline (UniPi*) |
+|-----------|-----------------|-------------------|
+| Allegro-Sim (16-DoF dexterous) | High success rate | 0.0% success |
+| Panda-Sim MimicGen (7-DoF) | High success rate | 0.0% success |
+| PushT-Sim | High success rate | 0.0% success |
+</table></p><p><strong>EgoBench results</strong> (from the paper's broader benchmarking context): The best video-MLLM agent achieves 30.62% accuracy in the best-performing scenario, averaging 19.43% across four scenarios. The paper focuses on VERA's performance relative to UniPi*-style direct inverse-dynamics baselines, where VERA significantly outperforms.</p><p>VERA achieves <strong>zero-shot Panda arm manipulation</strong> (unseen task prompts at test time) and generalizes across embodiments by swapping the J-IDM while keeping the video planner fixed.</p><p><h2>Limitations and Future Work</h2></p><p>- <strong>Video model dependency</strong>: VERA's performance is bounded by the video planner's quality; if the video model generates physically implausible futures, the J-IDM has no way to correct.
+<li><strong>IDM per-embodiment requirement</strong>: While the video planner is shared, a new J-IDM must be trained for each robot embodiment, requiring some action-labeled data for each.</li>
+<li><strong>Occlusion sensitivity</strong>: The J-IDM relies on pixel-level correspondence, making it potentially sensitive to occlusions and viewpoint changes not seen during training.</li>
+<li><strong>Limited to manipulation</strong>: The method is evaluated on manipulation tasks; generalization to navigation or locomotion is not demonstrated.</li>
+<li><strong>Future work</strong>: Scaling to more embodiments, combining with language-conditioned video planners, and improving robustness under long-horizon occlusions.</p><p><h2>Relevance to Patrick's Research</h2></p><p>This paper is directly relevant to the Voyager/NVIDIA and DeepMind Genie/Genesis lines in Patrick's world model tracking. VERA demonstrates that decoupled video world model + IDM is a viable alternative to end-to-end robot foundation models — an important architectural finding. The Jacobian-inversion approach to mapping video predictions to actions is novel and the cross-embodiment generalization result (same video planner, different IDMs) is architecturally interesting. The zero-shot manipulation result on a real Panda arm is a strong sim-to-real demonstration.</li>
+</p>
+</body>
+</html>

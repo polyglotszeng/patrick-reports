@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>硬科技周报 · 2026-06-15 ~ 2026-06-21 · 中文版</title>
+<meta content="硬科技每周热门中文版 — 核聚变 / 量子 / 电池 / 航天 · 2026-06-15 至 2026-06-21" name="description"/>
+<meta content="#0a0e1a" name="theme-color"/>
+<style>
+:root {
+  --bg: #0a0e1a; --card: rgba(20, 25, 40, 0.7); --card-border: rgba(120, 140, 200, 0.18);
+  --text: #e6ecff; --muted: #8a96b8; --accent: #5b8def; --ok: #5dd39e; --warn: #f0b048;
+  --fusion: #ff6b9d; --quantum: #b48cff; --battery: #5fc9a8; --space: #5bbedb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(180deg, #050810 0%, #0a0e1a 100%);
+  color: var(--text); line-height: 1.6; min-height: 100vh;
+}
+.wrap { max-width: 920px; margin: 0 auto; padding: 32px 20px 80px; }
+header { margin-bottom: 32px; }
+h1 {
+  font-size: 32px; margin: 0 0 8px; letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #5b8def, #b48cff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: var(--muted); font-size: 14px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin: 24px 0; }
+.stat { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; backdrop-filter: blur(8px); }
+.stat .num { font-size: 24px; font-weight: 700; color: var(--accent); }
+.stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.stat.fusion .num { color: var(--fusion); }
+.stat.quantum .num { color: var(--quantum); }
+.stat.battery .num { color: var(--battery); }
+.stat.space .num { color: var(--space); }
+.topic-h2 {
+  font-size: 20px; font-weight: 600; margin: 40px 0 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(120, 140, 200, 0.08); }
+.rank { flex: 0 0 36px; text-align: right; color: var(--muted); font-weight: 600; font-size: 14px; padding-top: 2px; }
+.content { flex: 1; min-width: 0; }
+.title-row { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.title { color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px; flex: 1; min-width: 0; }
+.title:hover { color: var(--accent); }
+.first-seen { color: var(--muted); font-size: 10px; font-weight: normal; flex: 0 0 auto; margin-left: 4px; }
+.abstract {
+  color: var(--text); opacity: 0.85; font-size: 13px; margin-top: 8px; line-height: 1.5;
+  padding: 8px 12px; background: rgba(91,141,239,0.06); border-left: 2px solid var(--accent); border-radius: 0 6px 6px 0;
+}
+.authors { color: var(--muted); font-size: 11px; margin-top: 4px; font-style: italic; }
+.cats { color: var(--accent); font-size: 11px; margin-top: 2px; opacity: 0.8; }
+.meta { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: rgba(120, 140, 200, 0.15); color: var(--muted); flex: 0 0 auto; }
+.tag.accent { background: rgba(91, 141, 239, 0.18); color: var(--accent); }
+.tag.ok { background: rgba(93, 211, 158, 0.18); color: var(--ok); }
+.tag.warn { background: rgba(240, 176, 72, 0.18); color: var(--warn); }
+.tag.topic { background: rgba(180, 140, 255, 0.12); color: var(--text); margin-left: 2px; }
+footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--card-border); color: var(--muted); font-size: 12px; text-align: center; }
+@media (max-width: 600px) { .wrap { padding: 20px 14px 60px; } h1 { font-size: 24px; } }
+
+.title-en { color: var(--muted); font-size: 12px; font-style: italic; margin-top: 2px; flex-basis: 100%; }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 本周 Top 30 (按 7 天累计 impact)</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">⚛️ 可控核聚变 本周 Top 8</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🔮 量子计算 本周 Top 8</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🔋 电池/材料 本周 Top 6</a></li>
+  </ol>
+</aside>
+
+<div class="wrap">
+<header>
+<h1>⚛️ 硬科技周报</h1>
+<div class="subtitle">2026-06-15 ~ 2026-06-21 · 聚合 1 天 · 总 29 个去重 item</div>
+<div class="stat-grid">
+<div class="stat"><div class="num">21</div><div class="label">arXiv</div></div>
+<div class="stat"><div class="num">8</div><div class="label">Hacker News</div></div>
+<div class="stat stat fusion"><div class="num">8</div><div class="label">⚛️ 核聚变</div></div>
+<div class="stat stat quantum"><div class="num">15</div><div class="label">🔮 量子</div></div>
+<div class="stat stat battery"><div class="num">6</div><div class="label">🔋 电池</div></div>
+<div class="stat stat space"><div class="num">0</div><div class="label">🚀 航天</div></div>
+</div>
+</header>
+<h2 id="h2-1" class="topic-h2">🔥 本周 Top 30 (按 7 天累计 impact)</h2>
+<div class="item">
+<div class="rank">#01</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/01-uss-big-bet-on-quantum-computi.html" rel="noopener" target="_blank">美国在量子计算上的豪赌可能并不合法</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">US's big bet on quantum computing may not be legal</div>
+<div class="meta">impact: 645 · ★ 100 · 💬 109</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#02</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/02-2-billion-chips-act-investment.html" rel="noopener" target="_blank">IBM 分拆出首家纯量子芯片代工厂</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">IBM Spins Off the First Pure-Play Quantum Chip Foundry</div>
+<div class="meta">impact: 523 · ★ 158 · 💬 73</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#03</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/03-doubling-down-controversial-cl.html" rel="noopener" target="_blank">微软在备受争议的量子计算声明上加大押注</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Microsoft doubles down on controversial quantum computing claims</div>
+<div class="meta">impact: 316 · ★ 46 · 💬 54</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#04</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18029.html" rel="noopener" target="_blank">理解与量化香蕉线圈磁场及力以增强优化</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Understanding and Quantifying Banana Coil Magnetic Fields and Forces for Enhanced Optimisation</div>
+<div class="abstract">优化后的托卡马克-仿星器混合概念（Henneberg and Plunk 2024）有望结合托卡马克与仿星器各自的优势，实现磁约束聚变。这些紧凑的准轴对称设计具有低长宽比、大等离子体体积、良好的粒子约束以及相对简单的线圈。此前的工作表明，这种磁场构型原则上可由一种非平面&amp;quot;香蕉线圈&amp;quot;配合传统托卡马克线圈组来复现（Henneberg and Plunk 2025）。本工作在优化香蕉线圈的同时，超越了简单的几何度量，纳入了工程约束。我们量化了力优化香蕉线圈的特征几何及其产生的磁场，并分析了通过优化减小受力的机理。</div>
+<div class="authors">👥 Annika Zettl, Tobias Schuett, Sophia Henneberg</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#05</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17733.html" rel="noopener" target="_blank">潜空间残差闭合傅里叶神经算子：面向 PIC 仿真中鲁棒多场求解</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Latent Residual-Closure Fourier Neural Operator for Robust Multi-Field Solving in Particle-in-Cell Simulations</div>
+<div class="abstract">Particle-in-cell（PIC）仿真广泛用于能源应用中的动理学等离子体建模，但其效率常受限于在密集网格上反复求解场方程。本工作提出一种潜空间残差闭合傅里叶神经算子（LRC-FNO），用于 PIC 仿真中鲁棒的代理多场求解。LRC-FNO 并非把场预测视为纯数据驱动的回归任务，而是将 PIC 场求解建模为包含源项压缩与源-场算子映射的两层残差闭合问题。自编码器提取粒子沉积源场的紧凑表示，潜空间闭合精炼器则恢复压缩过程中丢失的未解析残差结构。Coarse-FNO Solver 捕获主导场响应，Residual-Closure FNO 恢复全分辨率修正。该方法在三个复杂度递增的基准上测试：1D 线性 Landau damping（LLD）、2D 双流不稳定性（TSI）以及 2D 刮削层（SOL）聚变等离子体模型。在 LLD 与 TSI 中，LRC-FNO 在闭环 PIC 积分中更好地保持了电荷-势映射、势模演化、残差电荷结构以及粒子-场能量交换。在 SOL 情形下，LRC-FNO 在单步预测中对自洽势的相对 L2 误差为 0.0447，对磁矢势为 0.0251。更重要的是，当作为神经网络的初始猜测并配合 20 次迭代修正时，LRC-FNO 在保持……</div>
+<div class="authors">👥 Jianhua Lyu, Linlin Zhong</div>
+<div class="cats">🏷️ physics.comp-ph · physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#06</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17656.html" rel="noopener" target="_blank">无碰撞等离子体系统的薛定谔方程与涨落定理</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Schrödinger equations and fluctuation theorems for collisionless plasma systems</div>
+<div class="abstract">本文针对可写成薛定谔型方程、且具有幺正或反幺正时间反演算子的经典系统，表述了涨落定理与细致涨落定理。初始态矢量被视为从时间反演对称的概率分布中抽取的随机变量，由其概率密度定义的随机相对熵被用于表述这些定理。该框架被应用于两个无碰撞等离子体系统：线性 Vlasov-Poisson 系统与线性回旋动理学系统。对于线性 Vlasov-Poisson 系统，方程被改写为薛定谔形式，并推导出对应 Case-Van Kampen 模的哈密顿本征矢以构造显式解。随机相对熵被诠释为与 Landau damping 相关的熵产生，其中电场能量从最低阶 Hermite 态转移至高阶 Hermite 态（作为热库）。对于特定类型的初始分布，推导了随机相对熵概率密度函数的新解析表达式，并通过数值验证。对于均匀磁场中的线性回旋动理学系统，方程同样被变换为薛定谔形式，并确定了相应的时间反演算子。态矢量空间被构造为各粒子种类的张量积……</div>
+<div class="authors">👥 Hideo Sugama</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#07</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17375.html" rel="noopener" target="_blank">在 DIII-D 上首次开展可再生硼球团颗粒偏滤器暴露实验</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">First divertor exposure experiments of a renewable boron pebble aggregate in DIII-D</div>
+<div class="abstract">硼球团颗粒（boron pebble aggregate）首次作为面向等离子体的高热通量颗粒材料在托卡马克偏滤器中接受测试。在 DIII-D 托卡马克上，实验所承受的入射热通量最高达 q∥ = 80 MW/m²。由烧结无定形硼球以碳粘结剂结合而成的单根突出棒状球团，被装入偏滤器材料评价系统（DiMES）样品架，并在 L-mode 下单零位（LSN）等离子体中暴露。在该热负载下，观察到硼球释放出显著的硼粉尘，并且该粉尘主导了偏滤器中的硼电离源。在释放的硼中，仅约一半以毫米级颗粒的形式在局部被回收；其余部分主要作为粉尘损失到等离子体与真空室中。初步估算表明，球团在等离子体偏滤器内约 1 cm/s 的表面后退速率，与正入射热负载下的激光台架测试结果一致。尽管高硼粉尘释放未对芯部性能产生明显不利影响，但后续工作仍需改进硼球团设计，以在高热负载下降低硼粉尘释放。</div>
+<div class="authors">👥 Erick Martinez-Loran, Angelica Ottaviano, Santhosh T. A. Kumar 等</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#08</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18240.html" rel="noopener" target="_blank">量子 LDPC 码的脉冲解码：简并与码缩短的等价性</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Impulse Decoding of Quantum LDPC Codes: Equivalence of Degeneracy and Code-Shortening</div>
+<div class="abstract">量子纠错是构建可扩展量子计算机的关键。在稳定子形式体系中，Calderbank-Shor-Steane 框架用一对经典线性码构造量子码。该设定中一个独特性质是简并性——存在多个等价的错误估计，这是经典场景中所没有的现象；其在经典编码理论中缺乏有意义的诠释，一直是文献中的空白。本文证明简并性与经典线性分组码的&amp;quot;缩短&amp;quot;操作密切相关。有趣的是，这里的缩短发生在解码器侧而非编码器侧。基于此洞见，我们提出一种针对量子低密度奇偶校验（LDPC）码的并行解码方案——脉冲解码（impulse decoding）。在码容量噪声与电路级噪声下，它的性能显著优于带有序统计量解码的置信传播以及多种现有技术，且复杂度更低。进而我们又提出一种基于残差错误解码的算法，与脉冲解码结合后可在电路级噪声下获得进一步性能提升。</div>
+<div class="authors">👥 Shobhit Bhatnagar, Michele Pacenti, Nithin Raveendran 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#09</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18202.html" rel="noopener" target="_blank">通过 SU(1,1) 干涉仪揭示机械振子间的 EPR 关联</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Einstein-Podolsky-Rosen correlations between mechanical oscillators revealed through SU(1,1) interferometry</div>
+<div class="abstract">量子关联是实现计算、通信与传感量子优势的关键；其观测同时也挑战并约束着我们对自然的基本理解。处于量子态的机械振子是制备与研究……（原文摘要截断）</div>
+<div class="authors">👥 Max-Emanuel Kern, Stefano Marti, Raquel Garcia-Belles 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#10</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18188.html" rel="noopener" target="_blank">借助量子纠错学习任意 Lindblad 算子</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Learning Arbitrary Lindbladians with Quantum Error Correction</div>
+<div class="abstract">本文研究无预设形式的 Lindblad 算子学习（ansatz-free Lindbladian learning），即在未知开放量子系统哈密顿量或耗散子结构的前提下，重建其生成元的问题。该问题存在两个不同的信息论精度极限：由耗散……（原文摘要截断）</div>
+<div class="authors">👥 Nikita Romanov, Petr Ivashkov, Weiyuan Gong 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#11</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18169.html" rel="noopener" target="_blank">协变测量下相位估计的最优探测态</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optimal Probe State for Phase Estimation Under Covariant Measurement</div>
+<div class="abstract">我们研究在协变测量下用于相位估计的输入态优化问题。基于 Holevo 框架——该框架针对固定输入态给出了最优协变测量——我们进一步对输入态本身进行优化。对于一般偶函数 $2π$-周期代价函数……</div>
+<div class="authors">👥 Qipeng Qian, Christos N. Gagatsos</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#12</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18167.html" rel="noopener" target="_blank">量子网络链路的最优校准</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optimal Calibration of Quantum Network Links</div>
+<div class="abstract">可靠的纠缠分发对于量子网络的有效运行至关重要。由于量子通信系统与经典通信系统存在根本差异，有必要开发专门的算法和协议，同时考虑量子特有的约束……</div>
+<div class="authors">👥 Vinay Kumar, Claudio Cicconetti, Marco Conti 等</div>
+<div class="cats">🏷️ quant-ph · cs.PF</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#13</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18161.html" rel="noopener" target="_blank">最近可达对称性约化：一种用于哈密顿量插值分析的工具</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Closest Accessible Symmetry reduction: a tool for Hamiltonian interpolation analysis</div>
+<div class="abstract">我们提出了一个分析哈密顿量插值谱的框架，无需严重依赖对插值参数的离散化。该方法基于「可达对称性」的概念：这是一族依赖于问题类别的可认证反射，能够诱导二分……</div>
+<div class="authors">👥 Ana Palacios, Artur Garcia-Saez, Arnau Riera 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#14</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18145.html" rel="noopener" target="_blank">拓扑码最小权重解码的多项式时间近似方案</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">A polynomial-time approximation scheme for minimum-weight decoding of topological codes</div>
+<div class="abstract">二维拓扑平移不变（2D TTI）稳定子码是容错量子计算的核心，但使用它们需要解决解码问题。最近的研究表明，即使在基本设定下，这些码的最小权重解码也是 NP 难问题……</div>
+<div class="authors">👥 Shouzhen Gu, Lily Wang, Aleksander Kubica</div>
+<div class="cats">🏷️ quant-ph · cs.DS</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#15</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18140.html" rel="noopener" target="_blank">复杂电磁几何中四面体的奇异向量有限元基函数</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Singular Vector Finite Element Basis Functions for Tetrahedra in Complex Electromagnetic Geometries</div>
+<div class="abstract">使用传统基函数的电磁有限元方法（FEM）实现难以准确表示导电楔形等奇异特征附近的场行为。为此，研究者引入了专门的奇异基函数，以直接建模奇异场……</div>
+<div class="authors">👥 Samuel T. Elkin, Ghazi Khan, Ebrahim Forati 等</div>
+<div class="cats">🏷️ physics.comp-ph · quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#16</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17237.html" rel="noopener" target="_blank">时变陷阱中的等离子体：非线性动力学、对称性与不变量</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Time-dependent Trapped Plasmas: Nonlinear Dynamics, Symmetries and Invariants</div>
+<div class="abstract">我们研究在时变谐振势阱中约束的单组分等离子体的非线性动力学，关注其对称性和不变函数。该系统在等熵绝热近似下被描述为一组偏微分方程的流体。通过合适的变量变换……</div>
+<div class="authors">👥 Thonimar V. Alencar, Luiz Gustavo Ferreira Soares, Ronaldo Thibes</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#17</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17195.html" rel="noopener" target="_blank">Avalanche Energy 离心镜机中 keV 表观离子温度的光学发射光谱测量</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optical Emission Spectroscopy Measurements of keV Apparent Ion Temperatures in Avalanche Energy's Centrifugal Mirror Machine</div>
+<div class="abstract">在 $E \times B$ 装置中，新产生的离子在强径向电场作用下被迅速加速，并在轴向磁场存在时执行大幅度的回旋轨道运动。在这些轨道相交的位置，来自不同初始半径的离子以显著不同的速度到达……</div>
+<div class="authors">👥 M. Affolter, E. C. Hayes, A. Helson 等</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#18</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16363.html" rel="noopener" target="_blank">反常电阻率对撕裂不稳定性的影响</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">The Effect of Anomalous Resistivity on Tearing Instability</div>
+<div class="abstract">我们通过在电阻磁流体力学（MHD）框架中引入可变的二阶电阻率模型，研究反常电阻率对经典撕裂不稳定性的修正。我们评估了由此产生的多阶微扰修正和边界层标度律……</div>
+<div class="authors">👥 D. Tsiklauri</div>
+<div class="cats">🏷️ physics.plasm-ph · physics.space-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#19</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18028.html" rel="noopener" target="_blank">多离子环境中离子交换膜的热力学一致建模</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Thermodynamically consistent modeling of ion exchange membranes in multi-ionic environments</div>
+<div class="abstract">离子交换膜广泛应用于海水淡化、燃料电池和水系电池等多种场景。因此，研究者提出了多种离子交换膜模型，各自强调影响其静态和动态性质的不同方面。通过……</div>
+<div class="authors">👥 Noah Lettner, Felix K. Schwab, Birger Horstmann</div>
+<div class="cats">🏷️ physics.chem-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#20</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17807.html" rel="noopener" target="_blank">电网故障下的家庭应对机制：来自黎巴嫩高电气化背景的证据</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Household coping mechanisms under grid failure: Evidence from a high electrification context in Lebanon</div>
+<div class="abstract">尽管许多国家已实现近乎全民电气化，电力供应短缺仍在持续塑造家庭能源使用方式。本文以黎巴嫩为案例，研究在高电气化、高依赖背景下家庭如何应对长期电网故障。基于原创调查数据……</div>
+<div class="authors">👥 Majd Olleik, Haytham M. Dbouk, Anne Neumann 等</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#21</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17741.html" rel="noopener" target="_blank">可穿戴多模态超声+惯性系统:面向实时虚拟现实交互</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">A Wearable Multimodal Ultrasound+Inertial System for Real-Time Virtual Reality Interaction</div>
+<div class="abstract">A-mode 超声(US)是一种很有前景的 VR 交互感知模态,能够把肌肉活动映射为控制指令,同时保留可穿戴传感的优势。然而,现有方案在佩戴舒适度和交互性方面仍存在局限。本文提出了一种紧凑、低功耗、可穿戴的多模态系统,将 A-mode 超声传感器与惯性测量单元(IMU)融合,用于实时 VR 控制。我们通过多用户实验,在多种 VR 任务中评估了系统的精度、延迟和用户体验。</div>
+<div class="authors">👥 Giusy Spacone, Sebastian Frey, Enzo Baraldi 等</div>
+<div class="cats">🏷️ cs.HC</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#22</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17565.html" rel="noopener" target="_blank">大规模集中式双向逆变器电站通过交直流连接接入大电网的稳定性分析</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Stability Analysis in Large-scale Centralized Bidirectional Inverter-based Stations Connected to Bulk Power Systems through AC and DC Connections</div>
+<div class="abstract">大规模受控直流资源(CDCR),例如电池储能系统,通过双向逆变器接入交流电网以满足功率平衡需求。本研究针对大规模集中式 CDCR 经 AC 和 DC 通道接入大电网所引发的次同步频段变换器驱动稳定性(CDS)问题展开分析。论文建立了包含多条 AC/DC 馈线的统一阻抗模型,并提出了相应的稳定性判据与抑制策略。</div>
+<div class="authors">👥 Qiang Fu, Wenjuan Du, Siqi Bu 等</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#23</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16764.html" rel="noopener" target="_blank">用手性压缩为量子电池充电</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Charging Quantum Batteries with Chiral Squeezing</div>
+<div class="abstract">我们提出一种基于受驱玻色 Kitaev 链(BKC)的量子电池充电器,其中的手性压缩可以把被动的输入涨落转化为有序、非被动的电池态。虽然相干输入脉冲会表现出相位敏感的手性输运,但充电动力学主要由双向无序涨落主导,使得充电功率相较常规协议获得显著提升。</div>
+<div class="authors">👥 Borhan Ahmadi, André H. A. Malavazi, Janine Splettstoesser 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#24</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16434.html" rel="noopener" target="_blank">基于时序对比表示学习的电池系统自动化端到端 SOH 预测服务</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Autonomous End-to-End SOH Prediction Services for Battery Systems via Temporal-Contrastive Representation Learning</div>
+<div class="abstract">精准的健康状态(SOH)估计是锂电池管理的关键诊断服务。然而,依赖人工特征工程和不透明的黑箱模型阻碍了规模化工业部署。为此,我们提出 TC-SOH:一种模块化、即插即用的端到端 SOH 预测流水线,通过时序对比表示学习自动提取退化特征,并在不同电芯化学体系间具备良好迁移能力。</div>
+<div class="authors">👥 Junting Wen, Dan Li, Qihao Quan 等</div>
+<div class="cats">🏷️ cs.LG · cs.AI</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#25</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/25-world-first-imec-presents-quan.html" rel="noopener" target="_blank">基于高数值孔径 EUV 光刻的量子点 qubit</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Quantum dot qubit using High NA EUV lithography</div>
+<div class="meta">impact: 49 · ★ 24 · 💬 5</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#26</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/26-key-chemistry-question-answere.html" rel="noopener" target="_blank">一个关键化学问题被回答,且无需量子计算机</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Key chemistry question answered, no quantum computer required</div>
+<div class="meta">impact: 42 · ★ 32 · 💬 2</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#27</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/27-99c1c1e7-1a1c-479c-9fc8-e21aea.html" rel="noopener" target="_blank">加密行业备战量子计算威胁</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Crypto industry braces for quantum computing threat</div>
+<div class="meta">impact: 30 · ★ 10 · 💬 4</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#28</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/28-pnas-2523350123.html" rel="noopener" target="_blank">理性量子力学:用量子计算机检验量子理论</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Rational quantum mechanics: Testing quantum theory with quantum computers</div>
+<div class="meta">impact: 19 · ★ 4 · 💬 3</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#29</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/29-www-fusionsimulator-io.html" rel="noopener" target="_blank">交互式托卡马克等离子体模拟器</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Interactive Tokamak Plasma Simulator</div>
+<div class="meta">impact: 4 · ★ 4 · 💬 0</div>
+</div>
+</div>
+<h2 id="h2-2" class="topic-h2">⚛️ 可控核聚变 本周 Top 8</h2>
+<div class="item">
+<div class="rank">#01</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18029.html" rel="noopener" target="_blank">理解与量化香蕉线圈磁场及力以增强优化</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Understanding and Quantifying Banana Coil Magnetic Fields and Forces for Enhanced Optimisation</div>
+<div class="abstract">优化后的托卡马克-仿星器混合概念（Henneberg and Plunk 2024）有望结合托卡马克与仿星器各自的优势，实现磁约束聚变。这些紧凑的准轴对称设计具有低长宽比、大等离子体体积、良好的粒子约束以及相对简单的线圈。此前的工作表明，这种磁场构型原则上可由一种非平面&amp;quot;香蕉线圈&amp;quot;配合传统托卡马克线圈组来复现（Henneberg and Plunk 2025）。本工作在优化香蕉线圈的同时，超越了简单的几何度量，纳入了工程约束。我们量化了力优化香蕉线圈的特征几何及其产生的磁场，并分析了通过优化减小受力的机理。</div>
+<div class="authors">👥 Annika Zettl, Tobias Schuett, Sophia Henneberg</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#02</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17733.html" rel="noopener" target="_blank">潜空间残差闭合傅里叶神经算子：面向 PIC 仿真中鲁棒多场求解</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Latent Residual-Closure Fourier Neural Operator for Robust Multi-Field Solving in Particle-in-Cell Simulations</div>
+<div class="abstract">Particle-in-cell（PIC）仿真广泛用于能源应用中的动理学等离子体建模，但其效率常受限于在密集网格上反复求解场方程。本工作提出一种潜空间残差闭合傅里叶神经算子（LRC-FNO），用于 PIC 仿真中鲁棒的代理多场求解。LRC-FNO 并非把场预测视为纯数据驱动的回归任务，而是将 PIC 场求解建模为包含源项压缩与源-场算子映射的两层残差闭合问题。自编码器提取粒子沉积源场的紧凑表示，潜空间闭合精炼器则恢复压缩过程中丢失的未解析残差结构。Coarse-FNO Solver 捕获主导场响应，Residual-Closure FNO 恢复全分辨率修正。该方法在三个复杂度递增的基准上测试：1D 线性 Landau damping（LLD）、2D 双流不稳定性（TSI）以及 2D 刮削层（SOL）聚变等离子体模型。在 LLD 与 TSI 中，LRC-FNO 在闭环 PIC 积分中更好地保持了电荷-势映射、势模演化、残差电荷结构以及粒子-场能量交换。在 SOL 情形下，LRC-FNO 在单步预测中对自洽势的相对 L2 误差为 0.0447，对磁矢势为 0.0251。更重要的是，当作为神经网络的初始猜测并配合 20 次迭代修正时，LRC-FNO 在保持……</div>
+<div class="authors">👥 Jianhua Lyu, Linlin Zhong</div>
+<div class="cats">🏷️ physics.comp-ph · physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#03</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17656.html" rel="noopener" target="_blank">无碰撞等离子体系统的薛定谔方程与涨落定理</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Schrödinger equations and fluctuation theorems for collisionless plasma systems</div>
+<div class="abstract">本文针对可写成薛定谔型方程、且具有幺正或反幺正时间反演算子的经典系统，表述了涨落定理与细致涨落定理。初始态矢量被视为从时间反演对称的概率分布中抽取的随机变量，由其概率密度定义的随机相对熵被用于表述这些定理。该框架被应用于两个无碰撞等离子体系统：线性 Vlasov-Poisson 系统与线性回旋动理学系统。对于线性 Vlasov-Poisson 系统，方程被改写为薛定谔形式，并推导出对应 Case-Van Kampen 模的哈密顿本征矢以构造显式解。随机相对熵被诠释为与 Landau damping 相关的熵产生，其中电场能量从最低阶 Hermite 态转移至高阶 Hermite 态（作为热库）。对于特定类型的初始分布，推导了随机相对熵概率密度函数的新解析表达式，并通过数值验证。对于均匀磁场中的线性回旋动理学系统，方程同样被变换为薛定谔形式，并确定了相应的时间反演算子。态矢量空间被构造为各粒子种类的张量积……</div>
+<div class="authors">👥 Hideo Sugama</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#04</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17375.html" rel="noopener" target="_blank">在 DIII-D 上首次开展可再生硼球团颗粒偏滤器暴露实验</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">First divertor exposure experiments of a renewable boron pebble aggregate in DIII-D</div>
+<div class="abstract">硼球团颗粒（boron pebble aggregate）首次作为面向等离子体的高热通量颗粒材料在托卡马克偏滤器中接受测试。在 DIII-D 托卡马克上，实验所承受的入射热通量最高达 q∥ = 80 MW/m²。由烧结无定形硼球以碳粘结剂结合而成的单根突出棒状球团，被装入偏滤器材料评价系统（DiMES）样品架，并在 L-mode 下单零位（LSN）等离子体中暴露。在该热负载下，观察到硼球释放出显著的硼粉尘，并且该粉尘主导了偏滤器中的硼电离源。在释放的硼中，仅约一半以毫米级颗粒的形式在局部被回收；其余部分主要作为粉尘损失到等离子体与真空室中。初步估算表明，球团在等离子体偏滤器内约 1 cm/s 的表面后退速率，与正入射热负载下的激光台架测试结果一致。尽管高硼粉尘释放未对芯部性能产生明显不利影响，但后续工作仍需改进硼球团设计，以在高热负载下降低硼粉尘释放。</div>
+<div class="authors">👥 Erick Martinez-Loran, Angelica Ottaviano, Santhosh T. A. Kumar 等</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#05</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17237.html" rel="noopener" target="_blank">时变陷阱中的等离子体：非线性动力学、对称性与不变量</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Time-dependent Trapped Plasmas: Nonlinear Dynamics, Symmetries and Invariants</div>
+<div class="abstract">我们研究在时变谐振势阱中约束的单组分等离子体的非线性动力学，关注其对称性和不变函数。该系统在等熵绝热近似下被描述为一组偏微分方程的流体。通过合适的变量变换……</div>
+<div class="authors">👥 Thonimar V. Alencar, Luiz Gustavo Ferreira Soares, Ronaldo Thibes</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#06</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17195.html" rel="noopener" target="_blank">Avalanche Energy 离心镜机中 keV 表观离子温度的光学发射光谱测量</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optical Emission Spectroscopy Measurements of keV Apparent Ion Temperatures in Avalanche Energy's Centrifugal Mirror Machine</div>
+<div class="abstract">在 $E \times B$ 装置中，新产生的离子在强径向电场作用下被迅速加速，并在轴向磁场存在时执行大幅度的回旋轨道运动。在这些轨道相交的位置，来自不同初始半径的离子以显著不同的速度到达……</div>
+<div class="authors">👥 M. Affolter, E. C. Hayes, A. Helson 等</div>
+<div class="cats">🏷️ physics.plasm-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#07</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16363.html" rel="noopener" target="_blank">反常电阻率对撕裂不稳定性的影响</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">The Effect of Anomalous Resistivity on Tearing Instability</div>
+<div class="abstract">我们通过在电阻磁流体力学（MHD）框架中引入可变的二阶电阻率模型，研究反常电阻率对经典撕裂不稳定性的修正。我们评估了由此产生的多阶微扰修正和边界层标度律……</div>
+<div class="authors">👥 D. Tsiklauri</div>
+<div class="cats">🏷️ physics.plasm-ph · physics.space-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#08</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/29-www-fusionsimulator-io.html" rel="noopener" target="_blank">交互式托卡马克等离子体模拟器</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">⚛️ 可控核聚变</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Interactive Tokamak Plasma Simulator</div>
+<div class="meta">impact: 4 · ★ 4 · 💬 0</div>
+</div>
+</div><h2 id="h2-3" class="topic-h2">🔮 量子计算 本周 Top 8</h2>
+<div class="item">
+<div class="rank">#01</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/01-uss-big-bet-on-quantum-computi.html" rel="noopener" target="_blank">美国在量子计算上的豪赌可能并不合法</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">US's big bet on quantum computing may not be legal</div>
+<div class="meta">impact: 645 · ★ 100 · 💬 109</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#02</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/02-2-billion-chips-act-investment.html" rel="noopener" target="_blank">IBM 分拆出首家纯量子芯片代工厂</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">IBM Spins Off the First Pure-Play Quantum Chip Foundry</div>
+<div class="meta">impact: 523 · ★ 158 · 💬 73</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#03</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/03-doubling-down-controversial-cl.html" rel="noopener" target="_blank">微软在备受争议的量子计算声明上加大押注</a>
+<span class="tag accent">HN</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Microsoft doubles down on controversial quantum computing claims</div>
+<div class="meta">impact: 316 · ★ 46 · 💬 54</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#04</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18240.html" rel="noopener" target="_blank">量子 LDPC 码的脉冲解码：简并与码缩短的等价性</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Impulse Decoding of Quantum LDPC Codes: Equivalence of Degeneracy and Code-Shortening</div>
+<div class="abstract">量子纠错是构建可扩展量子计算机的关键。在稳定子形式体系中，Calderbank-Shor-Steane 框架用一对经典线性码构造量子码。该设定中一个独特性质是简并性——存在多个等价的错误估计，这是经典场景中所没有的现象；其在经典编码理论中缺乏有意义的诠释，一直是文献中的空白。本文证明简并性与经典线性分组码的&amp;quot;缩短&amp;quot;操作密切相关。有趣的是，这里的缩短发生在解码器侧而非编码器侧。基于此洞见，我们提出一种针对量子低密度奇偶校验（LDPC）码的并行解码方案——脉冲解码（impulse decoding）。在码容量噪声与电路级噪声下，它的性能显著优于带有序统计量解码的置信传播以及多种现有技术，且复杂度更低。进而我们又提出一种基于残差错误解码的算法，与脉冲解码结合后可在电路级噪声下获得进一步性能提升。</div>
+<div class="authors">👥 Shobhit Bhatnagar, Michele Pacenti, Nithin Raveendran 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 80 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#05</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18202.html" rel="noopener" target="_blank">通过 SU(1,1) 干涉仪揭示机械振子间的 EPR 关联</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Einstein-Podolsky-Rosen correlations between mechanical oscillators revealed through SU(1,1) interferometry</div>
+<div class="abstract">量子关联是实现计算、通信与传感量子优势的关键；其观测同时也挑战并约束着我们对自然的基本理解。处于量子态的机械振子是制备与研究……（原文摘要截断）</div>
+<div class="authors">👥 Max-Emanuel Kern, Stefano Marti, Raquel Garcia-Belles 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#06</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18188.html" rel="noopener" target="_blank">借助量子纠错学习任意 Lindblad 算子</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Learning Arbitrary Lindbladians with Quantum Error Correction</div>
+<div class="abstract">本文研究无预设形式的 Lindblad 算子学习（ansatz-free Lindbladian learning），即在未知开放量子系统哈密顿量或耗散子结构的前提下，重建其生成元的问题。该问题存在两个不同的信息论精度极限：由耗散……（原文摘要截断）</div>
+<div class="authors">👥 Nikita Romanov, Petr Ivashkov, Weiyuan Gong 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#07</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18169.html" rel="noopener" target="_blank">协变测量下相位估计的最优探测态</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optimal Probe State for Phase Estimation Under Covariant Measurement</div>
+<div class="abstract">我们研究在协变测量下用于相位估计的输入态优化问题。基于 Holevo 框架——该框架针对固定输入态给出了最优协变测量——我们进一步对输入态本身进行优化。对于一般偶函数 $2π$-周期代价函数……</div>
+<div class="authors">👥 Qipeng Qian, Christos N. Gagatsos</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#08</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18167.html" rel="noopener" target="_blank">量子网络链路的最优校准</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔮 量子计算</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Optimal Calibration of Quantum Network Links</div>
+<div class="abstract">可靠的纠缠分发对于量子网络的有效运行至关重要。由于量子通信系统与经典通信系统存在根本差异，有必要开发专门的算法和协议，同时考虑量子特有的约束……</div>
+<div class="authors">👥 Vinay Kumar, Claudio Cicconetti, Marco Conti 等</div>
+<div class="cats">🏷️ quant-ph · cs.PF</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div><h2 id="h2-4" class="topic-h2">🔋 电池/材料 本周 Top 6</h2>
+<div class="item">
+<div class="rank">#01</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-18028.html" rel="noopener" target="_blank">多离子环境中离子交换膜的热力学一致建模</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Thermodynamically consistent modeling of ion exchange membranes in multi-ionic environments</div>
+<div class="abstract">离子交换膜广泛应用于海水淡化、燃料电池和水系电池等多种场景。因此，研究者提出了多种离子交换膜模型，各自强调影响其静态和动态性质的不同方面。通过……</div>
+<div class="authors">👥 Noah Lettner, Felix K. Schwab, Birger Horstmann</div>
+<div class="cats">🏷️ physics.chem-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#02</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17807.html" rel="noopener" target="_blank">电网故障下的家庭应对机制：来自黎巴嫩高电气化背景的证据</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Household coping mechanisms under grid failure: Evidence from a high electrification context in Lebanon</div>
+<div class="abstract">尽管许多国家已实现近乎全民电气化，电力供应短缺仍在持续塑造家庭能源使用方式。本文以黎巴嫩为案例，研究在高电气化、高依赖背景下家庭如何应对长期电网故障。基于原创调查数据……</div>
+<div class="authors">👥 Majd Olleik, Haytham M. Dbouk, Anne Neumann 等</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#03</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17741.html" rel="noopener" target="_blank">可穿戴多模态超声+惯性系统:面向实时虚拟现实交互</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">A Wearable Multimodal Ultrasound+Inertial System for Real-Time Virtual Reality Interaction</div>
+<div class="abstract">A-mode 超声(US)是一种很有前景的 VR 交互感知模态,能够把肌肉活动映射为控制指令,同时保留可穿戴传感的优势。然而,现有方案在佩戴舒适度和交互性方面仍存在局限。本文提出了一种紧凑、低功耗、可穿戴的多模态系统,将 A-mode 超声传感器与惯性测量单元(IMU)融合,用于实时 VR 控制。我们通过多用户实验,在多种 VR 任务中评估了系统的精度、延迟和用户体验。</div>
+<div class="authors">👥 Giusy Spacone, Sebastian Frey, Enzo Baraldi 等</div>
+<div class="cats">🏷️ cs.HC</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#04</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-17565.html" rel="noopener" target="_blank">大规模集中式双向逆变器电站通过交直流连接接入大电网的稳定性分析</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Stability Analysis in Large-scale Centralized Bidirectional Inverter-based Stations Connected to Bulk Power Systems through AC and DC Connections</div>
+<div class="abstract">大规模受控直流资源(CDCR),例如电池储能系统,通过双向逆变器接入交流电网以满足功率平衡需求。本研究针对大规模集中式 CDCR 经 AC 和 DC 通道接入大电网所引发的次同步频段变换器驱动稳定性(CDS)问题展开分析。论文建立了包含多条 AC/DC 馈线的统一阻抗模型,并提出了相应的稳定性判据与抑制策略。</div>
+<div class="authors">👥 Qiang Fu, Wenjuan Du, Siqi Bu 等</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#05</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16764.html" rel="noopener" target="_blank">用手性压缩为量子电池充电</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Charging Quantum Batteries with Chiral Squeezing</div>
+<div class="abstract">我们提出一种基于受驱玻色 Kitaev 链(BKC)的量子电池充电器,其中的手性压缩可以把被动的输入涨落转化为有序、非被动的电池态。虽然相干输入脉冲会表现出相位敏感的手性输运,但充电动力学主要由双向无序涨落主导,使得充电功率相较常规协议获得显著提升。</div>
+<div class="authors">👥 Borhan Ahmadi, André H. A. Malavazi, Janine Splettstoesser 等</div>
+<div class="cats">🏷️ quant-ph</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<div class="item">
+<div class="rank">#06</div>
+<div class="content">
+<div class="title-row">
+<a class="title" href="items/arxiv-2606-16434.html" rel="noopener" target="_blank">基于时序对比表示学习的电池系统自动化端到端 SOH 预测服务</a>
+<span class="tag warn">arXiv</span>
+<span class="tag topic">🔋 电池/材料</span>
+<span class="first-seen">📅 2026-06-17</span>
+</div><div class="title-en">Autonomous End-to-End SOH Prediction Services for Battery Systems via Temporal-Contrastive Representation Learning</div>
+<div class="abstract">精准的健康状态(SOH)估计是锂电池管理的关键诊断服务。然而,依赖人工特征工程和不透明的黑箱模型阻碍了规模化工业部署。为此,我们提出 TC-SOH:一种模块化、即插即用的端到端 SOH 预测流水线,通过时序对比表示学习自动提取退化特征,并在不同电芯化学体系间具备良好迁移能力。</div>
+<div class="authors">👥 Junting Wen, Dan Li, Qihao Quan 等</div>
+<div class="cats">🏷️ cs.LG · cs.AI</div>
+<div class="meta">impact: 50 · ★ 0 · 💬 0</div>
+</div>
+</div>
+<footer>
+
+
+<p>每周日 23:30 自动生成 · 聚合 7 天 daily hardtech 追踪数据</p><p>Source: arXiv (3 cats + battery full-text) + HN compound keyword · 中文翻译</p><p>🔗 每周一在公网同步更新 → 2017zyl.xyz</p></footer>
+</div>
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>MemoryGraphRAG (Outperforms Every RAG)</title>
+<style>
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; line-height: 1.7; padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.2em; margin-bottom: 0.2em; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.4rem; margin-top: 2.2em; }
+h3 { color: #f7c59f; margin-top: 1.6em; }
+.meta { color: #888; font-size: 0.9em; margin-bottom: 1.5em; padding: 10px 14px; background: #161616; border-left: 3px solid #ff6b35; border-radius: 4px; }
+.meta a { color: #ff6b35; text-decoration: none; }
+.meta a:hover { text-decoration: underline; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; color: #d0d0d0; }
+blockquote .src { color: #888; font-size: 0.85em; display: block; margin-top: 0.4em; font-style: normal; }
+.highlight-box { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 10px; padding: 1.4rem; margin: 1.5rem 0; }
+.takeaway-list { list-style: none; padding-left: 0; counter-reset: t; }
+.takeaway-list li { padding: 0.7rem 1rem; margin: 0.5rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; counter-increment: t; }
+.takeaway-list li::before { content: counter(t) ". "; color: #ff6b35; font-weight: 600; }
+.transcript-section { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1.2rem; margin: 0.6rem 0; }
+.transcript-section h3 { margin-top: 0; color: #ff6b35; font-size: 1.1em; }
+table { width: 100%; border-collapse: collapse; margin: 1.2em 0; }
+th { background: #1f1f1f; color: #f7c59f; padding: 10px 8px; text-align: left; border: 1px solid #2a2a2a; font-size: 0.9em; }
+td { padding: 10px 8px; border: 1px solid #222; font-size: 0.9em; vertical-align: top; }
+tr:nth-child(even) td { background: #131313; }
+code { background: #0a0a0a; border: 1px solid #2a2a2a; color: #4ade80; padding: 2px 6px; border-radius: 3px; font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; }
+pre { background: #0a0a0a; border: 1px solid #2a2a2a; padding: 12px 16px; border-radius: 6px; overflow-x: auto; }
+.speaker-tag { color: #ff6b35; font-weight: 600; font-size: 0.8em; margin-right: 0.5rem; }
+.diagram { background: #0a0a0a; border: 1px solid #2a2a2a; padding: 16px; border-radius: 6px; font-family: "SF Mono", Menlo, monospace; font-size: 0.85em; color: #4ade80; white-space: pre; overflow-x: auto; margin: 1em 0; }
+.honesty { background: #2a1f0a; border: 1px solid #5a3a0a; border-radius: 6px; padding: 12px 16px; color: #f7c59f; font-size: 0.9em; margin: 1.5em 0; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<h1>MemoryGraphRAG (Outperforms Every RAG)</h1>
+
+<div class="meta">
+<strong>URL:</strong> <a href="https://www.youtube.com/watch?v=RfAbsdq_b-A">https://www.youtube.com/watch?v=RfAbsdq_b-A</a><br>
+<strong>Channel:</strong> Discover AI · <strong>Duration:</strong> 19:45 · <strong>Date:</strong> 2026-06-12 review · <strong>Upload:</strong> 2026-06-03<br>
+<strong>Type:</strong> video-notes · <strong>Tags:</strong> rag · memgraph · graph-rag · llm · multi-agent · memory · knowledge-graph · pagerank
+</div>
+
+<div class="highlight-box">
+<strong>TL;DR:</strong> 来自 Xi'an Jiaotong + Jilin 大学的论文: <strong>3 层全局记忆 + 3 agent 协同 + 个性化 PageRank</strong>。基准测试 +28.26 pp 跑赢 Raptor / HyperRAG / MS-GraphRAG / E²GraphRAG / GFM-RAG / LogicRAG / LightRAG, 离线索引贵但在线查询比所有竞品快, 用 GPT-4o-mini 就够 (可本地跑)。
+</div>
+
+<div class="honesty">
+<strong>⚠️ 来源说明:</strong> Discover AI 频道解读 (1.2K views, 6-03 上传)。本笔记聚焦 MemGraphRAG 方法本身 + Patrick 当前 RAG 栈 (NotebookLM 22 源, firecrawl_agent, GCP-1.0 知识库) 的应用潜力。benchmark 数字 +28.26 pp 是视频口播, 论文原文应有精确值。GPT-4 "Omni Mini" 是 Discover AI 视频的口误, 实际是 GPT-4o-mini (2024-07)。
+</div>
+
+<h2>🎯 Key Takeaways</h2>
+
+<ol class="takeaway-list">
+<li><strong>核心问题: Graph RAG 三大缺陷</strong> — ①thematic irrelevance (噪声) ②logical inconsistency (矛盾) ③structural fragmentation (孤岛)</li>
+<li><strong>3 层全局记忆架构</strong> — Ontology (schema) / Fact (实体关系) / Passage (原文证据), 三层互联 + 两向约束</li>
+<li><strong>3 个 agent 协同</strong> — Extraction → Conflict Detection → Conflict Handler, <strong>每个 agent 只做 1 件事</strong> (LLM 不擅长多任务)</li>
+<li><strong>Schema-Instance Alignment</strong> — 每个 fact 必须被 ontology 规则约束, 避免实体类型混乱</li>
+<li><strong>Fact-Evidence Grounding</strong> — 每个 fact 链回原文 passage, 争议时可立即溯源</li>
+<li><strong>2 个桥接机制</strong> — Type-based (同 category 实体互联) + Similarity-based (cosine 相似度弱连接)</li>
+<li><strong>个性化 PageRank</strong> — Google 老算法用于在线检索的图传播, ranking 关键节点</li>
+<li><strong>Smart Reset Weights</strong> — 抑制泛型 hub (person / particle) 优先稀有高密度 passage</li>
+<li><strong>基准测试</strong> — HotpotQA / WikiMultiHopQA 等, <strong>+28.26 pp vs GPT-4o-mini 零样本</strong>, 跑赢所有主流 Graph RAG</li>
+<li><strong>超快在线检索</strong> — 离线索引贵, 在线查询比所有竞品快 (PageRank 优势)</li>
+<li><strong>GPT-4o-mini 就够</strong> — 故意用"老弱"模型, 证明方法鲁棒, 可本地跑</li>
+<li><strong>GitHub 开源 + 完整 prompt 公开</strong> — 包含冲突解决 agent 的 prompt 模板, 可直接复现</li>
+</ol>
+
+<h2>📑 Section-by-Section Summary</h2>
+
+<div class="transcript-section">
+<h3>Part 1: Graph RAG 三大问题 (0:54-2:20) — "Why MemGraphRAG"</h3>
+<p><strong>1. Thematic Irrelevance (噪声):</strong> 例子: 癌症医学文本, LLM 抽出 "patient prefers tea over coffee" 这种无关三元组。后果: 大量噪声淹没真正的医学证据。</p>
+<p><strong>2. Logical Inconsistency (矛盾):</strong> 例子: 一篇文档说 "Newton born 1643", 另一篇说 "Newton born 1645"。朴素 Graph RAG 合并两个事实 → 时间线分裂, 下游检索混乱。</p>
+<p><strong>3. Structural Fragmentation (孤岛):</strong> 例子: 同实体写成 "Newton" 一处, "Isaac Newton" 另一处 → 互不相连的图孤岛。后果: 多跳检索无法跨孤岛遍历完整图。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 2: 3 层全局记忆 + 3 Agent (2:25-5:00)</h3>
+<div class="diagram">┌─────────────────────────────────────────────┐
+│  Ontology Layer (schema, 抽象类型)            │
+│  - 频率过滤 top-K schema                    │
+│  - 例如: country-capital / person-job       │
+│  - weight = 5 (高频出现)                    │
+├─────────────────────────────────────────────┤
+│  Fact Layer (实体关系, 具体实例)             │
+│  - 三元组: (entity, relation, entity)        │
+│  - 例如: (Newton, born_in, 1643)            │
+│  - weight = 1 (单次出现)                    │
+├─────────────────────────────────────────────┤
+│  Passage Layer (原文证据, 可溯源)            │
+│  - 保留原始文本段落                          │
+│  - 任何 fact 争议 → 立即返回原文             │
+└─────────────────────────────────────────────┘</div>
+<p><strong>3 个 Agent 流水线:</strong></p>
+<ol>
+<li><strong>Extraction Agent</strong> (4:08): 把新文档分到 3 层</li>
+<li><strong>Conflict Detection Agent</strong> (5:15): 检测 fact 层矛盾 (Newton 1643 vs 1645)</li>
+<li><strong>Conflict Handler Agent</strong> (5:30): 看原文 passage, 判定 1 个对, 修复 fact 层</li>
+</ol>
+<p><strong>重要设计原则</strong> (5:21): "Keep agents simple. Don't give them two jobs, only one job because LLM is not that capable."</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 3: 3 个互联图视图 (5:50-7:10)</h3>
+<p>从 3 层记忆构建 3 个图:</p>
+<ol>
+<li><strong>Semantic Ontology Graph</strong> (type-relation 抽象)</li>
+<li><strong>Fact Graph</strong> (entity-relation-entity 实体三元组)</li>
+<li><strong>Source Evidence Graph</strong> (passage-source 原文溯源)</li>
+</ol>
+<p><strong>关键</strong>: Schema-Instance Alignment — fact 必须被 ontology 规则约束, 防止 "Newton" 被分类为 "城市" (8:13)。</p>
+<p><strong>关键</strong>: Fact-Evidence Grounding — fact 数学上链到 passage, 争议时 instant 溯源 (8:22)。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 4: 防图孤岛桥接机制 (8:45-9:30)</h3>
+<ol>
+<li><strong>Type-based Bridging</strong>: 不同实体若共享 ontology 高层 category, 自动连接</li>
+<li><strong>Similarity-based Bridging</strong>: 实体嵌入向量 cosine 相似度 > 阈值时建立弱连接</li>
+</ol>
+<p>全部<strong>离线</strong>完成, 在线检索只跑 PageRank (9:35)。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 5: 在线检索 3 步 (9:40-12:40)</h3>
+<div class="diagram">用户 query Q
+   ↓
+Step 1: Memory-Guided Retrieval (并行从 3 层拉)
+   - Schema: 找相关类型
+   - Fact: 找相关实体
+   - Passage: 找相关原文
+   ↓
+Step 2: Structure-Aware Node Initialization
+   - 用 semantic relevance + structural signals 算初始 node weight
+   ↓
+Step 3: Personalized PageRank (Google 100 年前老算法)
+   - 跨图传播, ranking 关键节点
+   ↓
+答案给 LLM 生成最终回答</div>
+<p><strong>Smart Reset Weights</strong> (11:45): 抑制泛型 hub (person, particle, light) 优先稀有高密度 passage, 防止 generic 概念淹没 specific 答案。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 6: 基准测试 (13:00-14:55)</h3>
+<p><strong>零样本基线</strong> (无 RAG):</p>
+<ul>
+<li>Llama 3 8B: 表现平庸</li>
+<li>GPT-4o-mini: 38.10</li>
+</ul>
+<p><strong>加 RAG 后的提升</strong> (vs 零样本):</p>
+<ul>
+<li>Vanilla RAG: 38.10 → 58.5 (+20.4 pp)</li>
+<li>Microsoft GraphRAG / LightRAG / HyperRAG / E²GraphRAG / GFM-RAG / LogicRAG / LinearRAG / RAPTOR: 各种 +X pp</li>
+<li><strong>MemGraphRAG: +28.26 pp</strong> — 跑赢所有 (16:25 视频说 "almost outperforms every other")</li>
+</ul>
+<p><strong>4 个 benchmark</strong>: HotpotQA, WikiMultiHopQA, HotMusicQA, overall。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 7: 实操 + GitHub (15:00-16:25)</h3>
+<p><strong>伪代码</strong> (15:05): 作者提供 3 个核心函数伪代码</p>
+<ul>
+<li>memory_based_indexing (graph construction)</li>
+<li>memory_guided_retrieval</li>
+<li>online_retrieval</li>
+</ul>
+<p><strong>GitHub repo 开源</strong> + <strong>所有 prompt 公开</strong> (含 conflict resolution agent 完整 prompt) — 可直接复现 + 改 prompt 跑实验。</p>
+</div>
+
+<div class="transcript-section">
+<h3>Part 8: 性能 + 选型 (16:30-19:30)</h3>
+<p><strong>性能对比</strong> (16:55): 离线索引贵 (一次性, 大文档集需数小时), 在线查询<strong>比所有竞品快</strong> (PageRank 优势)。</p>
+<p><strong>LLM 选型</strong> (17:45): <strong>故意用 GPT-4o-mini</strong> (老弱模型), 证明方法鲁棒性 — 不依赖最强模型, 可本地 + 便宜跑。</p>
+<p><em>Discover AI 评论 (18:50): "You cannot say that this has a high technological complexity or this is here that you have to have to run it in a cloud."</em></p>
+</div>
+
+<h2>💬 Key Quotes</h2>
+
+<blockquote>
+"Graph RAG had three main problems: thematic irrelevance, logical inconsistency, and structural fragmentation."
+<span class="src">— Discover AI, 0:54</span>
+</blockquote>
+
+<blockquote>
+"Don't give them two jobs, only one job because LLM is not that capable."
+<span class="src">— Discover AI, 5:21</span>
+</blockquote>
+
+<blockquote>
+"Every fact in the fact layer must be governed by a valid rule in the ontology layer... and is mathematically tied up to the exact text passage."
+<span class="src">— Discover AI, 8:15</span>
+</blockquote>
+
+<blockquote>
+"If you just want to have it a little bit more in an abstract notation... personalized PageRank over the heterogeneous graph to rank globally important nodes."
+<span class="src">— Discover AI, 10:50</span>
+</blockquote>
+
+<blockquote>
+"We used so much effort and computer time for the indexation of this complex graph that then when we have the incoming query, this system is now fast."
+<span class="src">— Discover AI, 16:35</span>
+</blockquote>
+
+<blockquote>
+"Even with an old non-top-notch LLM, these new methods work... you don't need the best and the most expensive language model."
+<span class="src">— Discover AI, 18:35</span>
+</blockquote>
+
+<h2>🧭 Framework → Self-Apply Mapping (Patrick 视角)</h2>
+
+<table>
+<thead>
+<tr>
+<th>MemGraphRAG 组件</th>
+<th>Patrick 当前栈</th>
+<th>Status</th>
+<th>User Mapping</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>3 层记忆</strong> (Ontology/Fact/Passage)</td>
+<td>GCP-1.0 6 Gene 域 (骨架)</td>
+<td>⚠️ 平行</td>
+<td>GCP 的 6 Gene 是<strong>组织层</strong> 抽象, 缺<strong>数据层</strong> 3-tier 切分</td>
+</tr>
+<tr>
+<td><strong>3 Agent 协同</strong> (各做 1 事)</td>
+<td>NotebookLM 22 源 + firecrawl_agent</td>
+<td>⚠️ 部分</td>
+<td>NotebookLM 是单查询, 缺多 agent 协同做知识图谱</td>
+</tr>
+<tr>
+<td><strong>PageRank 在线检索</strong></td>
+<td>vault 全文搜索 + Claude session_search</td>
+<td>❌ 缺</td>
+<td>当前是关键词搜索, 不是图遍历</td>
+</tr>
+<tr>
+<td><strong>Fact-Evidence Grounding</strong></td>
+<td>vault 链接 + frontmatter <code>related_notes</code></td>
+<td>⚠️ 部分</td>
+<td>有 related_notes 但没强制 source-of-truth 链</td>
+</tr>
+<tr>
+<td><strong>冲突检测 + 处理</strong></td>
+<td>memory line 21 改"Artisan $30M→$5M"</td>
+<td>✅ 已有</td>
+<td>实战中 subagent 自动报 "Critical corrections" 段</td>
+</tr>
+<tr>
+<td><strong>GitHub 开源 + 完整 prompt 公开</strong></td>
+<td>全部 24 份 artifact Desktop + 公网</td>
+<td>✅ 已有</td>
+<td>Patrick 已有"build in public"风格</td>
+</tr>
+<tr>
+<td><strong>GPT-4o-mini 就够 (不挑模型)</strong></td>
+<td>hermes3 (本地 4.7GB) / qwen3 (本地 5.2GB)</td>
+<td>✅ 已有</td>
+<td>local-llm-benchmark v1.1.0 已验证 routing</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>覆盖率: 4/9 已有 + 3/9 部分 + 2/9 缺 = 60% ✅</strong></p>
+
+<div class="highlight-box">
+<strong>3 个新机会</strong>:
+<ol>
+<li><strong>把 6 Gene 骨架升级到 MemGraphRAG 3-tier</strong> (GCP-1.2.0 候选方向) — 给每个 skill 加 schema/fact/passage 3 层标注</li>
+<li><strong>PageRank 替代 vault 全文搜索</strong> — 跑 1 次实验, 用现有的 GCP 6 Gene 图当 PageRank 输入, 测"问 GCP 协议最相关的 5 个 skill"</li>
+<li><strong>写一个 "Critical corrections" cron</strong> — 每周扫 vault 找过时 fact, 主动报修正 (跟 MemGraphRAG conflict detection 一致)</li>
+</ol>
+</div>
+
+<h2>❓ Discussion Questions</h2>
+
+<ol>
+<li><strong>Patrick 是否要把 6 Gene 协议升级到 3-tier 记忆架构?</strong> (成本: 重写所有 39 skill frontmatter, 加 2 个层; 收益: 多跳检索 + 证据链)</li>
+<li><strong>NotebookLM 22 源算不算 "small global memory"?</strong> 还是说 NotebookLM 是单 agent, 缺 MemGraphRAG 那种多 agent 协同?</li>
+<li><strong>GCP-1.0 的 6 Gene 之间桥接</strong> (cross-domain-intent = align) 是不是已经在做 type-based bridging? 如果是, 我们其实已经部分实现了 MemGraphRAG 思想</li>
+<li><strong>local-llm-benchmark v1.1.0 的 8 任务路由</strong> + <strong>PageRank 选相关 skill</strong> — 能否用 hermes3 跑 PageRank (因为够小, 本地) 做 Patrick 知识库的 "smart query"?</li>
+<li><strong>discover-ai MemGraphRAG 的伪代码</strong> + <strong>Patrick 的 GCP-1.0 registry</strong> — 哪个更适合写进 GCP-1.2.0 作为 <code>gene-relevance-pagerank.py</code> 工具?</li>
+</ol>
+
+<p style="margin-top: 2.5em; padding-top: 1.5em; border-top: 1px solid #2a2a2a; color: #888; font-size: 0.85em;">
+Generated by Hermes Agent · 2026-06-12 · Skill: media/video-to-obsidian v1.1.0 (深色主题) + Framework → Self-Apply Mapping 模式 · source: Discover AI 频道 + Xi'an Jiaotong/Jilin 论文
+</p>
+
+</body>
+</html>

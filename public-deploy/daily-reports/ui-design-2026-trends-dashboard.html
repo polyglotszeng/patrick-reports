@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>UI Design 2026 趋势：Age of Slop + 2 个真正值得关注的方向</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;                 /* anchor to viewport left */
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;  /* 右侧圆角, 左侧贴边 */
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));  /* 默认缩到只露 24px 抓手 */
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  /* 抓手标识: 竖条 + 圆点, 提示"点这里可展开" */
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.toc:hover,
+.toc:focus-within {
+  transform: translateX(0);   /* hover 完全展开 */
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after,
+.toc:focus-within::after {
+  opacity: 0;
+  animation: none;
+}
+@media (max-width: 1279px) {
+  .toc { display: none; }
+}
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: toc;
+}
+.toc li {
+  counter-increment: toc;
+  margin-bottom: 6px;
+}
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <div class="toc-inner">
+    <h3>目录</h3>
+    <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">❌ 4 个虚假趋势（Joke Trends）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💎 Glassmorphism 为何真正特别</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🔘 Neumorphism（Minimalism 中间地带）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">📷 趋势 #1: Augmented Reality / Natural Behavior</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">✏️ 趋势 #2: Hand-drawn / Handwritten</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">📊 6 趋势对比表</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🔗 与 Patrick 工作的关联</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">💬 关键金句库</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⏱️ 完整时间线（18 段字幕）</a></li>
+    </ol>
+  </div>
+</aside>
+
+
+<h1>UI Design 2026 趋势</h1>
+<p class="subtitle">Age of Slop + 2 个真正值得关注的方向 — Malewicz</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=psyw2_j_5jk" target="_blank">UI design is changing. New trends emerge.</a></span>
+  <span><strong>主讲：</strong>Malewicz（glassmorphism + neumorphism 命名者）</span>
+  <span><strong>时长：</strong>12:53（773s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-17</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p><b>"Not everything is blue and purple slop"</b> — AI 时代 UI 设计同质化危机。但 2 个真正值得关注的趋势：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Augmented Reality / Natural Behavior</b> — camera 投射真实光照 + button 物理反应（"bendy buttons"）</li>
+    <li><b>Hand-drawn / Handwritten</b> — AI 泛滥 → 人性化回归（手绘 + 不完美 + 个人化）</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">视频时长</div>
+    <div class="value">12.9 min</div>
+    <div class="sub">773s</div>
+  </div>
+  <div class="stat">
+    <div class="label">主讲权威</div>
+    <div class="value">2x 命名者</div>
+    <div class="sub">glass + neumorphism</div>
+  </div>
+  <div class="stat">
+    <div class="label">虚假趋势</div>
+    <div class="value">4</div>
+    <div class="sub">disco/metal/squircle/balloon</div>
+  </div>
+  <div class="stat">
+    <div class="label">真实趋势</div>
+    <div class="value">2</div>
+    <div class="sub">AR / hand-drawn</div>
+  </div>
+  <div class="stat">
+    <div class="label">Bendy buttons</div>
+    <div class="value">已集成</div>
+    <div class="sub">Longevity Deck</div>
+  </div>
+  <div class="stat">
+    <div class="label">Hand-drawn 先例</div>
+    <div class="value">1999</div>
+    <div class="sub">Malewicz 个人网站</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="fake">❌ 4 个虚假趋势</button>
+  <button class="tab" data-tab="glass">💎 Glassmorphism 为何真</button>
+  <button class="tab" data-tab="neumo">🔘 Neumorphism 中间地带</button>
+  <button class="tab" data-tab="ar">📷 趋势 #1: AR / Natural</button>
+  <button class="tab" data-tab="hand">✏️ 趋势 #2: Hand-drawn</button>
+  <button class="tab" data-tab="table">📊 6 趋势对比表</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: FAKE -->
+<div class="tab-content active" data-tab-content="fake">
+  <h2 id="h2-2" class="section">❌ 4 个虚假趋势（Joke Trends）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>① Discomorphism</h4>
+      <p><b>触发</b>：Spotify 改 logo 为 disco ball-inspired shape（20 周年）</p>
+      <p style="margin-top: 0.6rem;"><b>本质</b>：只是 <b>mirror-like texture</b> = skeuomorphism 子集</p>
+      <p style="color: var(--red); margin-top: 0.6rem; font-style: italic;">"Discomorphism is not a design style in any way. It's just a mirror-like texture."</p>
+      <p style="color: var(--text-mute); font-size: 0.85rem; margin-top: 0.4rem;">如果是真风格：需要 device camera 把你脸 fill 进镜子 → 算 augmented reality</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>② Metalmorphism</h4>
+      <p>只是 <b>metal material</b> 的 sub-classification</p>
+      <p style="color: var(--red); margin-top: 0.6rem; font-style: italic;">"Metalmorphism is nothing new. It's just skeuomorphism because it's just a material."</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>③ Squircle / ④ Italicmorphism</h4>
+      <p>Squircle = 特定 corner radius（friendly + processable）</p>
+      <p>Italicmorphism = 同理</p>
+      <p style="color: var(--text-mute); font-size: 0.85rem; margin-top: 0.4rem;">都是 <b>UX 细节</b>，不是新趋势</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Figma 恶搞: Balloonmorphism</h4>
+      <p style="color: var(--text-mute); font-size: 0.85rem; margin-top: 0.4rem;">"Looked a little bit AI generated. But balloons made with AI can pop."</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: GLASS -->
+<div class="tab-content" data-tab-content="glass">
+  <h2 id="h2-3" class="section">💎 Glassmorphism 为何真正特别</h2>
+
+  <blockquote>
+    "Glass is a material, obviously. But, in a way, this is a little bit more important than material itself, because all of the other materials are <b>non-translucent</b>. And just having that <b>transparency, the way to see through something, allows you to have a different level of depth and context</b>."
+  </blockquote>
+
+  <h3 id="h3-1">核心差异对比</h3>
+  <table>
+    <thead>
+      <tr><th>Morphism</th><th>Material</th><th>关键特性</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Discomorphism</td><td>Mirror</td><td><span class="badge red">Opaque</span></td></tr>
+      <tr><td>Metalmorphism</td><td>Metal</td><td><span class="badge red">Opaque</span></td></tr>
+      <tr><td>Neumorphism</td><td>Soft 3D</td><td><span class="badge red">Opaque</span></td></tr>
+      <tr class="highlight">
+        <td><b>Glassmorphism</b></td>
+        <td><b>Glass</b></td>
+        <td><span class="badge green">Translucent → context</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <h4>💡 Glassmorphism 真正特别</h4>
+    <ul>
+      <li>不只 "looks like glass"</li>
+      <li><b>让你 see through</b> → <b>看到下面的内容 = context</b></li>
+      <li>"Without that context, it would be just another material texture."</li>
+      <li>"None of the other morphisms do that. They're all opaque."</li>
+      <li>模式无关：跟 flat design 和 skeuomorphism 都 work</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 3: NEUMO -->
+<div class="tab-content" data-tab-content="neumo">
+  <h2 id="h2-4" class="section">🔘 Neumorphism（Minimalism 中间地带）</h2>
+
+  <h3 id="h3-2">3 大风格</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Minimalism</h4>
+      <p>Flat, simple</p>
+    </div>
+    <div class="card">
+      <h4>Flat Design</h4>
+      <p>2D, no depth</p>
+    </div>
+    <div class="card">
+      <h4>Skeuomorphism</h4>
+      <p>Real material imitation</p>
+    </div>
+  </div>
+
+  <h3 id="h3-3">Neumorphism 定位</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p style="font-size: 1.05rem;">Minimalism + Flat + Skeuomorphism = <b>odd middle ground</b></p>
+    <ul style="margin-top: 0.6rem;">
+      <li>极简</li>
+      <li>没 texture</li>
+      <li>没 many qualities</li>
+      <li>只是 <b>extruded from background</b></li>
+    </ul>
+  </div>
+
+  <h3 id="h3-4">关于 Accessibility 争议（Malewicz 反驳）</h3>
+  <blockquote>
+    "Accessibility issues are <b>non-issues</b> if you do the entire rest of the interface right. Because if everything has proper contrast, proper hierarchy, good typography, then just that little border around some things might not be visible to everyone, but they will still get the whole interface structure from everything else."
+  </blockquote>
+
+  <p style="color: var(--text-dim); font-style: italic; margin-top: 0.6rem;">"This is just an extra, not a defining thing."</p>
+
+  <h3 id="h3-5">Squircle 插曲</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>Squircle = <b>friendly + processable</b> 的 sweet spot</p>
+    <ul style="margin-top: 0.4rem;">
+      <li>比 sharp corners 友好</li>
+      <li>比 full circles 容易 processing</li>
+      <li>"Sharp corners = alert-prone, luxury, professional, not friendly"</li>
+      <li>"Circles one under the other → eye into weird pattern"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 4: AR -->
+<div class="tab-content" data-tab-content="ar">
+  <h2 id="h2-5" class="section">📷 趋势 #1: Augmented Reality / Natural Behavior</h2>
+
+  <blockquote>
+    "What I mean by that is if we can use the camera to cast the lighting and shadows of the real world in a real way onto skeuomorphic elements, that would deserve its own trend."
+  </blockquote>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>A. Real-world Lighting / Shadows</h4>
+      <p>Device camera 投射真实环境光</p>
+      <p style="margin-top: 0.4rem;">Skuomorphic elements 有真实阴影</p>
+      <p style="margin-top: 0.4rem;">Metalmorphism 真正发挥：button 反射你的脸</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>B. Bendy Buttons（物理反应）</h4>
+      <p><b>"Buttons that react exactly where you push them"</b></p>
+      <p style="margin-top: 0.4rem;">点 button 边缘 → button 弯向那侧</p>
+      <p style="margin-top: 0.4rem;">另一侧有 lighting effect + shadow 变化</p>
+      <p style="color: var(--green); margin-top: 0.6rem;">✓ Malewicz 已 prototype + 集成到 Longevity Deck</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1rem; border-left: 3px solid var(--accent);">
+    <h4>💡 核心技术驱动</h4>
+    <p style="font-size: 1.05rem;">"Using the <b>processing power of those modern devices</b> because they are quite powerful, our phones and our computers, to do something a little bit even more realistic than before."</p>
+    <p style="color: var(--accent-2); margin-top: 0.6rem; font-weight: 600;">→ 设备性能已够 → 真实物理 UI 终于可行</p>
+  </div>
+</div>
+
+<!-- TAB 5: HAND -->
+<div class="tab-content" data-tab-content="hand">
+  <h2 id="h2-6" class="section">✏️ 趋势 #2: Hand-drawn / Handwritten</h2>
+
+  <blockquote>
+    "There is so much AI slop everywhere, we're coming back to a point where we see a button that's just completely hand-drawn with a little bit uneven edge, and the pen was maybe pushed a little bit too hard on one end, so the line is even thicker on some side."
+  </blockquote>
+
+  <h3 id="h3-6">3 大特征</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>More Human</h4>
+      <p>人性化</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>More Faulty</h4>
+      <p>不完美 / flawed</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>More Personal</h4>
+      <p>个人化</p>
+    </div>
+  </div>
+
+  <h3 id="h3-7">例子</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li>漂亮 portfolio 站点（handwritten 风格）</li>
+    <li>跑步 app 画 run 轨迹（handwritten style）</li>
+    <li>Malewicz 1999 个人网站 = <b>scanned pencil sketches</b>（"actually exploring this trend in the '90s"）</li>
+  </ul>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <h4>💡 核心驱动</h4>
+    <p>"People might crave these new interactions or these new handwritten or hand-drawn elements... because surrounding us from every direction and <b>every website looking exactly the same</b>."</p>
+    <p style="margin-top: 0.6rem; color: var(--accent-2); font-weight: 600;">→ AI 泛滥 → 用户渴望 差异化 + 人性化</p>
+  </div>
+</div>
+
+<!-- TAB 6: TABLE -->
+<div class="tab-content" data-tab-content="table">
+  <h2 id="h2-7" class="section">📊 6 趋势对比表</h2>
+
+  <table>
+    <thead>
+      <tr><th>类型</th><th>趋势</th><th>核心</th><th>Malewicz 评价</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge red">❌ 虚假</span></td>
+        <td>Discomorphism</td>
+        <td>Mirror texture</td>
+        <td>Spotify 单一用例</td>
+      </tr>
+      <tr>
+        <td><span class="badge red">❌ 虚假</span></td>
+        <td>Metalmorphism</td>
+        <td>Metal material</td>
+        <td>Skeuomorphism 子集</td>
+      </tr>
+      <tr>
+        <td><span class="badge red">❌ 虚假</span></td>
+        <td>Squircle Morphism</td>
+        <td>Corner radius</td>
+        <td>UX 细节</td>
+      </tr>
+      <tr>
+        <td><span class="badge red">❌ 虚假</span></td>
+        <td>Balloonmorphism</td>
+        <td>Figma 恶搞</td>
+        <td>"AI generated" 玩笑</td>
+      </tr>
+      <tr class="highlight">
+        <td><span class="badge green">✅ 真实</span></td>
+        <td><b>AR / Natural Behavior</b></td>
+        <td>Camera 真实光影 + 物理反应</td>
+        <td>"bendy buttons" 已集成</td>
+      </tr>
+      <tr class="highlight">
+        <td><span class="badge green">✅ 真实</span></td>
+        <td><b>Hand-drawn</b></td>
+        <td>AI 泛滥 → 人性化回归</td>
+        <td>Malewicz 1999 探索过</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-8">Malewicz 给设计师的建议</h3>
+  <blockquote>
+    "Designers can now use these <b>modern tools to prototype things like that</b>. Figure it out. Not every app or website will need skeuomorphism of any kind. But you can <b>try new things, imagine it, build it, see if it works</b>, and then discard it or use it."
+  </blockquote>
+
+  <blockquote>
+    "The <b>curious people will push design into some interesting new categories</b>. Maybe even a new morphism."
+  </blockquote>
+
+  <blockquote>
+    "As long as we are curious, as long as we want to play around with that stuff, as long as we have those <b>bendy buttons and those realistic shadows and lightning effects</b>, then I think we will be <b>fine as an industry</b>."
+  </blockquote>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-8" class="section">🔗 与 Patrick 工作的关联</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 OpenSwarm / 视频笔记 hub</h4>
+      <p><b>设计同质化危机</b> 跟 Patrick 工具栈同构：</p>
+      <ul>
+        <li>每个 LLM 工具看起来一样（蓝紫渐变 + glass）</li>
+        <li>跟 "blue and purple slop" 一样</li>
+        <li>需要 <b>差异化 + 人性化</b></li>
+      </ul>
+      <p style="margin-top: 0.6rem; color: var(--green);">✓ Video Notes Hub 已用 <b>橙色暖色 + 暗色背景</b>（跟 slop 反着来）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman "intelligence 移到 harness"</h4>
+      <p>Sam：智能不再在 model 内部</p>
+      <p>Malewicz：设计不再在 morphism 表面</p>
+      <p style="color: var(--accent-2); margin-top: 0.4rem;">→ 同构：核心价值在 <b>context / behavior / interaction</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Malewicz 提 "skeuomorphism agnostic to level of morphism" = 跟 DART "Analyze"</p>
+      <p>判断趋势真假 = <b>看 cause-effect 关系</b>：</p>
+      <ul>
+        <li>Discomorphism = material texture → <b>flat</b></li>
+        <li>Glassmorphism = transparency + context → <b>真 design principle</b></li>
+        <li>Bendy buttons = physics behavior → <b>真 interaction principle</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>🔗 hybrid-llm-router</h4>
+      <p>路由决策 = <b>context + complexity 判断</b></p>
+      <p>设计趋势 = <b>behavior + context 重要性</b></p>
+      <p style="color: var(--accent-2); margin-top: 0.4rem;">→ 两者都强调：<b>context > form</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "Stop AI"</h4>
+      <p>Nate：AI 品牌糟糕（毕业演讲被嘘）</p>
+      <p>Malewicz：blue and purple slop（UI 同质化）</p>
+      <p style="color: var(--accent-2); margin-top: 0.4rem;">→ 同构反 AI 论述：技术加速 vs 人文抵抗</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-9" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Hook</div>
+      <div class="text">Not everything is blue and purple slop.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Joke Trends</div>
+      <div class="text">We don't really need another morphism, especially discomorphism.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Glassmorphism</div>
+      <div class="text">Glassmorphism is a pattern that works really well with both flat design and full skeuomorphism. In a way, it's agnostic to the level of morphism.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Glassmorphism</div>
+      <div class="text">Just having that transparency, the way to see through something, allows you to have a different level of depth and context. None of the other morphisms do that. They're all opaque.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Neumorphism</div>
+      <div class="text">Accessibility issues are non-issues if you do the entire rest of the interface right.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Neumorphism</div>
+      <div class="text">This is just an extra, not a defining thing.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Bendy Buttons</div>
+      <div class="text">I prototyped something where if you tap the button on the side, it kind of shifts and bends towards that side, and it has the proper lighting effect.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Hand-drawn</div>
+      <div class="text">We're coming back to a point where we see a button that's just completely hand-drawn with a little bit uneven edge.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Hand-drawn</div>
+      <div class="text">People might crave these new interactions or these new handwritten or hand-drawn elements.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Curiosity</div>
+      <div class="text">The curious people will push design into some interesting new categories. Maybe even a new morphism.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Hope</div>
+      <div class="text">As long as we are curious, as long as we want to play around with that stuff, then I think we will be fine as an industry.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Discomorphism 反驳</div>
+      <div class="text">Discomorphism is not a design style in any way. It's just a mirror-like texture. It could have been a design style if we used the device camera to actually fill those little mirrors with your face when you're looking at it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-10" class="section">⏱️ 完整时间线（18 段字幕）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：age of slop · future of UI</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:17</div>
+      <div class="what">自报家门：glassmorphism + neumorphism 命名者</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:45</div>
+      <div class="what">Spotify disco ball 事件</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:13</div>
+      <div class="what">"Metalmorphism / squircle / discomorphism 都是 skeuomorphism 子集"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:59</div>
+      <div class="what">💎 <b>Glassmorphism 真正特别</b>：transparency = context</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:31</div>
+      <div class="what">Neumorphism 解释（extruded from background）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:14</div>
+      <div class="what">Neumorphism accessibility 反驳</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:27</div>
+      <div class="what">"如果 discomorphism 是真风格，需要 camera fill your face"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:50</div>
+      <div class="what">Squircle（friendly + processable）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:11</div>
+      <div class="what">Figma balloonmorphism 恶搞</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:01</div>
+      <div class="what">📷 <b>趋势 #1: AR / Natural Behavior</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:05</div>
+      <div class="what">Bendy buttons prototype（视频演示）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:51</div>
+      <div class="what">已集成到 Longevity Deck</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:32</div>
+      <div class="what">✏️ <b>趋势 #2: Hand-drawn / Handwritten</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:21</div>
+      <div class="what">Malewicz 1999 personal website（already 探索）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:50</div>
+      <div class="what">"Curious people push design into new categories"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:17</div>
+      <div class="what">"As long as we're curious, design will be fine"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:28</div>
+      <div class="what">Closing + product 推广</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/ui-design-2026-trends/</code></p>
+  <p>Desktop: <code>~/Desktop/ui-design-2026-trends-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=psyw2_j_5jk">https://www.youtube.com/watch?v=psyw2_j_5jk</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+<script>
+(function(){
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Smooth scroll: click link → activate matching tab → scroll to h2
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      // If target is inside an inactive tab-content, activate that tab first
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const matchingTab = document.querySelector(`.tab[data-tab="${tabContent.dataset.tabContent}"]`);
+        if (matchingTab) matchingTab.classList.add('active');
+      }
+      // Update hash + scroll (offset for sticky nav ~64px)
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      const top = rect.top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight as user scrolls
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+
+</body>
+</html>

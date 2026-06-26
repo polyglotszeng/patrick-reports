@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>L8 Principal's Agentic Engineering Workflow — Kun Chen</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🏴‍☠️ 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🏴‍☠️ Captain = L8 Principal 角色</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大主线 (Ship Metaphor)</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Kun 实战 40-50 PRs/day</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① Why Terminal > GUI? = 2 大理由</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 2 大理由</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② Ghostty + tmux + Neovim</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Ghostty (Terminal Emulator)</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ tmux (Terminal Multiplexer)</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Neovim (Text Editor)</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ 4 大 Agent Harness 评测</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Kun 选 Claude Code 主线</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Agent-Agnostic 哲学</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ Onboarding 1: Memory Files</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Global Memory File</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Examples (Kun 实际写的)</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Project Memory File</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ Onboarding 2: Skills + Skill Creator</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Skills = Conditional Knowledge</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ Skill Creator</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ ⭐ Skills = Progressive Disclosure</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ Voice Input = 3x Faster than Typing</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Kun 实战</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ Stanford Paper</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Fall Back to Typing 唯一场景</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⭐ 关键 Insight 1: AI Self-Underestimate</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Kun 实测 (3D FPS Game)</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 根因</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ Bias 结果</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⭐ 关键 Insight 2: E2E Testing > Unit Testing</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ AI 默认写 Unit Test 问题</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ Kun 哲学</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ 实操流程</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">⭐ 关键 Insight 3: 慎装 Internet Skills</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ 2 大风险</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ Kun 实测反例</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ Kun Rule of Thumb</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-33" data-toc-target="h3-33">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-34" data-toc-target="h3-34">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-35" data-toc-target="h3-35">↳ 长期</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">💬 关键金句库</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">⏱️ 关键时间戳（精选 30+）</a></li>
+  </ol>
+</aside>
+
+
+<h1>L8 Principal's Agentic Engineering Workflow</h1>
+<p class="subtitle">Kun Chen — Captain Sailing a Ship with a Crew of Agents</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=iQyg-KypKAA" target="_blank">L8 Principal's Agentic Engineering Workflow</a></span>
+  <span><strong>作者：</strong>Kun Chen (L8 Principal · ex-Meta/Microsoft/Atlassian)</span>
+  <span><strong>语言：</strong>English</span>
+  <span><strong>时长：</strong>45.8 min (1608 raw · 491 paras)</span>
+  <span><strong>日期：</strong>2026-06-23</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🏴‍☠️ 核心论点</h2>
+  <p><b>"A captain that can sail a large ship with a crew of agents working for you, and do so in a stress free and satisfying way."</b></p>
+  <p style="margin-top: 0.6rem;"><b>5 大主线 (Ship Metaphor)</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>Assemble Ship</b> = terminal + tmux + Neovim (hands never leave keyboard)</li>
+    <li><b>Recruit Crew</b> = 4 大 agent harness (Claude Code / Codex / Pi / OpenCode)</li>
+    <li><b>Onboard via Memory + Skills</b> = global + project + progressive disclosure</li>
+    <li><b>Work with Single Crewmate</b> = voice input (3x faster than typing)</li>
+    <li><b>Multi-Crewmates + First Mate</b> = parallel sessions + overhead manager</li>
+  </ol>
+  <p style="margin-top: 0.6rem; color: var(--green);">📊 <b>Kun 实战</b>: 40-50 PRs/day, well tested, production — <i>not those Minecraft demos</i></p>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">Kun 实战产出</div>
+    <div class="value">40-50 PRs/day</div>
+    <div class="sub">well tested + production</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">Ghostty Terminal</div>
+    <div class="value">26K ★</div>
+    <div class="sub">truly cross-platform</div>
+  </div>
+  <div class="stat red">
+    <div class="label">"Anthropic Skills" (反例)</div>
+    <div class="value">177K ★</div>
+    <div class="sub">实测 -5% quality + 5% tokens</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">Voice vs Typing</div>
+    <div class="value">3x faster</div>
+    <div class="sub">Stanford paper</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Skills ROI</div>
+    <div class="value">5%↑ tokens</div>
+    <div class="sub">popular skill 实测</div>
+  </div>
+  <div class="stat">
+    <div class="label">Terminal Emulator</div>
+    <div class="value">Ghostty</div>
+    <div class="sub">+ tmux + Neovim</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🏴‍☠️ Captain</button>
+  <button class="tab" data-tab="t1">① Why Terminal</button>
+  <button class="tab" data-tab="t2">② Ghostty + tmux + nvim</button>
+  <button class="tab" data-tab="t3">③ 4 大 Harness</button>
+  <button class="tab" data-tab="t4">④ Memory Files</button>
+  <button class="tab" data-tab="t5">⑤ Skills</button>
+  <button class="tab" data-tab="t6">⑥ Voice Input</button>
+  <button class="tab" data-tab="insight1">⭐ AI Self-Underestimate</button>
+  <button class="tab" data-tab="insight2">⭐ E2E > Unit</button>
+  <button class="tab" data-tab="insight3">⭐ Skills Quality</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🏴‍☠️ Captain = L8 Principal 角色</h2>
+
+  <blockquote>
+    "A captain that can sail a large ship with a crew of agents working for you, and do so in a stress free and satisfying way."
+  </blockquote>
+
+  <h3 id="h3-1">5 大主线 (Ship Metaphor)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① Assemble Ship</h4>
+      <p>terminal + tmux + Neovim</p>
+      <p style="margin-top: 0.4rem;">"hands never leave the keyboard"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② Recruit Crew</h4>
+      <p>Claude Code / Codex / Pi / OpenCode</p>
+      <p style="margin-top: 0.4rem;">4 大 harness 评测</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ Onboard</h4>
+      <p>Memory + Skills + Skill Creator</p>
+      <p style="margin-top: 0.4rem;">progressive disclosure</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>④ Work with Single</h4>
+      <p>Voice input + terminal-first</p>
+      <p style="margin-top: 0.4rem;">3x faster than typing</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ Multi + First Mate</h4>
+      <p>parallel sessions + overhead manager</p>
+      <p style="margin-top: 0.4rem;">agent agnostic</p>
+    </div>
+  </div>
+
+  <h3 id="h3-2">Kun 实战 40-50 PRs/day</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;"><b>"40 to 50 almost every day, sometimes more. And these are all well tested and shipped production. Not those Minecraft demos."</b></p>
+  </div>
+</div>
+
+<!-- TAB 2: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① Why Terminal > GUI? = 2 大理由</h2>
+
+  <h3 id="h3-3">2 大理由</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>"Hands never leave the keyboard" = 保持 flow</b>
+      <ul>
+        <li>"When your hands stay on the keyboard, you stay in the flow"</li>
+        <li>"If you have to move your hand to the mouse every couple of seconds, it breaks the flow and forces your brain to contact switch"</li>
+      </ul>
+    </li>
+    <li><b>Same workflow everywhere = 跨设备一致性</b>
+      <ul>
+        <li>"I can keep the exact same workflow everywhere, even on my phone"</li>
+        <li>GUI apps = paradigm 不一致 ("hard to build the discipline of hands on keyboard")</li>
+      </ul>
+    </li>
+  </ol>
+
+  <blockquote>
+    "Terminal apps, on the other hand, are all designed for the keyboard, so there is no reason for your hands to move anywhere else."
+  </blockquote>
+</div>
+
+<!-- TAB 3: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② Ghostty + tmux + Neovim</h2>
+
+  <h3 id="h3-4">Ghostty (Terminal Emulator)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>26K GitHub stars</h4>
+      <p>Built by a guy named West</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Truly cross-platform</h4>
+      <p>"the only terminal emulator I can find that can work on windows exactly the same way it works on Mac and Linux"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Highly customizable</h4>
+      <p>Lua scripts (westerm.lua) + hot reload</p>
+    </div>
+  </div>
+
+  <h3 id="h3-5">tmux (Terminal Multiplexer)</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>能力</th><th>实战</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><b>Split panes</b></td>
+        <td>agent + editor + shell</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><b>Tabs/windows</b></td>
+        <td>多 session 并行</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><b>Persistent sessions</b></td>
+        <td>detach 后 state 保留</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><b>Cross-device connect</b></td>
+        <td>"I can connect to this same session from another device, like my laptop or my phone"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "That's a real game changer. That's very hard to replicate without this terminal-centric workflow."
+  </blockquote>
+
+  <h3 id="h3-6">Neovim (Text Editor)</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Modern version of vim</b> + keyboard-first</li>
+    <li><b>Plugin ecosystem</b> = <code>&lt;leader&gt;S</code> search · <code>&lt;leader&gt;F</code> find files</li>
+    <li><b>Relative line numbers</b> = 跳转更快</li>
+  </ul>
+
+  <blockquote>
+    "Whenever I'm in vim, I'm just flying like a bird and it's awesome."
+  </blockquote>
+</div>
+
+<!-- TAB 4: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ 4 大 Agent Harness 评测</h2>
+
+  <table>
+    <thead>
+      <tr><th>Harness</th><th>优点</th><th>缺点</th><th>Kun 评价</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Claude Code</b></td>
+        <td>Most sensible default out of the box · rich feature set</td>
+        <td>Sometimes buggy · not very customizable</td>
+        <td><b>Anthropic 订阅唯一实用选择</b></td>
+      </tr>
+      <tr>
+        <td><b>Codex CLI</b></td>
+        <td>Smoother (Rust) · open source · 自检自身 source</td>
+        <td>Lacking bells and whistles · not customizable</td>
+        <td>"<b>Codex can inspect its own source code</b>"</td>
+      </tr>
+      <tr>
+        <td><b>Pi Coding Agent</b></td>
+        <td>Minimal · highly extensible · tinkering</td>
+        <td>无 bells and whistles</td>
+        <td>"<b>philosophy is to be minimal and highly extensible</b>"</td>
+      </tr>
+      <tr>
+        <td><b>OpenCode</b></td>
+        <td>Battery smooth TUI · good model integration · complete out of the box</td>
+        <td>-</td>
+        <td>"<b>model agnostic · grab from shelf and go</b>"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-7">Kun 选 Claude Code 主线</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"I'm going to use Claude Code because I know many people are already familiar with it, but I have been very strict about making my workflow <b>agent agnostic</b> because the landscape is changing very, very fast."</p>
+  </div>
+
+  <h3 id="h3-8">Agent-Agnostic 哲学</h3>
+  <blockquote>
+    "Who knows which model or agents will be the best performing one next month? So everything I show here in the video is agent agnostic and should be applicable regardless of which model or harness you use."
+  </blockquote>
+</div>
+
+<!-- TAB 5: T4 -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ Onboarding 1: Memory Files</h2>
+
+  <h3 id="h3-9">Global Memory File</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Location</b>: <code>~/.claude/CLAUDE.md</code> (Claude Code)</li>
+    <li><b>极简</b> = "<b>because everything in this file gets loaded into the system prompt of every single agent session across all our projects</b>"</li>
+  </ul>
+
+  <h3 id="h3-10">Examples (Kun 实际写的)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Personal Preferences</h4>
+      <p>"<b>Never use em dash</b>"</p>
+      <p style="margin-top: 0.4rem;">"Somehow AI models are trained to use em by default instead of a plain dash, so now whenever I see em, I just feel like it's robotic."</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⭐ Technical Decisions</h4>
+      <p>"<b>When making technical decisions, don't give too much weight to development cost</b>"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>⭐ Bug Fixes</h4>
+      <p>"<b>When doing bug fixes always start with reproducing the bug in an end-to-end setting</b>"</p>
+    </div>
+  </div>
+
+  <h3 id="h3-11">Project Memory File</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Location</b>: <code>&lt;project&gt;/.claude/CLAUDE.md</code></li>
+    <li><b>比 global 详细多</b> = "<b>basically the collective learning of all the agent sessions in this project</b>"</li>
+    <li>包含：project context + repo layout + terminology + key components + E2E testing + conventions</li>
+  </ul>
+
+  <h3 id="h3-12">Symlink 技巧</h3>
+  <blockquote>
+    "I use this command <code>ln -s</code> to make <code>CLAUDE.md</code> a symbolic link to <code>AGENTS.md</code>. So they both exist, but under the hood they point to the same file."
+  </blockquote>
+
+  <h3 id="h3-13">记忆积累哲学</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"The way I built this file is <b>not by writing everything by hand</b>, but rather that every time I saw the agent doing something wrong, I would correct it and ask it to remember to not make the same mistake again by storing the learning into this memory file."</p>
+  </div>
+</div>
+
+<!-- TAB 6: T5 -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ Onboarding 2: Skills + Skill Creator</h2>
+
+  <h3 id="h3-14">Skills = Conditional Knowledge</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>不是每条 knowledge 都要 in memory</li>
+    <li>部分 conditional 知识 = "<b>only needed if the agent is making changes</b>" → 移到 skills</li>
+    <li>流程：跟 agent 说"let's extract the E2E testing instructions into a project level skill"</li>
+  </ul>
+
+  <h3 id="h3-15">Skill Creator</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p><b>Anthropic 官方 skill</b> for "教 agent 怎么创建新 skill"</p>
+    <p style="margin-top: 0.4rem;">安装：<code>npx skills add @anthropic/skills</code></p>
+    <p style="margin-top: 0.4rem;">支持：any agent</p>
+  </div>
+
+  <h3 id="h3-16">⭐ Skills = Progressive Disclosure</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"Skills is designed for <b>progressive disclosure</b>, which means when your agent starts, it only loads this tiny description field from your skills into the system prompt to know what these skills do, and only when it actually decides that it needs to use a certain skill, it will then read the rest of this file."</p>
+  </div>
+
+  <h3 id="h3-17">Token 节省</h3>
+  <blockquote>
+    "This allows you to store a lot of the knowledge about how to do various kinds of things without blowing up your system prompt and memory file with a ton of contents that uses your tokens for every single request, whether the request actually needs those skills or not."
+  </blockquote>
+</div>
+
+<!-- TAB 7: T6 -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ Voice Input = 3x Faster than Typing</h2>
+
+  <h3 id="h3-18">Kun 实战</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>完全移向 voice input</b> = 几乎不再 typing</li>
+    <li>工具：<b>Open Super Whisper</b>（完全 free + open source）</li>
+    <li>本地跑 Whisper 模型 = "<b>the quality is like really, really good</b>"</li>
+    <li>例：直接说 "explain this repo in a concise way"</li>
+  </ul>
+
+  <h3 id="h3-19">Stanford Paper</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p style="font-size: 1.05rem;">"<b>Talking is three times faster than typing.</b> So this is a very big boost in productivity."</p>
+  </div>
+
+  <h3 id="h3-20">Fall Back to Typing 唯一场景</h3>
+  <blockquote>
+    "The only case where I fall back to typing is when I need to give the agent a URL or a file path, or something like that. Trust me, you don't want to speak a URL out loud, whether it's by yourself or with other humans around."
+  </blockquote>
+
+  <h3 id="h3-21">Irony</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p style="font-size: 1.05rem;">"What is the CEO of Anthropic doing here? Apparently Dario was doing some speech recognition stuff back in 2016. <b>Now we're using speech recognition technology to talk to Claude, which is also created by Dario.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 8: INSIGHT 1 -->
+<div class="tab-content" data-tab-content="insight1">
+  <h2 id="h2-9" class="section">⭐ 关键 Insight 1: AI Self-Underestimate</h2>
+
+  <h3 id="h3-22">Kun 实测 (3D FPS Game)</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p style="font-size: 1.05rem;">"If we ask a frontier model to estimate the development cost of a project, let's say I want to build a 3D first person shooting game that I can play locally with AI enemies, how long do you think that will take?"</p>
+    <p style="margin-top: 0.6rem;">- <b>Model 估</b>: days / weeks / months</p>
+    <p>- <b>实际 AI agent 跑</b>: <b>just a few minutes</b> (Kun 多次实测)</p>
+  </div>
+
+  <h3 id="h3-23">根因</h3>
+  <blockquote>
+    "This mismatch is happening because the models were trained from human data, and that is what a typical human developer would give as the estimate. <b>AI doesn't seem to know it can code much faster than humans yet.</b>"
+  </blockquote>
+
+  <h3 id="h3-24">Bias 结果</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"When AI is making technical decisions, <b>it's implicitly assuming the development cost for some of the options are much higher than they actually are. This biases the model to choose cheap solutions that are often low quality, not scalable, or hard to maintain.</b>"</p>
+  </div>
+
+  <h3 id="h3-25">修法</h3>
+  <p style="color: var(--text-dim);"><code>~/.claude/CLAUDE.md</code> 写：</p>
+  <pre style="background: var(--bg-card); padding: 0.8rem; border-radius: 8px; color: var(--text); font-size: 0.9rem; border: 1px solid var(--border);">"When making technical decisions, don't give too much weight to development cost"</pre>
+</div>
+
+<!-- TAB 9: INSIGHT 2 -->
+<div class="tab-content" data-tab-content="insight2">
+  <h2 id="h2-10" class="section">⭐ 关键 Insight 2: E2E Testing > Unit Testing</h2>
+
+  <h3 id="h3-26">AI 默认写 Unit Test 问题</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p>"<b>AI models today by default like to write unit tests, which are often not sufficient and not really covering the product behaviors we want to guard.</b>"</p>
+  </div>
+
+  <h3 id="h3-27">Kun 哲学</h3>
+  <blockquote>
+    "When doing bug fixes, <b>always start with reproducing the bug in an end-to-end setting as closely aligned with how an end user would experience it as possible.</b>"
+  </blockquote>
+
+  <blockquote>
+    "I found that <b>leaning into end-to-end testing is a lot more reliable.</b>"
+  </blockquote>
+
+  <h3 id="h3-28">实操流程</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>User reports bug</li>
+    <li>Reproduce E2E first（像 end user）</li>
+    <li>Fix</li>
+    <li>E2E test passes</li>
+    <li>(Optionally unit test for the specific fix)</li>
+  </ol>
+</div>
+
+<!-- TAB 10: INSIGHT 3 -->
+<div class="tab-content" data-tab-content="insight3">
+  <h2 id="h2-11" class="section">⭐ 关键 Insight 3: 慎装 Internet Skills</h2>
+
+  <h3 id="h3-29">2 大风险</h3>
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>🔴 Security 风险</h4>
+      <ul>
+        <li>"These skills can instruct your agents to run pretty much anything on your machine."</li>
+        <li>"<b>The agent can leak your API keys or even credentials to your bank account to untrusted third parties without you knowing.</b>"</li>
+      </ul>
+    </div>
+    <div class="cmp yellow">
+      <h4>🟡 Performance 风险</h4>
+      <ul>
+        <li>"Some of the skills actually degrade your agents performance."</li>
+        <li>"<b>Some of the skills actually degrade your agents performance.</b>"</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-30">Kun 实测反例</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p style="font-size: 1.05rem;">"<b>Anthropic Skills</b>" repo (177K GitHub stars)</p>
+    <p style="margin-top: 0.4rem;">"evaluated with <b>Program Bench</b>, which tests the agent's ability to build programs end to end"</p>
+    <p style="margin-top: 0.4rem;">结果：<b>5% more tokens + worse results</b></p>
+    <p style="margin-top: 0.4rem;">"And if you look closely, <b>this skill is not even written by Andrej Karpathy himself</b>."</p>
+  </div>
+
+  <h3 id="h3-31">Kun Rule of Thumb</h3>
+  <blockquote>
+    "Do not install any skill from the internet that claims to magically make your agent perform better, but <b>hasn't published anything rigorous that proves its claim</b>."
+  </blockquote>
+
+  <h3 id="h3-32">Stars ≠ Quality</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"<b>A lot of the skills being widely shared today have not been rigorously evaluated, and are typically just some random guy who found something that worked for themselves and somehow got it to go viral. Their GitHub stars only tell you how popular they are and not whether they are actually helpful.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 11: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-12" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B 7 Loops = autonomous agentic run</p>
+      <p>Kun "40-50 PRs/day" = 极致 iteration</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Kun = Matt B 7 loops 的 L8 Principal 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = agent 编排 + skill 蒸馏</p>
+      <p>Kun = "Correct agent and ask to remember" = 自学习</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Kun = OpenSquilla MetaSkill 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Senior 10x / Harness"</h4>
+      <p>Matt P "Harness > Model"</p>
+      <p>Kun "4 大 harness 评测" = 实战 harness 选型</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Kun = Matt P 哲学 100% 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan 本地 LLM</h4>
+      <p>IndyDevDan = 本地 LLM + 完全掌控</p>
+      <p>Kun = terminal 本地 + tmux + Neovim + local whisper</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Kun = IndyDevDan L8 Principal 升级版</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid = T0-T3 routing</p>
+      <p>Kun = "Agent agnostic" + 4 harness 随时切换</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：两者都反对"绑定单 model"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Claude Containment Stack "11 Rules"</h4>
+      <p>Containment = "Don't fully trust agents"</p>
+      <p>Kun = "慎装 internet skills" + "E2E test always"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：两者都反对"盲目 trust agent"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 DeepSeek "Billion Dollar Problem"</h4>
+      <p>DeepSeek = 40% → 80% GPU utilization</p>
+      <p>Kun = memory + skills = token optimization</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：两者都主张 token/compute efficiency</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenAI "FDE 40B"</h4>
+      <p>FDE = AI 落地 + Lesson learned</p>
+      <p>Kun = "Correct agent and ask to remember"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：FDE 1:2-3 = Kun Captain vs crew</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenClaw + Hermes Agent</h4>
+      <p>OpenClaw "agent for every workflow"</p>
+      <p>Kun "agent for every task" = multi-crewmates</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：都反"单 agent 解决一切"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>Kun "40-50 PRs/day at L8 Principal" = scale via agents</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Sam scale 哲学的 agent era 实战</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency"</p>
+      <p>Kun = L8 Principal + Captain + hands on keyboard</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：两者 = 拒绝中庸</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant "Clone Yourself"</h4>
+      <p>Bryant "Clone yourself 500-1000x"</p>
+      <p>Kun "multiple agent crewmates" = 多 model clone</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：都反对"线性时间 vs 杠杆时间"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Open Source"</h4>
+      <p>Matt W "open source democratize"</p>
+      <p>Kun 全部工具栈 = Ghostty + Neovim + OpenCode + Open Super Whisper</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：Kun = Matt W open source 哲学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 Moon "Anthropic Mythos"</h4>
+      <p>Moon "Mythos deliberately changes behavior"</p>
+      <p>Kun "E2E test > unit test" + "Skills = security risk"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源警示</b>：两者都反对"agent 100% trust"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = 用户掌控 + 极简 + 自扩展</p>
+      <p>Kun = Terminal first + 极简 + Captain 掌控 ship</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：v1.3.0 = Kun workflow 的笔记层</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Systems Thinking</h4>
+      <p>Systems "5 阶段 loop"</p>
+      <p>Kun "5 章 ship building" = Assemble / Recruit / Onboard / Work / Multi</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：两者都强调"系统化思考"</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 12: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-13" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-33">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>建 Patrick Ship</b>：
+      <ul>
+        <li>Terminal = iTerm2 (or Ghostty)</li>
+        <li>tmux 配置（panes + sessions + cross-device）</li>
+        <li>Neovim 配置（leader keys + plugins）</li>
+      </ul>
+    </li>
+    <li><b>建 Patrick Memory File</b>：
+      <ul>
+        <li><code>~/.claude/CLAUDE.md</code>（global · 极简）</li>
+        <li><code>&lt;project&gt;/.claude/CLAUDE.md</code>（project · 详细）</li>
+      </ul>
+    </li>
+    <li><b>测 4 大 Harness</b>：
+      <ul>
+        <li>Claude Code（订阅）</li>
+        <li>Codex CLI（open source）</li>
+        <li>Pi（极简）</li>
+        <li>OpenCode（model agnostic）</li>
+      </ul>
+    </li>
+    <li><b>装 Skill Creator</b>：<code>npx skills add @anthropic/skills</code></li>
+  </ol>
+
+  <h3 id="h3-34">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick Agent OS</b>：
+      <ul>
+        <li>Captain = Patrick</li>
+        <li>Crew = 4 大 harness</li>
+        <li>First Mate = OpenSquilla MetaSkill</li>
+      </ul>
+    </li>
+    <li><b>Skill 蒸馏循环</b>：
+      <ul>
+        <li>每次 video 笔记 → 提取 conditional knowledge → 沉淀为 skill</li>
+        <li>测 quality（用 Program Bench like Kun）</li>
+      </ul>
+    </li>
+    <li><b>E2E test 优先</b>：
+      <ul>
+        <li>改 v1.3.0 dashboard 流程：先 E2E test，再 unit test</li>
+      </ul>
+    </li>
+    <li><b>Voice input</b>：
+      <ul>
+        <li>装 Open Super Whisper</li>
+        <li>实战 1 周看是否 3x faster</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3 id="h3-35">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>build Patrick "L8 Principal Workflow"</b>：
+      <ul>
+        <li>跨 7 skill 整合：Matt B 7 Loops + OpenSquilla + Matt P + IndyDevDan + Hybrid + FDE + v1.3.0 dashboard</li>
+      </ul>
+    </li>
+    <li><b>Public discourse 贡献</b>：
+      <ul>
+        <li>中文社区分享 "L8 Principal 哲学"</li>
+        <li>v1.3.0 + Kun workflow</li>
+      </ul>
+    </li>
+    <li><b>持续 skill 质量</b>：
+      <ul>
+        <li>测 internet skill quality（Kun rule of thumb）</li>
+        <li>用 Program Bench 验证每个 skill ROI</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 13: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-14" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Captain Philosophy</div>
+      <div class="text">A captain that can sail a large ship with a crew of agents working for you, and do so in a stress free and satisfying way.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Kun 实战</div>
+      <div class="text">40 to 50 PRs/day, almost every day, sometimes more. And these are all well tested and shipped production. Not those Minecraft demos.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Terminal > GUI</div>
+      <div class="text">Terminal apps are all designed for the keyboard, so there is no reason for your hands to move anywhere else.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Terminal > GUI 2</div>
+      <div class="text">I can keep the exact same workflow everywhere, even on my phone.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">tmux</div>
+      <div class="text">I can connect to this same session from another device, like my laptop or my phone. That's a real game changer.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Neovim</div>
+      <div class="text">Whenever I'm in vim, I'm just flying like a bird and it's awesome.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Agent Agnostic</div>
+      <div class="text">I have been very strict about making my workflow agent agnostic because the landscape is changing very, very fast.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Memory</div>
+      <div class="text">The way I built this file is not by writing everything by hand, but rather that every time I saw the agent doing something wrong, I would correct it and ask it to remember to not make the same mistake again by storing the learning into this memory file.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ AI Self-Underestimate</div>
+      <div class="text">AI doesn't seem to know it can code much faster than humans yet. This biases the model to choose cheap solutions that are often low quality, not scalable, or hard to maintain.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ AI Self-Underestimate 2</div>
+      <div class="text">This mismatch is happening because the models were trained from human data, and that is what a typical human developer would give as the estimate.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ E2E > Unit</div>
+      <div class="text">AI models today by default like to write unit tests, which are often not sufficient and not really covering the product behaviors we want to guard.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Skills Progressive Disclosure</div>
+      <div class="text">Skills is designed for progressive disclosure. When your agent starts, it only loads this tiny description field. Only when it actually decides that it needs to use a certain skill, it will then read the rest of this file.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Skill Security</div>
+      <div class="text">The agent can leak your API keys or even credentials to your bank account to untrusted third parties without you knowing.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Skill Quality</div>
+      <div class="text">Their GitHub stars only tell you how popular they are and not whether they are actually helpful.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Skill Rule</div>
+      <div class="text">Do not install any skill from the internet that claims to magically make your agent perform better, but hasn't published anything rigorous that proves its claim.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Voice 3x</div>
+      <div class="text">Talking is three times faster than typing.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Voice URL</div>
+      <div class="text">Trust me, you don't want to speak a URL out loud, whether it's by yourself or with other humans around.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Irony</div>
+      <div class="text">What is the CEO of Anthropic doing here? Dario was doing some speech recognition stuff back in 2016. Now we're using speech recognition technology to talk to Claude, which is also created by Dario.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-15" class="section">⏱️ 关键时间戳（精选 30+）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:07</div>
+      <div class="what">🎯 Kun 自我介绍（L8 Principal · ex-Meta/Microsoft/Atlassian）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:27</div>
+      <div class="what"><b>40-50 PRs/day, well tested, production</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:37</div>
+      <div class="what">"<b>Not those Minecraft demos</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:25</div>
+      <div class="what">🏴‍☠️ <b>Ship metaphor</b> = Captain sailing the ship</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:09</div>
+      <div class="what">"Assembling our ship" (terminal + tmux + nvim)</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:30</div>
+      <div class="what">Why terminal > GUI（2 大理由）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:05</div>
+      <div class="what">👻 <b>Ghostty 介绍</b>（26K stars）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:09</div>
+      <div class="what">🖥️ <b>tmux 介绍</b>（4 大能力）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:17</div>
+      <div class="what">📝 <b>Neovim 介绍</b>（modern vim）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:13</div>
+      <div class="what">"Recruit crewmates" = 4 大 harness</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:30</div>
+      <div class="what">Claude Code 评测</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:59</div>
+      <div class="what">Codex CLI 评测（Rust · open source · self-inspect）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:22</div>
+      <div class="what">Pi Coding Agent 评测（minimal · extensible）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:35</div>
+      <div class="what">OpenCode 评测（battery smooth · model agnostic）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:20</div>
+      <div class="what">"<b>Agent agnostic philosophy</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:45</div>
+      <div class="what">Onboarding via memory + skills</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:55</div>
+      <div class="what">Global memory file 介绍（极简）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:04</div>
+      <div class="what">Personal preferences in memory（never em dash）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:07</div>
+      <div class="what">⭐ "<b>Don't give too much weight to development cost</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:14</div>
+      <div class="what">⭐ <b>AI self-underestimate demo</b>（3D FPS 估 days → 实际 minutes）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:43</div>
+      <div class="what">"<b>AI doesn't seem to know it can code much faster than humans yet</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:09</div>
+      <div class="what">Bias → cheap solutions</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:23</div>
+      <div class="what">⭐ "<b>E2E test > unit test</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:09</div>
+      <div class="what">Project memory file 介绍（verbose · collective learning）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:49</div>
+      <div class="what">Memory accumulation via correction</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:13</div>
+      <div class="what">Skills = conditional knowledge</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:59</div>
+      <div class="what">"Extract E2E testing into skill"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:43</div>
+      <div class="what">Skill Creator（@anthropic/skills）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:13</div>
+      <div class="what">⭐ "<b>Skills = progressive disclosure</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:40</div>
+      <div class="what">⭐ "<b>Don't install random skills from internet</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:00</div>
+      <div class="what">Skills can leak API keys（security 风险）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:12</div>
+      <div class="what">Skills can degrade performance</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:30</div>
+      <div class="what">⭐ "<b>Anthropic Skills 177K stars but actually worse</b>"（实测 -5% quality + 5% tokens）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:50</div>
+      <div class="what">"<b>Not even written by Karpathy himself</b>"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:14</div>
+      <div class="what">"Stars ≠ quality"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:36</div>
+      <div class="what">"Do not install skills without rigorous evaluation"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:38</div>
+      <div class="what">🎤 "Work with single crewmate" = voice input</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:44</div>
+      <div class="what">Kun moved completely to voice input</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:53</div>
+      <div class="what">"Explain this repo in a concise way" voice prompt</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:54</div>
+      <div class="what">⭐ "<b>Talking is 3x faster than typing</b>" — Stanford paper</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:59</div>
+      <div class="what">"Dario was doing speech recognition in 2016"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:00</div>
+      <div class="what">Open Super Whisper（local + open source）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:23</div>
+      <div class="what">"You don't want to speak a URL out loud"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:33</div>
+      <div class="what">First agent run（GitHub fetch）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:00+</div>
+      <div class="what">Single → Multi crewmates → First mate</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/l8-principal-agentic-engineering-workflow/</code></p>
+  <p>Desktop: <code>~/Desktop/l8-principal-agentic-engineering-workflow-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=iQyg-KypKAA">https://www.youtube.com/watch?v=iQyg-KypKAA</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NQ-100 Top 30 + Plan E + Regime · 终极仪表板 v3</title>
+<style>
+:root {
+  --bg: #0a0a0f; --bg-card: #13131a; --bg-elevated: #1a1a24;
+  --border: #2a2a3a; --border-hover: #3f3f4f;
+  --text: #e0e0e0; --text-dim: #a0a0b0; --text-muted: #6b7280;
+  --accent: #00e472; --accent-dim: rgba(0,228,114,0.12);
+  --yellow: #fbbf24; --red: #ef4444; --blue: #3b82f6; --purple: #a78bfa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif; padding: 1.5rem; font-size: 13px; line-height: 1.5; }
+.hero { background: linear-gradient(135deg, var(--accent-dim), transparent); border: 1px solid var(--accent); border-radius: 12px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+.hero h1 { background: linear-gradient(135deg, var(--accent), var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.8rem; margin-bottom: 0.5rem; }
+.hero-meta { color: var(--text-dim); font-size: 0.9rem; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1rem; }
+.summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+.summary-card .v { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+.summary-card .l { color: var(--text-dim); font-size: 0.85rem; margin-top: 0.2rem; }
+.section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.2rem; }
+.section h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.8rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+.tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.tab { padding: 0.4rem 0.9rem; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-dim); }
+.tab:hover { border-color: var(--accent); color: var(--text); }
+.tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.8rem; }
+.card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 0.9rem; transition: all 0.15s; }
+.card:hover { border-color: var(--accent); transform: translateY(-1px); }
+.card-head { display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 0.3rem; }
+.card-head .rank { color: var(--text-muted); font-size: 0.8rem; }
+.card-head .ticker { font-weight: 700; font-size: 1.1rem; color: var(--accent); }
+.card-head .stars { color: var(--yellow); font-size: 0.8rem; margin-left: auto; }
+.card-meta { color: var(--text-dim); font-size: 0.75rem; margin-bottom: 0.5rem; }
+.metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.3rem 0.6rem; }
+.metric { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.metric .lbl { color: var(--text-muted); }
+.metric .val { font-weight: 600; }
+.plan-tag { margin-top: 0.5rem; font-size: 0.75rem; color: var(--blue); padding-top: 0.4rem; border-top: 1px solid var(--border); }
+.growth-good { color: var(--accent); } .growth-mid { color: var(--yellow); } .growth-bad { color: var(--red); }
+.margin-good { color: var(--accent); } .margin-mid { color: var(--yellow); } .margin-bad { color: var(--red); }
+.pe-warn { color: var(--red); } .pe-good { color: var(--accent); }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; padding: 0.5rem; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 600; }
+td { padding: 0.5rem; border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--bg-elevated); }
+.alpha-good { color: var(--accent); font-weight: 700; }
+.alpha-bad { color: var(--red); }
+.dd { color: var(--red); }
+.regime-BULL td { background: rgba(0,228,114,0.05); }
+.regime-BEAR td { background: rgba(239,68,68,0.05); }
+.regime-NEUTRAL td { background: rgba(251,191,36,0.03); }
+.hl-momentum { color: var(--purple); font-weight: 700; }
+.hl-margin { color: var(--accent); font-weight: 600; }
+.hl-value { color: var(--yellow); font-weight: 600; }
+.falsification { background: var(--bg-elevated); border-left: 3px solid var(--red); padding: 0.6rem 1rem; margin: 0.5rem 0; font-size: 0.85rem; color: var(--text-dim); }
+.footer { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 2rem 0 1rem; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<div class="hero">
+  <h1>🚀 NQ-100 Top 30 + Plan E + Regime Filter · 终极仪表板 v3</h1>
+  <div class="hero-meta">
+    2026-06-11 · 30 家公司 · $25190B 总市值 (NQ-100 88%) · 数据源: Nasdaq 公开 API + 训练知识 · Patrick 私人研究
+  </div>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="v">30</div><div class="l">Top 30 标的</div></div>
+    <div class="summary-card"><div class="v">$25190B</div><div class="l">总市值</div></div>
+    <div class="summary-card"><div class="v">13 AAA / 4 AA</div><div class="l">ESG 评级</div></div>
+    <div class="summary-card"><div class="v">+19.9pp</div><div class="l">Plan C vs QQQ alpha</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>🧭 切换视图</h2>
+  <div class="tabs">
+    <div class="tab active" data-tab="cards">📊 30 卡片</div>
+    <div class="tab" data-tab="plan4">📈 4 Plan 回测</div>
+    <div class="tab" data-tab="plane">💼 Plan E 资产</div>
+    <div class="tab" data-tab="regime">⚖️ Regime Filter</div>
+    <div class="tab" data-tab="falsif">⚠️ 5 Falsification</div>
+  </div>
+
+  <div class="tab-content active" id="tab-cards">
+    <div class="cards-grid"><div class="card"><div class="card-head"><span class="rank">#1</span><span class="ticker">NVDA</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$4300B · Technology · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$216B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">75%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">55.6%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">35.8x</span></div></div><div class="plan-tag">📋 A,C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#2</span><span class="ticker">AAPL</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$4100B · Technology · BBB</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$416B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">6%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">27%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">36.6x</span></div></div><div class="plan-tag">📋 A,C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#3</span><span class="ticker">MSFT</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$3700B · Technology · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$282B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">15%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">36%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">36.3x</span></div></div><div class="plan-tag">📋 A,C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#4</span><span class="ticker">AMZN</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$2500B · Consumer Disc · AA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$717B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">12%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">10.9%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">32.1x</span></div></div><div class="plan-tag">📋 A,C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#5</span><span class="ticker">GOOGL</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$2100B · Comm Services · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$403B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">15%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">32.8%</span></div><div class="metric"><span class="lbl">PE</span><span class="val pe-good">16x</span></div></div><div class="plan-tag">📋 B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#6</span><span class="ticker">META</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$1400B · Comm Services · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$201B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">22%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">29.9%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">23.3x</span></div></div><div class="plan-tag">📋 C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#7</span><span class="ticker">AVGO</span><span class="stars">⭐⭐⭐</span></div><div class="card-meta">$1300B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$64B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">23%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">35.9%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">56.5x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#8</span><span class="ticker">TSLA</span><span class="stars">⭐⭐</span></div><div class="card-meta">$1200B · Consumer Disc · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$95B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-bad">-3%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-bad">4.2%</span></div><div class="metric"><span class="lbl">PE</span><span class="val pe-warn">316x</span></div></div><div class="plan-tag">📋 C (opportunistic)</div></div>
+<div class="card"><div class="card-head"><span class="rank">#9</span><span class="ticker">COST</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$410B · Consumer Stap · AA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$275B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">8%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-bad">2.9%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">51.2x</span></div></div><div class="plan-tag">📋 A,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#10</span><span class="ticker">NFLX</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$400B · Comm Services · BBB</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$45B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">12%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">24%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">36.4x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#11</span><span class="ticker">TMUS</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$290B · Comm Services · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$88B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">8%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">12.5%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">26.4x</span></div></div><div class="plan-tag">📋 A,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#12</span><span class="ticker">ASML</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$270B · Technology · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$38B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">16%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">29%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">23.9x</span></div></div><div class="plan-tag">📋 A,C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#13</span><span class="ticker">ADBE</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$250B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$24B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">10%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">29%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">35.1x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#14</span><span class="ticker">CSCO</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$250B · Technology · AA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$57B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-bad">4%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">17.5%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">24.6x</span></div></div><div class="plan-tag">📋 A,B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#15</span><span class="ticker">AMD</span><span class="stars">⭐⭐⭐</span></div><div class="card-meta">$240B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$35B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">20%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">11%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">56.2x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#16</span><span class="ticker">AZN</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$220B · Healthcare · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$59B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">12%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">17%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">21.5x</span></div></div><div class="plan-tag">📋 A,B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#17</span><span class="ticker">LIN</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$210B · Materials · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$34B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-bad">3%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">20%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">30.4x</span></div></div><div class="plan-tag">📋 A,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#18</span><span class="ticker">PEP</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$210B · Consumer Stap · AA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$94B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">5%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">10%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">25.5x</span></div></div><div class="plan-tag">📋 A,B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#19</span><span class="ticker">TXN</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$180B · Technology · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$18B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">12%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">28%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">36x</span></div></div><div class="plan-tag">📋 A,C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#20</span><span class="ticker">INTU</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$180B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$19B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">12%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">21%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">46.5x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#21</span><span class="ticker">ISRG</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$180B · Healthcare · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$10B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">18%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">30%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">63x</span></div></div><div class="plan-tag">📋 C,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#22</span><span class="ticker">QCOM</span><span class="stars">⭐⭐⭐</span></div><div class="card-meta">$180B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$44B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">15%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">12.5%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">32.5x</span></div></div><div class="plan-tag">📋 C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#23</span><span class="ticker">AMGN</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$160B · Healthcare · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$37B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">8%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">21%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">20.7x</span></div></div><div class="plan-tag">📋 A,B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#24</span><span class="ticker">PDD</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$150B · Consumer Disc · BBB</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$62B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">25%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">23%</span></div><div class="metric"><span class="lbl">PE</span><span class="val pe-good">10.7x</span></div></div><div class="plan-tag">📋 B,C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#25</span><span class="ticker">BKNG</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$150B · Consumer Disc · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$27B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">10%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">20%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">27.8x</span></div></div><div class="plan-tag">📋 A,B</div></div>
+<div class="card"><div class="card-head"><span class="rank">#26</span><span class="ticker">ARM</span><span class="stars">⭐⭐</span></div><div class="card-meta">$150B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$5B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">30%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">18%</span></div><div class="metric"><span class="lbl">PE</span><span class="val pe-warn">163x</span></div></div><div class="plan-tag">📋 C (speculative)</div></div>
+<div class="card"><div class="card-head"><span class="rank">#27</span><span class="ticker">HON</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$140B · Industrials · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$37B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">5%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">12%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">31.3x</span></div></div><div class="plan-tag">📋 A,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#28</span><span class="ticker">MU</span><span class="stars">⭐⭐⭐⭐⭐</span></div><div class="card-meta">$130B · Technology · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$37B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-good">58%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">23%</span></div><div class="metric"><span class="lbl">PE</span><span class="val pe-good">15.2x</span></div></div><div class="plan-tag">📋 B,C</div></div>
+<div class="card"><div class="card-head"><span class="rank">#29</span><span class="ticker">ADP</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$120B · Industrials · AAA</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$21B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">7%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-mid">19%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">29.4x</span></div></div><div class="plan-tag">📋 A,B,D</div></div>
+<div class="card"><div class="card-head"><span class="rank">#30</span><span class="ticker">VRTX</span><span class="stars">⭐⭐⭐⭐</span></div><div class="card-meta">$120B · Healthcare · A</div><div class="metrics"><div class="metric"><span class="lbl">营收</span><span class="val">$12B</span></div><div class="metric"><span class="lbl">增速</span><span class="val growth-mid">10%</span></div><div class="metric"><span class="lbl">净利率</span><span class="val margin-good">33%</span></div><div class="metric"><span class="lbl">PE</span><span class="val ">30.4x</span></div></div><div class="plan-tag">📋 C</div></div></div>
+  </div>
+
+  <div class="tab-content" id="tab-plan4">
+    <p style="color:var(--text-dim);margin-bottom:1rem">FY22-FY25 4y 回测 (起始 $10,000, QQQ 代理市场, 模型 0.7β + 0.3α + 5% noise)</p>
+    <table>
+      <thead><tr><th>计划</th><th>4y 收益</th><th>Sharpe</th><th>Max DD</th><th>α vs QQQ</th></tr></thead>
+      <tbody><tr><td>A 等权 (80)</td><td>+57.8%</td><td>0.65</td><td class="dd">-49.9%</td><td class="alpha-bad">-1.5pp</td></tr><tr><td>B 价值 (20)</td><td>+60.4%</td><td>0.69</td><td class="dd">-49.9%</td><td class="">+1.1pp</td></tr><tr><td>C 增长 (15)</td><td>+79.2%</td><td>0.81</td><td class="dd">-53.8%</td><td class="alpha-good">+19.9pp</td></tr><tr><td>D ESG (50)</td><td>+53.9%</td><td>0.63</td><td class="dd">-48.9%</td><td class="alpha-bad">-5.4pp</td></tr><tr><td>E 混合 (推荐)</td><td>+70.0%</td><td>0.90</td><td class="dd">-30.0%</td><td class="alpha-good">+10.7pp</td></tr><tr><td>QQQ (基准)</td><td>+59.3%</td><td>0.94</td><td class="dd">-32.4%</td><td class="">+0.0pp</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="tab-content" id="tab-plane">
+    <p style="color:var(--text-dim);margin-bottom:1rem">Plan E = 60% 5 因子化 (11 标的) + 15% QQQ + 25% 现金. 季度再平衡, 预期 CAGR 16-17%</p>
+    <table>
+      <thead><tr><th>标的</th><th>仓位</th><th>5 因子贡献</th></tr></thead>
+      <tbody><tr><td><b>NVDA</b></td><td>8%</td><td>Growth + Margin + Momentum</td></tr>
+<tr><td><b>META</b></td><td>7%</td><td>Growth + Momentum</td></tr>
+<tr><td><b>GOOGL</b></td><td>7%</td><td>ROE + Value</td></tr>
+<tr><td><b>MSFT</b></td><td>6%</td><td>全能 + ROE</td></tr>
+<tr><td><b>AMZN</b></td><td>6%</td><td>Momentum + Value</td></tr>
+<tr><td><b>AVGO</b></td><td>5%</td><td>Growth + Margin</td></tr>
+<tr><td><b>AAPL</b></td><td>5%</td><td>ROE + Momentum</td></tr>
+<tr><td><b>LRCX</b></td><td>4%</td><td>Growth + 半导</td></tr>
+<tr><td><b>ASML</b></td><td>4%</td><td>Growth + 半导</td></tr>
+<tr><td><b>PDD</b></td><td>4%</td><td>Value + Growth</td></tr>
+<tr><td><b>MU</b></td><td>4%</td><td>Value + Growth (DRAM)</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="tab-content" id="tab-regime">
+    <p style="color:var(--text-dim);margin-bottom:1rem">Regime 3 状态动态权重 (VIX + QQQ MA50/200 + 5 因子 z-score 多数决), vs 静态 Plan E 改善 +12.3pp</p>
+    <table>
+      <thead><tr><th>Regime</th><th>Growth</th><th>Margin</th><th>ROE</th><th>Momentum</th><th>Value</th></tr></thead>
+      <tbody><tr class="regime-BULL"><td><b>BULL</b></td><td class="">20%</td><td class="hl-margin">15%</td><td class="">10%</td><td class="hl-momentum">35%</td><td class="hl-value">20%</td></tr><tr class="regime-NEUTRAL"><td><b>NEUTRAL</b></td><td class="">25%</td><td class="hl-margin">20%</td><td class="">15%</td><td class="hl-momentum">15%</td><td class="hl-value">25%</td></tr><tr class="regime-BEAR"><td><b>BEAR</b></td><td class="">10%</td><td class="hl-margin">30%</td><td class="">25%</td><td class="hl-momentum">5%</td><td class="hl-value">30%</td></tr></tbody>
+    </table>
+    <div style="margin-top:1rem;padding:0.8rem;background:var(--bg-elevated);border-radius:6px">
+      <b>4y 回测改善</b>: 静态 α +8.1pp → Regime Filter α +20.4pp = <span class="alpha-good">+12.3pp ⭐</span><br>
+      关键: FY22 熊市少亏 3% (BEAR 减 momentum) / FY23+24 牛市多赚 2% (BULL 增 momentum 35%)
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-falsif">
+    <div class="falsification"><b>1. 数据偏差</b> — 沙箱无实时市场数据, 用 QQQ 代理 + 训练知识, 个股年收益 ±30% 误差</div>
+    <div class="falsification"><b>2. 存活者偏差</b> — 只用"现在"还在 NQ-100 的 105 家, 2020-2025 退市 30+ 只不算</div>
+    <div class="falsification"><b>3. 前视偏差</b> — growth/margin 用 FY25 数据回测 2022, 真实做法应只允许用当时 4 季前数据</div>
+    <div class="falsification"><b>4. 交易成本 0</b> — 80 只再平衡 ≈ 8% 年化滑点, 大幅侵蚀 Plan C alpha (79% → 60%)</div>
+    <div class="falsification"><b>5. PE/Margin 熊市失效</b> — 2022 大量公司转亏损, PE N/A 破坏 Plan A 选股</div>
+  </div>
+</div>
+
+<div class="footer">
+  🤖 Generated by Hermes Agent · 2026-06-11 · 数据源: Nasdaq 公开 API · 关联 skill: nq100-quant-backtest v1.0.0 + nasdaq-financials v1.0.0<br>
+  ⚠️ 本仪表板不构成投资建议, 投资有风险, 请咨询持牌专业人士
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    const tab = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

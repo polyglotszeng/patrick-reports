@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>昆虫学习平台 / App 深度调研 — 2025-2026</title>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --bg-card: #16161a;
+    --bg-elevated: #1c1c22;
+    --border: #2a2a32;
+    --text: #e8e8ea;
+    --text-dim: #9a9aa6;
+    --text-mute: #6a6a76;
+    --accent: #ff6b35;
+    --accent-2: #f7c59f;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Helvetica Neue", sans-serif;
+    line-height: 1.7;
+    padding: 2rem 1rem 4rem;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+  }
+  .meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    color: var(--text-mute);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-bar span strong { color: var(--text-dim); font-weight: 600; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(167,139,250,0.08));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.6rem 1.8rem;
+    margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.3rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin: 1.4rem 0 0;
+  }
+  .stat {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+  }
+  .stat .num {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: -apple-system-monospaced, "SF Mono", monospace;
+  }
+  .stat .lbl { color: var(--text-dim); font-size: 0.78rem; }
+
+  /* Section */
+  section { margin-bottom: 3rem; scroll-margin-top: 1rem; }
+  h2 {
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+  }
+  h3 {
+    color: var(--accent-2);
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+  }
+  h4 { color: var(--text); font-size: 1rem; margin: 1rem 0 0.4rem; }
+
+  /* Category nav */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+  .toc a {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .toc a:hover { border-color: var(--accent); color: var(--text); }
+
+  /* Product card */
+  .product {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1rem;
+    transition: border-color 0.15s;
+  }
+  .product:hover { border-color: rgba(255,107,53,0.4); }
+  .product .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+  .product .name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .product .ename { color: var(--text-mute); font-size: 0.85rem; font-style: italic; }
+  .product .badges { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; margin-left: auto; }
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .badge-age { background: rgba(96,165,250,0.15); color: var(--blue); }
+  .badge-platform { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .badge-price { background: rgba(74,222,128,0.15); color: var(--green); }
+  .badge-paid { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+  .product p { margin: 0.4rem 0; color: var(--text-dim); font-size: 0.92rem; }
+  .product .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.4rem 1rem;
+    margin: 0.6rem 0;
+    font-size: 0.85rem;
+  }
+  .product .meta div { color: var(--text-mute); }
+  .product .meta strong { color: var(--text-dim); font-weight: 600; }
+
+  .product .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin: 0.6rem 0 0.4rem;
+    font-size: 0.85rem;
+  }
+  @media (max-width: 600px) { .product .pros-cons { grid-template-columns: 1fr; } }
+  .pro { border-left: 2px solid var(--green); padding-left: 0.6rem; color: var(--text-dim); }
+  .con { border-left: 2px solid var(--red); padding-left: 0.6rem; color: var(--text-dim); }
+  .pro::before { content: "✓ "; color: var(--green); font-weight: 700; }
+  .con::before { content: "⚠ "; color: var(--yellow); font-weight: 700; }
+
+  .product a {
+    color: var(--blue);
+    text-decoration: none;
+    font-size: 0.82rem;
+  }
+  .product a:hover { text-decoration: underline; }
+
+  /* Comparison table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  th, td {
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  tr:hover td { background: rgba(255,107,53,0.04); }
+  td .pill { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.75rem; }
+  .pill-free { background: rgba(74,222,128,0.18); color: var(--green); }
+  .pill-freemium { background: rgba(96,165,250,0.18); color: var(--blue); }
+  .pill-paid { background: rgba(251,191,36,0.18); color: var(--yellow); }
+
+  /* Recommendation */
+  .rec {
+    background: linear-gradient(135deg, rgba(74,222,128,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin: 0.6rem 0;
+  }
+  .rec h4 { color: var(--green); margin: 0 0 0.3rem; }
+  .rec p { margin: 0; color: var(--text-dim); font-size: 0.9rem; }
+
+  /* Caveat */
+  .caveat {
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin: 1.5rem 0;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+  }
+  .caveat strong { color: var(--yellow); }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.4rem 0 0.4rem 1rem;
+    margin: 0.5rem 0;
+    background: rgba(255,107,53,0.04);
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<h1>昆虫学习平台 / App 深度调研</h1>
+<p class="subtitle">帮助孩子了解昆虫的数字化工具与社区 · 2025-2026 调研快照</p>
+
+<div class="meta-bar">
+  <span><strong>报告日期：</strong>2026-06-08</span>
+  <span><strong>覆盖：</strong>5 大类 18+ 个产品</span>
+  <span><strong>语言：</strong>中文 / 英文 / 双语</span>
+  <span><strong>适用年龄：</strong>3-18 岁</span>
+</div>
+
+<div class="hero">
+  <h2>核心结论</h2>
+  <p>昆虫学习的"黄金组合"是 <strong>3 类工具各选 1</strong>：一个 <strong>即时识别 App</strong>（户外随拍随学）+ 一个 <strong>高质量内容源</strong>（视频 / 科普站 / 书籍）+ 一个 <strong>社区/项目</strong>（公民科学 / 同好社群）。单独靠任何一个都难以维持孩子的长期兴趣。</p>
+  <div class="stats">
+    <div class="stat"><div class="num">5+</div><div class="lbl">iOS / Android 识别 App</div></div>
+    <div class="stat"><div class="num">3+</div><div class="lbl">AR 互动 App</div></div>
+    <div class="stat"><div class="num">5+</div><div class="lbl">科普站 / 数字博物馆</div></div>
+    <div class="stat"><div class="num">2</div><div class="lbl">公民科学项目（推荐参与）</div></div>
+    <div class="stat"><div class="num">3+</div><div class="lbl">专业书籍 / 图鉴</div></div>
+  </div>
+</div>
+
+<nav class="toc">
+  <a href="#app-identify">📱 识别类 App</a>
+  <a href="#app-learn">🎓 学习 / 游戏 App</a>
+  <a href="#app-ar">🥽 AR 增强现实</a>
+  <a href="#web">🌐 科普网站 / 数字博物馆</a>
+  <a href="#video">🎬 视频 / 社区</a>
+  <a href="#book">📚 书籍 / 图鉴</a>
+  <a href="#citizen">🔬 公民科学</a>
+  <a href="#table">📊 总对比表</a>
+  <a href="#recommend">⭐ 推荐组合</a>
+</nav>
+
+<!-- ============ 识别类 App ============ -->
+<section id="app-identify">
+<h2>📱 一、识别类 App — 拍照就能知道是什么虫</h2>
+<p style="color:var(--text-dim)">这是孩子最容易上手的入口。户外看到虫 → 拍照 → 几秒出结果。家长要陪同确认（AI 偶尔会认错），但门槛低、即时反馈强。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Picture Insect</span>
+    <span class="ename">— 拍虫识虫</span>
+    <div class="badges">
+      <span class="badge badge-age">6+ 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-freemium">Freemium</span>
+    </div>
+  </div>
+  <p>目前最主流的昆虫识别 App 之一。拍照或上传图，AI 给候选物种 + 详细百科（学名、分布、习性、有毒否、生命周期）。识别准确度对常见种相当高（蝉、蝴蝶、瓢虫、螳螂等），稀有或近似种易混淆。</p>
+  <div class="meta">
+    <div><strong>平台：</strong>iOS 14+ / Android 8+</div>
+    <div><strong>收费：</strong>免费试用 3 次，之后订阅约 ¥30-50/月 或 ¥200+/年</div>
+    <div><strong>数据：</strong>1500+ 种常见昆虫（中英双语）</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">识别速度极快，体验顺畅</div>
+    <div class="pro">百科内容质量高，附生活史</div>
+    <div class="con">订阅价格偏贵，免费额度太少</div>
+    <div class="con">需联网，无离线模式</div>
+  </div>
+  <a href="https://app.insectidentification.org/picture-insect" target="_blank">官网 / 下载</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Seek by iNaturalist</span>
+    <span class="ename">— 自然观察识别</span>
+    <div class="badges">
+      <span class="badge badge-age">4+ 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-price">完全免费</span>
+    </div>
+  </div>
+  <p>iNaturalist 团队的"轻量版"识别 App，**完全免费、无广告、不收集数据**。拍照识虫、识植物、识鸟，自动记录观察点到 iNaturalist 公民科学数据库。识别精度比 Picture Insect 略低，但能激励孩子"做真正的公民科学家"。</p>
+  <div class="meta">
+    <div><strong>平台：</strong>iOS / Android</div>
+    <div><strong>收费：</strong>100% 免费</div>
+    <div><strong>数据：</strong>开源 + 用户贡献（百万级条目）</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**完全免费 + 隐私友好**</div>
+    <div class="pro">联动 iNaturalist 公民科学网</div>
+    <div class="pro">能识别动植物鸟鱼全覆盖</div>
+    <div class="con">中文百科内容较弱</div>
+    <div class="con">识别准确度中等，需人工再确认</div>
+  </div>
+  <a href="https://www.inatural.org/pages/seek_app" target="_blank">iNaturalist Seek</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Snap a Bug / Insect ID</span>
+    <span class="ename">— 多种小工具</span>
+    <div class="badges">
+      <span class="badge badge-age">6+ 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-freemium">Freemium</span>
+    </div>
+  </div>
+  <p>App Store 上类似名字的昆虫识别 App 多达 10+ 款，功能重合度高。质量参差——多数功能不如 Picture Insect。**不建议付费下载未验证的小厂产品**，免费版 Picture Insect + Seek 组合已足够。</p>
+  <div class="meta">
+    <div><strong>评价：</strong>多数小厂 App 更新停滞，识别准确度低</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">部分有离线识别</div>
+    <div class="con">质量不稳，不推荐付费</div>
+  </div>
+  <a href="https://apps.apple.com/us/app/insect-identifier-picture-insect/id1500091680" target="_blank">iOS 昆虫识别 App 集合</a>
+</div>
+</section>
+
+<!-- ============ 学习 / 游戏 App ============ -->
+<section id="app-learn">
+<h2>🎓 二、学习 / 游戏 App — 在家学知识</h2>
+<p style="color:var(--text-dim)">与"识别"不同，这类 App 主打"系统化课程 + 游戏化"。适合雨季 / 城市里不能出门时。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Bugly</span>
+    <span class="ename">— 学龄前昆虫启蒙</span>
+    <div class="badges">
+      <span class="badge badge-age">3-7 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-freemium">Freemium</span>
+    </div>
+  </div>
+  <p>面向幼儿的昆虫认知游戏。配对 / 拼图 / 找不同 / 喂养虚拟小虫。**适合幼儿园到小学一年级**，父母可一起玩。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>基础免费，进阶 ¥30-50</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">UI 友好，幼儿可独立操作</div>
+    <div class="pro">多种游戏模式</div>
+    <div class="con">知识深度有限，启蒙为主</div>
+  </div>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Insect Encyclopedia / 虫虫百科</span>
+    <span class="ename">— 离线图鉴</span>
+    <div class="badges">
+      <span class="badge badge-age">8+ 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-freemium">Freemium</span>
+    </div>
+  </div>
+  <p>纯图鉴式 App，**离线可用**，适合野外无信号场景。按目科属分，介绍 2000+ 种。适合稍大、对分类学有兴趣的孩子。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>免费试用，完整版 ¥30-100</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">离线可用</div>
+    <div class="pro">数据详尽</div>
+    <div class="con">无游戏化，可能枯燥</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ AR ============ -->
+<section id="app-ar">
+<h2>🥽 三、AR 增强现实 — 把虫子"放"到家里</h2>
+<p style="color:var(--text-dim)">用手机/平板摄像头，把 3D 昆虫模型"放"在桌面或地板上。**视觉冲击力极强**，孩子第一次见会非常兴奋。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">昆虫世界 AR / Insect AR</span>
+    <span class="ename">— 3D 观察</span>
+    <div class="badges">
+      <span class="badge badge-age">5+ 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-freemium">Freemium</span>
+    </div>
+  </div>
+  <p>3D 昆虫模型（蝎子、蜘蛛、蜻蜓等）放在桌面，可旋转、缩放，点击可看解剖结构和行为动画。**有"胆小慎入"提示**，因为模型写实。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>基础免费，完整包 ¥30</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**视觉震撼**，激发兴趣效果最好</div>
+    <div class="pro">适合当"礼物型"入门</div>
+    <div class="con">模型数量有限（10-30 种）</div>
+    <div class="con">部分含蜘蛛蝎子，胆小孩子慎用</div>
+  </div>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Merge EDU</span>
+    <span class="ename">— AR 教学套件</span>
+    <div class="badges">
+      <span class="badge badge-age">6-14 岁</span>
+      <span class="badge badge-platform">iOS / Android</span>
+      <span class="badge badge-paid">付费（学校方案）</span>
+    </div>
+  </div>
+  <p>Merge Cube + App：把方块当"载体"，3D 模型出现在方块上。教师 / 家庭科学课用得多。**昆虫类不是主打，但能配合**。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>Cube $50+ USD，App 订阅</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">教学设计专业</div>
+    <div class="con">需要实体 Cube 才能用</div>
+    <div class="con">昆虫内容不多</div>
+  </div>
+  <a href="https://mergeedu.com/" target="_blank">Merge EDU 官网</a>
+</div>
+</section>
+
+<!-- ============ 科普网站 ============ -->
+<section id="web">
+<h2>🌐 四、科普网站 / 数字博物馆 — 高质量内容源</h2>
+<p style="color:var(--text-dim)">App 适合"快、轻、娱乐"，而真正的知识深度在网站和数字博物馆。家长陪同孩子一起看效果最佳。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">BugGuide.Net</span>
+    <span class="ename">— 北美昆虫社区</span>
+    <div class="badges">
+      <span class="badge badge-age">10+ 岁（英文）</span>
+      <span class="badge badge-platform">Web</span>
+      <span class="badge badge-price">完全免费</span>
+    </div>
+  </div>
+  <p>美国爱荷华州立大学的非营利项目，**昆虫界的"维基百科"**。专家审核的物种信息 + 数十万张照片。按分类层级（界→门→纲→目→科→属→种）层层点开，是学分类学的最佳起点。**英文**，对家长英文水平有要求。</p>
+  <div class="meta">
+    <div><strong>数据：</strong>30 万 + 物种，100 万 + 照片</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**学术级准确度**</div>
+    <div class="pro">完全免费 + 无广告</div>
+    <div class="con">英文界面</div>
+    <div class="con">北美物种为主，亚欧物种覆盖弱</div>
+  </div>
+  <a href="https://bugguide.net/" target="_blank">BugGuide.Net</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">国家动物博物馆数字展厅</span>
+    <span class="ename">— 中科院权威</span>
+    <div class="badges">
+      <span class="badge badge-age">6+ 岁</span>
+      <span class="badge badge-platform">Web</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>中国科学院动物研究所主办，**国内最权威的动物 / 昆虫科普平台**。有昆虫展厅、3D 标本、专题科普文章。**中文 + 学术准确**。北京有实体馆，馆内活动也丰富。</p>
+  <div class="meta">
+    <div><strong>更新频率：</strong>不定期，但内容精良</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**中文 + 学术权威**</div>
+    <div class="pro">含中国本土物种</div>
+    <div class="con">移动端体验一般</div>
+    <div class="con">互动元素少</div>
+  </div>
+  <a href="https://www.nzmc.org/" target="_blank">国家动物博物馆官网</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">National Geographic Kids — Bugs</span>
+    <span class="ename">— 国家地理少儿</span>
+    <div class="badges">
+      <span class="badge badge-age">6-12 岁</span>
+      <span class="badge badge-platform">Web</span>
+      <span class="badge badge-price">免费 + 高级订阅</span>
+    </div>
+  </div>
+  <p>国家地理少儿版的昆虫专题页。图文并茂 + 视频 + 互动小游戏。**英文为主**但视觉震撼。免费内容已够看。</p>
+  <div class="meta">
+    <div><strong>更新：</strong>持续</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**图片/视频质量顶级**</div>
+    <div class="pro">适龄设计</div>
+    <div class="con">英文</div>
+    <div class="con">订阅墙较多</div>
+  </div>
+  <a href="https://kids.nationalgeographic.com/animals/bugs" target="_blank">NatGeo Kids Bugs</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">Encyclopedia of Life (EOL)</span>
+    <span class="ename">— 生命百科</span>
+    <div class="badges">
+      <span class="badge badge-age">8+ 岁</span>
+      <span class="badge badge-platform">Web</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>"生命百科全书"，每个物种一页：照片、视频、地图、文献。比维基百科更专业。含中国物种。是 BugGuide 的全球版补充。</p>
+  <div class="meta">
+    <div><strong>覆盖：</strong>全球 200 万 + 物种</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">全球物种 + 多语言</div>
+    <div class="con">内容深度参差（依赖贡献者）</div>
+  </div>
+  <a href="https://eol.org/" target="_blank">EOL 官网</a>
+</div>
+</section>
+
+<!-- ============ 视频 / 社区 ============ -->
+<section id="video">
+<h2>🎬 五、视频 / 社区 — 兴趣驱动的日常内容</h2>
+<p style="color:var(--text-dim)">适合每天 10-30 分钟的"昆虫时间"。B 站和 YouTube 上有大量优质 UP 主，知乎和小红书是图文社区。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">B 站昆虫 UP 主（推荐）</span>
+    <span class="ename">— 视频内容</span>
+    <div class="badges">
+      <span class="badge badge-age">6+ 岁</span>
+      <span class="badge badge-platform">Web / App</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>国内最活跃的昆虫科普生态。**推荐 UP 主**（选你孩子感兴趣的方向）：</p>
+  <div class="meta">
+    <div><strong>国内推荐：</strong>博物杂志、昆虫记小宁、虫虫特工队、少年得到-生物课</div>
+    <div><strong>海外推荐（YouTube）：</strong>Brave Wilderness、The Wild Life、A Bug's Life 系列、Smithsonian Channel</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">内容贴近孩子兴趣</div>
+    <div class="pro">更新持续</div>
+    <div class="con">需要家长筛选（部分血腥/惊悚向）</div>
+  </div>
+  <a href="https://www.bilibili.com/" target="_blank">B 站</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">知乎「昆虫学」话题 / 专栏</span>
+    <span class="ename">— 图文深度</span>
+    <div class="badges">
+      <span class="badge badge-age">10+ 岁</span>
+      <span class="badge badge-platform">Web / App</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>知乎有大量昆虫学专业人士（硕博、研究所工作人员）写专栏。**图文深度优于视频**。家长读 → 转述给孩子。</p>
+  <div class="meta">
+    <div><strong>话题页：</strong>有 10000+ 关注者</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**专业深度**</div>
+    <div class="pro">含中国本土研究</div>
+    <div class="con">对低龄孩子文字太多</div>
+  </div>
+  <a href="https://www.zhihu.com/topic/19551498" target="_blank">知乎昆虫学话题</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">小红书「昆虫 / 甲虫」话题</span>
+    <span class="ename">— 同好社区</span>
+    <div class="badges">
+      <span class="badge badge-age">10+ 岁</span>
+      <span class="badge badge-platform">Web / App</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>甲虫 / 螳螂 / 蝴蝶饲养圈非常活跃。家长会发现：养甲虫和蝴蝶的"虫友"群体不小。**也可以学习"如何在家养一只独角仙"** —— 入门级饲养是孩子最好的活教材。</p>
+  <div class="meta">
+    <div><strong>热门内容：</strong>饲养日记、繁殖记录、新手问答</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**动手饲养社区**</div>
+    <div class="con">需家长甄别商家</div>
+  </div>
+  <a href="https://www.xiaohongshu.com/" target="_blank">小红书</a>
+</div>
+</section>
+
+<!-- ============ 书籍 / 图鉴 ============ -->
+<section id="book">
+<h2>📚 六、书籍 / 图鉴 — 系统性深入</h2>
+<p style="color:var(--text-dim)">电子书 / 视频都是"碎片化"，而书籍是"系统化"的最佳载体。**家里至少要有一本实体图鉴**。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">《昆虫记》(法布尔)</span>
+    <span class="ename">— 经典文学级科普</span>
+    <div class="badges">
+      <span class="badge badge-age">8+ 岁</span>
+      <span class="badge badge-paid">实体书</span>
+    </div>
+  </div>
+  <p>法布尔的传世经典，**文学 + 科学**的完美结合。适合亲子共读：孩子看图，家长读故事。多版本可选（青少年版、原文版、青少彩图版）。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>¥30-100（看版本）</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**传世经典**</div>
+    <div class="pro">文学性让孩子读得进去</div>
+  </div>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">《常见昆虫识别图鉴》</span>
+    <span class="ename">— 中国本土图鉴</span>
+    <div class="badges">
+      <span class="badge badge-age">6+ 岁</span>
+      <span class="badge badge-paid">实体书</span>
+    </div>
+  </div>
+  <p>国内多家出版社出过（《中国常见昆虫图鉴》《我的第一本昆虫记》等）。**重点看：是否含本土物种、是否高清彩图、有无拼音**。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>¥40-150</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**含中国本土物种**</div>
+    <div class="pro">适合野外随时翻</div>
+  </div>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">《DK 昆虫百科》</span>
+    <span class="ename">— 顶级视觉</span>
+    <div class="badges">
+      <span class="badge badge-age">6-14 岁</span>
+      <span class="badge badge-paid">实体书</span>
+    </div>
+  </div>
+  <p>DK 出版社的昆虫百科全书，**图质顶级**。英文原版 + 中文引进版都有。适合喜欢看图的孩子。</p>
+  <div class="meta">
+    <div><strong>价格：</strong>¥80-200</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**视觉品质顶级**</div>
+    <div class="con">翻译版偶尔有错</div>
+  </div>
+</div>
+</section>
+
+<!-- ============ 公民科学 ============ -->
+<section id="citizen">
+<h2>🔬 七、公民科学 — 让孩子"参与"科学</h2>
+<p style="color:var(--text-dim)">这是把"学习"变成"贡献"的最高级方式。孩子不只学知识，还真的帮科学家采集数据。</p>
+
+<div class="product">
+  <div class="head">
+    <span class="name">iNaturalist</span>
+    <span class="ename">— 全球公民科学</span>
+    <div class="badges">
+      <span class="badge badge-age">8+ 岁</span>
+      <span class="badge badge-platform">Web / iOS / Android</span>
+      <span class="badge badge-price">完全免费</span>
+    </div>
+  </div>
+  <p>**全球最大的公民科学平台**。上传观察照片 → 专家社区确认物种 → 数据被科学家用于研究（气候变化、生物多样性、迁徙路线等）。**每个记录都有真实研究价值**。</p>
+  <div class="meta">
+    <div><strong>用户：</strong>全球 400 万 + 贡献者</div>
+    <div><strong>数据：</strong>1.8 亿 + 条观察记录</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**真实参与科学研究**</div>
+    <div class="pro">完全免费</div>
+    <div class="pro">数据永久存档</div>
+    <div class="con">英文为主（但有中文社区）</div>
+    <div class="con">需要网络 + 家长辅助</div>
+  </div>
+  <a href="https://www.inaturalist.org/" target="_blank">iNaturalist 官网</a>
+</div>
+
+<div class="product">
+  <div class="head">
+    <span class="name">中国生物多样性保护与绿色发展基金会</span>
+    <span class="ename">— 国内公民科学</span>
+    <div class="badges">
+      <span class="badge badge-age">10+ 岁</span>
+      <span class="badge badge-platform">Web</span>
+      <span class="badge badge-price">免费</span>
+    </div>
+  </div>
+  <p>国内民间组织运营的生物多样性观察项目。**有专门面向青少年的"小小公民科学家"项目**。可以组队参与本地物种调查。</p>
+  <div class="meta">
+    <div><strong>特色：</strong>中文环境 + 本土物种</div>
+  </div>
+  <div class="pros-cons">
+    <div class="pro">**国内本土 + 中文**</div>
+    <div class="con">项目分散，入口不统一</div>
+  </div>
+  <a href="http://www.cbcgdf.org/" target="_blank">中国绿发会</a>
+</div>
+</section>
+
+<!-- ============ 总对比表 ============ -->
+<section id="table">
+<h2>📊 八、总对比表</h2>
+<table>
+  <thead>
+    <tr>
+      <th>产品</th>
+      <th>类型</th>
+      <th>平台</th>
+      <th>年龄</th>
+      <th>价格</th>
+      <th>中文</th>
+      <th>一句话定位</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Picture Insect</strong></td>
+      <td>识别 App</td>
+      <td>iOS/Android</td>
+      <td>6+</td>
+      <td><span class="pill pill-freemium">Freemium</span></td>
+      <td>✅</td>
+      <td>最主流的拍虫识虫</td>
+    </tr>
+    <tr>
+      <td><strong>Seek</strong></td>
+      <td>识别 App</td>
+      <td>iOS/Android</td>
+      <td>4+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>部分</td>
+      <td>iNaturalist 免费版</td>
+    </tr>
+    <tr>
+      <td><strong>昆虫世界 AR</strong></td>
+      <td>AR App</td>
+      <td>iOS/Android</td>
+      <td>5+</td>
+      <td><span class="pill pill-freemium">Freemium</span></td>
+      <td>✅</td>
+      <td>3D 模型放桌上</td>
+    </tr>
+    <tr>
+      <td><strong>BugGuide.Net</strong></td>
+      <td>科普网</td>
+      <td>Web</td>
+      <td>10+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>❌</td>
+      <td>学术级分类</td>
+    </tr>
+    <tr>
+      <td><strong>国家动物博物馆</strong></td>
+      <td>数字博物馆</td>
+      <td>Web</td>
+      <td>6+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>✅</td>
+      <td>中科院权威</td>
+    </tr>
+    <tr>
+      <td><strong>NatGeo Kids</strong></td>
+      <td>科普网</td>
+      <td>Web</td>
+      <td>6-12</td>
+      <td><span class="pill pill-freemium">Freemium</span></td>
+      <td>❌</td>
+      <td>顶级视觉 + 英文</td>
+    </tr>
+    <tr>
+      <td><strong>B 站 / 知乎 / 小红书</strong></td>
+      <td>视频/图文</td>
+      <td>Web/App</td>
+      <td>6+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>✅</td>
+      <td>日常内容源</td>
+    </tr>
+    <tr>
+      <td><strong>《昆虫记》/《DK 昆虫百科》</strong></td>
+      <td>书籍</td>
+      <td>实体书</td>
+      <td>6+</td>
+      <td><span class="pill pill-paid">付费</span></td>
+      <td>✅</td>
+      <td>系统性深入</td>
+    </tr>
+    <tr>
+      <td><strong>iNaturalist</strong></td>
+      <td>公民科学</td>
+      <td>Web/App</td>
+      <td>8+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>部分</td>
+      <td>参与真实科研</td>
+    </tr>
+    <tr>
+      <td><strong>中国绿发会</strong></td>
+      <td>公民科学</td>
+      <td>Web</td>
+      <td>10+</td>
+      <td><span class="pill pill-free">免费</span></td>
+      <td>✅</td>
+      <td>国内本土公民科学</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ============ 推荐组合 ============ -->
+<section id="recommend">
+<h2>⭐ 九、推荐组合 — 按孩子年龄</h2>
+
+<div class="rec">
+  <h4>3-6 岁（幼儿园）</h4>
+  <p><strong>Bugly + B 站昆虫启蒙动画 + 实体 DK 昆虫百科</strong>。重点是<em>游戏化 + 视觉冲击</em>，不要急着系统化。每次 10-15 分钟。</p>
+</div>
+
+<div class="rec">
+  <h4>7-10 岁（小学低年级）</h4>
+  <p><strong>Picture Insect（免费试用 3 次后看订阅意愿）+ Seek（一直免费）+ 知乎专栏 + 家里养一只独角仙 / 螳螂</strong>。这个阶段开始"识别 + 观察 + 养"，**养一只活虫是最强学习动力**。</p>
+</div>
+
+<div class="rec">
+  <h4>11-14 岁（小学高年级到初中）</h4>
+  <p><strong>Picture Insect 订阅 + iNaturalist 公民科学 + 国家动物博物馆 + 《昆虫记》原著 + B 站深度视频</strong>。开始参与科研 + 写观察日记，**这是培养"未来生物学家"的阶段**。</p>
+</div>
+
+<div class="rec">
+  <h4>15+ 岁（高中）</h4>
+  <p><strong>BugGuide.Net + iNaturalist 高级 + EOL + 知乎昆虫学专业回答 + 学术论文（CNKI）</strong>。可以尝试投稿 / 参加青少年生物竞赛。</p>
+</div>
+
+<h3>避坑指南</h3>
+<ul style="color:var(--text-dim); line-height:1.9;">
+  <li>❌ <strong>不要给幼儿用 Picture Insect 付费版</strong> — 3 岁孩子看图就够了，订阅浪费</li>
+  <li>❌ <strong>不要让孩子在 B 站自由搜"昆虫"</strong> — 大量猎奇 / 惊悚 / 不科学内容，要家长陪同</li>
+  <li>❌ <strong>不要忽视实体书</strong> — 屏幕看多了会腻，**家里至少一本图鉴 + 一本《昆虫记》**</li>
+  <li>❌ <strong>不要追求"全"或"深"</strong> — 一个孩子喜欢上蝴蝶就够了，不必面面俱到</li>
+  <li>✅ <strong>认养一只活虫</strong> — 独角仙幼虫（¥30-50）、螳螂（¥20-40）是最强的活教材</li>
+  <li>✅ <strong>做自然观察笔记</strong> — 让孩子拍照 + 写"今天看到了什么" + 标注时间地点</li>
+</ul>
+</section>
+
+<div class="caveat">
+  <strong>⚠️ 数据来源说明：</strong>本报告基于调研时（2026-06-08）的公开信息综合整理。**部分 App 价格和功能可能已变更**，请购买前以官方页面为准。报告中"推荐 UP 主"为常见活跃创作者，未做排名或背书。所有链接建议家长先试再推给孩子。
+</div>
+
+<blockquote>
+最后一点：兴趣 > 知识。选孩子<em>自己</em>喜欢的那一种虫，深入下去，比泛泛了解 100 种更有意义。<br><br>
+— 完 —
+</blockquote>
+
+</body>
+</html>

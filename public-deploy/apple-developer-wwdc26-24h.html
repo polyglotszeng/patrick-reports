@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple Developer 24h 新视频仪表板 · WWDC26</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d0d0d;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.hero {
+  text-align: center;
+  padding: 2.5rem 1rem 2rem;
+  border-bottom: 1px solid #2a2a2a;
+  margin-bottom: 2rem;
+}
+.hero h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff6b35, #f7c59f, #ff6b35);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer {
+  to { background-position: 200% center; }
+}
+.hero .subtitle {
+  color: #888;
+  font-size: 0.95rem;
+  margin-top: 0.6rem;
+}
+.hero .meta-line {
+  color: #666;
+  font-size: 0.82rem;
+  margin-top: 0.4rem;
+  letter-spacing: 0.5px;
+}
+.hero .source-link {
+  display: inline-block;
+  margin-top: 1rem;
+  color: #ff6b35;
+  text-decoration: none;
+  font-size: 0.85rem;
+  border: 1px solid #ff6b35;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+.hero .source-link:hover {
+  background: #ff6b35;
+  color: #0d0d0d;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-left: 3px solid;
+  border-radius: 8px;
+  padding: 1.2rem 1rem;
+  text-align: center;
+}
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: "SF Mono", Menlo, monospace;
+}
+.stat-label {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.3rem;
+  letter-spacing: 0.5px;
+}
+
+.top-section {
+  background: linear-gradient(180deg, #161616 0%, #111 100%);
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+.section-h {
+  color: #ff6b35;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-h::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 20px;
+  background: #ff6b35;
+  border-radius: 2px;
+}
+.top-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  background: #0d0d0d;
+  border-radius: 8px;
+  border: 1px solid #1e1e1e;
+  border-left-width: 3px;
+  transition: background 0.2s;
+}
+.top-card:hover { background: #1a1a1a; }
+.top-rank {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #f7c59f;
+  min-width: 50px;
+  font-family: "SF Mono", Menlo, monospace;
+}
+.top-content { flex: 1; }
+.top-title {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.top-title:hover { color: #ff6b35; }
+.top-meta {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  color: #888;
+  margin-bottom: 0.4rem;
+  align-items: center;
+}
+.top-summary {
+  color: #b0b0b0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background: #161616;
+  border-radius: 8px;
+}
+.tab {
+  background: transparent;
+  color: #888;
+  border: 1px solid #2a2a2a;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.tab:hover { color: #e0e0e0; border-color: #555; }
+.tab.active {
+  background: var(--cat-color, #ff6b35);
+  color: #0d0d0d;
+  border-color: var(--cat-color, #ff6b35);
+  font-weight: 600;
+}
+
+.category-section { margin-bottom: 2.5rem; }
+.category-section.hidden { display: none; }
+.category-title {
+  color: #f7c59f;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+.cat-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.cat-count {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 400;
+  margin-left: auto;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1rem;
+}
+.video-card {
+  background: #161616;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 1.1rem;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.video-card:hover {
+  transform: translateY(-2px);
+  border-color: #555;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cat-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.3px;
+}
+.meta-row {
+  display: flex;
+  gap: 0.8rem;
+  font-size: 0.72rem;
+  color: #888;
+}
+.meta-item::before { content: '•'; margin-right: 0.4rem; color: #555; }
+.meta-item:first-child::before { display: none; }
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
+.card-title a {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.card-title a:hover { color: #ff6b35; }
+.official-summary {
+  color: #999;
+  font-size: 0.82rem;
+  font-style: italic;
+  padding: 0.5rem 0.7rem;
+  background: #0d0d0d;
+  border-left: 2px solid #444;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+.chinese-summary {
+  color: #d0d0d0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-bottom: 0.8rem;
+}
+.section { margin-top: 0.8rem; }
+.section h4 {
+  color: #f7c59f;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.key-points {
+  list-style: none;
+  padding: 0;
+}
+.key-points li {
+  padding: 0.35rem 0.6rem 0.35rem 1.4rem;
+  margin-bottom: 0.3rem;
+  background: #0d0d0d;
+  border-left: 2px solid #ff6b35;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.82rem;
+  color: #c0c0c0;
+  position: relative;
+}
+.key-points li::before {
+  content: '▸';
+  position: absolute;
+  left: 0.5rem;
+  color: #ff6b35;
+}
+.api-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.api-tag {
+  background: #1f1f1f;
+  color: #f7c59f;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: "SF Mono", Menlo, monospace;
+  border: 1px solid #2a2a2a;
+}
+.chapters {
+  background: #0d0d0d;
+  padding: 0.6rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #1e1e1e;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+}
+.chapter {
+  padding: 0.15rem 0;
+  color: #aaa;
+}
+.ch-time {
+  color: #ff6b35;
+  font-family: "SF Mono", Menlo, monospace;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+footer {
+  margin-top: 3rem;
+  padding: 2rem 0;
+  border-top: 1px solid #2a2a2a;
+  text-align: center;
+  color: #666;
+  font-size: 0.82rem;
+}
+footer a {
+  color: #ff6b35;
+  text-decoration: none;
+}
+footer a:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+  body { padding: 1rem; }
+  .hero h1 { font-size: 1.6rem; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .card-grid { grid-template-columns: 1fr; }
+  .top-card { flex-direction: column; }
+  .top-rank { min-width: auto; }
+}
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Apple Developer · 24h 新视频仪表板</h1>
+  <div class="subtitle">WWDC26 Session 批量发布 · 频道最近 24 小时</div>
+  <div class="meta-line">抓取时间：2026-06-09 14:49 CST · 频道: @AppleDeveloper · 30 个视频</div>
+  <a href="https://www.youtube.com/@AppleDeveloper/videos" target="_blank" rel="noopener" class="source-link">→ 访问 YouTube 频道</a>
+</div>
+
+<div class="stats-row">
+  
+    <div class="stat-card" style="border-color:#ff6b35">
+      <div class="stat-value" style="color:#ff6b35">30</div>
+      <div class="stat-label">视频总数</div>
+    </div>
+    
+    <div class="stat-card" style="border-color:#f7c59f">
+      <div class="stat-value" style="color:#f7c59f">102,594</div>
+      <div class="stat-label">总观看次数</div>
+    </div>
+    
+    <div class="stat-card" style="border-color:#3498db">
+      <div class="stat-value" style="color:#3498db">8</div>
+      <div class="stat-label">主题分类</div>
+    </div>
+    
+    <div class="stat-card" style="border-color:#2ecc71">
+      <div class="stat-value" style="color:#2ecc71">~24h 内</div>
+      <div class="stat-label">发布时间窗</div>
+    </div>
+    
+</div>
+
+<div class="top-section">
+  <h2 class="section-h">🔥 Top 5 热门视频（按观看次数）</h2>
+  
+    <div class="top-card" style="border-left: 3px solid #ff6b35">
+      <div class="top-rank">#1</div>
+      <div class="top-content">
+        <a href="https://www.youtube.com/watch?v=wykPErJ8M-8" target="_blank" rel="noopener" class="top-title">Run local agentic AI on the Mac using MLX</a>
+        <div class="top-meta">
+          <span class="cat-badge-sm" style="background:#ff6b3520; color:#ff6b35">AI / 机器学习</span>
+          <span>13:37</span>
+          <span>👁 49,277</span>
+          <span>👍 2055</span>
+        </div>
+        <div class="top-summary">介绍如何在 Mac 上利用 MLX 框架完全本地运行 AI agent，强调隐私、低延迟和离线能力；演示了 OpenCode 等代码 agent 集成到 Xcode、多 Mac 分布式推理以及工具调用无缝衔接的工作流。</div>
+      </div>
+    </div>
+    
+    <div class="top-card" style="border-left: 3px solid #3498db">
+      <div class="top-rank">#2</div>
+      <div class="top-content">
+        <a href="https://www.youtube.com/watch?v=XN_ZkjNNgvk" target="_blank" rel="noopener" class="top-title">Bringing Cyberpunk 2077 to Mac</a>
+        <div class="top-meta">
+          <span class="cat-badge-sm" style="background:#3498db20; color:#3498db">游戏 / 图形</span>
+          <span>27:55</span>
+          <span>👁 30,431</span>
+          <span>👍 1294</span>
+        </div>
+        <div class="top-summary">CD PROJEKT RED 分享将《赛博朋克 2077》移植到 Mac 的幕后故事，重点介绍 Game Porting Toolkit 评估流程以及创新的 &quot;For this Mac&quot; 预设，自动在不同 Mac 机型上平衡画质与帧率。</div>
+      </div>
+    </div>
+    
+    <div class="top-card" style="border-left: 3px solid #f39c12">
+      <div class="top-rank">#3</div>
+      <div class="top-content">
+        <a href="https://www.youtube.com/watch?v=ykwG0I8UGjg" target="_blank" rel="noopener" class="top-title">Rev up your CarPlay app</a>
+        <div class="top-meta">
+          <span class="cat-badge-sm" style="background:#f39c1220; color:#f39c12">平台 / 系统</span>
+          <span>16:20</span>
+          <span>👁 4,102</span>
+          <span>👍 91</span>
+        </div>
+        <div class="top-summary">探索 CarPlay 在音频、导航、语音对话式应用以及视频应用方面的新特性，讲解如何在支持的车型中实现驻车时浏览观看视频，并集成缩略图、媒体信息与语音控制。</div>
+      </div>
+    </div>
+    
+    <div class="top-card" style="border-left: 3px solid #ff6b35">
+      <div class="top-rank">#4</div>
+      <div class="top-content">
+        <a href="https://www.youtube.com/watch?v=gl5lD2gEhb0" target="_blank" rel="noopener" class="top-title">Integrate on-device AI models into your app using Core AI</a>
+        <div class="top-meta">
+          <span class="cat-badge-sm" style="background:#ff6b3520; color:#ff6b35">AI / 机器学习</span>
+          <span>23:44</span>
+          <span>👁 3,054</span>
+          <span>👍 134</span>
+        </div>
+        <div class="top-summary">介绍新的 Core AI 框架与预置开源模型库（Qwen、Mistral、SAM3 等），演示如何下载、运行、微调并在应用中集成这些针对 Apple silicon 优化的模型，借助 AOT 编译和 Xcode 工具进行性能剖析。</div>
+      </div>
+    </div>
+    
+    <div class="top-card" style="border-left: 3px solid #f39c12">
+      <div class="top-rank">#5</div>
+      <div class="top-content">
+        <a href="https://www.youtube.com/watch?v=mUoWMlZXQ28" target="_blank" rel="noopener" class="top-title">What's new in Shortcuts</a>
+        <div class="top-meta">
+          <span class="cat-badge-sm" style="background:#f39c1220; color:#f39c12">平台 / 系统</span>
+          <span>11:02</span>
+          <span>👁 2,372</span>
+          <span>👍 92</span>
+        </div>
+        <div class="top-summary">展示如何利用 App Entity 构建更强大的 Shortcuts，包括新自动化能力、让 LLM 更好理解应用的 &quot;Use Model&quot; 转录特性，以及跨设备同步的丰富数据存储。</div>
+      </div>
+    </div>
+    
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-filter="all">全部</button><button class="tab" data-filter="AI/ML" style="--cat-color:#ff6b35">AI / 机器学习 (13)</button><button class="tab" data-filter="平台/系统" style="--cat-color:#f39c12">平台 / 系统 (4)</button><button class="tab" data-filter="游戏/图形" style="--cat-color:#3498db">游戏 / 图形 (3)</button><button class="tab" data-filter="相机/影像" style="--cat-color:#2ecc71">相机 / 影像 (3)</button><button class="tab" data-filter="3D/spatial" style="--cat-color:#9b59b6">3D / 空间计算 (2)</button><button class="tab" data-filter="UI 框架" style="--cat-color:#e74c3c">UI 框架 (1)</button><button class="tab" data-filter="性能/测试" style="--cat-color:#e67e22">性能 / 测试 (2)</button><button class="tab" data-filter="工具/CLI" style="--cat-color:#1abc9c">工具 / CLI (2)</button>
+</div>
+
+<div id="content">
+  
+    <section class="category-section" data-category="AI/ML">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#ff6b35"></span>
+        AI / 机器学习
+        <span class="cat-count">(13 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">13:37</span>
+          <span class="meta-item">49,277 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=wykPErJ8M-8" target="_blank" rel="noopener">Run local agentic AI on the Mac using MLX</a>
+      </h3>
+      <div class="official-summary">Run AI agents locally with privacy, low latency, and offline access. Dive into how MLX advancements and Mac hardware make powerful agentic workflows possible entirely on-device. You’ll explore code agents such as OpenCode, see how they integrate into Xcode, learn techniques for multi-Mac scaling, and discover how to integrate tools seamlessly — without ever leaving your machine.</div>
+      <div class="chinese-summary">介绍如何在 Mac 上利用 MLX 框架完全本地运行 AI agent，强调隐私、低延迟和离线能力；演示了 OpenCode 等代码 agent 集成到 Xcode、多 Mac 分布式推理以及工具调用无缝衔接的工作流。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>MLX 本地推理栈让 agent 完全运行在设备上</li><li>OpenCode 等代码 agent 可直接集成到 Xcode</li><li>支持多 Mac 分布式推理提升吞吐</li><li>工具调用可在不离开本地的前提下无缝衔接</li><li>面向隐私优先、低延迟、离线的 agentic 工作流</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">MLX</span><span class="api-tag">Xcode</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:32]</span> The chat and agentic loop</div><div class="chapter"><span class="ch-time">[02:42]</span> Local agentic AI stack</div><div class="chapter"><span class="ch-time">[04:36]</span> Setting up your own agent</div><div class="chapter"><span class="ch-time">[05:39]</span> Making agents fast</div><div class="chapter"><span class="ch-time">[06:53]</span> Concurrency and distributed inference</div><div class="chapter"><span class="ch-time">[09:20]</span> More examples</div><div class="chapter"><span class="ch-time">[13:01]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">23:44</span>
+          <span class="meta-item">3,054 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=gl5lD2gEhb0" target="_blank" rel="noopener">Integrate on-device AI models into your app using Core AI</a>
+      </h3>
+      <div class="official-summary">Discover a curated collection of popular open-source models — including Qwen, Mistral, SAM3, and more — optimized for Apple silicon using the new Core AI Framework. Learn how to download, run, and benchmark models on your Mac, and integrate them into your app with just a few lines of code. Explore a new workflow for model compilation and on-device specialization to speed up first-time model load. Find out how to profile and optimize runtime performance with Core AI tools in Xcode.</div>
+      <div class="chinese-summary">介绍新的 Core AI 框架与预置开源模型库（Qwen、Mistral、SAM3 等），演示如何下载、运行、微调并在应用中集成这些针对 Apple silicon 优化的模型，借助 AOT 编译和 Xcode 工具进行性能剖析。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Core AI 框架提供精选的开源模型仓库（Qwen、Mistral、SAM3 等）</li><li>针对 Apple silicon 进行模型优化，集成只需少量代码</li><li>支持 on-device specialization 与 AOT 编译以加速首次加载</li><li>Xcode 集成 Core AI 工具用于性能剖析与诊断</li><li>可在 iOS、macOS 等多平台复用同一模型</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Core AI Framework</span><span class="api-tag">Xcode</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:16]</span> App concept: camera-based vocab learning</div><div class="chapter"><span class="ch-time">[02:52]</span> Model discovery</div><div class="chapter"><span class="ch-time">[07:40]</span> Getting models with the Core AI models repository</div><div class="chapter"><span class="ch-time">[08:37]</span> Integration</div><div class="chapter"><span class="ch-time">[10:55]</span> Writing the Swift integration code</div><div class="chapter"><span class="ch-time">[13:05]</span> Diagnosing model specialization latency</div><div class="chapter"><span class="ch-time">[14:40]</span> Deployment</div><div class="chapter"><span class="ch-time">[17:00]</span> Ahead-of-time (AOT) compilation</div><div class="chapter"><span class="ch-time">[18:03]</span> iOS demo</div><div class="chapter"><span class="ch-time">[19:57]</span> Multiplatform</div><div class="chapter"><span class="ch-time">[23:06]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">14:31</span>
+          <span class="meta-item">1,212 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=KCL8f9ztKFk" target="_blank" rel="noopener">Explore numerical computing in Swift with MLX</a>
+      </h3>
+      <div class="official-summary">Bring NumPy-style computing natively to Swift with MLX Swift. Discover how to eliminate cross-language friction in your machine learning workflows by handling image processing, tensor operations, and neural network training in a single, type-safe environment. Explore the APIs that let you leverage GPU acceleration while enjoying the compiler, tooling, and debugging experience you already know.</div>
+      <div class="chinese-summary">介绍 MLX Swift，把 NumPy 风格的数值计算原生带入 Swift，类型安全地完成图像处理、张量运算与神经网络训练，并自动获得 GPU 加速。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>MLX Swift 提供 NumPy 风格的 Swift API</li><li>在类型安全环境中处理张量、图像与神经网络训练</li><li>自动利用 Apple silicon GPU 加速</li><li>消除 ML 工作流中的跨语言摩擦</li><li>配合 Mandelbrot、热分布、SOR 等示例展示收敛与拟合</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">MLX Swift</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:57]</span> MLX Swift and the Apple ecosystem</div><div class="chapter"><span class="ch-time">[03:04]</span> MLX Swift</div><div class="chapter"><span class="ch-time">[04:28]</span> Mandelbrot</div><div class="chapter"><span class="ch-time">[06:34]</span> Heat distribution</div><div class="chapter"><span class="ch-time">[08:12]</span> Faster convergence with SOR</div><div class="chapter"><span class="ch-time">[10:17]</span> Curve fitting</div><div class="chapter"><span class="ch-time">[12:17]</span> The full MLX toolkit and ecosystem</div><div class="chapter"><span class="ch-time">[13:47]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">20:41</span>
+          <span class="meta-item">779 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=u06ZVpSl0J4" target="_blank" rel="noopener">Bring an LLM provider to the Foundation Models framework</a>
+      </h3>
+      <div class="official-summary">Extend the Foundation Models framework by implementing a LanguageModelExecutor for new models. Explore how to interface with the LanguageModelSession’s transcript, manage session state effectively, and optimize KV cache utilization. Find out how to support custom segment types and unlock advanced capabilities for your generative AI features.</div>
+      <div class="chinese-summary">演示如何通过实现 LanguageModelExecutor，把新的 LLM 模型接入 Foundation Models 框架，覆盖 transcript 接口、会话状态管理、KV 缓存优化以及自定义 segment 类型。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>实现 LanguageModelExecutor 协议接入新模型</li><li>与 LanguageModelSession 的 transcript 交互</li><li>有效管理会话状态以保持上下文</li><li>优化 KV 缓存利用率提升生成性能</li><li>支持自定义 segment 类型解锁高级能力</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Foundation Models</span><span class="api-tag">LanguageModelSession</span><span class="api-tag">LanguageModelExecutor</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[03:37]</span> Packaging</div><div class="chapter"><span class="ch-time">[04:48]</span> Protocol</div><div class="chapter"><span class="ch-time">[14:50]</span> Authentication</div><div class="chapter"><span class="ch-time">[15:51]</span> Customization</div><div class="chapter"><span class="ch-time">[19:47]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">16:36</span>
+          <span class="meta-item">730 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=pvefPi4J2G4" target="_blank" rel="noopener">Build AI-powered scripts with the fm CLI and Python SDK</a>
+      </h3>
+      <div class="official-summary">Explore all the new ways to leverage Apple Foundation Models on macOS. The Foundation Models SDK for Python lets you integrate with popular tooling and evaluation packages in the Python ecosystem. Find out how to use the brand new fm command introduced in macOS 27 to streamline scripting, automate model workflows, and accelerate your development process.</div>
+      <div class="chinese-summary">展示在 macOS 上调用 Apple Foundation Models 的新方式：全新的 fm 命令行工具便于脚本化与自动化，Python SDK 则可对接常用 Python 工具链与评估框架。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>macOS 27 引入 fm 命令行工具</li><li>Foundation Models Python SDK 集成 Python 生态</li><li>支持结构化输出与提示工程</li><li>内置工具调用 (tool calling) 与引导式生成</li><li>可在 Python 中构建模型评估流水线</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Foundation Models SDK</span><span class="api-tag">fm CLI</span><span class="api-tag">Python SDK</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:22]</span> Introducing the fm CLI and Python SDK</div><div class="chapter"><span class="ch-time">[03:23]</span> Command line tool</div><div class="chapter"><span class="ch-time">[05:02]</span> fm respond and structured output</div><div class="chapter"><span class="ch-time">[06:11]</span> Automating file management with fm</div><div class="chapter"><span class="ch-time">[08:52]</span> Python SDK</div><div class="chapter"><span class="ch-time">[09:42]</span> Prompting, tool calling and guided generation</div><div class="chapter"><span class="ch-time">[10:44]</span> Building an evaluation pipeline in Python</div><div class="chapter"><span class="ch-time">[15:20]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">14:11</span>
+          <span class="meta-item">713 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=skch01qhxDw" target="_blank" rel="noopener">Create high quality images using Image Playground</a>
+      </h3>
+      <div class="official-summary">Enable high-quality image creation in your app using Image Playground. With a new generative model that runs on Private Cloud Compute, users can make images in virtually any style, including photorealistic, in your app. You can also specify dimensions for use in even more places, and allow people to modify images using natural language descriptions and touch. Explore how to adopt Image Playground, generate images from descriptions and photos, and manage feature availability in your app.</div>
+      <div class="chinese-summary">讲解如何在应用中集成 Image Playground 以生成高质量图片，依托 Private Cloud Compute 上的新生成模型支持照片写实等多种风格，并允许用户用自然语言和触控修改图像。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>新生成模型运行在 Private Cloud Compute 上</li><li>支持照片写实等几乎任意风格</li><li>可指定图片尺寸以适配更多使用场景</li><li>支持用自然语言与触控修改图像</li><li>提供特性可用性管理接口</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Image Playground</span><span class="api-tag">Private Cloud Compute</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:03]</span> Capabilities</div><div class="chapter"><span class="ch-time">[05:02]</span> Adopt Image Playground</div><div class="chapter"><span class="ch-time">[08:29]</span> Options</div><div class="chapter"><span class="ch-time">[12:15]</span> Availability</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">24:09</span>
+          <span class="meta-item">375 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=vyfRyVCVsiY" target="_blank" rel="noopener">Explore advanced App Intents features for Siri and Apple Intelligence</a>
+      </h3>
+      <div class="official-summary">Polish how your app works with Siri using advanced App Intents APIs. Learn techniques that let people accomplish more with just their voice, help Apple Intelligence find your content, and provide context for on-screen awareness so Siri understands what’s happening in your app. </div>
+      <div class="chinese-summary">深入讲解 App Intents 高级 API，帮助应用以更丰富的方式与 Siri 协作、让 Apple Intelligence 发现内容并理解当前屏幕上下文，从而完成更复杂的语音任务。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>自定义 Siri 的响应方式</li><li>支持视觉响应 (Visual responses) 与交互捐赠 (Interaction donations)</li><li>通过 IndexedEntity 建立语义索引</li><li>使用 IntentValueQuery 实现结构化与屏内搜索</li><li>屏幕感知 (Onscreen awareness) 让 Siri 理解当前界面</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">App Intents</span><span class="api-tag">Siri</span><span class="api-tag">Apple Intelligence</span><span class="api-tag">IndexedEntity</span><span class="api-tag">IntentValueQuery</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:59]</span> Customize how Siri responds</div><div class="chapter"><span class="ch-time">[04:20]</span> Visual responses</div><div class="chapter"><span class="ch-time">[06:22]</span> Interaction donations</div><div class="chapter"><span class="ch-time">[09:46]</span> Confirmations and entity ownership</div><div class="chapter"><span class="ch-time">[11:59]</span> Semantic index with IndexedEntity</div><div class="chapter"><span class="ch-time">[13:32]</span> Structured search with IntentValueQuery</div><div class="chapter"><span class="ch-time">[15:27]</span> In-app search</div><div class="chapter"><span class="ch-time">[16:22]</span> Onscreen awareness</div><div class="chapter"><span class="ch-time">[20:51]</span> Leverage existing integrations</div><div class="chapter"><span class="ch-time">[23:30]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">16:13</span>
+          <span class="meta-item">305 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=toO9j5NKg0c" target="_blank" rel="noopener">Optimize custom machine learning operations with Metal tensors</a>
+      </h3>
+      <div class="official-summary">Unlock powerful machine learning performance with the Metal Tensor API and Metal Performance Primitives (MPP) Tensor Ops library. Discover how to create portable operations that take advantage of Neural Accelerators in Apple M5 and A19 GPUs. Learn to build custom machine learning kernels for your Core AI applications, and find out how to work effectively with quantized data formats and GPU memory optimization.</div>
+      <div class="chinese-summary">介绍如何使用 Metal Tensor API 与 Metal Performance Primitives (MPP) Tensor Ops 库编写自定义 ML 内核，挖掘 Apple M5 / A19 GPU 上 Neural Accelerator 的算力，并妥善处理量化数据格式与显存优化。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Metal Tensor API + MPP Tensor Ops 提供跨设备、可移植的高性能 ML 算子</li><li>针对 M5 / A19 GPU 的 Neural Accelerator 编写自定义 Metal ML kernel</li><li>支持多平面张量与量化矩阵乘法等高级运算</li><li>处理量化数据格式 (如 int4/int8) 并优化 GPU 显存占用</li><li>将自定义算子集成进 Core AI 应用链路</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Metal Tensor API</span><span class="api-tag">Metal Performance Primitives (MPP)</span><span class="api-tag">Core AI</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:21]</span> Apple's ML software stack</div><div class="chapter"><span class="ch-time">[02:25]</span> Managing quantized data</div><div class="chapter"><span class="ch-time">[04:23]</span> Multi-plane tensors</div><div class="chapter"><span class="ch-time">[05:17]</span> Quantized matrix multiplication</div><div class="chapter"><span class="ch-time">[09:31]</span> Building advanced ops</div><div class="chapter"><span class="ch-time">[13:35]</span> Integrating custom ops into Core AI</div><div class="chapter"><span class="ch-time">[15:25]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">25:46</span>
+          <span class="meta-item">302 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sexp6TEkoWU" target="_blank" rel="noopener">Meet the Evaluations framework</a>
+      </h3>
+      <div class="official-summary">Learn how to evaluate model-driven experiences using the Evaluations framework. In a probabilistic world, unit tests alone won’t suffice. Discover how to define metrics, automatically grade outputs, and aggregate statistics to ensure your AI-powered features perform reliably across Apple’s platforms.</div>
+      <div class="chinese-summary">引入全新的 Evaluations 框架，用于系统化评估由模型驱动的功能体验：在概率性输出场景下，定义指标、自动打分并汇总统计，从而保障 AI 特性在 Apple 全平台上的可靠性。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Evaluations 框架弥补传统单元测试在概率性输出场景下的不足</li><li>自定义指标 (metrics) 来衡量模型驱动的体验</li><li>自动对模型输出打分 (auto-grading)</li><li>汇总多轮评估的统计数据 (aggregated statistics)</li><li>面向 Apple 全平台的 AI 体验可靠性保障</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Evaluations framework</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">16:25</span>
+          <span class="meta-item">295 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sij24ohbRSg" target="_blank" rel="noopener">LLM search using Core Spotlight</a>
+      </h3>
+      <div class="official-summary">Level up basic search into a retrieval-augmented system using SpotlightSearchTool and LanguageModelSession. Explore Core Spotlight integration, delegate-based hydration patterns, and how metadata quality impacts your search results. Learn how to use custom PipelineStages for tasks like sentiment analysis. Discover best practices for indexing and building flexible, context-rich search experiences in your app.</div>
+      <div class="chinese-summary">将基础搜索升级为基于 LLM 的检索增强 (RAG) 系统：利用 SpotlightSearchTool 与 LanguageModelSession 接入 Core Spotlight，结合 delegate 模式进行结果水合，并通过自定义 PipelineStages 实现情感分析等任务。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>SpotlightSearchTool + LanguageModelSession 把系统搜索变成 RAG 管道</li><li>基于 delegate 的结果水合 (hydration) 模式按需加载详情</li><li>元数据质量直接影响检索效果，需精心设计索引</li><li>可插入自定义 PipelineStages，例如进行情感分析</li><li>构建灵活、上下文丰富的应用内搜索体验</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Core Spotlight</span><span class="api-tag">SpotlightSearchTool</span><span class="api-tag">LanguageModelSession</span><span class="api-tag">Foundation Models</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">21:43</span>
+          <span class="meta-item">253 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=nxW29TKIL0w" target="_blank" rel="noopener">Build agentic app experiences with the Foundation Models framework</a>
+      </h3>
+      <div class="official-summary">Learn how to take your intelligence features further with Foundation Models framework primitives for dynamic context and agentic workflows. We’ll walk through engineering shared context, setting up privacy boundaries, and managing key value caching. Discover how to orchestrate smooth handoffs between local and server models.</div>
+      <div class="chinese-summary">深入 Foundation Models 框架的智能体 (agentic) 原语：动态 profile/指令、生命周期修饰符、上下文工程、隐私边界与 KV 缓存；并演示如何在本地模型与云端模型之间做交接编排 (baton-pass / phone-a-friend)。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>声明动态 profile (DynamicProfile) 与动态 instructions 驱动上下文</li><li>Transcript 管理、history transforms 与自定义 modifiers 塑造会话</li><li>Lifecycle modifiers 与 session properties 控制会话阶段</li><li>支持本地 ↔ 云端模型的编排 (baton-pass / phone-a-friend)</li><li>工具调用 (tool calling) 模式与 transcript 错误处理</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Foundation Models framework</span><span class="api-tag">LanguageModelSession</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:47]</span> The example app and agents</div><div class="chapter"><span class="ch-time">[03:47]</span> Declaring a dynamic profile</div><div class="chapter"><span class="ch-time">[04:45]</span> Dynamic instructions</div><div class="chapter"><span class="ch-time">[05:36]</span> Configuring models per phase</div><div class="chapter"><span class="ch-time">[07:21]</span> Transcript management and history transforms</div><div class="chapter"><span class="ch-time">[08:50]</span> Custom modifiers</div><div class="chapter"><span class="ch-time">[09:39]</span> Lifecycle modifiers and session properties</div><div class="chapter"><span class="ch-time">[12:52]</span> Orchestration: baton-pass</div><div class="chapter"><span class="ch-time">[14:06]</span> Orchestration: phone-a-friend and skills</div><div class="chapter"><span class="ch-time">[15:18]</span> Tool calling mode</div><div class="chapter"><span class="ch-time">[17:12]</span> Transcript error handling</div><div class="chapter"><span class="ch-time">[18:27]</span> Performance, accuracy, and evaluations</div><div class="chapter"><span class="ch-time">[21:24]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">26:41</span>
+          <span class="meta-item">193 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sNDkT9mYDTQ" target="_blank" rel="noopener">Improve your prompts by hill-climbing with Evaluations</a>
+      </h3>
+      <div class="official-summary">Learn comparative evaluation techniques to guide your prompt engineering and select the right model for your app. Explore how to baseline performance, expand your evaluation strategy, and convert results to JSON for integration with other tools. Discover when to apply different prompting strategies and how to iteratively refine prompts for best results.</div>
+      <div class="chinese-summary">借助 Evaluations 框架执行「爬山式」提示工程：通过基线测试、对比评估与多轮迭代筛选最佳 prompt，并将结果导出为 JSON 接入其他工具，从而为不同任务挑选最合适的模型与提示策略。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>用 Evaluations 建立 prompt 性能基线 (baseline)</li><li>比较不同 prompt / 模型的输出，选择最佳组合</li><li>将评估结果导出为 JSON 以便集成到其他流水线</li><li>针对不同任务选择合适的 prompt 策略</li><li>通过迭代 (hill-climbing) 持续精炼 prompt 效果</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Evaluations framework</span><span class="api-tag">Foundation Models</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="AI/ML">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#ff6b3520; color:#ff6b35; border-color:#ff6b35">AI / 机器学习</span>
+        <div class="meta-row">
+          <span class="meta-item">13:57</span>
+          <span class="meta-item">121 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=jY-_rqz_VEM" target="_blank" rel="noopener">Meet Trust Insights</a>
+      </h3>
+      <div class="official-summary">Uncover how Trust Insights can help protect people from social scams and coercion. Explore how this new framework uses privacy-preserving machine learning to detect when someone may be coached into risky actions. Find out how to integrate Trust Insights into your app, interpret its signals, and design thoughtful interventions that safeguard people while respecting their privacy.</div>
+      <div class="chinese-summary">介绍全新的 Trust Insights 框架：使用隐私保护型机器学习检测用户是否正在被诱导执行高风险操作 (如社交诈骗)，帮助开发者在 App 中提供恰到好处的安全干预。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Trust Insights 通过设备端 ML 检测「被诱导执行风险操作」的场景</li><li>隐私保护设计：分析在本地完成，不上传敏感内容</li><li>输出可解释的 insight 信号供 App 设计干预 (intervention)</li><li>提供反馈要求与最佳实践以提升检测准确率</li><li>可在自家 App 中集成并自定义保护策略</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Trust Insights framework</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:35]</span> Generating insights</div><div class="chapter"><span class="ch-time">[06:50]</span> Feedback requirements</div><div class="chapter"><span class="ch-time">[09:25]</span> Privacy</div><div class="chapter"><span class="ch-time">[10:34]</span> Best practices</div><div class="chapter"><span class="ch-time">[12:48]</span> Next steps</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="平台/系统">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#f39c12"></span>
+        平台 / 系统
+        <span class="cat-count">(4 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="平台/系统">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#f39c1220; color:#f39c12; border-color:#f39c12">平台 / 系统</span>
+        <div class="meta-row">
+          <span class="meta-item">16:20</span>
+          <span class="meta-item">4,102 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=ykwG0I8UGjg" target="_blank" rel="noopener">Rev up your CarPlay app</a>
+      </h3>
+      <div class="official-summary">Explore new features for your CarPlay audio, navigation, voice-based conversational apps, and more. Discover how to create CarPlay video apps so people can browse and watch their favorite videos in supported vehicles when parked. Learn how to integrate thumbnails, media information, and voice controls in your CarPlay app.</div>
+      <div class="chinese-summary">探索 CarPlay 在音频、导航、语音对话式应用以及视频应用方面的新特性，讲解如何在支持的车型中实现驻车时浏览观看视频，并集成缩略图、媒体信息与语音控制。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>新增 CarPlay 视频应用（驻车状态下可用）</li><li>导航与对话式语音应用能力增强</li><li>支持缩略图、媒体信息与语音控制集成</li><li>使用 CarPlay Simulator 进行开发与调试</li><li>CarPlay 框架为多类应用提供统一接入</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">CarPlay framework</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:42]</span> Apps in CarPlay</div><div class="chapter"><span class="ch-time">[02:51]</span> CarPlay framework</div><div class="chapter"><span class="ch-time">[11:54]</span> Navigation apps</div><div class="chapter"><span class="ch-time">[15:19]</span> CarPlay Simulator</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="平台/系统">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#f39c1220; color:#f39c12; border-color:#f39c12">平台 / 系统</span>
+        <div class="meta-row">
+          <span class="meta-item">11:02</span>
+          <span class="meta-item">2,372 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=mUoWMlZXQ28" target="_blank" rel="noopener">What's new in Shortcuts</a>
+      </h3>
+      <div class="official-summary">Explore techniques to build powerful shortcuts using your app’s content. New automations unlock additional ways to integrate your app with the system. Refine how your App Entity is presented to LLMs using the new “Use Model” transcript feature. Store rich information from your app inside shortcuts that is synced across devices. Learn how to combine these features to create intelligent, powerful automations that integrate seamlessly with content and features from your app.</div>
+      <div class="chinese-summary">展示如何利用 App Entity 构建更强大的 Shortcuts，包括新自动化能力、让 LLM 更好理解应用的 &quot;Use Model&quot; 转录特性，以及跨设备同步的丰富数据存储。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>用 App Entity 把应用内容暴露给 Shortcuts</li><li>新自动化进一步打通应用与系统集成</li><li>&quot;Use Model&quot; 转录让 LLM 更好理解 App Entity</li><li>可在 Shortcuts 中存储并跨设备同步应用数据</li><li>组合上述能力构建智能化的工作流自动化</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Shortcuts</span><span class="api-tag">App Intents</span><span class="api-tag">Foundation Models</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="平台/系统">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#f39c1220; color:#f39c12; border-color:#f39c12">平台 / 系统</span>
+        <div class="meta-row">
+          <span class="meta-item">13:26</span>
+          <span class="meta-item">1,830 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=yTkVCs9OfBY" target="_blank" rel="noopener">What's new in Apple In-App Purchase</a>
+      </h3>
+      <div class="official-summary">Discover how monthly subscriptions with a 12-month commitment give people a more affordable option to pay for your subscription and secure a longer-term commitment. Explore how to configure and test this new payment option using App Store Connect, StoreKit APIs, Xcode testing, and more. Plus, learn about improvements to offer code redemption APIs, and enhancements to the App Review submission experience.</div>
+      <div class="chinese-summary">介绍一种新的订阅模式——12 个月承诺的月付订阅，让用户以更亲民的价格获得长期订阅；并讲解 App Store Connect 配置、StoreKit 测试、优惠码 API 改进以及 App Review 体验提升。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>新增 12 个月承诺的月付订阅模式</li><li>通过 App Store Connect 配置与测试该选项</li><li>StoreKit / StoreKit 2 API 支持新订阅类型</li><li>优惠码兑换 API 增强</li><li>App Review 提交体验获得改进</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">StoreKit</span><span class="api-tag">StoreKit 2</span><span class="api-tag">App Store Connect API</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="平台/系统">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#f39c1220; color:#f39c12; border-color:#f39c12">平台 / 系统</span>
+        <div class="meta-row">
+          <span class="meta-item">8:12</span>
+          <span class="meta-item">298 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=pMDBJxJ0SNQ" target="_blank" rel="noopener">Find your accessory with Bluetooth Channel Sounding</a>
+      </h3>
+      <div class="official-summary">Get started with Channel Sounding to bring distance and direction awareness to your Bluetooth accessories. Dive into the new Nearby Interaction and Core Bluetooth APIs, and walk through the accessory-side changes you’ll need. Optimize power consumption while ensuring a smooth, responsive experience.</div>
+      <div class="chinese-summary">借助新增的 Bluetooth Channel Sounding 能力，为配件带来测距与方向感知；介绍 Nearby Interaction 与 Core Bluetooth 中的新 API，以及配件端需要做的相应改造，并兼顾低功耗与响应流畅度。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Channel Sounding 提供安全测距与方向感知能力</li><li>Nearby Interaction 与 Core Bluetooth 推出配套新 API</li><li>需要更新配件端固件/协议以启用 Channel Sounding</li><li>在精度与功耗之间取得平衡以保持流畅体验</li><li>可实现 Find My 类近距离定位交互</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Nearby Interaction</span><span class="api-tag">Core Bluetooth</span><span class="api-tag">Bluetooth Channel Sounding</span></div></div>
+      
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="游戏/图形">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#3498db"></span>
+        游戏 / 图形
+        <span class="cat-count">(3 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="游戏/图形">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#3498db20; color:#3498db; border-color:#3498db">游戏 / 图形</span>
+        <div class="meta-row">
+          <span class="meta-item">27:55</span>
+          <span class="meta-item">30,431 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=XN_ZkjNNgvk" target="_blank" rel="noopener">Bringing Cyberpunk 2077 to Mac</a>
+      </h3>
+      <div class="official-summary">Go behind the scenes and learn from CD PROJEKT RED how Cyberpunk 2077 came to Mac, setting a new standard for AAA gaming on macOS. Explore how the team leveraged Apple’s robust hardware, software, and development tools to bring this high-fidelity experience to life. Learn how you can apply similar techniques to your games. Find out how the innovative ‘For this Mac’ preset automatically optimizes graphical settings to balance visual fidelity and frame rate across the Mac lineup.</div>
+      <div class="chinese-summary">CD PROJEKT RED 分享将《赛博朋克 2077》移植到 Mac 的幕后故事，重点介绍 Game Porting Toolkit 评估流程以及创新的 &quot;For this Mac&quot; 预设，自动在不同 Mac 机型上平衡画质与帧率。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>使用 Game Porting Toolkit 进行移植评估与验证</li><li>&quot;For this Mac&quot; 预设针对机型自动调优画质/帧率</li><li>结合 Mac 硬件、Metal 与开发工具实现高保真渲染</li><li>为 macOS AAA 游戏树立新的体验标准</li><li>演示了将类似技术复用到其他游戏的方法</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Game Porting Toolkit</span><span class="api-tag">Metal</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:44]</span> What is Cyberpunk 2077</div><div class="chapter"><span class="ch-time">[02:57]</span> Why bring it to Mac</div><div class="chapter"><span class="ch-time">[03:45]</span> How we brought it to Mac</div><div class="chapter"><span class="ch-time">[04:50]</span> Game Porting Toolkit evaluation</div><div class="chapter"><span class="ch-time">[13:05]</span> What we did to stand out</div><div class="chapter"><span class="ch-time">[13:16]</span> &quot;For this Mac&quot; preset</div><div class="chapter"><span class="ch-time">[26:59]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="游戏/图形">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#3498db20; color:#3498db; border-color:#3498db">游戏 / 图形</span>
+        <div class="meta-row">
+          <span class="meta-item">24:23</span>
+          <span class="meta-item">760 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=ye_iMRAvQ1c" target="_blank" rel="noopener">Make your game great with touch</a>
+      </h3>
+      <div class="official-summary">Dive deeper into the techniques you can use to create compelling touch experiences for your games. We’ll share expert insights from indie to AAA game development, explore best practices for intuitive touch controls, and show you how to take advantage of Apple technologies like Touch Controller framework and Metal for great performance. </div>
+      <div class="chinese-summary">深入讲解为游戏打造出色触控体验的技术，涵盖从独立到 3A 游戏的最佳实践，并介绍如何利用 Touch Controller 框架与 Metal 实现高性能触控控制。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Touch Controller 框架的设置与配置</li><li>灵活可适配的触控布局设计</li><li>流畅交互动画与丰富反馈机制</li><li>结合 Metal 实现高性能触控渲染</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Touch Controller framework</span><span class="api-tag">Metal</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:42]</span> Set up a touch controller</div><div class="chapter"><span class="ch-time">[04:52]</span> Design flexible layouts</div><div class="chapter"><span class="ch-time">[10:17]</span> Design fluid interactions</div><div class="chapter"><span class="ch-time">[21:16]</span> Provide rich feedback</div><div class="chapter"><span class="ch-time">[23:49]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="游戏/图形">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#3498db20; color:#3498db; border-color:#3498db">游戏 / 图形</span>
+        <div class="meta-row">
+          <span class="meta-item">9:59</span>
+          <span class="meta-item">59 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sYDRC1mJ1rI" target="_blank" rel="noopener">Unlock in-game content with StoreKit and Background Assets</a>
+      </h3>
+      <div class="official-summary">Unlock native Apple In-App Purchases for your Unity game with the new StoreKit plug-in. Reduce download sizes with the new Background Assets plug-in, which delivers language-specific asset packs so each player gets just what they need. Plus, a new Steam Asset Converter helps you migrate existing builds.</div>
+      <div class="chinese-summary">面向 Unity 游戏的两个新插件：用 StoreKit 插件接入 Apple 内购 (IAP)，用 Background Assets 插件按语言分发资源包以缩小初始包体；附带一个 Steam Asset Converter 工具便于迁移既有游戏资源。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>StoreKit 插件让 Unity 游戏直接接入 Apple In-App Purchases</li><li>Background Assets 插件按 locale 下发语言资源包，显著减小初始下载</li><li>新增 Steam Asset Converter 把现有 Steam 资源转换成 Apple 资产格式</li><li>插件化方案降低 Unity ↔ 原生 Apple 服务的集成成本</li><li>面向全球发行的本地化与变现一站式体验</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">StoreKit</span><span class="api-tag">Background Assets</span><span class="api-tag">Unity Plug-in</span><span class="api-tag">Steam Asset Converter</span></div></div>
+      
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="相机/影像">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#2ecc71"></span>
+        相机 / 影像
+        <span class="cat-count">(3 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="相机/影像">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#2ecc7120; color:#2ecc71; border-color:#2ecc71">相机 / 影像</span>
+        <div class="meta-row">
+          <span class="meta-item">17:58</span>
+          <span class="meta-item">832 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=QATTHJAnjYg" target="_blank" rel="noopener">Implement high resolution photo capture</a>
+      </h3>
+      <div class="official-summary">Capture super high resolution photos in your app using AVFoundation. Learn when to use the three different options to capture images — RAW, exposure-bracketed, and fully processed. Walk through configuring photo capture for 24MP and 48MP images across the Main, Tele, and Ultra Wide cameras. And discover how deferred photo processing keeps your app responsive as more photos are taken.</div>
+      <div class="chinese-summary">讲解使用 AVFoundation 拍摄 24MP / 48MP 高分辨率照片的方法，区分 RAW、包围曝光与完全处理三种捕获类型，并在主摄、长焦与超广角上分别配置。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>支持 24MP 与 48MP 高分辨率拍照</li><li>三种捕获类型：RAW、曝光包围、完全处理后图像</li><li>覆盖主摄、长焦与超广角多种镜头</li><li>延迟（deferred）照片处理保持拍摄响应性</li><li>基于 AVFoundation 的高分辨率捕获管线配置</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">AVFoundation</span><span class="api-tag">AVCaptureSession</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[00:52]</span> High-resolution photos</div><div class="chapter"><span class="ch-time">[04:07]</span> Types of captures</div><div class="chapter"><span class="ch-time">[05:20]</span> Configure a capture session</div><div class="chapter"><span class="ch-time">[09:41]</span> Responsive capture best practices</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="相机/影像">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#2ecc7120; color:#2ecc71; border-color:#2ecc71">相机 / 影像</span>
+        <div class="meta-row">
+          <span class="meta-item">17:44</span>
+          <span class="meta-item">390 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=zRdN66ieSuc" target="_blank" rel="noopener">Support the Center Stage front camera in your iOS app</a>
+      </h3>
+      <div class="official-summary">Supercharge your iOS camera app with Center Stage using AVCapture APIs with the front camera on iPhone 17, iPhone 17 Pro and iPhone Air. Explore how APIs enable zoom and rotate options, for more flexible ways to frame selfies and videos and to automatically get everyone in a group shot. Integrate Center Stage for video calls to automatically adjust the framing, so you’re front and center for virtual meetings and FaceTime calls. And learn how to stabilize your video for real-time video conferencing.</div>
+      <div class="chinese-summary">讲解如何在 iPhone 17/17 Pro/Air 上利用 AVCapture API 集成 Center Stage 前置摄像头特性，实现自动构图、缩放旋转以及实时视频通话的视频稳定。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Center Stage 支持动态宽高比与缩放旋转</li><li>智能构图监控可自动框住所有人</li><li>传感器方向补偿保证画面朝向正确</li><li>Center Stage 也适用于视频录制与视频通话</li><li>针对实时视频会议提供视频稳定能力</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">AVCapture</span><span class="api-tag">Center Stage</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:07]</span> Center Stage front camera</div><div class="chapter"><span class="ch-time">[02:09]</span> Center Stage for photos</div><div class="chapter"><span class="ch-time">[03:09]</span> Capture session setup</div><div class="chapter"><span class="ch-time">[03:56]</span> Dynamic aspect ratio</div><div class="chapter"><span class="ch-time">[06:47]</span> Smart framing monitor</div><div class="chapter"><span class="ch-time">[09:24]</span> Sensor orientation compensation</div><div class="chapter"><span class="ch-time">[11:53]</span> Center Stage for video recordings</div><div class="chapter"><span class="ch-time">[13:16]</span> Center Stage for video calls</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="相机/影像">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#2ecc7120; color:#2ecc71; border-color:#2ecc71">相机 / 影像</span>
+        <div class="meta-row">
+          <span class="meta-item">25:20</span>
+          <span class="meta-item">269 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=nXUsStRc7Tc" target="_blank" rel="noopener">Build a responsive camera app that launches quickly</a>
+      </h3>
+      <div class="official-summary">Discover how to build a camera app that launches instantly so people never miss the perfect shot. Explore how to optimize the entire camera launch sequence — from app startup to first preview frame. Ensure your app has a polished camera experience by learning about new API’s that deliver faster launches, and best practices for smooth preview rendering and maintaining sustainable performance.</div>
+      <div class="chinese-summary">讲解如何让相机 App 实现「即点即拍」的瞬时启动体验：从应用冷启动到首帧预览，整条启动链路均可优化；推荐采用 deferred start 新 API，并给出稳定预览与可持续性能的实战最佳实践。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>优化从 App 启动到首帧预览的整条相机启动链路</li><li>采用新 deferred start API 延迟非关键初始化</li><li>保证预览画面的稳定 (steady preview) 与流畅渲染</li><li>维持可持续的拍摄帧率与温升控制</li><li>实现确定性的文件写入以避免丢帧或数据损坏</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">AVFoundation</span><span class="api-tag">Camera (deferred start APIs)</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:02]</span> Fast Launch</div><div class="chapter"><span class="ch-time">[06:52]</span> Adopt deferred start</div><div class="chapter"><span class="ch-time">[15:06]</span> Steady preview</div><div class="chapter"><span class="ch-time">[18:04]</span> Sustained performance</div><div class="chapter"><span class="ch-time">[21:14]</span> Deterministic file writing</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="3D/spatial">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#9b59b6"></span>
+        3D / 空间计算
+        <span class="cat-count">(2 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="3D/spatial">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#9b59b620; color:#9b59b6; border-color:#9b59b6">3D / 空间计算</span>
+        <div class="meta-row">
+          <span class="meta-item">14:22</span>
+          <span class="meta-item">469 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=yPMGqbAU-ZI" target="_blank" rel="noopener">Use foveated streaming to bring immersive content to visionOS</a>
+      </h3>
+      <div class="official-summary">Find out how foveated streaming delivers remotely rendered scenes to Apple Vision Pro in full fidelity. Explore how this framework combines native visionOS capabilities with third-party streaming technologies completely wirelessly, demonstrated using an OpenXR scene and NVIDIA CloudXR. Learn about the FoveatedStreaming framework, integration with the NVIDIA CloudXR SDK, and how dynamically foveated streaming provides benefits while still preserving privacy.</div>
+      <div class="chinese-summary">介绍如何通过 FoveatedStreaming 框架将远程渲染的场景以全保真度无线传输到 Apple Vision Pro，结合原生 visionOS 能力与第三方流媒体技术（演示中使用 OpenXR + NVIDIA CloudXR）。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>FoveatedStreaming 框架支持无线传输</li><li>动态注视点渲染兼顾性能与隐私</li><li>演示集成 OpenXR 场景与 NVIDIA CloudXR SDK</li><li>可与 visionOS 原生能力进一步结合</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">FoveatedStreaming framework</span><span class="api-tag">visionOS</span><span class="api-tag">OpenXR</span><span class="api-tag">NVIDIA CloudXR SDK</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[04:08]</span> How Foveated Streaming works</div><div class="chapter"><span class="ch-time">[04:46]</span> Set up the streaming endpoint</div><div class="chapter"><span class="ch-time">[05:18]</span> Create a visionOS receiver app</div><div class="chapter"><span class="ch-time">[08:02]</span> Integrate with the streaming endpoint</div><div class="chapter"><span class="ch-time">[11:28]</span> Measure performance</div><div class="chapter"><span class="ch-time">[11:56]</span> Enhance with visionOS features</div><div class="chapter"><span class="ch-time">[13:56]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="3D/spatial">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#9b59b620; color:#9b59b6; border-color:#9b59b6">3D / 空间计算</span>
+        <div class="meta-row">
+          <span class="meta-item">25:16</span>
+          <span class="meta-item">344 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=zEyH34eLRlw" target="_blank" rel="noopener">Collaborate on structured 3D models in visionOS</a>
+      </h3>
+      <div class="official-summary">Learn how to bring structured 3D models to life in visionOS. We’ll cover USDZ preparation, show you how to manipulate individual entities within hierarchical assemblies, and inspect the internal components within a model with a cross-sectional plane. Create stunning exploded-view animations for design review and collaboration experiences on Apple Vision Pro.</div>
+      <div class="chinese-summary">讲解如何在 visionOS 中处理结构化 3D 模型：USDZ 资源准备、层级化实体的操控、剖面检视以及用于设计评审的爆炸视图动画。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>USDZ 资源的准备工作流</li><li>在层级化装配中操控单个实体</li><li>使用剖面平面 (Clipping plane) 检查内部结构</li><li>自动展开 (Autoexpansion) 生成爆炸视图</li><li>可在 Apple Vision Pro 上进行设计评审与协作</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">visionOS</span><span class="api-tag">USDZ</span><span class="api-tag">RealityKit</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:55]</span> Asset preparation</div><div class="chapter"><span class="ch-time">[05:05]</span> Manipulating the hierarchy</div><div class="chapter"><span class="ch-time">[08:15]</span> Interactive clipping</div><div class="chapter"><span class="ch-time">[18:16]</span> Autoexpansion</div><div class="chapter"><span class="ch-time">[24:10]</span> Next steps</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="UI 框架">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#e74c3c"></span>
+        UI 框架
+        <span class="cat-count">(1 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="UI 框架">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#e74c3c20; color:#e74c3c; border-color:#e74c3c">UI 框架</span>
+        <div class="meta-row">
+          <span class="meta-item">21:10</span>
+          <span class="meta-item">1,054 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=4FNbTRr5MtQ" target="_blank" rel="noopener">Dive into lazy stacks and scrolling with SwiftUI</a>
+      </h3>
+      <div class="official-summary">Discover the inner workings of lazy stacks in SwiftUI. We’ll explore how LazyVStack and LazyHStack estimate sizes, lazily load subviews, and prefetch content to deliver smooth scrolling experiences. We’ll also cover advanced performance optimizations, state management best practices, and tips for precise programmatic scrolling. To get the most out of this session, we recommend basic familiarity with SwiftUI layout using stacks.</div>
+      <div class="chinese-summary">深入解析 SwiftUI 中 LazyVStack / LazyHStack 的内部机制，涵盖尺寸估算、子视图懒加载、预取策略以及编程式滚动技巧，帮助构建流畅的滚动体验。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>LazyVStack / LazyHStack 的尺寸估算机制</li><li>子视图按需懒加载降低内存与初始化开销</li><li>预取（prefetching）策略提升滚动流畅度</li><li>状态管理最佳实践避免不必要的重渲染</li><li>支持精确的编程式滚动控制</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">SwiftUI</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:24]</span> Layout</div><div class="chapter"><span class="ch-time">[09:13]</span> Subview loading</div><div class="chapter"><span class="ch-time">[13:15]</span> Prefetching</div><div class="chapter"><span class="ch-time">[17:40]</span> Programmatic scrolling</div><div class="chapter"><span class="ch-time">[19:55]</span> Next steps</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="性能/测试">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#e67e22"></span>
+        性能 / 测试
+        <span class="cat-count">(2 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="性能/测试">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#e67e2220; color:#e67e22; border-color:#e67e22">性能 / 测试</span>
+        <div class="meta-row">
+          <span class="meta-item">21:25</span>
+          <span class="meta-item">348 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=565Tf50PUrQ" target="_blank" rel="noopener">Migrate to Swift Testing</a>
+      </h3>
+      <div class="official-summary">Learn how to fearlessly adopt Swift Testing alongside your XCTests using test framework interoperability. Discover best practices and patterns for incrementally introducing advanced testing features that accelerate development and increase coverage.</div>
+      <div class="chinese-summary">介绍如何借助测试框架互操作性在已有 XCTest 基础上逐步迁移到 Swift Testing，并给出能加速开发与提升覆盖率的最佳实践与模式。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Swift Testing 与 XCTest 可并存运行</li><li>通过框架互操作性实现渐进式迁移</li><li>支持参数化测试等高级特性</li><li>推荐的最佳实践与模式可提升测试覆盖率</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Swift Testing</span><span class="api-tag">XCTest</span></div></div>
+      
+    </div>
+    
+    <div class="video-card" data-category="性能/测试">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#e67e2220; color:#e67e22; border-color:#e67e22">性能 / 测试</span>
+        <div class="meta-row">
+          <span class="meta-item">21:01</span>
+          <span class="meta-item">280 次观看</span>
+          <span class="meta-item">2026-06-09 05:19 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sWQCjzG2fTg" target="_blank" rel="noopener">Find and fix performance issues in your Metal games</a>
+      </h3>
+      <div class="official-summary">Track down hard-to-find game performance issues with powerful Metal tools. Discover how to collect rich performance data using Game Performance Overview in Instruments, run background traces with metalperftrace on macOS and Control Center on iOS, and use the new StateReporting API to correlate metrics directly to your game’s runtime state. Turn hours of telemetry into clear, actionable insights.</div>
+      <div class="chinese-summary">展示一整套 Metal 游戏性能调试工具链：通过 Instruments 的 Game Performance Overview 采集丰富指标，使用 metalperftrace (macOS) / Control Center (iOS) 进行后台 trace，并借助新 StateReporting API 把指标与游戏运行态直接关联。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>Instruments 中的 Game Performance Overview 提供丰富的 GPU/CPU 性能数据</li><li>metalperftrace (macOS) 与 Control Center (iOS) 便于后台采集 trace</li><li>新 StateReporting API 将性能指标与游戏运行时状态 (State) 直接关联</li><li>利用 MetricKit 收集真实用户设备上的字段数据 (field telemetry)</li><li>将海量遥测数据转化为清晰可执行的优化指引</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Metal</span><span class="api-tag">Instruments</span><span class="api-tag">Game Performance Overview</span><span class="api-tag">metalperftrace</span><span class="api-tag">MetricKit</span><span class="api-tag">StateReporting API</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:51]</span> Metal performance metrics</div><div class="chapter"><span class="ch-time">[03:32]</span> Trace collection</div><div class="chapter"><span class="ch-time">[06:38]</span> Analyze performance traces</div><div class="chapter"><span class="ch-time">[10:08]</span> Contextualize with StateReporting</div><div class="chapter"><span class="ch-time">[17:48]</span> Collect field data with MetricKit</div><div class="chapter"><span class="ch-time">[19:41]</span> Next steps</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+    <section class="category-section" data-category="工具/CLI">
+      <h2 class="category-title">
+        <span class="cat-dot" style="background:#1abc9c"></span>
+        工具 / CLI
+        <span class="cat-count">(2 个)</span>
+      </h2>
+      <div class="card-grid">
+        
+    <div class="video-card" data-category="工具/CLI">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#1abc9c20; color:#1abc9c; border-color:#1abc9c">工具 / CLI</span>
+        <div class="meta-row">
+          <span class="meta-item">13:49</span>
+          <span class="meta-item">769 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=sbdA41c2o88" target="_blank" rel="noopener">Build, deliver, and automate with Xcode Cloud</a>
+      </h3>
+      <div class="official-summary">Discover the latest updates to Xcode Cloud that quickly get you started building and delivering your apps. Learn essential Xcode Cloud concepts, set up cloud build and tests simply by connecting your source repository, and configure for app distribution when you’re ready to ship. Find out how webhooks and management tools extends Xcode Cloud’s capabilities, supporting your most advanced workflows.</div>
+      <div class="chinese-summary">介绍 Xcode Cloud 的最新更新，包括快速接入源代码仓库运行云端构建与测试、配置应用分发流程，以及通过 webhooks 和管理工具扩展高级工作流。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>只需连接源代码仓库即可启动云端构建与测试</li><li>支持配置应用分发生命周期</li><li>Webhooks 可扩展自动化工作流</li><li>支持接入多个额外代码仓库</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Xcode Cloud</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[01:13]</span> Essential concepts</div><div class="chapter"><span class="ch-time">[02:07]</span> Getting started</div><div class="chapter"><span class="ch-time">[06:42]</span> Distribution</div><div class="chapter"><span class="ch-time">[09:21]</span> Webhooks</div><div class="chapter"><span class="ch-time">[11:22]</span> Additional repositories</div><div class="chapter"><span class="ch-time">[13:00]</span> Next steps</div></div></div>
+    </div>
+    
+    <div class="video-card" data-category="工具/CLI">
+      <div class="card-header">
+        <span class="cat-badge" style="background:#1abc9c20; color:#1abc9c; border-color:#1abc9c">工具 / CLI</span>
+        <div class="meta-row">
+          <span class="meta-item">16:44</span>
+          <span class="meta-item">378 次观看</span>
+          <span class="meta-item">2026-06-09 05:20 CST</span>
+        </div>
+      </div>
+      <h3 class="card-title">
+        <a href="https://www.youtube.com/watch?v=HyyYJOl6ajY" target="_blank" rel="noopener">Iterate your spatial scenes faster with Reality Composer Pro 3</a>
+      </h3>
+      <div class="official-summary">Unlock powerful new features in Reality Composer Pro 3 for building spatial experiences. Learn how you can add content, visual effects, lighting, and interactivity to your immersive scenes — all without leaving the editor. Discover how to iterate quickly using AI-assisted features right within the editor.</div>
+      <div class="chinese-summary">介绍 Reality Composer Pro 3 在空间场景构建中的新特性，包括实体与组件、原型与实例、实时预览、光照贴图以及编辑器内置的 AI 辅助功能。</div>
+      <div class="section"><h4>关键要点</h4><ul class="key-points"><li>基于实体与组件构建空间场景</li><li>原型 (Prototypes) 与实例 (Instances) 便于高效迭代</li><li>编辑器内实时预览 (Live preview)</li><li>新增光照贴图 (Lightmaps) 支持</li><li>Reality Composer Pro Assistant 提供 AI 辅助</li></ul></div>
+      <div class="section"><h4>涉及 API</h4><div class="api-list"><span class="api-tag">Reality Composer Pro 3</span></div></div>
+      <div class="section"><h4>章节时间戳</h4><div class="chapters"><div class="chapter"><span class="ch-time">[00:00]</span> Introduction</div><div class="chapter"><span class="ch-time">[02:25]</span> Overview</div><div class="chapter"><span class="ch-time">[03:57]</span> Entities and components</div><div class="chapter"><span class="ch-time">[08:45]</span> Prototypes and instances</div><div class="chapter"><span class="ch-time">[11:06]</span> Live preview</div><div class="chapter"><span class="ch-time">[11:57]</span> Lightmaps</div><div class="chapter"><span class="ch-time">[14:43]</span> Reality Composer Pro Assistant</div><div class="chapter"><span class="ch-time">[16:07]</span> Next steps</div></div></div>
+    </div>
+    
+      </div>
+    </section>
+    
+</div>
+
+<footer>
+  <p>📺 数据源：<a href="https://www.youtube.com/@AppleDeveloper/videos" target="_blank">YouTube @AppleDeveloper</a></p>
+  <p>元数据通过 yt-dlp + Safari cookies 抓取 · 提炼通过 AI 子代理并行处理 · 字幕通过 yt-dlp --write-auto-sub 下载</p>
+  <p style="margin-top:0.5rem">生成于 2026-06-09 14:49 CST · 仅用于个人知识管理</p>
+</footer>
+
+<script>
+(function() {
+  const tabs = document.querySelectorAll('.tab');
+  const sections = document.querySelectorAll('.category-section');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.dataset.filter;
+      sections.forEach(s => {
+        if (filter === 'all' || s.dataset.category === filter) {
+          s.classList.remove('hidden');
+        } else {
+          s.classList.add('hidden');
+        }
+      });
+      window.scrollTo({ top: document.getElementById('content').offsetTop - 20, behavior: 'smooth' });
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

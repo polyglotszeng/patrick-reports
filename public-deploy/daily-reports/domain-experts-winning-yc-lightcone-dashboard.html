@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Why Domain Experts Are Winning Right Now — Y Combinator Light Cone</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(167,139,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.purple .value { color: var(--purple); }
+  .stat.green .value { color: var(--green); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🚀 Ploy Demo（Webflow 2.0 + AI Marketing）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Ploy = Website + Marketing Platform + Co</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ W26 实战数据</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 3 步重建 Postorius 2008 → 2026 demo</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🎯 Domain Experts = 关键</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Garry 印证</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Webflow 13 年经验 → Ploy</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">⚖️ AI 营销 vs AI 编程</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Bryant 关键判断</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Bryant 战略</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 3 大 pain points</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🧬 Clone Yourself = 500-1000x</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Garry Tan G brain/G stack 实操数据</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 4 大 work 模式</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ Parker Conrad 对比（Rippling）</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🛠️ Harness 哲学</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Bryant 核心</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ Anthropic Claude Code 引用</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Ploy = "fat skills, fat code"</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">✨ Anti-Slop 哲学</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Ploy 关键使命</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 问题：模型默认"AI tells"</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ 解药：3,500 prompts 库</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🗺️ Idea Maze 哲学</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Garry 核心问题</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 经验创始人优势</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ First Principles 警告</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ 长期</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">💬 关键金句库</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">⏱️ 关键时间戳（182 段精选）</a></li>
+  </ol>
+</aside>
+
+
+<h1>Why Domain Experts Are Winning Right Now</h1>
+<p class="subtitle">Y Combinator Light Cone — Bryant Chou (Webflow) + Garry Tan (YC)</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=8OOuCnZB-4o" target="_blank">Why Domain Experts Are Winning Right Now</a></span>
+  <span><strong>频道：</strong>Y Combinator Light Cone</span>
+  <span><strong>嘉宾：</strong>Bryant Chou (Webflow/Ploy) + Garry Tan (YC)</span>
+  <span><strong>时长：</strong>42:32（2552s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-22</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"The Age of the 40-Year-Old Solo Founder"</b> — <b>Taste + Experience = 500-1000 clones of yourself</b></p>
+  <p style="margin-top: 0.6rem;"><b>"You don't have to be 40, you just have to have taste."</b></p>
+  <p style="margin-top: 0.6rem;"><b>核心机制</b>："<b>You need to have a certain amount of expertise to know what to do with this boundless intelligence</b> that's imbued in the model."</p>
+  <p style="margin-top: 0.4rem;"><b>Garry Tan 实操</b>：4-5 million lines of code = <b>400-1000 clones of himself from 2026</b></p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">G brain + G stack</div>
+    <div class="value">4-5M lines</div>
+    <div class="sub">logical code（adjusted for bloat）</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Clones</div>
+    <div class="value">400-1000</div>
+    <div class="sub">of himself from 2026</div>
+  </div>
+  <div class="stat green">
+    <div class="label">Ploy in YC W26</div>
+    <div class="value">12%</div>
+    <div class="sub">batch using Ploy</div>
+  </div>
+  <div class="stat">
+    <div class="label">Ploy Slurper</div>
+    <div class="value">$750K</div>
+    <div class="sub">worth of tokens 投入</div>
+  </div>
+  <div class="stat">
+    <div class="label">Ploy Slurper 速度</div>
+    <div class="value">75s</div>
+    <div class="sub">= 1 周 3-5 engineers 工作</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Ploy 设计库</div>
+    <div class="value">3,500 prompts</div>
+    <div class="sub">frontier web design（anti-slop）</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="ploy">🚀 Ploy Demo</button>
+  <button class="tab" data-tab="domain">🎯 Domain Experts</button>
+  <button class="tab" data-tab="marketing-coding">⚖️ Marketing vs Coding</button>
+  <button class="tab" data-tab="clone">🧬 Clone Yourself 500-1000x</button>
+  <button class="tab" data-tab="harness">🛠️ Harness 哲学</button>
+  <button class="tab" data-tab="anti-slop">✨ Anti-Slop</button>
+  <button class="tab" data-tab="idea-maze">🗺️ Idea Maze</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: PLOY -->
+<div class="tab-content active" data-tab-content="ploy">
+  <h2 id="h2-2" class="section">🚀 Ploy Demo（Webflow 2.0 + AI Marketing）</h2>
+
+  <h3 id="h3-1">Ploy = Website + Marketing Platform + Company Brain</h3>
+  <table>
+    <thead>
+      <tr><th>功能</th><th>描述</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>Website 重建</b></td><td>给 old website → 75s slurp + 重新设计 + on brand</td></tr>
+      <tr><td><b>3,500 prompts</b></td><td>frontier web design 库（"vibes"，不是 slop）</td></tr>
+      <tr><td><b>AI 资产生成</b></td><td>images / videos / animations（无需设计师）</td></tr>
+      <tr><td><b>Integrations</b></td><td>50+ tools（Figma / analytics / CRM / spreadsheets）</td></tr>
+      <tr><td><b>AEO/SEO/GEO</b></td><td>FAQ / structured schema / ChatGPT/Perplexity/Claude 找得到</td></tr>
+      <tr><td><b>AI employees</b></td><td>每晚跑 traffic analysis + pipeline 检查 + suggestions</td></tr>
+      <tr><td><b>CLI for agents</b></td><td>即将 = "play is one of the places where hopefully OpenClaw can go"</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-2">W26 实战数据</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>12% of YC batch</h4>
+      <p>用 Ploy</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>75 seconds</h4>
+      <p>= 1 week 3-5 engineers 工作</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>$750K tokens</h4>
+      <p>Slurper 投入</p>
+    </div>
+  </div>
+
+  <h3 id="h3-3">3 步重建 Postorius 2008 → 2026 demo</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <ol style="line-height: 2;">
+      <li>输入 old website URL（Wayback Machine）</li>
+      <li>Ploy "理解 contents + business context"</li>
+      <li>75s 自动 = "redesign for modern era"（video gen + animations）</li>
+    </ol>
+  </div>
+</div>
+
+<!-- TAB 2: DOMAIN -->
+<div class="tab-content" data-tab-content="domain">
+  <h2 id="h2-3" class="section">🎯 Domain Experts = 关键</h2>
+
+  <blockquote>
+    "<b>You need to have a certain amount of expertise to know what to do with this boundless intelligence</b> that's imbued in the model. And I think this is where folks with experience, folks that have spent, you know, <b>decade plus in this industry</b>, they know how to create something like this because they can leverage the model's underlying capability to create something that's just <b>world-class</b>."
+  </blockquote>
+
+  <h3 id="h3-4">Garry 印证</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>The limiting factor is knowing how to prompt them and imbuing all these 20 years of plus experience</b> that you have to really get the models to focus."</p>
+  </div>
+
+  <h3 id="h3-5">Webflow 13 年经验 → Ploy</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <h4>Visual builder 经验</h4>
+    <ul>
+      <li>本来想做 visual panel（drag + drop）</li>
+      <li>然后 <b>defer it</b></li>
+      <li>改用 <b>annotation feature</b> = "click on this and rewrite"</li>
+      <li>= <b>web designer 吸收意图 + 翻译成输出</b></li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 3: MARKETING vs CODING -->
+<div class="tab-content" data-tab-content="marketing-coding">
+  <h2 id="h2-4" class="section">⚖️ AI 营销 vs AI 编程</h2>
+
+  <h3 id="h3-6">Bryant 关键判断</h3>
+  <blockquote>
+    "<b>Software engineers are one of like the worst customers to sell to</b> and they can change tools on a whim. Something new comes out over here, they'll adopt it."
+  </blockquote>
+
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>👨‍💻 程序员（coding tools）</h4>
+      <ul>
+        <li>切换工具 <b>快</b>（on a whim）</li>
+        <li>竞争 <b>极激烈</b></li>
+        <li>客户 = tokens 决定</li>
+        <li>模式 = <b>lowest common denominator</b></li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>📊 业务人员（marketing tools）</h4>
+      <ul>
+        <li>切换工具 <b>慢</b>（依赖）</li>
+        <li>竞争较低（但 building）</li>
+        <li>客户 = <b>pain point</b> 决定</li>
+        <li>模式 = <b>focus on real pain</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 id="h3-7">Bryant 战略</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>Just go and pick a customer that has a true pain point and really really focus on that.</b>"</p>
+    <p style="margin-top: 0.5rem;">= 小企业 + 创业公司 + 真正 unmet opportunity</p>
+  </div>
+
+  <h3 id="h3-8">3 大 pain points</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>Need to be found</b>（搜索 + AI）</li>
+    <li><b>Need to tell story</b>（coherent + concise）</li>
+    <li><b>Need to represent brand well</b></li>
+  </ul>
+
+  <h3 id="h3-9">Webflow → Ploy 用户扩张</h3>
+  <table>
+    <thead>
+      <tr><th>公司</th><th>目标用户</th><th>规模</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Webflow（2013）</td>
+        <td>自由 web designer</td>
+        <td><b>50,000</b></td>
+      </tr>
+      <tr class="highlight">
+        <td>Ploy（2026）</td>
+        <td>普通 businesses</td>
+        <td><b>tens of millions</b></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 4: CLONE -->
+<div class="tab-content" data-tab-content="clone">
+  <h2 id="h2-5" class="section">🧬 Clone Yourself = 500-1000x</h2>
+
+  <h3 id="h3-10">Garry Tan G brain/G stack 实操数据</h3>
+  <table>
+    <thead>
+      <tr><th>指标</th><th>数据</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>代码量</b></td>
+        <td><b>4-5 million lines</b>（logical，adjusted for bloat）</td>
+      </tr>
+      <tr>
+        <td><b>自我克隆</b></td>
+        <td><b>400-1000 clones of himself from 2026</b></td>
+      </tr>
+      <tr>
+        <td><b>典型工程量对比</b></td>
+        <td>1 year engineer work = <b>few days</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-11">4 大 work 模式</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>① Call → CRM</h4>
+      <p>Every call transcribed + put in CRM</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>② Proposals</h4>
+      <p>自动 drafted</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ Email follow-ups</h4>
+      <p>自动 scheduled</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>④ OpenClaw cron</h4>
+      <p>"what did you learn about me in the last week?"</p>
+    </div>
+  </div>
+
+  <h3 id="h3-12">Parker Conrad 对比（Rippling）</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h4>Parker（Zenefits → Rippling）</h4>
+    <p>= <b>2 年 cave + 5-10 工程师 + basement in Mission</b></p>
+    <p>= 1 founder + manual team</p>
+    <p style="margin-top: 0.5rem; color: var(--green);">Bryant = <b>AI-native way</b>（all recorded + automated）</p>
+  </div>
+
+  <h3 id="h3-13">"AI White Pill" 哲学</h3>
+  <blockquote>
+    "<b>More access to it, more alternatives</b>"
+  </blockquote>
+  <p style="color: var(--text-dim);">→ 跟 Fei-Fei "nuanced middle" 印证</p>
+  <p style="color: var(--text-dim);">→ 跟 Matt White "stochastic parrots" 印证</p>
+</div>
+
+<!-- TAB 5: HARNESS -->
+<div class="tab-content" data-tab-content="harness">
+  <h2 id="h2-6" class="section">🛠️ Harness 哲学</h2>
+
+  <h3 id="h3-14">Bryant 核心</h3>
+  <blockquote>
+    "It is almost like you're building a <b>very special harness</b>."
+  </blockquote>
+
+  <h3 id="h3-15">Anthropic Claude Code 引用</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"We talk about a harness as this being this <b>thin layer</b> to getting the models to do the right outcome and <b>Anthropic did it wonderfully for Claude code</b>."</p>
+    <p style="margin-top: 0.5rem;">"It took the world by storm and within just a year, there's a lot more that can be done for lots of domains."</p>
+  </div>
+
+  <h3 id="h3-16">Ploy = "fat skills, fat code"</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>You're getting a <b>database out of the box</b> that is very opinionated around website use cases, CRM use cases.</p>
+    <p style="margin-top: 0.5rem;">Sure, you can use Postgres, but if you're a small business owner, <b>you don't want to worry about that</b>.</p>
+  </div>
+
+  <h3 id="h3-17">CLI vs MCP for agents</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>Ploy 选 <b>CLI</b>（不是 MCP）</p>
+    <p style="margin-top: 0.5rem;">"<b>CLI is the right UX for agents</b>"</p>
+    <p style="margin-top: 0.4rem; color: var(--text-dim);">→ 呼应 OpenClaw + Pi Agent 哲学</p>
+  </div>
+</div>
+
+<!-- TAB 6: ANTI-SLOP -->
+<div class="tab-content" data-tab-content="anti-slop">
+  <h2 id="h2-7" class="section">✨ Anti-Slop 哲学</h2>
+
+  <h3 id="h3-18">Ploy 关键使命</h3>
+  <blockquote>
+    "<b>Ploy is basically like the anti-slop.</b>"
+  </blockquote>
+
+  <h3 id="h3-19">问题：模型默认"AI tells"</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>Models 默认:</p>
+    <ul>
+      <li><b>Left-hand rule</b></li>
+      <li><b>Rounded corners</b></li>
+      <li>其他 AI tells</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-20">解药：3,500 prompts 库</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>用 <b>curation of frontier of web design</b></p>
+    <p>用 3,500 prompts 训练 Ploy → "vibes" 而非 slop</p>
+    <p style="margin-top: 0.4rem;"><b>模拟 human designers</b>：取 inspiration 而非 slop</p>
+  </div>
+
+  <h3 id="h3-21">Andy Warhol 比喻</h3>
+  <div class="card" style="border-left: 3px solid var(--purple);">
+    <p>"<b>Andy Warhol created paintings, but the stuff eventually ended up at a factory, and the factory would use machines to recreate these prints. But, it's still Warhol.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>Models = factories for human creativity.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 7: IDEA MAZE -->
+<div class="tab-content" data-tab-content="idea-maze">
+  <h2 id="h2-8" class="section">🗺️ Idea Maze 哲学</h2>
+
+  <h3 id="h3-22">Garry 核心问题</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <p>"<b>How often is it that you're in that little idea maze and you're just trying to see around corners, like you avoid monsters and find the gold</b>?"</p>
+    <p style="margin-top: 0.5rem;">"Once in a while there's an offshoot... if I could clone myself, I would go check out this other place."</p>
+  </div>
+
+  <h3 id="h3-23">经验创始人优势</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <p>"<b>Go directly to the part of the idea maze that you were before.</b>"</p>
+    <p style="margin-top: 0.4rem;">= <b>avoid known monsters</b> · = <b>find known gold</b></p>
+  </div>
+
+  <h3 id="h3-24">First Principles 警告</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"You can't create 100 websites and then expect Google to think '<b>you're an authoritative source</b>'."</p>
+    <p style="margin-top: 0.5rem;">"<b>Creating content for content's sake is not the goal.</b>"</p>
+    <p style="margin-top: 0.5rem;">"Make sure you can tell a coherent story, make sure you're providing value."</p>
+  </div>
+
+  <h3 id="h3-25">"Scare quotes" 警告</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p>Experienced founder 反 challenge:</p>
+    <p>"<b>Don't do that, it's really hard, I was burned by that many years ago.</b>"</p>
+    <p style="margin-top: 0.4rem; color: var(--green);">→ "adopt a little bit more of that <b>bravado</b>... <b>risk appetite</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 8: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-9" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt Pocock "Senior 10x"</h4>
+      <p>Matt P "Senior 10x boost" / "Skills = multiplier"</p>
+      <p>Bryant "Folks with decade plus experience" = <b>完全同源</b></p>
+      <p>Garry "400-1000 clones" = 系统层</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 三人 <b>都反"AI 替人"</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "10 年 2 种 Worker"</h4>
+      <p>Fei-Fei "Top 1% + High-Agency"</p>
+      <p>Bryant = <b>Top 1% Specialist</b>（13 年 Webflow）</p>
+      <p>Garry = <b>High-Agency Generalist</b>（YC + G brain）</p>
+      <p style="margin-top: 0.4rem;">→ 未来 = <b>Bryant + Garry live demo</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Moon "Anthropic F*cked"</h4>
+      <p>Moon "intelligence curse = humans not get paid"</p>
+      <p>Bryant "AI is here and I'm really replicating myself" = <b>反向</b></p>
+      <p>Garry "abundance that people don't talk about" = <b>反向</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ domain expertise + AI = <b>应对 intelligence curse</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt White "Linux Foundation"</h4>
+      <p>Matt W "Open model + Open source + Safety"</p>
+      <p>Bryant "Ploy = company brain" = opinionated harness</p>
+      <p>Garry "OpenClaw cron" = open source self-harness</p>
+      <p style="margin-top: 0.4rem;">→ 三人 <b>都反 closed-source</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent</h4>
+      <p>Pi "4 tools + 1k prompt" = 极简通用</p>
+      <p>Ploy = opinionated vertical</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 同 = harness 哲学</p>
+      <p>→ Pi for self + Ploy for niche</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid = T0-T3 routing</p>
+      <p>Bryant "$750K tokens for slurper" = T3 投入</p>
+      <p>Garry "Opus + Codex + Claude Code" = <b>multi-model hybrid</b></p>
+      <p style="margin-top: 0.4rem;">→ 用 Hybrid-llm-router + opinionated = "G stack"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Self-Harness Optimization</h4>
+      <p>Boris "build loops that prompt themselves"</p>
+      <p>Garry "OpenClaw cron learn about me weekly" = <b>self-harness 实例</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ Boris 理论 + Garry 实践</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = agent 编排受人类控制</p>
+      <p>Ploy = <b>opinionated multi-agent</b></p>
+      <p>Garry = <b>multi-agent harness</b></p>
+      <p style="margin-top: 0.4rem;">→ 都 <b>反"single agent"</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 NotebookLM 2.0</h4>
+      <p>NotebookLM 2.0 = "grounded in your data"</p>
+      <p>Ploy = <b>"company brain for marketing"</b></p>
+      <p style="margin-top: 0.4rem;">→ 同 = "your data + AI"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 IndyDevDan / 本地 LLM</h4>
+      <p>IndyDevDan = 本地 LLM = 完全掌控</p>
+      <p>Garry = Open source G brain = <b>类似本地思维</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 同 = "user 拥有 stack"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman CS183</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>Bryant "Ploy = boil the ocean"</p>
+      <p>Garry "4-5 million lines"</p>
+      <p style="margin-top: 0.4rem;">→ 都 <b>主张 scale</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "AI 品牌糟糕"</h4>
+      <p>Nate "缺 nuanced middle"</p>
+      <p>Bryant/Garry "AI white pill"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 同 <b>方向反 hype</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = 用户掌控 + 极简 + 自己扩展</p>
+      <p>Ploy = <b>opinionated vertical</b></p>
+      <p>Garry = <b>open source self-harness</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ 完全同源 = user 拥有</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-10" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-26">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>用 Ploy 重建自己网站（旧笔记 → 75s 自动重设计）</li>
+    <li>测 OpenClaw cron + Ploy CLI（agent 编排）</li>
+    <li>写"G brain"-style 自我克隆计划（哪些任务可 cron 化）</li>
+  </ol>
+
+  <h3 id="h3-27">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>选 1 个 domain vertical（hybrid-routing / OpenSquilla / K1）做 <b>opinionated harness</b></li>
+    <li>build "Ploy for X" 风格：用 3500+ prompts + 13 年经验 = opinionated solution</li>
+    <li>跑 OpenClaw cron 学习自己</li>
+  </ol>
+
+  <h3 id="h3-28">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>成为 40-year-old solo founder</b>：Taste + Experience + AI = 500 clones</li>
+    <li><b>Ploy-style business</b>：不追 coding tools（worst customers）· 找 true pain point</li>
+    <li><b>Public discourse 贡献</b>（"AI white pill" 实证）</li>
+  </ol>
+</div>
+
+<!-- TAB 10: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-11" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">核心</div>
+      <div class="text">You need to have a certain amount of expertise to know what to do with this boundless intelligence that's imbued in the model.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Age of 40-year-old</div>
+      <div class="text">The age of the 40-year-old solo founder. You don't have to be 40, you just have to have taste.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Clones</div>
+      <div class="text">500 to 1,000 versions of yourself with your skills and your taste and all the imagination.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Domain Experts</div>
+      <div class="text">Folks with experience, folks that have spent decade plus in this industry, they know how to create something like this because they can leverage the model's underlying capability to create something that's just world-class.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Limiting Factor</div>
+      <div class="text">The limiting factor is knowing how to prompt them and imbuing all these 20 years of plus experience that you have to really get the models to focus.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Harness</div>
+      <div class="text">It is almost like you're building a very special harness.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Claude Code</div>
+      <div class="text">Anthropic did it wonderfully for Claude code. It took the world by storm and within just a year, there's a lot more that can be done for lots of domains.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Anti-Slop</div>
+      <div class="text">Ploy is basically like the anti-slop.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Andy Warhol</div>
+      <div class="text">Andy Warhol created paintings, but the stuff eventually ended up at a factory. The factory would use machines to recreate these prints. But, it's still Warhol.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Models = Factories</div>
+      <div class="text">These models, they are essentially the factories for human creativity.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Worst Customers</div>
+      <div class="text">Software engineers are one of like the worst customers to sell to and they can change tools on a whim.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Lowest Common Denominator</div>
+      <div class="text">It's a market that's always incredibly competitive but also like lowest common denominator. It's like who's going to provide a engineer the most tokens.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Pain Point</div>
+      <div class="text">Just go and pick a customer that has a true pain point and just really really focus on that.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Scarcity → Abundance</div>
+      <div class="text">I have always lived in scarcity, scarcity of time, scarcity of my own capacity, mental and physical, but AI is here and I'm really replicating myself.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">4-5M lines</div>
+      <div class="text">I'm actually on track to do like four or five million lines of logical logical lines of code... basically like 400 to 1,000 clones of myself from 2026.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Cathedral in days</div>
+      <div class="text">You could build a whole cathedral of 20 to 40,000 lines of code, like what would take a typical engineer an entire year, you do it in a few days.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Idea Maze</div>
+      <div class="text">How often is it that you're in that little idea maze and you're just trying to see around corners, like you avoid monsters and find the gold.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">First Principles</div>
+      <div class="text">You can't create 100 websites and then expect Google to think that, "Hey, you're an authoritative source."</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Magnifying Glass</div>
+      <div class="text">I feel like I'm standing outside with the magnifying glass under the blazing sun and I'm able to focus it... and just catch something with fire.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">AI White Pill</div>
+      <div class="text">It's more access to it and then more alternatives. And so that's sort of the AI white pill that I hope Ploy actually becomes a really big part of.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-12" class="section">⏱️ 关键时间戳（182 段精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 <b>"You need to have a certain amount of expertise"</b>（开篇核心）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:45</div>
+      <div class="what">YC Light Cone 介绍 + Bryant Chou 介绍（Webflow 1% of websites）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:11</div>
+      <div class="what">🚀 <b>Ploy 介绍</b>（website + marketing + company brain）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:42</div>
+      <div class="what">Postorius 2008 → 2026 Ploy 重建 demo</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:07</div>
+      <div class="what">"This is 2026 Postorius"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:24</div>
+      <div class="what">自动理解 business context（Wayback Machine）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:43</div>
+      <div class="what">自动 video gen + 资产生成（vs 老 impossible/expensive）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:59</div>
+      <div class="what"><b>"12% of YC batch using Ploy"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:46</div>
+      <div class="what">"Webflow democratized web development" → Ploy democratize marketing</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:09</div>
+      <div class="what">"Democratize marketing + demystify growth"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:49</div>
+      <div class="what">🌟 <b>AI white pill</b> = "more access + more alternatives"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:13</div>
+      <div class="what">"Some of them actually could do the whole thing"（被裁员工 = founder）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:40</div>
+      <div class="what">🎲 <b>D&D reference</b>：不同 founders 不同 stat 分配</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:59</div>
+      <div class="what">"200 IQ nearly non-verbal codex = 现在可 deploy + win"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:39</div>
+      <div class="what">🚀 <b>Ploy Slurper 实战</b>（75s recreate components + refactor）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:15</div>
+      <div class="what">"Equivalent of team of 3-5 engineers + week"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:16</div>
+      <div class="what">🎯 <b>Domain expertise 必需要</b>（呼应 Matt Pocock）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:20</div>
+      <div class="what">Cursor Composer demo（自动 deploy + product page）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:50</div>
+      <div class="what">Ploy integrates with 50 tools</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:17</div>
+      <div class="what">"Company brain for marketing" 概念</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:30</div>
+      <div class="what">"Start with home page = face of business"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:33</div>
+      <div class="what">Rippling 对比（Parker Conrad offer letter → HR → auth）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:49</div>
+      <div class="what">"Nightly learning"（AI 思考 what to do while you sleep）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:50</div>
+      <div class="what">"Ploy for OpenClaw" = 像 dream cycle 公开迭代 skills</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:21</div>
+      <div class="what">✨ <b>3,500 prompts</b> for web designs</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:30</div>
+      <div class="what">✨ <b>Anti-slop 哲学</b>（models 默认"left-hand rule + rounded corners"）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:09</div>
+      <div class="what">"Andy Warhol + factory" 比喻</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:46</div>
+      <div class="what">"Models = factories for human creativity"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:31</div>
+      <div class="what">"Web 仍 = most transformational technology"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:16</div>
+      <div class="what">Webflow 13 年前历史（2013 W13 batch）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:04</div>
+      <div class="what">"PG couldn't figure it out"（Webflow 早期）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:04</div>
+      <div class="what">Webflow market 2013 = 极 competitive（8 个竞争）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:30</div>
+      <div class="what">"Perfectionist co-founders"（Sergie + Vlad 哲学）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:01</div>
+      <div class="what">"ChatGPT 之前 green field，现在更 competitive"（Gary 提问）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:15</div>
+      <div class="what">"Ploy = tens of millions · Webflow = 50,000 自由 designer"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:30</div>
+      <div class="what">"Boil the ocean now possible"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:07</div>
+      <div class="what">"Primitive of intelligence"（类比 cloud computing）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:30</div>
+      <div class="what">"First 3 months" 对比（Webflow 手动 vs Ploy AI）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:50</div>
+      <div class="what">"Output 增多 · 但 focus = 仍 need experience"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:50</div>
+      <div class="what">"Big need for purpose-built"（vs general purpose models）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:30</div>
+      <div class="what">"Loops" 概念（marketing + SEO/GEO loop）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:45</div>
+      <div class="what">"Unconscionable in 2026 to not use Claude Code / Codex / Cursor"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:53</div>
+      <div class="what">⚖️ <b>"Software engineers = worst customers"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:15</div>
+      <div class="what">"Pick customer with true pain point" = 小企业 + 创业公司</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:54</div>
+      <div class="what">🛠️ <b>"Harness" 概念</b>（呼应 Anthropic Claude code）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:55</div>
+      <div class="what">"Very special harness for website creation"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:55</div>
+      <div class="what">"Foundation primitives" = opinionated database</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">31:58</div>
+      <div class="what">CLI vs MCP for agents（Ploy 选 CLI）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">32:30</div>
+      <div class="what">"CLI is the right UX for agents"（呼应 OpenClaw）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">32:50</div>
+      <div class="what">Young vs experienced founders（Gary 提问）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">34:00</div>
+      <div class="what">"Experienced founders adopt more bravado + risk appetite"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">34:30</div>
+      <div class="what">"First principles"（"100 websites ≠ Google think authoritative"）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">35:00</div>
+      <div class="what">🗺️ <b>"Idea maze"</b>（"go directly to the part you were before"）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">35:23</div>
+      <div class="what">🧬 <b>"Clone yourself"</b>（关键 concept）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">35:46</div>
+      <div class="what">"Scarcity of time + capacity" → AI = abundance</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">36:00</div>
+      <div class="what">"AI replicating myself"（in product + company + AI-native）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">36:21</div>
+      <div class="what">"Every call transcribed + CRM + proposals drafted"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:09</div>
+      <div class="what">OpenClaw "what did you learn about me this week?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:40</div>
+      <div class="what">"Idea maze" 详细（Parker Conrad Zenefits → Rippling）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">38:20</div>
+      <div class="what">"2 年 cave + 5-10 工程师 + basement in Mission"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">39:10</div>
+      <div class="what">"Launched 整个 HR package + insurance 一次"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">39:40</div>
+      <div class="what">🧬 <b>"400-1000 clones of myself"</b>（G brain + G stack）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">40:30</div>
+      <div class="what">"Build cathedral of 20-40k lines in a few days"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">40:50</div>
+      <div class="what">🧬 <b>"Age of 40-year-old solo founder"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">40:50</div>
+      <div class="what">"You don't have to be 40, you just have to have taste"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">41:20</div>
+      <div class="what">"Stand outside with magnifying glass"（Bryant 比喻）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">41:50</div>
+      <div class="what">Ploy CTA（"ploy.ai"）</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/domain-experts-winning-yc-lightcone/</code></p>
+  <p>Desktop: <code>~/Desktop/domain-experts-winning-yc-lightcone-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=8OOuCnZB-4o">https://www.youtube.com/watch?v=8OOuCnZB-4o</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

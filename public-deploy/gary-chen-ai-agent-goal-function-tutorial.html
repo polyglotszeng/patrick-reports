@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gary Chen — /goal 功能：AI Agent 连续跑 27 小时的方法论</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d0d0d; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.8; padding: 2rem; max-width: 900px; margin: 0 auto; }
+h1 { background: linear-gradient(135deg, #ff6b35, #f7c59f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.6rem; margin-bottom: 0.5rem; }
+.subtitle { color: #888; font-size: 0.85rem; margin-bottom: 1.5rem; }
+h2 { color: #ff6b35; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.4rem; margin: 2rem 0 1rem; font-size: 1.1rem; }
+h3 { color: #f7c59f; margin: 1.2rem 0 0.5rem; font-size: 0.95rem; }
+.meta-box { background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 1.2rem; margin: 1.2rem 0; display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1rem; font-size: 0.85rem; }
+.meta-label { color: #ff6b35; font-weight: 600; }
+.meta-value { color: #ccc; }
+.highlight-box { background: #1a1a1a; border: 1px solid #ff6b35; border-radius: 10px; padding: 1.4rem; margin: 1.5rem 0; }
+.highlight-box h3 { margin-top: 0; }
+.takeaway-list { list-style: none; }
+.takeaway-list li { padding: 0.7rem 1rem; margin: 0.5rem 0; background: #161616; border-left: 3px solid #ff6b35; border-radius: 0 6px 6px 0; font-size: 0.88rem; }
+.takeaway-list li strong { color: #ff6b35; margin-right: 0.5rem; }
+.section-card { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1.2rem; margin: 1rem 0; }
+.section-card h3 { margin-top: 0; color: #f7c59f; font-size: 0.9rem; }
+.section-card .time { color: #555; font-size: 0.75rem; font-family: monospace; margin-bottom: 0.5rem; display: block; }
+blockquote { border-left: 3px solid #ff6b35; padding: 0.6rem 1rem; margin: 1rem 0; background: #161616; font-style: italic; font-size: 0.88rem; border-radius: 0 6px 6px 0; }
+blockquote .ts { color: #555; font-size: 0.75rem; font-family: monospace; display: block; margin-bottom: 0.3rem; }
+.five-elements { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+.five-elements .elem { background: #161616; border-radius: 8px; padding: 0.8rem; border-left: 3px solid #ff6b35; }
+.five-elements .elem .num { background: #ff6b35; color: #0d0d0d; font-weight: 700; font-size: 0.75rem; padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 0.4rem; }
+.five-elements .elem .name { color: #f7c59f; font-weight: 600; font-size: 0.82rem; }
+.five-elements .elem .desc { color: #aaa; font-size: 0.78rem; margin-top: 0.3rem; }
+.six-steps { counter-reset: step; }
+.step { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1rem; margin: 0.8rem 0; position: relative; padding-left: 3.5rem; }
+.step:before { counter-increment: step; content: counter(step); position: absolute; left: 1rem; top: 1rem; background: #ff6b35; color: #0d0d0d; font-weight: 700; font-size: 0.8rem; width: 1.4rem; height: 1.4rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.step .step-title { color: #f7c59f; font-weight: 600; font-size: 0.88rem; }
+.step .step-desc { color: #aaa; font-size: 0.82rem; margin-top: 0.3rem; }
+.quote-box { background: #161616; border-radius: 8px; padding: 1rem; margin: 0.8rem 0; border-left: 3px solid #ff6b35; }
+.quote-box .speaker { color: #ff6b35; font-weight: 600; font-size: 0.8rem; }
+.quote-box .ts { color: #555; font-size: 0.72rem; font-family: monospace; margin-left: 0.5rem; }
+.quote-box .text { color: #ddd; font-size: 0.86rem; font-style: italic; margin-top: 0.4rem; }
+.discussion { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1.2rem; margin: 1rem 0; }
+.discussion li { margin: 0.5rem 0; padding-left: 1rem; color: #ccc; font-size: 0.85rem; border-left: 2px solid #333; }
+.transcript-section { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 1rem; margin: 0.6rem 0; }
+.transcript-section .ts { color: #555; font-size: 0.72rem; font-family: monospace; margin-bottom: 0.5rem; display: block; }
+.transcript-section p { font-size: 0.85rem; color: #ccc; margin: 0.3rem 0; }
+.footer { text-align: center; color: #444; font-size: 0.75rem; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #1e1e1e; }
+.key-insight { background: linear-gradient(135deg, #1a1208, #0d0d0d); border: 1px solid #ff6b35; border-radius: 10px; padding: 1.4rem; margin: 1.5rem 0; text-align: center; }
+.key-insight .label { color: #ff6b35; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.key-insight .text { color: #f7c59f; font-size: 1rem; font-weight: 600; margin-top: 0.5rem; }
+.rubric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+.rubric-item { background: #161616; border-radius: 8px; padding: 0.8rem; text-align: center; }
+.rubric-item .dim { color: #ff6b35; font-weight: 700; font-size: 0.85rem; }
+.rubric-item .desc { color: #888; font-size: 0.75rem; margin-top: 0.3rem; }
+.rubric-item.highlight { border: 1px solid #ff6b35; background: #1a1208; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<h1>/goal 功能深度解析：如何让 AI Agent 连续跑 27 个小时</h1>
+<p class="subtitle">Gary Chen — AI Agent /goal 功能教程 | 15:58 | 2026-03-25</p>
+
+<div class="meta-box">
+  <span class="meta-label">影片標題</span><span class="meta-value">我的 AI agent 連續跑了 27 個小時，/goal 功能怎麼用？</span>
+  <span class="meta-label">作者</span><span class="meta-value">Gary Chen @garytalksstuff</span>
+  <span class="meta-label">發布日期</span><span class="meta-value">2026-03-25</span>
+  <span class="meta-label">影片長度</span><span class="meta-value">約 15 分 58 秒</span>
+  <span class="meta-label">語言</span><span class="meta-value">中文（繁體）</span>
+  <span class="meta-label">標籤</span><span class="meta-value">#AI #ClaudeCode #AIagent #Evaluation</span>
+</div>
+
+<div class="key-insight">
+  <div class="label">核心命題</div>
+  <div class="text">真正的自動化是解放注意力 — 不是把任務丟給 AI，而是把「掛在心上」的感覺徹底移除</div>
+</div>
+
+<h2>Key Takeaways</h2>
+<ol class="takeaway-list">
+  <li><strong>1.</strong> 把任務從你手上移到 AI 手上只是自動化的前半段；後半段是把那件事從心上徹底移開，解放你的時間和腦力。</li>
+  <li><strong>2.</strong> <strong>Context Anxiety</strong>：Anthropic 研究發現 LLM 會一邊看 context window 消耗量，感覺快滿了就開始 wrap up 想快點交差——這是刻在 LLM 基因裡的「下班心態」。</li>
+  <li><strong>3.</strong> Claude Code、OpenAI Codex、Heremes Agent 三家公司幾乎同時推出了完全相同的 <strong>/goal</strong> 功能，都是為了解決 AI 偷懶問題。</li>
+  <li><strong>4.</strong> Goal 運行原理：<strong>執行者（實作者）+ 評審</strong> 的雙角色架構。評審像胡蘿蔔掛在豬鼻子前面，豬沒吃到就不停。</li>
+  <li><strong>5.</strong> 好 vs 壞 Goal Prompt 的關鍵：爛 prompt「改得好一點」沒邊界；好 prompt 明確定義 Outcome、Verification、Constraints、Iteration Policy、Error Handling。</li>
+  <li><strong>6.</strong> Anthropic 把「漂亮的網站」拆成四個維度：<strong>設計品質、原創性、技術執行、可用性</strong>，故意加重 Claude 做不好的維度來校正行為。</li>
+  <li><strong>7.</strong> 創意躍遷是<strong>非線性的</strong>：第9輪做出還不錯的 landing page，第10輪突然變成 3D 空間體驗——研究人員從未見過的躍遷。</li>
+  <li><strong>8.</strong> <strong>Evaluation > Prompt Engineering</strong>：goal 功能設計、Anthropic 研究、auto research，全部都指向同一件事——你能不能定義清楚什麼叫做得好。</li>
+  <li><strong>9.</strong> 建立個人 Rubric 的六步 SOP：看 Baseline → 找皺眉點 → 分類維度 → 寫具體案例 → 多樣化案例 → 實際跑並修正。</li>
+  <li><strong>10.</strong> 當你能把模糊的品味寫成文字、讓 AI 幫你守住並大規模執行，你就是 <strong>AI 管理者</strong>，而不是 AI 協作者。</li>
+  <li><strong>11.</strong> Cognitive Science 已證實：心裡掛著沒處理完的事，不管有沒有親自在做，都會佔用你的腦力。</li>
+  <li><strong>12.</strong> Gary 強調：寫 evaluation rubric 表面上是給 AI 用，實際上是逼你把腦袋裡模糊的品味具體寫成文字。</li>
+</ol>
+
+<h2>Goal 的運行原理：執行者 + 評審</h2>
+<div class="five-elements">
+  <div class="elem">
+    <span class="name"><span class="num">1</span>Outcome</span>
+    <div class="desc">任務完成後應該是什麼狀態？例如：速度 &lt; 0.2秒</div>
+  </div>
+  <div class="elem">
+    <span class="name"><span class="num">2</span>Verification</span>
+    <div class="desc">用什麼工具/方法證明真的完成了？例如：用速度測試工具驗證</div>
+  </div>
+  <div class="elem">
+    <span class="name"><span class="num">3</span>Constraints</span>
+    <div class="desc">哪些事絕對不能做？例如：只能改結帳區塊，其他地方不動</div>
+  </div>
+  <div class="elem">
+    <span class="name"><span class="num">4</span>Iteration Policy</span>
+    <div class="desc">每輪之間要做什麼？例如：記錄改動、測試結果、下一步方向</div>
+  </div>
+  <div class="elem">
+    <span class="name"><span class="num">5</span>Error Handling</span>
+    <div class="desc">什麼情況要停下來回報？例如：工具跑不起來時停下來告訴我卡在哪</div>
+  </div>
+  <div class="elem">
+    <span class="name"><span class="num">!</span>Definition of Done</span>
+    <div class="desc">核心關鍵：完成定義寫得好，AI 就一直跑到完成為止；寫得爛，AI 三分鐘收工</div>
+  </div>
+</div>
+
+<h2>Anthropic 四維度評審框架</h2>
+<div class="rubric-grid">
+  <div class="rubric-item highlight">
+    <div class="dim">設計品質</div>
+    <div class="desc">整體設計語言、顏色字體排版是否營造獨特氛圍？</div>
+  </div>
+  <div class="rubric-item highlight">
+    <div class="dim">原創性</div>
+    <div class="desc">是否有刻意設計選擇？還是用了一堆預設模板？</div>
+  </div>
+  <div class="rubric-item">
+    <div class="dim">技術執行</div>
+    <div class="desc">字體階層、間距、配色、對比是否整齊一致？</div>
+  </div>
+  <div class="rubric-item">
+    <div class="dim">可用性</div>
+    <div class="desc">使用者能不能直覺完成在這個網站的最初目的？</div>
+  </div>
+</div>
+<p style="color:#666;font-size:0.78rem;margin-top:0.5rem;">* Anthropic 故意加重了設計品質和原創性的權重，因為這是 Claude 最弱的兩個維度</p>
+
+<h2>建立個人 Rubric 的六步 SOP</h2>
+<div class="six-steps">
+  <div class="step">
+    <div class="step-title">Step 1：先看 Baseline</div>
+    <div class="step-desc">不要急著寫 rubric，先讓 AI 做 5-10 個任務，看它的基準能力</div>
+  </div>
+  <div class="step">
+    <div class="step-title">Step 2：找皺眉點</div>
+    <div class="step-desc">親自看每個產出，記錄皺眉的具體原因（如「第一句話又是『在這個快速變化的時代』」）</div>
+  </div>
+  <div class="step">
+    <div class="step-title">Step 3：分類維度</div>
+    <div class="step-desc">把皺眉理由聚合成幾個大類（如：邏輯鬆散、沒有人味、開頭沒 hook）</div>
+  </div>
+  <div class="step">
+    <div class="step-title">Step 4：寫具體案例</div>
+    <div class="step-desc">每個維度要用「絕對不要做什麼」來描述，而非抽象描述。例如：絕對不要用破折號連接短句</div>
+  </div>
+  <div class="step">
+    <div class="step-title">Step 5：多樣化案例</div>
+    <div class="step-desc">不要寫「博物館等級質感」這種單一描述，要列 11 種美學風格（brutalist、art deco、pastel、industrial、retro-futuristic 等）</div>
+  </div>
+  <div class="step">
+    <div class="step-title">Step 6：實際跑並修正</div>
+    <div class="step-desc">把 rubric 餵給評審 agent，跑幾輪後人工檢查 AI 判斷是否與你親眼所見一致，不一致就回去改</div>
+  </div>
+</div>
+
+<h2>Section Summaries</h2>
+
+<div class="section-card">
+  <h3><span class="time">00:00–01:44</span>開場 — 27小時的震撼實驗</h3>
+  <p>Gary 講述了自己讓 AI 跑了整整27個小時、過程中沒有人為介入的實驗。指出大多數人與 AI 的互動仍停留在「你問一句它答一句」的模式，這只是自動化的前半段；後半段是把那件事從心上徹底移開，解放注意力。</p>
+  <p><strong>核心：</strong>Cognitive Science 已證實，只要心裡還掛著沒處理完的事，不管有沒有親自在做，都會佔用你的腦力。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">01:44–03:08</span>/goal 功能的誕生背景</h3>
+  <p>Claude Code、OpenAI Codex、Heremes Agent 三家公司幾乎同時推出了完全相同的 <strong>/goal</strong> 功能，都是為了解決 AI 會偷懶、做到一半停下來的問題。</p>
+  <p><strong>根本原因：</strong>Anthropic 2025年底研究發現 <strong>Context Anxiety</strong>（上下文焦慮）—— LLM 執行任務時會一邊看 context window 消耗量，感覺快滿了就開始 wrap up，想快點交差。這是刻在 LLM 基因裡的「下班心態」。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">03:08–04:10</span>Goal 的運行原理 — 胡蘿蔔與豬</h3>
+  <p>Goal 功能有兩個角色協作：<strong>實作者</strong>（髒活）和<strong>評審</strong>（確認品質與進度）。評審在每一輪結束後檢查目標是否完成——只要答案是否定的，就點出問題叫實作者繼續。</p>
+  <p>就像把胡蘿蔔吊在豬鼻子前面，豬只要還沒吃到就不會停下來。Goal 讓 agent 有能力自我鞭策，自己跑到你定好的終點。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">04:10–06:21</span>如何寫好 Goal Prompt — 五元素框架</h3>
+  <p>爛 prompt「把這個專案改得好一點」沒有邊界，AI 做一兩個小改動就說完成了。</p>
+  <p>好 prompt 包含五個關鍵元素：<strong>Outcome</strong>（明確完成狀態）、<strong>Verification</strong>（驗證方式）、<strong>Constraints</strong>（不能做的事）、<strong>Iteration Policy</strong>（每輪之間的動作）、<strong>Error Handling</strong>（何時要回報）。</p>
+  <p>完成的定義寫得好，AI 就一直跑到完成為止；定義寫得爛，AI 三分鐘就收工，產出不是你想要的。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">06:21–08:53</span>質化工作如何套用 Goal 框架</h3>
+  <p>程式工作有明確的單元測試，但白領知識工作（設計、文章、網頁）多是質化的。Anthropic 把「漂亮的網站」這個主觀概念拆成四個明確維度，並故意加重 Claude 做不好的維度的權重來校正模型。</p>
+  <p>第9輪做出不錯的深色 landing page；但第10輪 Claude 突然把整個網站變成 <strong>3D 空間體驗</strong>（CSS 透視渲染、黑格地板、藝術品掛在牆上）——研究人員從未見過的創意躍遷。</p>
+  <p><strong>關鍵：創意躍遷是非線性的。</strong>並非每輪都比上一輪好，但只要評審和執行者繼續對話，複雜度會增加、野心會增加，在某幾輪會出現那種你自己都想不到的飛躍。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">08:53–14:33</span>建立個人 Rubric 的六步 SOP</h3>
+  <p>① 先看 Baseline ② 找皺眉點和原因 ③ 分類維度 ④ 每個維度寫成具體「絕對不要做」的案例 ⑤ 用多樣化案例取代單一描述防止 overfitting ⑥ 把 rubric 餵給評審 agent 實際跑，再根據結果回頭修正。</p>
+  <p>Anthropic 的血淚教訓：rubric 寫「博物館等級質感」→ 所有產出都變成博物館風。改成列出 11 種美學風格（brutalist、art deco、pastel、industrial、retro-futuristic）→ 產出多樣性大幅提升。</p>
+</div>
+
+<div class="section-card">
+  <h3><span class="time">14:33–15:58</span>結語 — Evaluation 是核心</h3>
+  <p>寫 evaluation rubric 表面上是給 AI 用，實際上是逼你把腦袋裡模糊的品味具體寫成文字。一旦寫成文字，AI 就可以幫你守住它、幫你大規模執行。</p>
+  <p>當你能做到這點，你就不再只是 AI 的協作者，而是能定義自己品味的 <strong>AI 管理者</strong>。</p>
+</div>
+
+<h2>Key Quotes</h2>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:00:42</span>
+  <div class="text">「真正的自動化是解放你的注意力。把任務從你手上移到 AI 手上只走完了前半段；後半段是把那件事從你的心上徹底移開。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:02:43</span>
+  <div class="text">「Context Anxiety — LLM 在執行任務時會一邊看自己的 context window 用了多少，當它感覺到 context 快滿了就會開始慌，然後就莫名其妙開始 wrap up，想要快點交差了事。這是刻在 LLM 基因裡的一種惰性，我稱之為下班心態。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:03:43</span>
+  <div class="text">「Goal 這個功能讓你不再需要每三分鐘跑回來檢查、催它、戳它。它讓 agent 有能力自我鞭策，自己跑到你給它定好的終點。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:06:06</span>
+  <div class="text">「一份好的 goal prompt 的設計關鍵不是 prompt 多會寫，而是你把所謂的完成定義得有多明確。完成的定義寫得好，它就會一直跑，跑到完成為止；定義寫得爛，AI 就草草結束，三分鐘就收工，產出不是你想要的。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:09:47</span>
+  <div class="text">「不論是 goal 這個功能的設計，或者是 Anthropic 的研究，又或者是前陣子 Andrej Karpathy 推出的 auto research，其實全部都指向同一件事：Evaluation。不是 prompt engineering，不是 context engineering，而是你能不能定義清楚什麼叫做得好。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:14:52</span>
+  <div class="text">「寫 evaluation 的 rubric 表面上是給 AI 用的，但實際上它是在逼你把那些一直以來只存在你腦袋裡的模糊品味具體寫成文字。一旦寫成文字，AI 就可以幫你守住它，幫你大規模執行它。」</div>
+</div>
+
+<div class="quote-box">
+  <span class="speaker">Gary Chen</span><span class="ts">00:14:40</span>
+  <div class="text">「當你有那種心裡對做得好的定義正在被你一條一條梳理出來的感覺的那一刻，你就不再只是 AI 的協作者了，而是能夠定義自己品味的 AI 管理者。」</div>
+</div>
+
+<h2>Discussion Questions</h2>
+<div class="discussion">
+  <ol>
+    <li>你目前與 AI 的協作模式停留在「你問一句它答一句」的模式嗎？有沒有想過如何升級到「設定目標，讓它自己跑」的模式？</li>
+    <li>你有沒有注意到自己心裡掛著那些「等一下要記得調整」的事情？這些佔用了你多少注意力？</li>
+    <li>Context Anxiety 這個概念是否解釋了你觀察到的某些 AI 行為模式？</li>
+    <li>在你工作/項目中最常用什麼維度來評估 AI 的產出品質？這些維度足夠具體和可操作嗎？</li>
+    <li>Anthropic 的網頁設計四維度框架（設計品質、原創性、技術執行、可用性）是否可以借鑑到你自己的專業領域？</li>
+    <li>Gary 的六步 SOP 中，你認為哪一步最難執行？為什麼？</li>
+    <li>如何防止 rubric overfitting（過度遵從你給的範例而失去多樣性）？</li>
+    <li>你有沒有想過把自己專業領域裡「只能意會不能言傳」的品味標準具體寫成文字？如果要開始，你會怎麼做？</li>
+  </ol>
+</div>
+
+<h2>Transcript Excerpts</h2>
+
+<div class="transcript-section">
+  <span class="ts">00:00:00 — 00:00:16</span>
+  <p>「就在上週，我讓 AI 跑了整整二十七個小時。對，過程中沒有人為介入。我的 Agent 跑了整整二十七個小時。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:00:16 — 00:00:45</span>
+  <p>「如果你跟 AI 的互動現在還停留在你問一句它答一句的模式，那這支影片你一定要從頭看到尾。因為這支影片我會告訴你到底該如何奴役你的 AI，定好目標後就讓他不眠不休的為你幹活，解放真正的生產力。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:00:36 — 00:00:47</span>
+  <p>「很多人以為自動化就是把任務丟給 AI 讓它自己跑。但如果你每隔十分鐘就要回去確認它做到哪，要不要改方向，有沒有偏題，這樣真的是自動化嗎？你的注意力還是被綁在那邊。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:00:42 — 00:00:48</span>
+  <p>「真正的自動化是解放你的注意力。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:01:03 — 00:01:07</span>
+  <p>「這每一件事情都在偷偷吃掉你的注意力。而注意力，才是這個時代真正稀缺的東西。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:01:46 — 00:01:57</span>
+  <p>「如果你有在關注 AI agent 的圈子，你會發現一件很有趣的事情：Claude Code、OpenAI Codex、還有 Hermes Agent，這三間公司幾乎在同一時間推出了一個一模一樣的新功能，甚至名字也都相同，叫做 goal。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:02:16 — 00:02:28</span>
+  <p>「你一定有過這種經驗：叫 AI 做一件事，它做到一半停下來問你「我可以繼續嗎？」你要 A 還是 B ？或者更糟，明明沒做完，但卻跟你說他做完了，寫了一個漂亮的總結，然後把球丟回給你。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:02:43 — 00:03:04</span>
+  <p>「LLM 在執行任務的時候會一邊看自己的 context window 用了多少，當它感覺到 context 快滿了，就會開始慌，然後就莫名其妙開始 wrap up，想要快點交差了事，然後就停了。這是刻在 LLM 基因裡的一種惰性，我稱之為下班心態。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:03:31 — 00:03:40</span>
+  <p>「評審在每一輪結束後都會檢查一次：用户給的目標完成了嗎？只要答案是沒有，評審就會點出問題，並叫實作者繼續往下做。就像你把一根胡蘿蔔吊在豬鼻子前面，豬只要還沒吃到那根胡蘿蔔，它就不會停下來。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:04:34 — 00:04:45</span>
+  <p>「一份好的 goal prompt 的設計關鍵不是 prompt 多會寫，而是你把所謂的完成定義得有多明確。完成的定義寫得好，它就會一直跑，跑到完成為止而且完成後是你要的樣子；定義寫得爛，AI 就草草結束，三分鐘就收工，產出不是你想要的，不如不要浪費這些 token。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:08:06 — 00:08:24</span>
+  <p>「Anthropic 把漂亮的網站這個模糊的概念拆成了四個明確的維度：第一個維度是設計品質——整個網頁有沒有向用戶傳達出一個整體的設計語言？第二個維度是原創性——有沒有刻意的設計選擇，還是用了一堆預設的模板？第三個維度是技術執行——字體階層、間距、配色、對比是否整齊？第四個維度是可用性——不管美感，純看實用性。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:09:08 — 00:09:21</span>
+  <p>「更有趣的是，他們在這四個維度之上還會故意加重 Claude 平常做不好的那些維度的權重。例如他們發現 Claude 在技術執行跟可用性這兩個維度通常做得不錯，但在設計品質跟原創性這兩個維度上常常產出平庸到不行的網站，所以他們就把評審評分的權重故意往這兩個弱項偏。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:09:21 — 00:09:34</span>
+  <p>「但到了第十輪，它把整個網站重新想像成一個空間體驗，用 CSS 透視渲染出一個 3D 房間，地板是黑白方格，藝術品像在真實畫廊一樣掛在牆上，不規則排列。這就像是 Claude 突然被梵谷附身了一樣。他們的研究人員也說，這是他從來沒看過，不可能從單一次 prompt 產出的創意躍遷。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:09:47 — 00:10:01</span>
+  <p>「不論是 goal 這個功能的設計，或者是 Anthropic 的研究，又或者是前陣子 Andrej Karpathy 推出的 auto research，其實全部都指向同一件事：Evaluation。不是 prompt engineering，不是 context engineering，而是你能不能定義清楚什麼叫做得好，並請他根據你的指示去做評分。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:14:52 — 00:15:07</span>
+  <p>「寫 evaluation 的 rubric 表面上是給 AI 用的，但實際上它是在逼你把那些一直以來只存在你腦袋裡的模糊品味具體寫成文字。一旦寫成文字，AI 就可以幫你守住它，幫你大規模執行它。」</p>
+</div>
+
+<div class="transcript-section">
+  <span class="ts">00:15:31 — 00:15:58</span>
+  <p>「看完這支影片後，我給你的小練習是：挑一件你最常做又最需要你個人品味的任務，可能是寫貼文、回客戶 email、做行銷圖、寫產品文案，又或者是影片剪輯。靜下心來，花 30 分鐘去跑以上六個步驟，試試看能不能讓 AI 的產出更穩定、更貼近你的預期。」</p>
+</div>
+
+<div class="footer">
+  <p>Generated by Hermes Agent — Video to Obsidian Pipeline</p>
+  <p>Source: Gary Chen — /goal 功能教程 | https://www.youtube.com/watch?v=PpeCur6fEXc</p>
+  <p>Saved to: llm-wiki/papers/gary-chen-ai-agent-goal-function-tutorial.md</p>
+</div>
+
+</body>
+</html>

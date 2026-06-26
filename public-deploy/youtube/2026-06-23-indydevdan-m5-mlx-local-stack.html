@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>M5 Max + MLX 本地栈 — IndyDevDan 39 分钟基准</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .phase-flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.5rem 0.9rem; color: var(--text); text-align: center;
+  }
+  .phase.green { border-color: var(--green); color: var(--green); }
+  .phase.blue { border-color: var(--blue); color: var(--blue); }
+  .phase.yellow { border-color: var(--yellow); color: var(--yellow); }
+  .phase.red { border-color: var(--red); color: var(--red); }
+  .phase-arrow { color: var(--text-mute); font-size: 1.1rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+
+  .speed-table { font-family: ui-monospace, SFMono-Regular, monospace; }
+  .speed-table .num { color: var(--accent-2); font-weight: 600; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.3.1 TOC */
+  .toc {
+    position: fixed; top: 20px; left: 16px; width: 188px;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 0.8rem;
+    z-index: 100; font-size: 0.78rem;
+  }
+  .toc-title {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  .toc-list { list-style: none; padding: 0; margin: 0; }
+  .toc-list li { margin: 0; }
+  .toc-list a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s;
+  }
+  .toc-list a:hover { color: var(--text); background: var(--bg-elevated); }
+  .toc-list a.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  @media (max-width: 1100px) {
+    body { padding-left: 0 !important; }
+    .toc { display: none; }
+  }
+  .tab-content { scroll-margin-top: 20px; }
+  .h2-section { scroll-margin-top: 20px; }
+
+
+  
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">测试矩阵：4 模型 × 2 设备</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 设备</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 3 套 Benchmark</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">Benchmark 1: 简单 Prompt（prefill / decode / wall /</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Benchmark 2: Context Scaling（Graph Walks）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Benchmark 3: Pi Coding Agent（Agentic 实操）</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">4 个核心 Takeaway（必读）</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">适用 / 不适用 场景</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 任务分层策略（Dan 的建议）</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">实用建议（Dan 实战结论）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Dan 的 2026 预测</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">完整时间线（83 段字幕）</a></li>
+  </ol>
+</aside>
+
+
+
+
+
+<h1>M5 Max + MLX 本地栈</h1>
+<p class="subtitle">IndyDevDan 39 分钟基准：M4 Max vs M5 Max × 4 模型 × 3 benchmark</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=00Y-p62sk0s" target="_blank">My M5 Max, Gemma 4, MLX LOCAL Stack</a></span>
+  <span><strong>频道：</strong>IndyDevDan</span>
+  <span><strong>时长：</strong>39:03（2343s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-16</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p><b>M5 Max + MLX 模型 = 真正能用的本地 LLM</b>。Dan 用 4 个模型在 M4 Max vs M5 Max 上跑 3 套 benchmark，得出 4 个核心 takeaway：<b>MLX 碾压 GGUF（2x decode）</b>、<b>M5 比 M4 快 15-50%</b>、<b>8K-16K context 是分水岭</b>、<b>Agentic 任务本地可跑但限 8K context</b>。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">MLX 加速</div>
+    <div class="value">2×</div>
+    <div class="sub">vs GGUF (decode)</div>
+  </div>
+  <div class="stat">
+    <div class="label">M5 提升</div>
+    <div class="value">15-50%</div>
+    <div class="sub">vs M4 Max</div>
+  </div>
+  <div class="stat">
+    <div class="label">Context 极限</div>
+    <div class="value">8K-16K</div>
+    <div class="sub">本地 SLM 实际可用</div>
+  </div>
+  <div class="stat">
+    <div class="label">Qwen MLX</div>
+    <div class="value">118 tok/s</div>
+    <div class="sub">decode on M5</div>
+  </div>
+  <div class="stat">
+    <div class="label">Gemma MLX RAM</div>
+    <div class="value">16 GB</div>
+    <div class="sub">极小 footprint</div>
+  </div>
+  <div class="stat">
+    <div class="label">32K Wall</div>
+    <div class="value">280s / 400s</div>
+    <div class="sub">M5 vs M4 (40% 改善)</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="matrix">🧪 测试矩阵</button>
+  <button class="tab" data-tab="b1">📊 Bench 1: 简单 prompt</button>
+  <button class="tab" data-tab="b2">📈 Bench 2: Context Scaling</button>
+  <button class="tab" data-tab="b3">🤖 Bench 3: Pi Coding Agent</button>
+  <button class="tab" data-tab="takeaways">🎯 4 Takeaways</button>
+  <button class="tab" data-tab="usability">✅/❌ 适用场景</button>
+  <button class="tab" data-tab="tips">💡 实用建议</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: MATRIX -->
+<div class="tab-content active" data-tab-content="matrix">
+  <h2 id="h2-2" class="section">测试矩阵：4 模型 × 2 设备</h2>
+
+  <table>
+    <thead>
+      <tr><th>模型</th><th>格式</th><th>大小</th><th>MoE</th><th>出品方</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Qwen 3.5</td><td><span class="badge yellow">GGUF (NVFP4)</span></td><td>35B params</td><td>3-4B active</td><td>Alibaba</td></tr>
+      <tr><td>Qwen 3.5</td><td><span class="badge green">MLX</span></td><td>35B (A4B)</td><td>3-4B active</td><td>Apple silicon</td></tr>
+      <tr><td>Gemma 4</td><td><span class="badge yellow">GGUF</span></td><td>~26B</td><td>dense</td><td>Google</td></tr>
+      <tr><td>Gemma 4</td><td><span class="badge green">MLX community</span></td><td>26B</td><td>dense</td><td>Apple silicon</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-1">设备</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🖥️ M4 Max (满配)</h4>
+      <p>128GB RAM · baseline</p>
+    </div>
+    <div class="card">
+      <h4>🚀 M5 Max (满配)</h4>
+      <p>128GB RAM · 新 super core · 35W vs 40W (M4)</p>
+    </div>
+  </div>
+
+  <h3 id="h3-2">3 套 Benchmark</h3>
+  <div class="phase-flow">
+    <div class="phase blue">Bench 1: 简单 prompt</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase green">Bench 2: Context Scaling (200→32K)</div>
+    <div class="phase-arrow">→</div>
+    <div class="phase yellow">Bench 3: Pi Coding Agent</div>
+  </div>
+</div>
+
+<!-- TAB 2: B1 -->
+<div class="tab-content" data-tab-content="b1">
+  <h2 id="h2-3" class="section">Benchmark 1: 简单 Prompt（prefill / decode / wall / RAM）</h2>
+  <p style="color: var(--text-dim);">5 个简单问题（hash table / 两句话 / rate limiter 等）</p>
+
+  <table class="speed-table">
+    <thead>
+      <tr><th>指标</th><th>模型 / 格式</th><th>数字 (M5)</th><th>vs M4</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Decode</td><td>Qwen GGUF</td>
+        <td><span class="num">60 tok/s</span></td><td>baseline</td>
+      </tr>
+      <tr>
+        <td>Decode</td><td>Qwen <b>MLX</b></td>
+        <td><span class="num">118 tok/s</span> <span class="badge green">~2×</span></td><td>同比例快</td>
+      </tr>
+      <tr>
+        <td>Prefill</td><td>Gemma GGUF</td>
+        <td><span class="num">550 tok/s</span></td><td>赢 MLX</td>
+      </tr>
+      <tr>
+        <td>RAM peak</td><td>Gemma MLX</td>
+        <td><span class="num">16 GB</span></td><td>极小</td>
+      </tr>
+      <tr>
+        <td>整体加速</td><td>M5 vs M4</td>
+        <td><span class="num">15-50%</span></td><td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:1rem;">
+    <h4>🔑 关键发现</h4>
+    <ul>
+      <li><b>MLX decode 碾压</b>：Qwen GGUF 60 → Qwen MLX 118 tok/s（~2x）</li>
+      <li><b>Gemma GGUF prefill 反超</b>：在小 prompt 时 GGUF 反而更快</li>
+      <li><b>Wall time 才是真指标</b>：tokens/s 不等于总时间</li>
+      <li><b>M5 比 M4 平均快 20%</b>，prefill 接近 2x</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 3: B2 -->
+<div class="tab-content" data-tab-content="b2">
+  <h2 id="h2-4" class="section">Benchmark 2: Context Scaling（Graph Walks）</h2>
+  <p style="color: var(--text-dim);">5 prompt 长度：200 / 500 / 1K / 8K / 16K / 32K tokens · 任务：BFS 遍历图找节点</p>
+
+  <table>
+    <thead>
+      <tr><th>Context 长度</th><th>本地模型表现</th><th>M4 vs M5</th><th>结论</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>&lt; 8K</td>
+        <td><span class="badge green">快 + 正确</span></td>
+        <td>M5 略快</td>
+        <td>本地模型无敌</td>
+      </tr>
+      <tr>
+        <td>8K - 16K</td>
+        <td><span class="badge yellow">~30s 等待</span></td>
+        <td>差距明显</td>
+        <td>勉强可接受</td>
+      </tr>
+      <tr>
+        <td>32K</td>
+        <td><span class="badge red">M4=400s / M5=280s</span></td>
+        <td>M5 改善 40%</td>
+        <td>Gemma 答错</td>
+      </tr>
+      <tr>
+        <td>64K+</td>
+        <td><span class="badge red">跳过（太慢）</span></td>
+        <td>—</td>
+        <td>不可用</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 8K 以下能干真活</h4>
+      <ul>
+        <li>短总结、解析、分类、翻译</li>
+        <li>小段代码生成</li>
+        <li>单步 agent 任务</li>
+        <li>code completion</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 16K+ 回归 cloud</h4>
+      <ul>
+        <li>长对话 agent</li>
+        <li>多轮 reasoning</li>
+        <li>大型 code review</li>
+        <li>长文档分析</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    "Performance is great. The bottleneck is <b>context window length</b>. At 16K, you wait 30s. That's unusable. Just like LLMs who say they have 1M context — it's really 500-800K. <b>Claude 4.6 is the only true 1M so far.</b>"
+  </blockquote>
+</div>
+
+<!-- TAB 4: B3 -->
+<div class="tab-content" data-tab-content="b3">
+  <h2 id="h2-5" class="section">Benchmark 3: Pi Coding Agent（Agentic 实操）</h2>
+  <p style="color: var(--text-dim);">6 任务：hello world → fib → 14-26 tool calls 的大包生成</p>
+
+  <table class="speed-table">
+    <thead>
+      <tr><th>任务 #</th><th>M4 (秒)</th><th>M5 (秒)</th><th>说明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>9</td><td>7</td><td>hello world</td></tr>
+      <tr><td>2</td><td>10</td><td>10</td><td>fibonacci</td></tr>
+      <tr><td>3</td><td>20</td><td>14</td><td>—</td></tr>
+      <tr><td>4</td><td>40</td><td>25</td><td>—</td></tr>
+      <tr><td>5</td><td>60</td><td>50</td><td>—</td></tr>
+      <tr><td>6</td><td>160</td><td>100-180</td><td>大包生成</td></tr>
+      <tr style="background: var(--bg-elevated);">
+        <td colspan="4"><b>⚠️ M4 任务 6 放弃</b>：1 tool call 后卡死，给出"非合法结果"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:1rem;">
+    <h4>实测结果</h4>
+    <ul>
+      <li><b>正确率</b>：两台设备相同（任务 1-5）</li>
+      <li><b>Token 消耗</b>：两个设备消耗量接近</li>
+      <li><b>M4 最后任务失败</b>：资源耗尽 + 推理断裂</li>
+      <li><b>Gemma MLX package gen</b>：得 0.7（不完美但跑完 5 tool calls）</li>
+    </ul>
+  </div>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 本地能干</h4>
+      <ul>
+        <li>简单 micro-agent 任务</li>
+        <li>解析 / 总结 / 小编码</li>
+        <li>写文件 + 执行 + 验证</li>
+        <li>工具调用 ≤ 10 次的 agent</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 仍需 cloud</h4>
+      <ul>
+        <li>多轮长对话 agent</li>
+        <li>复杂 reasoning chain</li>
+        <li>> 26 tool calls 任务</li>
+        <li>> 16K context agent</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: TAKEAWAYS -->
+<div class="tab-content" data-tab-content="takeaways">
+  <h2 id="h2-6" class="section">4 个核心 Takeaway（必读）</h2>
+
+  <div class="card">
+    <h4>① MLX 永远赢 <span class="badge green">2×</span></h4>
+    <p><i>"If you're on Mac, always find an MLX model. There's really no debate."</i></p>
+    <p><b>例外</b>：Gemma 4 GGUF 的 prefill speed 比 MLX 更快（小 prompt 时）。</p>
+  </div>
+
+  <div class="card">
+    <h4>② M5 vs M4 = 15-50% <span class="badge yellow">+20% avg</span></h4>
+    <p>平均 ~20% tokens/s，<b>prefill 几乎 double</b>（大 prompt 优势）</p>
+    <p>M5 风扇更安静：35W vs 40W（M4）</p>
+    <p><i>"The M5 doesn't need the performance core — super core 单独搞定"</i></p>
+  </div>
+
+  <div class="card">
+    <h4>③ Context Window = 真正瓶颈 <span class="badge red">8K-16K 极限</span></h4>
+    <p>8K 以下无敌 · 8K-16K 勉强 · 16K+ 回归 cloud</p>
+    <p><b>Cloud 模型虚标 context</b>：标 1M 实际 500-800K；Claude 4.6 是唯一真 1M</p>
+  </div>
+
+  <div class="card">
+    <h4>④ Agentic 工作流本地可行，但有限 <span class="badge purple">8K 内</span></h4>
+    <p>6 任务实测，<b>8K context 内本地能干真活</b></p>
+    <p>适用：micro-agent / 解析 / 总结 / 小编码</p>
+    <p>不适用：长对话 / 长 reasoning / 复杂多步</p>
+  </div>
+</div>
+
+<!-- TAB 6: USABILITY -->
+<div class="tab-content" data-tab-content="usability">
+  <h2 id="h2-7" class="section">适用 / 不适用 场景</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:50%">✅ 本地模型擅长</th><th>❌ 仍需 cloud</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>短总结（&lt; 8K）</td>
+        <td>长文档分析（&gt; 16K）</td>
+      </tr>
+      <tr>
+        <td>代码补全 / 小段生成</td>
+        <td>大型 code review</td>
+      </tr>
+      <tr>
+        <td>单步 micro-agent</td>
+        <td>多轮 reasoning chain</td>
+      </tr>
+      <tr>
+        <td>文件写入 + 执行 + 验证</td>
+        <td>&gt; 26 tool calls 的 agent</td>
+      </tr>
+      <tr>
+        <td>隐私敏感数据（不出设备）</td>
+        <td>SOTA 推理质量（Opus 4 / Sonnet 4）</td>
+      </tr>
+      <tr>
+        <td>offline / 飞机 / 离线开发</td>
+        <td>多模态（image + audio 高质量）</td>
+      </tr>
+      <tr>
+        <td>高 QPS 低成本服务（cheap 模型）</td>
+        <td>产品级准确性要求</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-3">任务分层策略（Dan 的建议）</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🐭 Small / Cheap</h4>
+      <p>本地 SLM 8K context</p>
+      <p>解析、总结、分类、文件操作</p>
+    </div>
+    <div class="card">
+      <h4>🐴 Workhorse</h4>
+      <p>Cloud Sonnet 4 / 等价</p>
+      <p>中等复杂度 agent / 编码</p>
+    </div>
+    <div class="card">
+      <h4>🦁 SOTA</h4>
+      <p>Cloud Opus 4 / 等价</p>
+      <p>复杂 reasoning / 关键决策</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: TIPS -->
+<div class="tab-content" data-tab-content="tips">
+  <h2 id="h2-8" class="section">实用建议（Dan 实战结论）</h2>
+
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>买 M5 Max 直接满配</b>（128GB RAM）— <i>"no purpose in lower tier unless base"</i></li>
+    <li><b>MLX 优先于 GGUF</b>（2x speed up）</li>
+    <li><b>Plug in device</b> — 跑模型耗电极快</li>
+    <li><b>35-50B parameter 是甜点</b> — 准确率 + 速度平衡</li>
+    <li><b>控制 agent harness</b> — 2026 年大主题（Pi coding agent 的 customization）</li>
+    <li><b>任务分层</b> — small / workhorse / SOTA 模型分桶用</li>
+    <li><b>Micro-agent 思维</b> — 复杂任务拆给本地小模型分步做</li>
+  </ol>
+
+  <blockquote>
+    "If you don't need a large model, don't use one. This especially matters for product engineering when you have <b>hundreds, thousands, and hopefully hundreds of thousands of users</b> hitting your service."
+  </blockquote>
+
+  <h3 id="h3-4">Dan 的 2026 预测</h3>
+  <div class="card">
+    <h4>🔮 年底能跑 Sonnet / Opus 4.0 等级</h4>
+    <p><i>"By the end of the year we should be able to run a Sonnet or Opus 4.0 level model on your device."</i></p>
+    <ul>
+      <li>等待 <b>M5 Ultra / M6 Mac Mini</b>（500GB RAM 那个）</li>
+      <li>Gemma 4 已支持 <b>image + audio</b>（待基准）</li>
+      <li>Qwen 3.5 支持 <b>text + image</b>（多模态 SLM 趋势）</li>
+    </ul>
+  </div>
+
+  <blockquote>
+    "Model providers want you and I super, super hooked on their Kool-Aid. The future is agentic — <b>control your harness to control your results.</b>"
+  </blockquote>
+</div>
+
+<!-- TAB 8: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-9" class="section">完整时间线（83 段字幕）</h2>
+  <p style="color: var(--text-mute); font-size: 0.85rem;">从 0:33 到 38:58 的关键节点</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:33</div>
+      <div class="what">Hook：M5 vs M4，MLX 路线</div>
+      <div class="note">"Claude APIs down — I wish I could use private, cheap, fast, performant local models"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:39</div>
+      <div class="what">Cold start 预热</div>
+      <div class="note">first run = loading models into memory</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:33</div>
+      <div class="what">5 metrics 介绍</div>
+      <div class="note">prefill / decode / wall / RAM / accuracy</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:54</div>
+      <div class="what">Live bench UI 介绍</div>
+      <div class="note">multi-device streaming benchmark</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:54</div>
+      <div class="what">🔑 MLX 碾压 GGUF（第一次）</div>
+      <div class="note">M5 Max 比 M4 Max 越来越明显</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what">M5 Qwen MLX: 118 tok/s decode</div>
+      <div class="note">GGUF 60 → MLX 118，几乎 2x</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:03</div>
+      <div class="what">Gemma 4 MLX 16GB RAM 即可</div>
+      <div class="note">极小 footprint，intelligence per parameter</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:13</div>
+      <div class="what">Tokens per second 100+ 的 MLX 变体</div>
+      <div class="note">"fully usable" 阈值是 30 tok/s</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:14</div>
+      <div class="what">🎯 M5 vs M4 = 15-50% 总结</div>
+      <div class="note">5 clearly faster on average</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:14</div>
+      <div class="what">进入 context scaling benchmark</div>
+      <div class="note">graph walks 200→32K</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:38</div>
+      <div class="what">M5 117 tok/s 在 graph walk 8K</div>
+      <div class="note">breadth-first search across graphs</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:11</div>
+      <div class="what">32K 是 SLM 真正 context 极限</div>
+      <div class="note">35B params and below</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:08</div>
+      <div class="what">M5 35W vs M4 40W</div>
+      <div class="note">M4 doing a lot more work</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:48</div>
+      <div class="what">16K context 30 秒等待 = 不可用</div>
+      <div class="note">"it's unusable, frankly just unusable"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:50</div>
+      <div class="what">🎯 Context window = 真正瓶颈</div>
+      <div class="note">falloff starts at 8K-16K</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">27:10</div>
+      <div class="what">进入 Pi coding agent benchmark</div>
+      <div class="note">6 tasks from hello to package gen</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:50</div>
+      <div class="what">任务 1-2: hello world / fib</div>
+      <div class="note">both correct</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:09</div>
+      <div class="what">⚠️ M4 任务 6 放弃</div>
+      <div class="note">1 tool call 后卡死，"非合法结果"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">34:16</div>
+      <div class="what">Local models 可跑 agentic 任务 结论</div>
+      <div class="note">complexity is simpler end for now</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:00</div>
+      <div class="what">Model provider 锁定策略批评</div>
+      <div class="note">"hooked on their Kool-Aid"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">37:53</div>
+      <div class="what">🔮 2026 年底能跑 Sonnet/Opus 4.0 预测</div>
+      <div class="note">等待 M5 Ultra / M6 Mac Mini</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">38:58</div>
+      <div class="what">Closing</div>
+      <div class="note">"Stay focused and keep building"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/indydevdan-m5-mlx-local-stack/</code></p>
+  <p>Desktop: <code>~/Desktop/indydevdan-m5-mlx-local-stack-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=00Y-p62sk0s">https://www.youtube.com/watch?v=00Y-p62sk0s</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+
+  // v1.3.1 TOC active section highlight
+  (function() {
+    const tocLinks = document.querySelectorAll('.toc-list a');
+    if (!tocLinks.length) return;
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('href').slice(1);
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('.toc-list a[href="#' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+</script>
+
+
+  
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

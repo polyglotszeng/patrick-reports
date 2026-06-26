@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="思考力大冒险" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#ff7a59" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23ff7a59'/%3E%3Ctext x='50' y='65' font-size='60' text-anchor='middle' fill='white'%3E🧠%3C/text%3E%3C/svg%3E" />
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Think%20%26%20Quest%20%E2%80%94%20%E6%80%9D%E8%80%83%E5%8A%9B%E5%A4%A7%E5%86%92%E9%99%A9%22%2C%22short_name%22%3A%22%E6%80%9D%E8%80%83%E5%8A%9B%22%2C%22start_url%22%3A%22.%2Fthink-quest.html%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23fffaf3%22%2C%22theme_color%22%3A%22%23ff7a59%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D%2527http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg%2527%2520viewBox%253D%25270%25200%25205100%25200%2527%253E%253Crect%2520width%253D%252710%2527%2520height%253D%252751%2527%2520rx%253D%25270%2527%2520fill%253D%2527%2523ff7a59%2527%252F%253E%253Ctext%2520x%253D%252750%2527%2520y%253D%252765%2527%2520font-size%253D%252760%2527%2520text-anchor%253D%2527middle%2527%2520fill%253D%2527white%2527%253E%F0%9F%A7%A0%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D" />
+  <title>Think & Quest — 思考力大冒险</title>
+  <meta name="description" content="7-12 岁儿童思考力训练 Web App：问题升级阶梯 + 侦探卡 + 反驳赛 + 离线 AI 思考导师（不直接给答案）" />
+  <style>
+    /* ====== iOS Safari critical CSS (内联保证白屏不出现) ====== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Comic Sans MS', system-ui, sans-serif;
+      background: #fffaf3; color: #2c2c2c; line-height: 1.7; min-height: 100vh;
+      padding: 16px; padding-top: max(16px, env(safe-area-inset-top, 16px)); padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+      max-width: 1024px; margin: 0 auto;
+    }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: inherit; }
+    /* Loading 状态：JS 加载完之前显示 */
+    .boot-loading { padding: 40px 16px; text-align: center; color: #888; }
+  </style>
+  <!-- Tailwind CDN (iOS 也能用，但加载慢时用内联 critical CSS 保证不白屏) -->
+  <script src="https://cdn.tailwindcss.com" defer></script>
+  <style>
+    /* ========== 主题色彩 + 基础样式 ========== */
+    :root {
+      --c-primary: #ff7a59;
+      --c-secondary: #ffb84d;
+      --c-accent: #4f8cff;
+      --c-success: #4ade80;
+      --c-bg: #fffaf3;
+      --c-card: #ffffff;
+    }
+    body {
+      font-family: 'Comic Sans MS', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      background: var(--c-bg);
+      min-height: 100vh;
+      color: #2c2c2c;
+    }
+    .card {
+      background: var(--c-card);
+      border-radius: 1.25rem;
+      box-shadow: 0 4px 16px rgba(255, 122, 89, 0.12);
+      padding: 1.25rem;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 122, 89, 0.18);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--c-primary), var(--c-secondary));
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #d65a3a;
+      transition: transform .1s, box-shadow .1s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #d65a3a; }
+    .btn-primary:active { transform: translateY(2px); box-shadow: 0 1px 0 #d65a3a; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--c-primary);
+      border: 2px solid var(--c-primary);
+      border-radius: 999px;
+      padding: 0.5rem 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--c-primary); color: white; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #6b4400;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .star-glow {
+      filter: drop-shadow(0 0 6px #ffd700);
+    }
+    /* 聊天气泡 */
+    .chat-bubble-ai {
+      background: linear-gradient(135deg, #e3f0ff, #f0e8ff);
+      border-radius: 1rem 1rem 1rem 0.25rem;
+      padding: 0.875rem 1.125rem;
+      max-width: 85%;
+      align-self: flex-start;
+      border: 2px solid #c8d8ff;
+    }
+    .chat-bubble-user {
+      background: linear-gradient(135deg, #ffe3d0, #fff0d0);
+      border-radius: 1rem 1rem 0.25rem 1rem;
+      padding: 0.875rem 1.125rem;
+      max-width: 85%;
+      align-self: flex-end;
+      border: 2px solid #ffc99b;
+    }
+    .chat-bubble-child {
+      background: linear-gradient(135deg, #fffce0, #f0ffe0);
+      border-radius: 1rem 1rem 0.25rem 1rem;
+      padding: 0.875rem 1.125rem;
+      max-width: 85%;
+      align-self: flex-end;
+      border: 2px solid #d4e886;
+    }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+    /* 完成状态 */
+    .completed-overlay {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--c-success);
+      color: white;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    /* 雪花/庆祝 */
+    .confetti {
+      position: fixed;
+      top: -10px;
+      pointer-events: none;
+      font-size: 24px;
+      animation: fall 3s linear forwards;
+      z-index: 9999;
+      /* iOS 性能优化 */
+      will-change: transform, opacity;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      contain: layout style;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .confetti { display: none; }
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    /* 难度徽章 */
+    .diff-easy { background: #d1fae5; color: #065f46; }
+    .diff-normal { background: #fef3c7; color: #92400e; }
+    .diff-hard { background: #fee2e2; color: #991b1b; }
+    /* 模式徽章 */
+    .mode-A { background: #dbeafe; color: #1e40af; }
+    .mode-B { background: #fce7f3; color: #9d174d; }
+    .mode-C { background: #e0e7ff; color: #3730a3; }
+    /* 隐藏家长入口 */
+    .parent-hidden { display: none; }
+    /* 模态 */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 1.5rem;
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    input[type="text"], input[type="password"], input[type="number"], textarea, select {
+      border: 2px solid #fed7aa;
+      border-radius: 0.75rem;
+      padding: 0.5rem 0.875rem;
+      width: 100%;
+      font-family: inherit;
+      font-size: 1rem;
+      background: #fffbeb;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--c-primary);
+      background: white;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+  </style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body class="p-4 sm:p-6 max-w-4xl mx-auto">
+
+  <!-- 启动占位：JS 加载完前显示（iOS 慢网情况下避免白屏） -->
+  <div id="boot-loading" class="boot-loading">
+    <div style="font-size:64px;margin-bottom:16px">🧠</div>
+    <h1 style="color:#ff7a59">Think & Quest</h1>
+    <p style="margin-top:8px">思考力大冒险加载中...</p>
+    <p style="margin-top:16px;font-size:12px;color:#aaa">如果长时间不显示，请检查网络或刷新页面</p>
+  </div>
+
+  <!-- 顶部状态栏 -->
+  <header class="card mb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <span class="text-4xl">🧠</span>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-orange-600">Think & Quest</h1>
+        <p class="text-sm text-gray-500">思考力大冒险 · 每天一关 · 越玩越会想</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 text-sm">
+      <div class="badge">⭐ <span id="stat-stars">0</span> 星星</div>
+      <div class="badge">🧪 Lv.<span id="stat-level">1</span></div>
+      <div class="badge">🔥 连续 <span id="stat-streak">0</span> 天</div>
+      <div class="badge">✨ <span id="stat-exp">0</span> EXP</div>
+      <div id="profile-switcher" class="badge" style="cursor:pointer;background:#dbeafe" onclick="openProfileSwitcher()" title="切换孩子">👶 <span id="current-child-name">小冒险家</span> ▾</div>
+    </div>
+  </header>
+
+  <!-- 主内容区 (路由切换) -->
+  <main id="main-content"></main>
+
+  <!-- 模态容器 -->
+  <div id="modal-root"></div>
+
+  <!-- 提示音（可选 - 用 Web Audio 简单合成） -->
+  <script>
+    // =================== 0. 全局状态 + localStorage ===================
+    const STORAGE_KEY = 'think_quest_state_v1';
+    const DEFAULT_PROFILE = {
+      childName: '小冒险家',
+      stars: 0,
+      exp: 0,
+      level: 1,
+      streak: 0,
+      lastDate: null,
+      streakUpdatedOn: null,
+      currentDay: 0,
+      challengeStates: {},
+      difficulty: 'normal',
+      badges: [],
+      voiceInputEnabled: true,
+      voiceOutputEnabled: true,
+      voiceLang: 'zh-CN',
+      voiceRate: 0.95,
+      voicePitch: 1.1,
+    };
+    const DEFAULT_STATE = {
+      // 多孩子支持
+      profiles: { '小冒险家': structuredClone(DEFAULT_PROFILE) },
+      activeProfile: '小冒险家',
+      // 共享设置（不按孩子区分）
+      parentPassword: '1234',
+      aiMode: 'simulated',
+      apiKey: '',
+    };
+
+    // 当前 profile 的快捷引用（每次 render 前更新）
+    let state = null; // { profiles, activeProfile, ... 共享 }
+    function profile() { return state.profiles[state.activeProfile]; }
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(DEFAULT_STATE);
+        const saved = Object.assign(structuredClone(DEFAULT_STATE), JSON.parse(raw));
+        // 兼容老数据：把老 state 字段合并到默认 profile
+        const oldProfile = saved.profiles[saved.activeProfile] || structuredClone(DEFAULT_PROFILE);
+        for (const k of Object.keys(saved)) {
+          if (!(k in DEFAULT_STATE) && !(k in DEFAULT_PROFILE) === false || k in oldProfile === false) {
+            if (k in DEFAULT_PROFILE) oldProfile[k] = saved[k];
+          }
+        }
+        // 重新规范化
+        const merged = structuredClone(DEFAULT_PROFILE);
+        Object.assign(merged, oldProfile);
+        saved.profiles = { '小冒险家': merged };
+        saved.activeProfile = '小冒险家';
+        return saved;
+      } catch (e) {
+        return structuredClone(DEFAULT_STATE);
+      }
+    }
+    // 原始 state 引用（持有真实数据）
+    let _state = null;
+    function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(_state)); }
+    _state = loadState();
+
+    // =================== 0.5 多孩子支持：state proxy ===================
+    // 把所有对 state.<profile-field> 的访问/修改都代理到当前 profile
+    // 这样代码可以继续用 state.stars / state.childName / state.challengeStates
+    // 而不需要重写几百处引用
+    const SHARED_KEYS = new Set(['profiles', 'activeProfile', 'parentPassword', 'aiMode', 'apiKey']);
+    const state = new Proxy({}, {
+      get(target, key) {
+        if (key === Symbol.toPrimitive || key === 'toString' || typeof key === 'symbol') return undefined;
+        if (SHARED_KEYS.has(key)) return _state[key];
+        const p = _state.profiles[_state.activeProfile];
+        return p ? p[key] : undefined;
+      },
+      set(target, key, value) {
+        if (SHARED_KEYS.has(key)) {
+          _state[key] = value;
+        } else {
+          if (!_state.profiles[_state.activeProfile]) {
+            _state.profiles[_state.activeProfile] = structuredClone(DEFAULT_PROFILE);
+          }
+          _state.profiles[_state.activeProfile][key] = value;
+        }
+        return true;
+      },
+      has(target, key) {
+        if (key === Symbol.toPrimitive || typeof key === 'symbol') return false;
+        if (SHARED_KEYS.has(key)) return true;
+        return key in (_state.profiles[_state.activeProfile] || {});
+      },
+      deleteProperty(target, key) {
+        if (SHARED_KEYS.has(key)) delete _state[key];
+        else if (_state.profiles[_state.activeProfile]) delete _state.profiles[_state.activeProfile][key];
+        return true;
+      }
+    });
+
+    // 工具函数：保存当前 profile 引用
+    function profile() { return _state.profiles[_state.activeProfile]; }
+    function switchProfile(name) {
+      if (!_state.profiles[name]) {
+        _state.profiles[name] = structuredClone(DEFAULT_PROFILE);
+        _state.profiles[name].childName = name;
+      }
+      _state.activeProfile = name;
+      saveState();
+    }
+    function createProfile(name) {
+      if (_state.profiles[name]) return false;
+      switchProfile(name);
+      return true;
+    }
+    function deleteProfile(name) {
+      if (Object.keys(_state.profiles).length <= 1) return false; // 至少保留 1 个
+      delete _state.profiles[name];
+      if (_state.activeProfile === name) {
+        _state.activeProfile = Object.keys(_state.profiles)[0];
+      }
+      saveState();
+      return true;
+    }
+    function listProfiles() { return Object.keys(_state.profiles); }
+
+    // 把关键对象暴露到 window 便于调试 / 测试
+    if (typeof window !== 'undefined') {
+      window._state = _state;
+      window.state = state;
+      window.profile = profile;
+    }
+
+    // =================== 1. 关卡数据（初始 3 关 + 之后可扩展） ===================
+    const LEVELS = [
+      // Day 1: 神奇的影子
+      {
+        id: 0,
+        title: '神奇的影子',
+        icon: '🔦',
+        hint: '为什么影子会偷偷跟着你，又偷偷跑掉？',
+        category: 'physics-light',
+        challenges: {
+          C: {  // 提问升级
+            title: '提问挑战 · 升级你的问题',
+            original: '为什么影子会变长变短？',
+            prompt: '这是个不错的问题！但它还可以变得更"尖锐"。来，试试看：',
+            example: '如果地球是立方体，影子会长什么样？'
+          },
+          A: {  // 侦探挑战
+            title: '侦探挑战 · 影子中午最短吗？',
+            original: '我猜影子中午最短。',
+            topic: 'shadows'
+          },
+          B: {  // 反驳挑战
+            title: '反驳挑战 · 影子真的没用吗？',
+            original: '影子是没有用的东西。',
+            topic: 'shadows-useful'
+          }
+        }
+      },
+      // Day 2: 动物的超能力
+      {
+        id: 1,
+        title: '动物的超能力',
+        icon: '🦎',
+        hint: '变色龙会变颜色，蝙蝠会"看见"声音，下一个超能力会是什么？',
+        category: 'biology-animals',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '为什么变色龙会变色？',
+            prompt: '这是一个关于"原因"的问题。我们能不能问得更深？',
+            example: '假如人类也能像变色龙一样变色，世界会变成什么样？'
+          },
+          A: {
+            title: '侦探挑战 · 变色龙是看到什么就变什么吗？',
+            original: '我猜变色龙是看到什么颜色就变成什么颜色。',
+            topic: 'chameleon-color'
+          },
+          B: {
+            title: '反驳挑战 · 蝙蝠的眼睛是多余的？',
+            original: '蝙蝠既然能用"耳朵"看东西，眼睛就没用了。',
+            topic: 'bat-eyes-useless'
+          }
+        }
+      },
+      // Day 3: 为什么是圆的
+      {
+        id: 2,
+        title: '为什么是圆的',
+        icon: '⚽',
+        hint: '球、太阳、月亮、甜甜圈、泡泡……为什么这么多东西都是圆的？',
+        category: 'geometry-shapes',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '为什么球是圆的？',
+            prompt: '"圆的"背后藏着什么秘密？',
+            example: '假如水珠不是圆的，世界会怎样？'
+          },
+          A: {
+            title: '侦探挑战 · 泡泡一定是圆的吗？',
+            original: '我猜泡泡一定是圆的。',
+            topic: 'bubble-shape'
+          },
+          B: {
+            title: '反驳挑战 · 圆就是最完美的形状？',
+            original: '圆形是世界上最好的形状。',
+            topic: 'circle-perfect'
+          }
+        }
+      },
+      // Day 4: 数字的魔法
+      {
+        id: 3,
+        title: '数字的魔法',
+        icon: '🔢',
+        hint: '为什么我们用 0~9 这十个数字？它们真的够用吗？',
+        category: 'math-numbers',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '数字有什么用？',
+            prompt: '数字不只用来数数，还能做什么？',
+            example: '如果没有"0"，世界会变成什么样？'
+          },
+          A: {
+            title: '侦探挑战 · 罗马数字够用吗？',
+            original: '我猜罗马数字比阿拉伯数字好。',
+            topic: 'roman-numerals'
+          },
+          B: {
+            title: '反驳挑战 · 数学是发明还是发现？',
+            original: '数学是人们"发明"出来的。',
+            topic: 'math-invented'
+          }
+        }
+      },
+      // Day 5: 看不见的空气
+      {
+        id: 4,
+        title: '看不见的空气',
+        icon: '💨',
+        hint: '你看不见它，但风、声音、你的呼吸都靠它——空气到底是什么？',
+        category: 'chemistry-air',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '空气是什么？',
+            prompt: '看不见的东西就真的不存在吗？',
+            example: '如果空气突然消失 5 秒，世界会怎样？'
+          },
+          A: {
+            title: '侦探挑战 · 空气有重量吗？',
+            original: '我猜空气没有重量，因为感觉不到。',
+            topic: 'air-weight'
+          },
+          B: {
+            title: '反驳挑战 · 空气是"物质"吗？',
+            original: '空气不是真正的物质，因为它摸不着。',
+            topic: 'air-matter'
+          }
+        }
+      },
+      // Day 6: 时间的秘密
+      {
+        id: 5,
+        title: '时间的秘密',
+        icon: '⏰',
+        hint: '你每天都跟着它走，但你看不见它——时间到底是什么？',
+        category: 'physics-time',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '时间是什么？',
+            prompt: '时间像水一样流吗？还是根本不"流"？',
+            example: '如果没有时间，世界会怎样？'
+          },
+          A: {
+            title: '侦探挑战 · 沙漏能准确计时吗？',
+            original: '我猜沙漏和钟表一样准。',
+            topic: 'hourglass-accuracy'
+          },
+          B: {
+            title: '反驳挑战 · 时间对每个人都是公平的？',
+            original: '时间对每个人都一样公平。',
+            topic: 'time-fair'
+          }
+        }
+      },
+      // Day 7: 钱的过去与未来
+      {
+        id: 6,
+        title: '钱的过去与未来',
+        icon: '💰',
+        hint: '从贝壳到纸币到手机支付——钱是怎么变成今天这样的？',
+        category: 'history-economics',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '钱是从哪里来的？',
+            prompt: '钱真的是"东西"吗？',
+            example: '如果全世界都改用贝壳当钱，会发生什么？'
+          },
+          A: {
+            title: '侦探挑战 · 最早的"钱"是金属吗？',
+            original: '我猜最早的"钱"是金属做的。',
+            topic: 'first-money'
+          },
+          B: {
+            title: '反驳挑战 · 钱越多越幸福？',
+            original: '钱越多，人就越幸福。',
+            topic: 'money-happiness'
+          }
+        }
+      },
+      // Day 8: 记忆的奥秘
+      {
+        id: 7,
+        title: '记忆的奥秘',
+        icon: '🧠',
+        hint: '你能想起昨天吃了什么，但忘了一周前的午饭——记忆是怎么工作的？',
+        category: 'psychology-memory',
+        challenges: {
+          C: {
+            title: '提问挑战 · 升级你的问题',
+            original: '记忆是什么？',
+            prompt: '记忆像录像机吗？还是更像"重新编"出来的？',
+            example: '如果我们能记住所有事，世界会变好还是变坏？'
+          },
+          A: {
+            title: '侦探挑战 · 重复次数 = 记忆？',
+            original: '我猜重复 10 次就能永远记住。',
+            topic: 'repetition-memory'
+          },
+          B: {
+            title: '反驳挑战 · 记忆就是真实发生过的事？',
+            original: '记忆里的事，都是真实发生过的。',
+            topic: 'memory-truth'
+          }
+        }
+      }
+    ];
+
+    // =================== 2. 模拟 AI 引擎（核心教育逻辑） ===================
+    /*
+     * 三种模式必须严格遵守：
+     *  - 模式 A（侦探）：肯定 → 2-3 线索 → 1 个动手任务 → 开放问题
+     *  - 模式 B（反驳）：开场 → 2 条"但是" → 追问 → 不站队
+     *  - 模式 C（提问升级）：重复原问题 → 3 个引导问题（事实/假设/价值）→ 邀请改写
+     *
+     * 难度影响：easy 用词更直白，hard 加深一点。
+     * 关键词检测 → 命中主题后插入具体素材。
+     */
+    const KEYWORD_HINTS = {
+      'shadows': {
+        clues: [
+          '影子需要"光"和"挡光的东西"，缺一不可。',
+          '影子是"形状"，不是"颜色"——它会保留挡光物体的轮廓。',
+          '光源越高、越近（比如正午太阳），影子越短；光源越斜、越远，影子越长。',
+        ],
+        experiment: '用手电筒 + 一支铅笔模拟太阳和旗杆。把手电筒从正上方慢慢倾斜到侧面，观察铅笔影子的长度变化。',
+        openQuestion: '你做完后，影子的"长度"和手电筒的"倾斜角度"有什么关系？'
+      },
+      'shadows-useful': {
+        rebuttals: [
+          '古人用日晷（"太阳的影子钟"）来计时。没有影子，就没有日晷。',
+          '皮影戏用影子讲故事，影子是主角，演员反而躲在幕后。',
+          '有些动物会躲在影子下避暑，影子是它们的"遮阳伞"。',
+        ],
+        refine: '你还想说"影子没用"吗？如果改一改，你会怎么说？'
+      },
+      'chameleon-color': {
+        clues: [
+          '变色龙变色的主要原因是"情绪"和"温度"，不是"看到什么颜色就变成什么颜色"。',
+          '它们的皮肤里有特殊的"光子晶体"，通过改变结构来反射不同颜色的光。',
+          '科学家发现，有些变色龙在"完全黑暗"里也能变色——这说明不是模仿背景。',
+        ],
+        experiment: '用白色和黑色的纸各做一只"小变色龙"。在房间里开灯、关灯，看看纸的颜色变了吗？（提示：变色龙变色的不是颜料，是皮肤里的特殊结构。）',
+        openQuestion: '如果变色龙变色的目的不是"隐藏自己"，你觉得可能是为了什么？'
+      },
+      'bat-eyes-useless': {
+        rebuttals: [
+          '蝙蝠在光线明亮时确实主要用眼睛看东西，回声定位只在黑暗中启动。',
+          '很多蝙蝠视力很好，能在日间捕食蝴蝶、飞蛾。',
+          '只用一种感官很危险——如果回声被什么挡住了（柔软的毛、蛾子的绒毛），眼睛就是"备份系统"。',
+        ],
+        refine: '现在你觉得蝙蝠的眼睛是"没用"还是"重要备份"？'
+      },
+      'bubble-shape': {
+        clues: [
+          '泡泡里面的东西（气体）在"用力"往外推，这就是"气压"。',
+          '液体表面有一种力量叫"表面张力"，它喜欢让液体"缩成最小"。',
+          '在同样体积下，"球形"是表面积最小的形状——所以泡泡总是圆的（或近似圆）。',
+        ],
+        experiment: '用铁丝做一个正方体框，蘸上肥皂水。慢慢拿出来，观察：它一定会变成球吗？如果是，为什么？',
+        openQuestion: '为什么水滴、星星（大多数）、行星也几乎都是球形？和泡泡是同一个原因吗？'
+      },
+      'circle-perfect': {
+        rebuttals: [
+          '圆不能"堆叠"——球和球之间会有空隙，所以装水果用方盒子反而更省空间。',
+          '圆形的东西"滚动容易，停止难"——轮子省力，但桌面、书本、砖块不能是圆的。',
+          '在不同方向上，圆"每个方向都一样"——这有时是优点（比如车轮），有时是缺点（比如没有"头"和"尾"指向）。',
+        ],
+        refine: '你还想说圆形是"最好的"形状吗？换一种说法你会怎么说？'
+      },
+      // Day 4: 数字的魔法
+      'roman-numerals': {
+        clues: [
+          '罗马数字没有"0"，这让"加减乘除"特别难算。',
+          '阿拉伯数字用了"位值"（十位、百位、千位），同样的符号 1 在不同位置表示不同大小。',
+          '古代很多文明（玛雅、中国、罗马）都独立发明过位值系统，但带"0"的位值系统是印度 → 阿拉伯世界 → 欧洲传过去的。',
+        ],
+        experiment: '用 I, V, X, L, C, D, M 写出"2026"。然后试着用它做 "2026 + 1" — 看看有多麻烦。',
+        openQuestion: '阿拉伯数字最大的好处不是"少"，而是"好算"。你能想到它让什么变简单了？'
+      },
+      'math-invented': {
+        rebuttals: [
+          '但是"勾股定理"在人类出生前就成立——古巴比伦人没发现它，地球上的勾股关系照样存在。',
+          '但是数学家用"发明"的方式（比如符号、表示法）来描述"发现"的关系——就像地图是"发明"的，但山是"发现"的。',
+        ],
+        refine: '如果数学既是被发明的（符号），也是被发现的（规律），你会怎么重新描述你的观点？'
+      },
+      // Day 5: 看不见的空气
+      'air-weight': {
+        clues: [
+          '1 升空气大约重 1.2 克——轻，但不是"零重量"。',
+          '地球上的空气总重量大约 5,000,000,000,000,000 吨——这就是"大气压"的来源。',
+          '科学家用"天平 + 抽气泵"测过：抽掉容器里的空气后，容器变轻了。',
+        ],
+        experiment: '找两个一样大的气球，吹起一个、另一个不吹。把它们挂在棍子两端看哪边重。',
+        openQuestion: '为什么我们感觉不到空气的重量？它真的"压"在我们身上吗？'
+      },
+      'air-matter': {
+        rebuttals: [
+          '但是"摸不着"不等于"不存在"——磁力、Wi-Fi、引力也都摸不着，但科学家用实验证明它们存在。',
+          '但是空气有体积（占据空间）、有质量（有重量），符合"物质"的定义。它"摸不着"是因为它流动太快。',
+        ],
+        refine: '你"摸不着"的标准能改一改吗？什么东西你摸不着但你相信它存在？'
+      },
+      // Day 6: 时间的秘密
+      'hourglass-accuracy': {
+        clues: [
+          '沙漏的时间取决于沙子的颗粒大小、湿度、漏孔大小——所以每个沙漏其实略有不同。',
+          '如果沙漏漏了 1 小时后颠倒，第二次的 1 小时可能比第一次短几秒。',
+          '原子钟（用原子振动计时）30 亿年才误差 1 秒——沙漏的精度比它低 100 万倍。',
+        ],
+        experiment: '用家里的沙漏（或自己做一个）和手机计时器对一下，看看 1 小时差多少。',
+        openQuestion: '为什么古代人不用沙漏做科学实验？因为它不够"准"吗？'
+      },
+      'time-fair': {
+        rebuttals: [
+          '但是每个人感觉的 1 小时不一样——玩游戏 1 小时像 5 分钟，考试 1 小时像一辈子。',
+          '但是有钱人能用钱"买"时间（请人做饭、坐飞机），穷人只能花更多时间通勤、排队。时间不是"一样多"，是"不一样贵"。',
+        ],
+        refine: '如果时间不一定对每个人都"公平"，你会怎么重新说？'
+      },
+      // Day 7: 钱的过去与未来
+      'first-money': {
+        clues: [
+          '最早的"钱"不是金属，是贝壳、石头、盐、牲畜——任何大家愿意接受的东西都曾是"钱"。',
+          '中国在商朝（约 3500 年前）开始用贝壳做钱；金属钱币是后来才出现的。',
+          '现在数字货币（手机里的余额）连"东西"都不是了——它只是银行电脑里的数字。',
+        ],
+        experiment: '用 3 张纸条画"贝壳"、"金元宝"、"手机付款"，排一个时间顺序。',
+        openQuestion: '如果未来的"钱"连数字都不是（只是 AI 之间的协议），你觉得它还叫"钱"吗？'
+      },
+      'money-happiness': {
+        rebuttals: [
+          '但是科学家发现，钱超过一定额度后（约年收入 7.5 万美元），再多也不能增加幸福感——这叫"幸福天花板"。',
+          '但是钱带来"选择"不等于"满足"——很多人有钱了反而失眠、焦虑、家人疏远。',
+        ],
+        refine: '你想改成什么？"钱是幸福的必要条件"？"钱是安全感"？或者别的？'
+      },
+      // Day 8: 记忆的奥秘
+      'repetition-memory': {
+        clues: [
+          '记忆不是"录像带"——它每次被想起都会被"重新编辑"一次。',
+          '重复确实能增强记忆（这叫"练习效应"），但"永远记住"几乎不可能——遗忘是大脑的设计，不是 bug。',
+          '如果大脑什么都不忘，存储所有信息会让我们瘫痪——就像电脑硬盘装满就卡死。',
+        ],
+        experiment: '今天记一个外语单词，明天复习 1 次，后天复习 1 次。1 周后看还能记住吗？',
+        openQuestion: '如果"忘记"其实是好事，那为什么老师要让我们"多记"？'
+      },
+      'memory-truth': {
+        rebuttals: [
+          '但是心理学实验发现，人的"记忆"会随着时间被"改写"——比如"目击证人"会记错嫌疑人的衣服颜色。',
+          '但是科学家发现，记忆更像"重新编的故事"——每次想起，大脑都会"填充细节"，填的部分可能是想象。',
+        ],
+        refine: '如果记忆不一定是"真的"，你怎么看"日记"和"回忆录"？'
+      }
+    };
+
+    function pickTopicFromText(text) {
+      const t = (text || '').toLowerCase();
+      for (const key of Object.keys(KEYWORD_HINTS)) {
+        if (t.includes(key.split('-')[0])) return key;
+      }
+      return null;
+    }
+
+    const SIMULATED_AI = {
+      // 模式 A：侦探挑战
+      async handleDetective(userText, ctx) {
+        const hint = KEYWORD_HINTS[ctx.topic] || {
+          clues: [
+            '好的猜想是科学的第一步——你已经迈出这一步了。',
+            '把问题拆成"看得见"和"看不见"两个部分，往往能找到线索。',
+            '记录下"什么变了"和"什么没变"，这是侦探的核心技能。',
+          ],
+          experiment: '找两样家里的东西（比如一杯水和一本厚书），分别放在灯光下。猜猜谁的影子更深？为什么？',
+          openQuestion: '你做完实验，最让你惊讶的是什么？'
+        };
+        const difficulty = ctx.difficulty || 'normal';
+        const extra = difficulty === 'hard' ? '（提示：想想"控制变量"——一次只改一个因素。）' : '';
+        const lines = [
+          `🤔 这个猜想很有意思！${userText ? `你说："${userText}"。` : ''}`,
+          '',
+          '🔍 侦探线索：',
+          ...hint.clues.map((c, i) => `  ${i + 1}. ${c}`),
+          '',
+          `🛠️ 动手小任务：${hint.experiment}${extra}`,
+          '',
+          `❓ ${hint.openQuestion}`
+        ];
+        return lines.join('\n');
+      },
+
+      // 模式 B：反驳挑战
+      async handleDebate(userText, ctx) {
+        const hint = KEYWORD_HINTS[ctx.topic] || {
+          rebuttals: [
+            '但如果所有东西都是这样的，世界会缺少"变化"——有时候不同才有趣。',
+            '但你可能忽略了一个角度：它对某些人有用，对另一些人却没用。',
+          ],
+          refine: '看了这两条反驳，你想怎么修改你的观点？'
+        };
+        const lines = [
+          '🤺 让我试着反驳你的观点，只是为了帮你想得更全面。',
+          '',
+          ...hint.rebuttals.map(r => `  • ${r}`),
+          '',
+          `❓ ${hint.refine}`
+        ];
+        return lines.join('\n');
+      },
+
+      // 模式 C：提问升级
+      async handleQuestion(userText, ctx) {
+        const levelQ = ctx.difficulty === 'easy' ? [
+          '这是个关于"事实"的问题：是什么？在哪里？什么时候？',
+          '这是个关于"原因"的问题：为什么这样？是什么让它这样？',
+          '这是个关于"假如"的问题：如果情况变了，会怎样？',
+        ] : ctx.difficulty === 'hard' ? [
+          '事实型：这件事客观上是什么样的？有没有数字或证据？',
+          '因果型：背后的机制是什么？哪些因素在起作用？',
+          '价值型：如果这件事变了，对谁有益？对谁有害？',
+        ] : [
+          '事实型：它具体是什么？长什么样？在哪里？',
+          '原因型：为什么是这样？是什么导致了它？',
+          '价值型：这重要吗？对谁重要？好的方面和不好的方面？',
+        ];
+        const lines = [
+          `📝 你原来的问题是："${userText}"`,
+          '',
+          '🤔 这个问题可以走三个方向，你想往哪个方向走？',
+          ...levelQ.map(q => `  → ${q}`),
+          '',
+          '你可以把原问题改成上面任意一个更具体的问题，我会继续陪你思考。'
+        ];
+        return lines.join('\n');
+      },
+
+      // 通用：没识别到模式时
+      async handleGeneric(userText) {
+        return [
+          `你说："${userText}"`,
+          '',
+          '👀 我注意到了。让我陪你再想想：',
+          '  • 你观察到的"事实"是什么？',
+          '  • 你猜测的"原因"是什么？',
+          '  • 如果这样，有没有什么"小实验"可以验证？',
+          '',
+          '告诉我你想到的，我们继续~'
+        ].join('\n');
+      }
+    };
+
+    // 模式路由器
+    async function aiRespond(mode, userText, ctx) {
+      // 如果用户配了 OpenAI Key，用真 AI
+      if (state.aiMode === 'openai' && state.apiKey) {
+        try {
+          return await callOpenAI(mode, userText, ctx);
+        } catch (e) {
+          return `（真实 AI 调用失败，已自动切换到模拟模式。错误：${e.message}）\n\n` + await pickSimulated(mode, userText, ctx);
+        }
+      }
+      return await pickSimulated(mode, userText, ctx);
+    }
+
+    async function pickSimulated(mode, userText, ctx) {
+      if (mode === 'A') return SIMULATED_AI.handleDetective(userText, ctx);
+      if (mode === 'B') return SIMULATED_AI.handleDebate(userText, ctx);
+      if (mode === 'C') return SIMULATED_AI.handleQuestion(userText, ctx);
+      return SIMULATED_AI.handleGeneric(userText);
+    }
+
+    // 真实 AI 调用（OpenAI 兼容）
+    async function callOpenAI(mode, userText, ctx) {
+      const sysPrompts = {
+        A: '你是一位"思考导师"，正在帮 7-12 岁的孩子做侦探挑战。规则：1) 先肯定孩子的猜想；2) 给 2-3 条简短线索；3) 给一个可在家用常见材料（手电筒/纸/水杯）做的小实验；4) 结尾问一个开放问题。绝不直接给答案。',
+        B: '你是一位"思考导师"，正在帮 7-12 岁孩子练习反驳。规则：1) 开场说"让我试着反驳你的观点"；2) 列出 2 条以"但是"开头的反驳；3) 询问孩子如何修正观点；4) 严禁说"你是对的"或"你是错的"。',
+        C: '你是一位"思考导师"，正在帮 7-12 岁孩子升级问题。规则：1) 重复孩子原问题；2) 给出 3 个引导性问题（事实/原因/价值）；3) 邀请孩子改写问题。',
+      };
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: sysPrompts[mode] || sysPrompts.A },
+            { role: 'user', content: userText }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      });
+      if (!res.ok) throw new Error(`OpenAI ${res.status}`);
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    // =================== 3. 游戏化 ===================
+    function addExp(n) {
+      state.exp += n;
+      // 等级 = 1 + exp / 100
+      state.level = 1 + Math.floor(state.exp / 100);
+    }
+    function addStars(n) {
+      state.stars += n;
+    }
+    function checkBadges() {
+      const earned = new Set(state.badges);
+      if (state.stars >= 3) earned.add('🌟 新手侦探');
+      if (state.stars >= 10) earned.add('🥉 初级思考者');
+      if (state.stars >= 20) earned.add('🥈 中级思考者');
+      if (state.stars >= 50) earned.add('🥇 金牌反驳手');
+      if (state.streak >= 7) earned.add('🔥 七日坚持');
+      if (state.streak >= 30) earned.add('🏆 月度大师');
+      // 统计反驳挑战
+      let debateCount = 0;
+      Object.values(state.challengeStates).forEach(d => {
+        if (d.B && d.B.completed) debateCount++;
+      });
+      if (debateCount >= 5) earned.add('💬 反驳高手');
+      // 统计提问升级
+      let questionCount = 0;
+      Object.values(state.challengeStates).forEach(d => {
+        if (d.C && d.C.completed) questionCount++;
+      });
+      if (questionCount >= 5) earned.add('❓ 问题大师');
+      state.badges = Array.from(earned);
+    }
+    function updateStreak() {
+      const today = new Date().toISOString().slice(0, 10);
+      if (state.streakUpdatedOn === today) return;
+      if (!state.streakUpdatedOn) {
+        state.streak = 1;
+      } else {
+        const last = new Date(state.streakUpdatedOn);
+        const now = new Date(today);
+        const diff = Math.round((now - last) / (1000 * 60 * 60 * 24));
+        if (diff === 1) state.streak += 1;
+        else if (diff > 1) state.streak = 1;
+      }
+      state.streakUpdatedOn = today;
+      saveState();
+    }
+
+    function celebrate() {
+      // 撒花动画 - iOS 性能考虑减少到 15 个
+      const emojis = ['🎉', '⭐', '🌟', '✨', '💫', '🎊', '🏆'];
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const count = isIOS ? 15 : 30;
+      for (let i = 0; i < count; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.animationDelay = (Math.random() * 0.5) + 's';
+        c.style.animationDuration = (2 + Math.random() * 2) + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 4000);
+      }
+    }
+
+    function beep() {
+      try {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return;
+        const ctx = new AudioCtor();
+        // iOS Safari: AudioContext 默认 suspended，需要用户交互
+        if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+        // iOS: 立即关闭释放资源
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 500);
+      } catch (e) {}
+    }
+
+    // =================== 4. 视图渲染 ===================
+    function render() {
+      // iOS 友好：首次 render 隐藏 boot-loading
+      const boot = document.getElementById('boot-loading');
+      if (boot) boot.style.display = 'none';
+      updateStreak();
+      saveState();
+      updateHeader();
+      const main = document.getElementById('main-content');
+      const raw = location.hash.slice(1) || 'home';
+      // 路由: 拿 ? 前的路径（避免 "challenge?mode=A" 不匹配 "challenge"）
+      const hash = raw.split('?')[0];
+      if (hash === 'home') main.innerHTML = viewHome();
+      else if (hash === 'challenge') main.innerHTML = viewChallenge();
+      else if (hash === 'history') main.innerHTML = viewHistory();
+      else if (hash === 'parent') main.innerHTML = viewParent();
+      else if (hash === 'badges') main.innerHTML = viewBadges();
+      else if (hash === 'settings') main.innerHTML = viewSettings();
+      else main.innerHTML = viewHome();
+      bindViewEvents();
+    }
+
+    function updateHeader() {
+      document.getElementById('stat-stars').textContent = state.stars;
+      document.getElementById('stat-level').textContent = state.level;
+      document.getElementById('stat-streak').textContent = state.streak;
+      document.getElementById('stat-exp').textContent = state.exp;
+      const childEl = document.getElementById('current-child-name');
+      if (childEl) childEl.textContent = state.childName || '小冒险家';
+    }
+
+    // =================== 4.1 首页 ===================
+    function viewHome() {
+      const day = LEVELS[state.currentDay % LEVELS.length];
+      const dayState = state.challengeStates[day.id] || {};
+      const A = dayState.A || {};
+      const B = dayState.B || {};
+      const C = dayState.C || {};
+      const allDone = A.completed && B.completed && C.completed;
+
+      const pastDays = Object.keys(state.challengeStates)
+        .filter(k => state.challengeStates[k].A || state.challengeStates[k].B || state.challengeStates[k].C)
+        .map(k => parseInt(k))
+        .sort((a, b) => b - a);
+
+      return `
+        <section class="card mb-4 text-center" style="background: linear-gradient(135deg, #fff0e0, #ffe8c8);">
+          <div class="text-6xl mb-2 pulse">${day.icon}</div>
+          <h2 class="text-3xl font-extrabold text-orange-700 mb-2">第 ${day.id + 1} 天 · ${day.title}</h2>
+          <p class="text-gray-700 italic">"${day.hint}"</p>
+          <p class="text-sm text-gray-500 mt-2">难度: <span class="badge diff-${state.difficulty}">${({easy:'简单', normal:'普通', hard:'困难'})[state.difficulty]}</span></p>
+        </section>
+
+        <div class="grid sm:grid-cols-3 gap-3 mb-4">
+          ${challengeCard('C', '❓ 提问挑战', '把普通问题升级成"尖锐问题"', day.challenges.C, C)}
+          ${challengeCard('A', '🔍 侦探挑战', '猜想 → 实验 → 验证', day.challenges.A, A)}
+          ${challengeCard('B', '💬 反驳挑战', '你的观点 vs 思考导师反驳', day.challenges.B, B)}
+        </div>
+
+        <div class="card flex flex-wrap gap-3 justify-center">
+          <button class="btn-primary" onclick="goChallenge('C')">${C.completed ? '✅ 再看一次' : '开始提问挑战'}</button>
+          <button class="btn-primary" onclick="goChallenge('A')">${A.completed ? '✅ 再看一次' : '开始侦探挑战'}</button>
+          <button class="btn-primary" onclick="goChallenge('B')">${B.completed ? '✅ 再看一次' : '开始反驳挑战'}</button>
+          ${allDone ? `<button class="btn-ghost" onclick="nextDay()">➡️ 下一关</button>` : ''}
+        </div>
+
+        <div class="card mt-4">
+          <h3 class="font-bold text-lg mb-3">📅 过往关卡</h3>
+          ${pastDays.length === 0
+            ? '<p class="text-sm text-gray-500">还没有完成的关卡。完成今天的 3 个挑战后会出现在这里。</p>'
+            : `<div class="flex flex-wrap gap-2">${pastDays.map(d => {
+                const ld = LEVELS[d];
+                if (!ld) return '';
+                return `<button class="btn-ghost text-sm" onclick="goDay(${d})">${ld.icon} Day ${d + 1}: ${ld.title}</button>`;
+              }).join('')}</div>`
+          }
+          <div class="mt-4 flex gap-2">
+            <button class="btn-ghost text-sm" onclick="goHash('history')">📜 完整记录</button>
+            <button class="btn-ghost text-sm" onclick="goHash('badges')">🏅 勋章</button>
+            <button class="btn-ghost text-sm" onclick="unlockParent()">🔒 家长入口</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function challengeCard(mode, title, desc, def, st) {
+      const modeName = mode === 'A' ? '模式 A' : mode === 'B' ? '模式 B' : '模式 C';
+      const cls = `mode-${mode}`;
+      return `
+        <div class="card relative">
+          ${st.completed ? '<div class="completed-overlay">✅ 已完成</div>' : ''}
+          <div class="text-xs font-bold ${cls} inline-block px-2 py-0.5 rounded-full mb-2">${modeName}</div>
+          <h3 class="text-xl font-extrabold mb-1">${title}</h3>
+          <p class="text-sm text-gray-600">${desc}</p>
+          <p class="text-xs text-gray-400 mt-2 italic">"${def.original}"</p>
+        </div>
+      `;
+    }
+
+    // =================== 4.2 挑战界面 ===================
+    function viewChallenge() {
+      const url = new URLSearchParams(location.hash.split('?')[1] || '');
+      const mode = url.get('mode') || 'A';
+      const day = LEVELS[state.currentDay % LEVELS.length];
+      const def = day.challenges[mode];
+      const st = (state.challengeStates[day.id] && state.challengeStates[day.id][mode]) || { guess: '', chat: [], completed: false };
+
+      return `
+        <section class="card mb-3">
+          <button class="btn-ghost text-sm mb-2" onclick="goHash('home')">← 返回首页</button>
+          <h2 class="text-2xl font-extrabold text-orange-700">${day.icon} ${day.title}</h2>
+          <h3 class="text-lg font-bold mt-2">${def.title}</h3>
+          <p class="text-sm text-gray-600 mt-2">
+            ${mode === 'A'
+              ? '提出你的猜想，思考导师会给你 3 条线索 + 1 个小实验。'
+              : mode === 'B'
+                ? '说出你的观点，思考导师会给你 2 条反驳，然后帮你修正。'
+                : '说出你的原始问题，思考导师会帮你把它升级为更尖锐的问题。'}
+          </p>
+        </section>
+
+        <section class="card mb-3">
+          <h4 class="font-bold mb-2">💬 和思考导师对话</h4>
+          <div id="chat-container" class="chat-container bg-orange-50 rounded-xl mb-3">
+            ${renderChat(st.chat || [])}
+          </div>
+          <div class="flex gap-2">
+            <input id="chat-input" type="text" placeholder="${mode === 'A' ? '输入你的猜想...' : mode === 'B' ? '输入你的观点...' : '输入你想问的问题...'}" onkeydown="if(event.key==='Enter') sendChat('${mode}')" />
+            <button id="mic-btn" class="btn-ghost" onclick="toggleMic('${mode}')" title="语音输入" style="padding: 0.5rem 0.75rem; ${state.voiceInputEnabled === false || !SR ? 'display:none' : ''}">🎤</button>
+            <button class="btn-primary" onclick="sendChat('${mode}')">发送</button>
+          </div>
+          <div class="flex gap-2 items-center mt-2">
+            <label class="text-xs text-gray-500 flex items-center gap-1">
+              <input type="checkbox" id="tts-toggle" ${state.voiceOutputEnabled !== false ? 'checked' : ''} onchange="state.voiceOutputEnabled = this.checked; saveState();">
+              <span>🔊 思考导师朗读回复</span>
+            </label>
+            <button id="tts-stop-btn" class="text-xs text-gray-500 underline" onclick="stopSpeak()" style="background:none;border:none;cursor:pointer;padding:0">⏹ 停止</button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">💡 提示：可以打字，也可以按 🎤 说话。AI 回复会自动朗读出来。</p>
+        </section>
+
+        <section class="card mb-3">
+          <h4 class="font-bold mb-2">📝 ${mode === 'B' ? '我的修正观点' : '我的猜想/结论'}</h4>
+          <textarea id="guess-input" placeholder="${mode === 'A' ? '我做完实验后发现...' : mode === 'B' ? '看了反驳后，我想改成...' : '我升级后的问题：...'}" oninput="saveGuess('${mode}')">${escapeHtml(st.guess || '')}</textarea>
+          <p class="text-xs text-gray-500 mt-2">${mode === 'B' ? '提示：可以告诉家长你改了哪里，为什么。' : '提示：可以画图、贴照片、写字，自由发挥！'}</p>
+        </section>
+
+        <div class="card flex flex-wrap gap-3 justify-center">
+          <button class="btn-primary" onclick="completeChallenge('${mode}')" ${st.completed ? 'disabled' : ''}>
+            ${st.completed ? '✅ 已完成' : '🎉 完成本挑战 +10 EXP +1⭐'}
+          </button>
+          <button class="btn-ghost" onclick="goHash('home')">返回首页</button>
+        </div>
+      `;
+    }
+
+    function renderChat(messages) {
+      if (messages.length === 0) {
+        return '<p class="text-sm text-gray-500 text-center py-4">还没开始对话。先说点什么吧 👇</p>';
+      }
+      return messages.map(m => {
+        if (m.from === 'ai') return `<div class="chat-bubble-ai"><pre class="whitespace-pre-wrap font-sans text-sm">${escapeHtml(m.text)}</pre></div>`;
+        if (m.from === 'child') return `<div class="chat-bubble-child"><pre class="whitespace-pre-wrap font-sans text-sm">${escapeHtml(m.text)}</pre></div>`;
+        return `<div class="chat-bubble-user"><pre class="whitespace-pre-wrap font-sans text-sm">${escapeHtml(m.text)}</pre></div>`;
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    // =================== 4.3 完整记录 ===================
+    function viewHistory() {
+      const days = Object.keys(state.challengeStates).map(k => parseInt(k)).sort((a, b) => b - a);
+      if (days.length === 0) {
+        return `<div class="card"><p class="text-center text-gray-500">还没有任何记录。完成第一个挑战后会出现在这里。</p><button class="btn-ghost mt-3" onclick="goHash('home')">返回首页</button></div>`;
+      }
+      return `
+        <div class="card">
+          <button class="btn-ghost text-sm mb-3" onclick="goHash('home')">← 返回</button>
+          <h2 class="text-2xl font-extrabold mb-3">📜 完整记录</h2>
+          ${days.map(d => {
+            const ld = LEVELS[d] || { title: '未知关卡', icon: '❓' };
+            const st = state.challengeStates[d] || {};
+            return `
+              <div class="mb-4 p-3 bg-orange-50 rounded-xl">
+                <h3 class="font-bold text-lg">${ld.icon} Day ${d + 1}: ${ld.title}</h3>
+                ${['C', 'A', 'B'].map(m => {
+                  const cs = st[m];
+                  if (!cs) return '';
+                  const title = m === 'A' ? '🔍 侦探' : m === 'B' ? '💬 反驳' : '❓ 提问';
+                  return `
+                    <details class="mt-2">
+                      <summary class="cursor-pointer font-semibold text-sm">${title} ${cs.completed ? '✅' : '⏳'}</summary>
+                      <div class="mt-2 text-sm">
+                        ${cs.guess ? `<p class="bg-white p-2 rounded mb-1"><b>${m === 'B' ? '修正观点' : '猜想/结论'}:</b><br>${escapeHtml(cs.guess)}</p>` : ''}
+                        ${(cs.chat || []).length > 0 ? `<div class="bg-white p-2 rounded">${(cs.chat || []).map(x => `<div class="mb-1"><b>${x.from === 'ai' ? '🤖 思考导师' : '🧒 孩子'}:</b> ${escapeHtml(x.text)}</div>`).join('')}</div>` : ''}
+                      </div>
+                    </details>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // =================== 4.4 家长面板 ===================
+    function viewParent() {
+      return `
+        <div class="card">
+          <button class="btn-ghost text-sm mb-3" onclick="goHash('home')">← 返回</button>
+          <h2 class="text-2xl font-extrabold mb-3">🔒 家长面板</h2>
+
+          <h3 class="font-bold mt-4 mb-2">📊 当前进度</h3>
+          <div class="bg-orange-50 p-3 rounded-xl text-sm">
+            <p>小冒险家: <b>${escapeHtml(state.childName)}</b></p>
+            <p>等级: Lv.${state.level} (${state.exp} EXP)</p>
+            <p>总星星: ⭐ ${state.stars}</p>
+            <p>连续签到: 🔥 ${state.streak} 天</p>
+            <p>已解锁勋章: ${state.badges.length ? state.badges.join(' ') : '无'}</p>
+          </div>
+
+          <h3 class="font-bold mt-4 mb-2">👶 多孩子管理</h3>
+          <div class="bg-blue-50 p-3 rounded-xl text-sm">
+            <p>当前: <b>${escapeHtml(state.childName)}</b> (Lv.${state.level} · ⭐${state.stars})</p>
+            <p class="text-xs text-gray-500 mt-1">所有档案: ${listProfiles().map(n => n === _state.activeProfile ? `<b>${escapeHtml(n)}</b>` : escapeHtml(n)).join(' / ')}</p>
+            <div class="flex gap-2 mt-2 flex-wrap">
+              <button class="btn-ghost text-sm" onclick="openProfileSwitcher()">👶 切换/新建/删除</button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">💡 每个孩子有独立进度、星星、勋章、猜想记录。共用 AI 引擎、家长密码、难度。</p>
+          </div>
+
+          <h3 class="font-bold mt-4 mb-2">⚙️ 设置</h3>
+          <div class="bg-orange-50 p-3 rounded-xl">
+            <label class="block mb-2 text-sm">孩子名字:
+              <input type="text" value="${escapeHtml(state.childName)}" oninput="state.childName=this.value;saveState()" />
+            </label>
+            <label class="block mb-2 text-sm">每日难度:
+              <select onchange="state.difficulty=this.value;saveState()">
+                <option value="easy" ${state.difficulty==='easy'?'selected':''}>简单</option>
+                <option value="normal" ${state.difficulty==='normal'?'selected':''}>普通</option>
+                <option value="hard" ${state.difficulty==='hard'?'selected':''}>困难</option>
+              </select>
+            </label>
+            <label class="block mb-2 text-sm">家长密码:
+              <input type="password" value="${escapeHtml(state.parentPassword)}" oninput="state.parentPassword=this.value;saveState()" />
+            </label>
+            <label class="block mb-2 text-sm">AI 模式:
+              <select onchange="state.aiMode=this.value;saveState()">
+                <option value="simulated" ${state.aiMode==='simulated'?'selected':''}>模拟 AI（离线可用）</option>
+                <option value="openai" ${state.aiMode==='openai'?'selected':''}>OpenAI 真实 API</option>
+              </select>
+            </label>
+            <label class="block mb-2 text-sm">OpenAI API Key:
+              <input type="password" value="${escapeHtml(state.apiKey)}" placeholder="sk-..." oninput="state.apiKey=this.value;saveState()" />
+            </label>
+            <p class="text-xs text-gray-500 mt-1">💡 留空 = 总是用模拟 AI。Key 只存在浏览器本地，不会上传。</p>
+          </div>
+
+          <h3 class="font-bold mt-4 mb-2">🗣️ 语音设置</h3>
+          <div class="bg-orange-50 p-3 rounded-xl">
+            <label class="block mb-2 text-sm flex items-center gap-2">
+              <input type="checkbox" ${state.voiceInputEnabled ? 'checked' : ''} onchange="state.voiceInputEnabled=this.checked;saveState()" />
+              <span>🎤 启用语音输入（麦克风按钮）</span>
+            </label>
+            <label class="block mb-2 text-sm flex items-center gap-2">
+              <input type="checkbox" ${state.voiceOutputEnabled ? 'checked' : ''} onchange="state.voiceOutputEnabled=this.checked;saveState()" />
+              <span>🔊 启用语音输出（AI 回复自动朗读）</span>
+            </label>
+            <label class="block mb-2 text-sm">语言:
+              <select onchange="state.voiceLang=this.value;if(recognition)recognition.lang=this.value;saveState()">
+                <option value="zh-CN" ${state.voiceLang==='zh-CN'?'selected':''}>中文（简体）</option>
+                <option value="zh-TW" ${state.voiceLang==='zh-TW'?'selected':''}>中文（繁體）</option>
+                <option value="en-US" ${state.voiceLang==='en-US'?'selected':''}>English (US)</option>
+              </select>
+            </label>
+            <label class="block mb-2 text-sm">朗读速度: ${state.voiceRate.toFixed(2)}x
+              <input type="range" min="0.5" max="1.5" step="0.05" value="${state.voiceRate}" oninput="state.voiceRate=parseFloat(this.value);saveState();this.previousSibling.textContent='朗读速度: '+state.voiceRate.toFixed(2)+'x'" />
+            </label>
+            <button class="btn-ghost text-sm mt-2" onclick="testSpeak()">🔊 测试声音</button>
+            <p class="text-xs text-gray-500 mt-2">💡 浏览器支持：Chrome / Edge / Safari 14.5+ / 微信内置浏览器（部分）。如不支持，🎤 按钮会显示但提示不可用。</p>
+          </div>
+
+          <h3 class="font-bold mt-4 mb-2">🗓️ 关卡管理</h3>
+          <div class="bg-orange-50 p-3 rounded-xl">
+            <p class="text-sm mb-2">当前关卡: <b>Day ${state.currentDay + 1} - ${(LEVELS[state.currentDay % LEVELS.length] || LEVELS[0]).title}</b></p>
+            <div class="flex gap-2 flex-wrap">
+              <button class="btn-ghost text-sm" onclick="resetToday()">🔄 重置今天的关卡</button>
+              <button class="btn-ghost text-sm" onclick="resetAll()">⚠️ 重置全部数据</button>
+              <button class="btn-primary text-sm" onclick="exportReport()">📥 导出学习报告</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =================== 4.5 勋章 ===================
+    function viewBadges() {
+      const all = ['🌟 新手侦探', '🥉 初级思考者', '🥈 中级思考者', '🥇 金牌反驳手', '🔥 七日坚持', '🏆 月度大师', '💬 反驳高手', '❓ 问题大师'];
+      return `
+        <div class="card">
+          <button class="btn-ghost text-sm mb-3" onclick="goHash('home')">← 返回</button>
+          <h2 class="text-2xl font-extrabold mb-3">🏅 勋章墙</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            ${all.map(b => {
+              const has = state.badges.includes(b);
+              return `
+                <div class="card text-center ${has ? '' : 'opacity-30 grayscale'}" style="padding: 0.75rem;">
+                  <div class="text-3xl mb-1">${b.split(' ')[0]}</div>
+                  <div class="text-xs font-bold">${b.split(' ').slice(1).join(' ')}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <p class="text-sm text-gray-500 mt-4">已解锁 ${state.badges.length} / ${all.length}</p>
+        </div>
+      `;
+    }
+
+    // =================== 4.6 设置 ===================
+    function viewSettings() {
+      return viewParent();
+    }
+
+    // =================== 5. 事件处理 ===================
+    function bindViewEvents() {
+      // 自动滚动聊天到底部
+      const cc = document.getElementById('chat-container');
+      if (cc) cc.scrollTop = cc.scrollHeight;
+    }
+
+    function goHash(h) {
+      location.hash = h;
+    }
+    function goChallenge(mode) {
+      location.hash = `challenge?mode=${mode}`;
+    }
+    function goDay(d) {
+      state.currentDay = d;
+      saveState();
+      goHash('home');
+    }
+    function nextDay() {
+      state.currentDay = (state.currentDay + 1) % LEVELS.length;
+      saveState();
+      goHash('home');
+    }
+    function unlockParent() {
+      const pw = prompt('请输入家长密码（默认 1234）：');
+      if (pw === state.parentPassword) {
+        goHash('parent');
+      } else {
+        alert('密码错误');
+      }
+    }
+    function resetToday() {
+      if (!confirm('确认重置今天关卡的所有猜想、对话、完成状态？')) return;
+      delete state.challengeStates[state.currentDay];
+      saveState();
+      render();
+    }
+    function resetAll() {
+      if (!confirm('⚠️ 确认重置全部数据？这会清空星星、等级、所有关卡记录。')) return;
+      state = structuredClone(DEFAULT_STATE);
+      saveState();
+      render();
+    }
+    function exportReport() {
+      const lines = [
+        '═══════════════════════════════',
+        '  Think & Quest 学习报告',
+        `  孩子: ${state.childName}`,
+        `  导出日期: ${new Date().toLocaleString()}`,
+        '═══════════════════════════════',
+        '',
+        `等级: Lv.${state.level} (${state.exp} EXP)`,
+        `总星星: ⭐ ${state.stars}`,
+        `连续签到: 🔥 ${state.streak} 天`,
+        `已解锁勋章: ${state.badges.join(' ') || '无'}`,
+        '',
+        '───────────────────────────────────',
+        '关卡详情',
+        '───────────────────────────────────',
+      ];
+      const days = Object.keys(state.challengeStates).map(k => parseInt(k)).sort((a, b) => a - b);
+      days.forEach(d => {
+        const ld = LEVELS[d];
+        if (!ld) return;
+        lines.push('');
+        lines.push(`📅 Day ${d + 1}: ${ld.title} ${ld.icon}`);
+        lines.push('─'.repeat(40));
+        const st = state.challengeStates[d];
+        ['C', 'A', 'B'].forEach(m => {
+          const cs = st[m];
+          if (!cs) return;
+          const label = m === 'A' ? '侦探挑战' : m === 'B' ? '反驳挑战' : '提问挑战';
+          lines.push(`\n【${label}】 ${cs.completed ? '✅ 已完成' : '⏳ 未完成'}`);
+          if (cs.guess) lines.push(`  ${m === 'B' ? '修正观点' : '猜想/结论'}: ${cs.guess}`);
+          if (cs.chat && cs.chat.length) {
+            lines.push('  对话:');
+            cs.chat.forEach(c => {
+              lines.push(`    ${c.from === 'ai' ? '🤖' : '🧒'} ${c.text.replace(/\n/g, '\n      ')}`);
+            });
+          }
+        });
+      });
+      const text = lines.join('\n');
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `think-quest-report-${new Date().toISOString().slice(0, 10)}.txt`;
+      a.click();
+    }
+
+    async function sendChat(mode) {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      const day = LEVELS[state.currentDay % LEVELS.length];
+      if (!state.challengeStates[day.id]) state.challengeStates[day.id] = {};
+      if (!state.challengeStates[day.id][mode]) state.challengeStates[day.id][mode] = { chat: [] };
+      const cs = state.challengeStates[day.id][mode];
+      cs.chat.push({ from: 'child', text });
+      saveState();
+      // 显示"AI 思考中"
+      cs.chat.push({ from: 'ai', text: '🤔 思考中…' });
+      render();
+      // 调用 AI
+      const ctx = {
+        topic: def_to_topic(day.challenges[mode]),
+        difficulty: state.difficulty
+      };
+      try {
+        const reply = await aiRespond(mode, text, ctx);
+        cs.chat[cs.chat.length - 1] = { from: 'ai', text: reply };
+        // 自动朗读 AI 回复（如果用户开启了 TTS）
+        if (state.voiceOutputEnabled) speak(reply);
+      } catch (e) {
+        cs.chat[cs.chat.length - 1] = { from: 'ai', text: `（出错了：${e.message}）` };
+      }
+      saveState();
+      render();
+    }
+
+    function def_to_topic(def) {
+      // 提取关键词作为 topic hint
+      if (!def) return null;
+      const text = (def.original || '') + ' ' + (def.title || '');
+      return pickTopicFromText(text);
+    }
+
+    function saveGuess(mode) {
+      const input = document.getElementById('guess-input');
+      if (!input) return;
+      const day = LEVELS[state.currentDay % LEVELS.length];
+      if (!state.challengeStates[day.id]) state.challengeStates[day.id] = {};
+      if (!state.challengeStates[day.id][mode]) state.challengeStates[day.id][mode] = { chat: [] };
+      state.challengeStates[day.id][mode].guess = input.value;
+      saveState();
+    }
+
+    function completeChallenge(mode) {
+      const day = LEVELS[state.currentDay % LEVELS.length];
+      if (!state.challengeStates[day.id]) state.challengeStates[day.id] = {};
+      if (!state.challengeStates[day.id][mode]) state.challengeStates[day.id][mode] = { chat: [] };
+      const cs = state.challengeStates[day.id][mode];
+      if (cs.completed) return;
+      cs.completed = true;
+      addStars(1);
+      addExp(10);
+      checkBadges();
+      saveState();
+      celebrate();
+      beep();
+      render();
+      setTimeout(() => alert(`🎉 恭喜！挑战完成！\n+1⭐ +10 EXP\n当前: Lv.${state.level} · ${state.exp} EXP · ${state.stars}⭐`), 100);
+    }
+
+    // =================== 5.7 语音输入 + 输出 (Web Speech API) ===================
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const TTS = window.speechSynthesis;
+    let recognition = null;
+    let isRecording = false;
+
+    function ensureRecognition() {
+      if (!SR) return null;
+      if (recognition) return recognition;
+      recognition = new SR();
+      recognition.lang = state.voiceLang || 'zh-CN';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (event) => {
+        let final = '';
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) final += t;
+          else interim += t;
+        }
+        const input = document.getElementById('chat-input');
+        if (input) {
+          // 保留已输入 + 追加识别结果
+          const existing = input.dataset.baseText || '';
+          input.value = existing + (existing && final ? ' ' : '') + (final + interim);
+        }
+      };
+      recognition.onerror = (e) => {
+        console.warn('SpeechRecognition error:', e.error);
+        setMicState(false);
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          alert('麦克风权限被拒绝。请在浏览器设置中允许麦克风访问。');
+        } else if (e.error === 'no-speech') {
+          // 静默 — 用户没说话
+        } else if (e.error !== 'aborted') {
+          alert('语音识别出错: ' + e.error);
+        }
+      };
+      recognition.onend = () => {
+        setMicState(false);
+      };
+      return recognition;
+    }
+
+    function setMicState(recording) {
+      isRecording = recording;
+      const btn = document.getElementById('mic-btn');
+      if (!btn) return;
+      if (recording) {
+        btn.textContent = '🔴 停止';
+        btn.style.background = '#fee2e2';
+        btn.style.borderColor = '#dc2626';
+        btn.style.color = '#dc2626';
+      } else {
+        btn.textContent = '🎤';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      }
+    }
+
+    function toggleMic(mode) {
+      if (!SR) {
+        alert('你的浏览器不支持语音输入。\n建议用 Chrome / Edge / Safari 14.5+');
+        return;
+      }
+      if (isRecording) {
+        if (recognition) {
+          // 保存已确认文字作 base，下次继续追加
+          const input = document.getElementById('chat-input');
+          if (input) {
+            // 提取 final 部分作为 base
+            input.dataset.baseText = input.value.trim();
+          }
+          recognition.stop();
+        }
+        setMicState(false);
+        return;
+      }
+      const rec = ensureRecognition();
+      if (!rec) return;
+      try {
+        // 清空 input 之前的 base（开启新一次录音）
+        const input = document.getElementById('chat-input');
+        if (input) input.dataset.baseText = '';
+        rec.start();
+        setMicState(true);
+      } catch (e) {
+        console.warn('recognition.start failed:', e);
+        setMicState(false);
+      }
+    }
+
+    // ---- TTS ----
+    let cachedVoices = null;
+    function getVoices() {
+      if (cachedVoices) return cachedVoices;
+      if (!TTS) return [];
+      cachedVoices = TTS.getVoices();
+      return cachedVoices;
+    }
+    // 某些浏览器 voices 异步加载
+    if (TTS) {
+      TTS.onvoiceschanged = () => { cachedVoices = TTS.getVoices(); };
+    }
+
+    function pickChineseVoice() {
+      const voices = getVoices();
+      if (!voices.length) return null;
+      // 优先选择中文女声
+      const zh = voices.filter(v => /zh|cmn|chinese/i.test(v.lang) || /chinese|mandarin/i.test(v.name));
+      if (!zh.length) return voices[0];
+      // 优先 female
+      const female = zh.find(v => /female|woman|girl|tingting|xiaoxiao|yunxi|yunyang/i.test(v.name));
+      if (female) return female;
+      // 其次: Microsoft / Google 中文
+      const ms = zh.find(v => /microsoft|google/i.test(v.name));
+      if (ms) return ms;
+      return zh[0];
+    }
+
+    function cleanTextForSpeech(text) {
+      if (!text) return '';
+      // 去掉 markdown / emoji / 标点噪音，让朗读更自然
+      return text
+        .replace(/[🔦🛠️🤔❓✅💬📝🎉⭐🧠🤖🎤🔊⏹🔍💫💡🦎⚽🌟🥉🥈🥇🏆🔥💎]/g, ' ')
+        .replace(/[*_`#]/g, '')
+        .replace(/\n+/g, '。')
+        .replace(/\s+/g, ' ')
+        .replace(/。+/g, '。')
+        .trim();
+    }
+
+    function speak(text) {
+      if (!TTS || !state.voiceOutputEnabled) return;
+      TTS.cancel();
+      const cleaned = cleanTextForSpeech(text);
+      if (!cleaned) return;
+      const utter = new SpeechSynthesisUtterance(cleaned);
+      utter.lang = state.voiceLang || 'zh-CN';
+      utter.rate = state.voiceRate || 0.95;
+      utter.pitch = state.voicePitch || 1.1;
+      const v = pickChineseVoice();
+      if (v) utter.voice = v;
+      TTS.speak(utter);
+    }
+
+    function testSpeak() {
+      if (!TTS) { alert('你的浏览器不支持语音输出。'); return; }
+      // 临时强制开启
+      const wasEnabled = state.voiceOutputEnabled;
+      state.voiceOutputEnabled = true;
+      speak('你好！我是思考导师。今天我们来玩一个有趣的思考游戏吧。');
+      state.voiceOutputEnabled = wasEnabled;
+    }
+
+    function openProfileSwitcher() {
+      const profiles = listProfiles();
+      const active = _state.activeProfile;
+      const choice = prompt(
+        `👶 切换孩子\n\n当前: ${active}\n所有孩子: ${profiles.join(' / ')}\n\n输入名字切换到该孩子。\n或输入 "新建 名字" 创建新档案。\n或输入 "删除 名字" 删除档案（至少保留 1 个）。`,
+        ''
+      );
+      if (!choice) return;
+      if (choice.startsWith('新建 ')) {
+        const name = choice.slice(3).trim();
+        if (!name) { alert('名字不能为空'); return; }
+        if (createProfile(name)) {
+          alert(`✅ 已创建新档案"${name}"，已切换`);
+          render();
+        } else {
+          alert(`❌ 档案"${name}"已存在`);
+        }
+      } else if (choice.startsWith('删除 ')) {
+        const name = choice.slice(3).trim();
+        if (!confirm(`确定删除"${name}"的所有进度？此操作不可撤销。`)) return;
+        if (deleteProfile(name)) {
+          alert(`✅ 已删除"${name}"`);
+          render();
+        } else {
+          alert(`❌ 无法删除"${name}"（至少保留 1 个档案）`);
+        }
+      } else if (profiles.includes(choice)) {
+        switchProfile(choice);
+        render();
+      } else {
+        alert(`❌ 没有"${choice}"这个孩子。先用 "新建 ${choice}" 创建。`);
+      }
+    }
+
+    function stopSpeak() {
+      if (TTS) TTS.cancel();
+    }
+
+    // =================== 6. 路由 ===================
+    window.addEventListener('hashchange', render);
+    window.goHash = goHash;
+    window.goChallenge = goChallenge;
+    window.goDay = goDay;
+    window.nextDay = nextDay;
+    window.unlockParent = unlockParent;
+    window.resetToday = resetToday;
+    window.resetAll = resetAll;
+    window.exportReport = exportReport;
+    window.sendChat = sendChat;
+    window.saveGuess = saveGuess;
+    window.completeChallenge = completeChallenge;
+    window.toggleMic = toggleMic;
+    window.speak = speak;
+    window.stopSpeak = stopSpeak;
+    window.testSpeak = testSpeak;
+    window.openProfileSwitcher = openProfileSwitcher;
+    window.switchProfile = switchProfile;
+    window.createProfile = createProfile;
+    window.deleteProfile = deleteProfile;
+    window.listProfiles = listProfiles;
+
+    // ====== iOS Safari 解锁 AudioContext（必须在用户首次触摸时） ======
+    (function unlockAudio() {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return;
+      const tryUnlock = () => {
+        try {
+          const tmp = new AudioCtor();
+          if (tmp.state === 'suspended') tmp.resume();
+          // 静默 0.01s 音 + 立即关闭（iOS 解锁机制）
+          const osc = tmp.createOscillator();
+          const gain = tmp.createGain();
+          gain.gain.value = 0;
+          osc.connect(gain);
+          gain.connect(tmp.destination);
+          osc.start();
+          osc.stop(tmp.currentTime + 0.001);
+          setTimeout(() => { try { tmp.close(); } catch(e){} }, 100);
+        } catch (e) {}
+      };
+      document.addEventListener('touchstart', tryUnlock, { once: true, passive: true });
+      document.addEventListener('click', tryUnlock, { once: true });
+    })();
+
+    // ====== PWA Service Worker 注册（公网 https 下生效，离线可用） ======
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      const swCode = `
+        const CACHE = 'think-quest-v1';
+        const ASSETS = ['./', './think-quest.html'];
+        self.addEventListener('install', (e) => {
+          self.skipWaiting();
+          e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+        });
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+          ).then(() => self.clients.claim()));
+        });
+        self.addEventListener('fetch', (e) => {
+          if (e.request.method !== 'GET') return;
+          e.respondWith(
+            caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+              if (resp && resp.status === 200) {
+                const copy = resp.clone();
+                caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
+              }
+              return resp;
+            }).catch(() => caches.match('./think-quest.html')))
+          );
+        });
+      `;
+      const swUrl = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
+      navigator.serviceWorker.register(swUrl).catch(e => console.warn('SW register failed:', e));
+    }
+
+    // 首次渲染
+    render();
+  </script>
+</body>
+</html>

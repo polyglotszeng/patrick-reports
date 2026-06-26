@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Matt Pocock Skills, Clearly Explained (130k+ GitHub stars)</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🎯 Strategic vs Tactical Programming（核心框架）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ John Asterout 哲学（Philosophy of Software </a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Delegation 关键（Strategic 怎么做）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ Senior vs Junior（AI 时代）</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🔧 Skills vs Abilities（关键分类）</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 关键警告</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">📚 Teach Skill（Stateful Procedure）</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 特点</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Matt 自述</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 安装</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🔥 Grill Me Skill（最 Popular）</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 特点</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 用法</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🧠 Knowledge / Skills / Wisdom 3 维度</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 关键洞察</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⚖️ AX vs DX</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 关键洞察</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ Hiring 哲学</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🚫 Bitter Lesson 反驳</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Bitter Lesson（Rich Sutton）</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Matt 的反驳</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 50/50 原则</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🔁 Loop vs Cue（关键分类）</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ Ralph Loop（viral idea）</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Matt 的反对：Cue > Loop</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🌙 AFK + Sand Castle</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ Sand Castle（Matt 自建）</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Matt 实操流</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ 立即可做（1 小时）</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ 中期（1-2 周）</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ 长期（1+ 月）</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（152 段字幕精选）</a></li>
+  </ol>
+</aside>
+
+
+<h1>Matt Pocock Skills, Clearly Explained</h1>
+<p class="subtitle">130k+ GitHub stars — David Ondrej × Matt Pocock</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=nQwJVHCtDDY" target="_blank">Matt Pocock Skills, Clearly Explained</a></span>
+  <span><strong>频道：</strong>David Ondrej</span>
+  <span><strong>嘉宾：</strong>Matt Pocock</span>
+  <span><strong>时长：</strong>62:26（3746s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-21</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>Model is engine, harness is car</b> — <b>Everyone is obsessed with the engine, but the harness has an equal amount of work and you have much more control of the harness than the model.</b></p>
+  <p style="margin-top: 0.6rem;"><b>Skills = multiplier for AI</b>（跟 Fei-Fei "agency 是 multiplier" 同源）：<b>Senior 10x · Junior 1.5x</b></p>
+  <p style="margin-top: 0.6rem;"><b>50/50 原则</b>：engine <b>and</b> harness 都重要</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">GitHub stars</div>
+    <div class="value">130k+</div>
+    <div class="sub">matt-pocock/skills</div>
+  </div>
+  <div class="stat">
+    <div class="label">Senior vs Junior</div>
+    <div class="value">10x vs 1.5x</div>
+    <div class="sub">AI 时代 boost</div>
+  </div>
+  <div class="stat">
+    <div class="label">3 维度</div>
+    <div class="value">K / S / W</div>
+    <div class="sub">Knowledge / Skills / Wisdom</div>
+  </div>
+  <div class="stat">
+    <div class="label">Engine vs Harness</div>
+    <div class="value">50/50</div>
+    <div class="sub">Matt 反驳 bitter lesson</div>
+  </div>
+  <div class="stat">
+    <div class="label">Loop vs Cue</div>
+    <div class="value">Q &gt; L</div>
+    <div class="sub">队列 > 无限循环</div>
+  </div>
+  <div class="stat">
+    <div class="label">Closing</div>
+    <div class="value">Delete all</div>
+    <div class="sub">blank slate start</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="strategic">🎯 Strategic vs Tactical</button>
+  <button class="tab" data-tab="skills">🔧 Skills vs Abilities</button>
+  <button class="tab" data-tab="teach">📚 Teach Skill</button>
+  <button class="tab" data-tab="grill">🔥 Grill Me</button>
+  <button class="tab" data-tab="3d">🧠 K/S/W 3 维度</button>
+  <button class="tab" data-tab="axdx">⚖️ AX vs DX</button>
+  <button class="tab" data-tab="bitter">🚫 Bitter Lesson</button>
+  <button class="tab" data-tab="loop">🔁 Loop vs Cue</button>
+  <button class="tab" data-tab="afk">🌙 AFK + Sand Castle</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: STRATEGIC -->
+<div class="tab-content active" data-tab-content="strategic">
+  <h2 id="h2-2" class="section">🎯 Strategic vs Tactical Programming（核心框架）</h2>
+
+  <h3 id="h3-1">John Asterout 哲学（Philosophy of Software Design）</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Tactical（战术）</th><th>Strategic（战略）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>关注</b></td>
+        <td>ground day-to-day</td>
+        <td>winning the war</td>
+      </tr>
+      <tr>
+        <td><b>时间尺度</b></td>
+        <td>短期</td>
+        <td>长期</td>
+      </tr>
+      <tr>
+        <td><b>具体内容</b></td>
+        <td>写代码 / 改 syntax / 修 bug / commit</td>
+        <td>架构 / velocity / 决策</td>
+      </tr>
+      <tr>
+        <td><b>AI 影响</b></td>
+        <td><span class="badge red">❌ 被 AI 吃</span></td>
+        <td><span class="badge green">✅ 不可替代</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "<b>AI has basically eaten tactical programming. It's gone. It's all gone.</b> AI is just better at doing tactical programming than you are because it can do it for cheaper."
+  </blockquote>
+
+  <h3 id="h3-2">Delegation 关键（Strategic 怎么做）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>设计 hard parts upfront</h4>
+      <p>困难部分先想清楚</p>
+    </div>
+    <div class="card">
+      <h4>任务 well-scoped</h4>
+      <p>边界清晰</p>
+    </div>
+    <div class="card">
+      <h4>Interface 设计</h4>
+      <p>模块之间接口</p>
+    </div>
+    <div class="card">
+      <h4>Test scenes / 文档</h4>
+      <p>点 AI 到 right places</p>
+    </div>
+  </div>
+
+  <h3 id="h3-3">Senior vs Junior（AI 时代）</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <blockquote style="border-left: 0; padding: 0; background: transparent; margin: 0; color: var(--text);">
+      "AI makes senior developers just <b>10 times better</b>... It sort of doesn't make sense to hire that many juniors anymore because juniors get a <b>little boost</b> from AI, but seniors just get this <b>ridiculous huge boost</b> from it."
+    </blockquote>
+  </div>
+</div>
+
+<!-- TAB 2: SKILLS -->
+<div class="tab-content" data-tab-content="skills">
+  <h2 id="h2-3" class="section">🔧 Skills vs Abilities（关键分类）</h2>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Procedure（程序）</th><th>Ability（能力）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>触发者</b></td>
+        <td><span class="badge accent">用户</span>（slash command）</td>
+        <td><span class="badge blue">模型</span>（自动）</td>
+      </tr>
+      <tr>
+        <td><b>例子</b></td>
+        <td>`/grill-me` `/teach` `/prd`</td>
+        <td>React 编码标准</td>
+      </tr>
+      <tr>
+        <td><b>大小</b></td>
+        <td><b>短</b>（4-5 句）</td>
+        <td>长（详细）</td>
+      </tr>
+      <tr>
+        <td><b>Context leak</b></td>
+        <td><span class="badge green">❌ 不 leak</span></td>
+        <td><span class="badge red">✅ leak description</span></td>
+      </tr>
+      <tr>
+        <td><b>用户控制</b></td>
+        <td><b>高</b></td>
+        <td>低</td>
+      </tr>
+      <tr>
+        <td><b>Matt 偏好</b></td>
+        <td><span class="badge accent">✅ 主用</span></td>
+        <td>⚠️ 限制（disable invocation）</td>
+      </tr>
+      <tr>
+        <td><b>Superpowers 偏好</b></td>
+        <td>少</td>
+        <td><span class="badge accent">✅ 主用</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "I prefer my skills as <b>procedures</b>. I like to be the one in control. I know my skills, I know my abilities. <b>I don't want to delegate my thinking to the model.</b>"
+  </blockquote>
+
+  <h3 id="h3-4">关键警告</h3>
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h4>⚠️ 100 abilities = 100 descriptions leak context</h4>
+    <p>每个 ability 的描述会 <b>leak 到 context window</b></p>
+    <p>→ 用 <code>disable model invocation: true</code> 限制</p>
+  </div>
+</div>
+
+<!-- TAB 3: TEACH -->
+<div class="tab-content" data-tab-content="teach">
+  <h2 id="h2-4" class="section">📚 Teach Skill（Stateful Procedure）</h2>
+
+  <h3 id="h3-5">特点</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Stateful</h4>
+      <p>保存 mission.md / learning record / reference cheat sheet</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Mission 导向</h4>
+      <p>"build a scheduling app for voice students"</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>持久化 lesson</h4>
+      <p>每次 lesson HTML 文件保留</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>HTML 输出</h4>
+      <p>"learning in terminal is brutal"</p>
+    </div>
+  </div>
+
+  <h3 id="h3-6">Matt 自述</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <ul>
+      <li>自学 <b>Rubik's cube</b>（"I can solve from memory thanks to this skill"）</li>
+      <li>学 <b>senior dev 路径</b>（"produce something gorgeous"）</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-7">安装</h3>
+  <pre><code>npx skills latest add matt-pocock/skills
+# 选 teach → 自动 save 到 local setup
+# 适用：claude code / codex / pi</code></pre>
+</div>
+
+<!-- TAB 4: GRILL -->
+<div class="tab-content" data-tab-content="grill">
+  <h2 id="h2-5" class="section">🔥 Grill Me Skill（最 Popular）</h2>
+
+  <h3 id="h3-8">特点</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>短</h4>
+      <p>4-5 句话</p>
+      <p style="color: var(--text-dim); font-size: 0.85rem;">"unreasonably effective"</p>
+    </div>
+    <div class="card">
+      <h4>Adversarial Interviewer</h4>
+      <p>把 agent 变对抗式面试官</p>
+    </div>
+    <div class="card">
+      <h4>追问 + flush out</h4>
+      <p>逼你讲清楚假设</p>
+    </div>
+    <div class="card">
+      <h4>替代 plan mode</h4>
+      <p>写代码前先问清楚</p>
+    </div>
+  </div>
+
+  <h3 id="h3-9">用法</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>任何代码工作前 → <code>/grill-me</code></li>
+    <li>列出 10 个最关键决策</li>
+    <li>"Interview me until you understand <b>98%</b> about it"</li>
+    <li>替代 PRDR 流程（product requirements doc）</li>
+  </ol>
+</div>
+
+<!-- TAB 5: 3D -->
+<div class="tab-content" data-tab-content="3d">
+  <h2 id="h2-6" class="section">🧠 Knowledge / Skills / Wisdom 3 维度</h2>
+
+  <blockquote>
+    "<b>Wisdom is almost impossible to obtain without actually having done the thing</b> in the exact context where you need to do it."
+  </blockquote>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>定义</th><th>获取方式</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Knowledge</b></td>
+        <td>知道是什么</td>
+        <td>学习 / 阅读 / 看视频</td>
+      </tr>
+      <tr>
+        <td><b>Skill</b></td>
+        <td>知道怎么做</td>
+        <td>练习 / 实战</td>
+      </tr>
+      <tr>
+        <td><b>Wisdom</b></td>
+        <td>知道在真实场景怎么做</td>
+        <td><b>必须亲自做</b>（不可替代）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-10">关键洞察</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h4>Wisdom = 真正的护城河</h4>
+    <p>你可能 bundle knowledge + skill → 但 <b>wisdom 必须自己拿</b></p>
+    <p>→ 想成为像 Anthropic 工程师 = 必须去 Anthropic 才能 gain 那个 context 的 wisdom</p>
+  </div>
+</div>
+
+<!-- TAB 6: AXDX -->
+<div class="tab-content" data-tab-content="axdx">
+  <h2 id="h2-7" class="section">⚖️ AX vs DX</h2>
+
+  <blockquote>
+    "I think of there as being a difference between <b>DX</b> (developer experience) and <b>AX</b> (agent experience)."
+  </blockquote>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>DX（Developer Experience）</th><th>AX（Agent Experience）</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>为谁优化</b></td>
+        <td>人类开发者</td>
+        <td>Agent</td>
+      </tr>
+      <tr>
+        <td><b>Senior 优势</b></td>
+        <td><b>强</b>（知道怎么 build 好 DX）</td>
+        <td><b>强</b>（DX 和 AX 有大量 overlap）</td>
+      </tr>
+      <tr>
+        <td><b>Junior 优势</b></td>
+        <td>弱</td>
+        <td>弱（但 enthusiasm）</td>
+      </tr>
+      <tr>
+        <td><b>改善方法</b></td>
+        <td>好代码 / 文档 / 测试</td>
+        <td>skills / harness / codebase 改进</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-11">关键洞察</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h4>DX 和 AX 有大量 overlap</h4>
+    <p>但 <b>AX 经常被忘</b>（"improving codebase for better AX"）</p>
+    <p>→ Senior 强 DX = 自动 <b>也</b> 强 AX（同一套基础设施）</p>
+    <p>→ Junior 强 AI（AX）但需要学 DX 基础</p>
+  </div>
+
+  <h3 id="h3-12">Hiring 哲学</h3>
+  <blockquote>
+    "Hiring great juniors has always been the goal of any company because if you find a great junior then anyone who's enthusiastic will do a better job than someone who's more experienced basically."
+  </blockquote>
+  <p style="color: var(--text-dim); margin-top: 0.5rem;"><b>Enthusiasm beats experience</b>（pure output）= 因为发展快</p>
+</div>
+
+<!-- TAB 7: BITTER -->
+<div class="tab-content" data-tab-content="bitter">
+  <h2 id="h2-8" class="section">🚫 Bitter Lesson 反驳</h2>
+
+  <h3 id="h3-13">Bitter Lesson（Rich Sutton）</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <p>"Whatever you do in machine learning research, <b>compute, raw compute will just beat you every time</b>."</p>
+  </div>
+
+  <h3 id="h3-14">Matt 的反驳</h3>
+  <blockquote>
+    "If I try to overoptimize around a model, if I get too focused on the model, <b>I will lose focus on the fundamentals</b>."
+  </blockquote>
+
+  <h3 id="h3-15">50/50 原则</h3>
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h4>Engine + Harness 都重要</h4>
+    <p>不能只等 model 升级</p>
+    <p><b>Codebase 优化</b> = 跟等 1 代 model 升级等效 + 省 90% cost</p>
+  </div>
+
+  <h3 id="h3-16">实操建议</h3>
+  <table>
+    <thead>
+      <tr><th>Codebase 状态</th><th>可用的 Model</th><th>效果</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>好</b>（clean / typed / tested）</td>
+        <td>stupider model 即可</td>
+        <td><span class="badge green">省 90% cost</span></td>
+      </tr>
+      <tr>
+        <td><b>差</b>（legacy / 难改）</td>
+        <td>需要 SOTA model</td>
+        <td><span class="badge red">贵 10x</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 8: LOOP -->
+<div class="tab-content" data-tab-content="loop">
+  <h2 id="h2-9" class="section">🔁 Loop vs Cue（关键分类）</h2>
+
+  <h3 id="h3-17">Ralph Loop（viral idea）</h3>
+  <div class="card" style="border-left: 3px solid var(--yellow);">
+    <h4>while loop 跑 claude code</h4>
+    <ul>
+      <li>持续 prompt → 直到 "done"</li>
+      <li><b>问题</b>：浪费 tokens</li>
+      <li><b>问题</b>：研究 lab 卖更多 token</li>
+      <li>"停 prompt，跑 loop"</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-18">Matt 的反对：<span class="badge accent">Cue > Loop</span></h3>
+  <blockquote>
+    "I think of these things as <b>cues, not loops</b>."
+  </blockquote>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>Loop</th><th>Cue</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>触发</b></td>
+        <td>infinite</td>
+        <td>label / 任务到达</td>
+      </tr>
+      <tr>
+        <td><b>Token 消耗</b></td>
+        <td><span class="badge red">持续烧</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 9: AFK -->
+<div class="tab-content" data-tab-content="afk">
+  <h2 id="h2-10" class="section">🌙 AFK + Sand Castle</h2>
+
+  <blockquote>
+    "The moment I discovered <b>AFK was the moment I really got into AI coding</b> and the moment I was really able to massively increase my output."
+  </blockquote>
+
+  <h3 id="h3-19">Sand Castle（Matt 自建）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>Run agents in sandbox</h4>
+      <p>Docker / Podman</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>安全</h4>
+      <p>避免 agent 乱删 home dir / 泄露环境变量</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Parallelize</h4>
+      <p>多个 agents（local + Vercel sandboxes）</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>GitHub Actions</h4>
+      <p>PR 自动 review agent</p>
+    </div>
+  </div>
+
+  <h3 id="h3-20">Matt 实操流</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <ol style="line-height: 2;">
+      <li>PR 创建</li>
+      <li>Review agent 跑（GitHub Action）</li>
+      <li>检查 typecheck / lint</li>
+      <li>回复 "cool it all looks good"</li>
+      <li><b>不在本地跑</b> = 不消耗 local resources</li>
+    </ol>
+    <p style="margin-top: 0.5rem; color: var(--accent-2); font-weight: 600;">"one button click away vs whole debugging session away"</p>
+  </div>
+</div>
+
+<!-- TAB 10: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-11" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Fei-Fei "10 年 2 种 Worker"</h4>
+      <p>Matt "Senior 10x" = Fei-Fei "Top 1% Specialist"</p>
+      <p>Matt "Skills 是 multiplier" = Fei-Fei "agency 是 multiplier"</p>
+      <p>Matt "Wisdom 不可替代" = Fei-Fei "human intelligence 不可简化"</p>
+      <p>Matt "100x dev 列表" = Fei-Fei "2 种 Worker 框架"</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent（极简 Harness）</h4>
+      <p>Matt "delete everything, start blank" = <b>Pi "4 tools + 1k prompt"</b></p>
+      <p>Matt "procedures vs abilities" = <b>Pi "slash commands + extensions"</b></p>
+      <p style="margin-top: 0.4rem;">→ Pi 是 Matt 哲学的完美实现</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Self-Harness Optimization</h4>
+      <p>Matt "improve harness over time" = <b>Self-harness 4 步 loop</b></p>
+      <p>Matt "AFK + GitHub Actions" = <b>Self-harness 自动化</b></p>
+      <p>Matt "Cue over Loop" = Self-harness "baby steps"</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Matt "cheap model if codebase good" = <b>hybrid T0 routing</b></p>
+      <p>Matt "50/50 harness + model" = <b>hybrid 决策</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>Matt "procedure skills" = <b>MetaSkill</b>（编排）</p>
+      <p>Matt "stateful skill (teach)" = <b>MetaSkill 持久化</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>Matt "skills ≠ bloated" = <b>v1.3.0 "按需选 Tab"</b></p>
+      <p>Matt "delete everything" = <b>v1.3.0 极简 anti-slop</b></p>
+      <p>Matt "50/50" = <b>v1.3.0 模板复用 (3x 效率)</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Nate Herk "AI 品牌糟糕"</h4>
+      <p>Matt "fundamentals > hype" = <b>Nate "nuanced middle 缺失"</b></p>
+      <p>Matt "不要追新 model" = <b>Nate "OpenAI/Anthropic 互相 verify 才是真"</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman Stanford CS183</h4>
+      <p>Matt "AI 吃 tactical" = <b>Sam "inference 移到 harness"</b></p>
+      <p>Matt "Senior 10x" = <b>Sam "agency 操作工具"</b></p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-12" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-21">立即可做（1 小时）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>删除所有 skills / plugins / MCP</b>（Matt closing 建议）</li>
+    <li><b>观察 agent 基础行为</b>（删除后的 30 min）</li>
+    <li><b>记录缺什么</b>（什么反复需要）→ 建为 procedure skill</li>
+    <li>测 Matt 的 <b>Grill Me skill</b>（如果 OpenSquilla / Pi 里能复刻）</li>
+  </ol>
+
+  <h3 id="h3-22">中期（1-2 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>建 Patrick-specific procedure skills：
+      <ul>
+        <li><code>/patrick-pitch</code>（pitch generation）</li>
+        <li><code>/patrick-review</code>（code review checklist）</li>
+        <li><code>/patrick-vault</code>（Obsidian note 模板）</li>
+      </ul>
+    </li>
+    <li>装 <b>AFK 工具</b>（Sand Castle / Vercel sandbox / GitHub Actions）</li>
+    <li><b>Cue-based 工作流</b>：GitHub issues = Q，labels 触发 agents</li>
+  </ol>
+
+  <h3 id="h3-23">长期（1+ 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>build Patrick <b>knowledge / skills / wisdom 3 维度</b>：
+      <ul>
+        <li>Knowledge = 学（所有视频笔记）</li>
+        <li>Skills = 练（hybrid router / OpenSquilla / Pi）</li>
+        <li><b>Wisdom = 实战</b>（OpenSwarm 部署 + 跑 cron）</li>
+      </ul>
+    </li>
+    <li><b>80% AFK 工作流</b>：
+      <ul>
+        <li>90% tasks via GitHub Actions</li>
+        <li>10% critical 由 Patrick 审</li>
+      </ul>
+    </li>
+    <li>成为 <b>Top 1% + High Agency</b>（双轨）：
+      <ul>
+        <li>1 deep specialty（hybrid routing / agent harness）</li>
+        <li>Multiple shallow agency（多个 video notes topic）</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<!-- TAB 12: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="who">Harness > Model</div>
+      <div class="text">Everyone is obsessed with the engine of the Formula 1 car whereas in fact the engine is really only a part of the whole system.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Stupider Model</div>
+      <div class="text">If your codebase architecture is better, then you can get a cheaper model to do the same work because it your guard rails are better, it's easier to explore, it needs to spend fewer tokens.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Tactical Eaten</div>
+      <div class="text">AI has basically eaten tactical programming. It's gone. It's all gone.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Senior 10x</div>
+      <div class="text">AI makes senior developers just 10 times better. It sort of doesn't make sense to hire that many juniors anymore.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Skills Ceiling</div>
+      <div class="text">Your skills are the ceiling on what AI can do.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Procedures</div>
+      <div class="text">I prefer my skills as procedures. I like to be the one in control. I don't want to delegate my thinking to the model.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Wisdom</div>
+      <div class="text">Wisdom is almost impossible to obtain without actually having done the thing in the exact context where you need to do it.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Bitter Lesson 反驳</div>
+      <div class="text">If I try to overoptimize around a model, if I get too focused on the model, I will lose focus on the fundamentals.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">50/50</div>
+      <div class="text">I think you have to think of them as 50/50 — engine and harness 都重要。</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Cue vs Loop</div>
+      <div class="text">I think of these things as cues, not loops.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AFK</div>
+      <div class="text">The moment I discovered AFK was the moment I really got into AI coding and the moment I was really able to massively increase my output.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AFK = 2 of me</div>
+      <div class="text">Suddenly there are two of me, or three of me, four of me, five of me able to go and produce so much more code.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Closing</div>
+      <div class="text">First thing I would do is I would delete every single skill, every single plugin, every single MCP server. Go back to a blank slate and see what the agent does.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Enthusiasm</div>
+      <div class="text">Hiring great juniors has always been the goal... enthusiasm beats experience in pure output.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">AX vs DX</div>
+      <div class="text">I think of there as being a difference between DX and AX.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（152 段字幕精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：focus on harness, not model</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:26</div>
+      <div class="what">30-40 years fundamentals 都 work</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:38</div>
+      <div class="what">🎯 <b>Strategic vs Tactical programming</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:30</div>
+      <div class="what">"AI has basically eaten tactical"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:55</div>
+      <div class="what"><b>Senior 10x / Junior 1.5x</b>（AI 时代）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:20</div>
+      <div class="what">"Your skills are the ceiling"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:49</div>
+      <div class="what">📚 <b>New teach skill</b> 介绍（sponsor SER API）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:31</div>
+      <div class="what">Teach skill 实战 demo（vibe coder scenario）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:51</div>
+      <div class="what">Mission.md + stateful</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:36</div>
+      <div class="what">Opus 4.8 medium（not Fable yet）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:11</div>
+      <div class="what">第一个 lesson = "Get your project's undo button"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:04</div>
+      <div class="what">Quiz 有效（教育技术）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:25</div>
+      <div class="what"><b>GitHub: Matt Pocock skills</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:50</div>
+      <div class="what">🔧 <b>Skills vs Abilities 区别</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:30</div>
+      <div class="what">Procedure = 短 + 用户触发</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:56</div>
+      <div class="what">🔥 <b>Grill Me skill</b>（4-5 句最 popular）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:00</div>
+      <div class="what">Matt 偏好 procedures（I control）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:30</div>
+      <div class="what">"100 abilities = 100 descriptions leak context"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:30</div>
+      <div class="what">🧠 <b>Knowledge / Skills / Wisdom 3 维度</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:58</div>
+      <div class="what">Wisdom 必须自己拿（不可替代）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:23</div>
+      <div class="what">🌙 <b>Matt 的 AFK setup</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:45</div>
+      <div class="what">Sand Castle = Docker/Podman sandbox</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:10</div>
+      <div class="what">GitHub Actions + Sand Castle 自动化</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:39</div>
+      <div class="what">🚫 <b>Bitter Lesson 反驳</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:25</div>
+      <div class="what">"If you overoptimize model → lose focus"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:55</div>
+      <div class="what">"Fundamentals 30-40 years 都 work"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:54</div>
+      <div class="what">"If codebase good → stupider model"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:21</div>
+      <div class="what">Top 1% specialist vs High agency generalist</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">16:33</div>
+      <div class="what">⚖️ <b>AX vs DX 区分</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:50</div>
+      <div class="what">"Enthusiasm beats experience"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:00</div>
+      <div class="what">Claude Mythos vs Fable 案例（security bug）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:45</div>
+      <div class="what">"AI don't know it's done a good job"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">19:30</div>
+      <div class="what">"Cron job 跑 security review"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:00</div>
+      <div class="what">"Loops = viral but 50% sell more tokens"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:25</div>
+      <div class="what">Human-in-the-loop vs AFK</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">20:45</div>
+      <div class="what">🔁 <b>Loop vs Cue</b>（关键分类）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:10</div>
+      <div class="what">"I think of these as cues, not loops"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">21:50</div>
+      <div class="what">Q = backlog of tasks</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">22:30</div>
+      <div class="what">Middle ages king metaphor</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">23:00</div>
+      <div class="what">GitHub Actions 模式</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">24:00</div>
+      <div class="what">Remove human-in-loop checkpoint</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:20</div>
+      <div class="what">"Review the system that produces the code"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">25:50</div>
+      <div class="what">"AI 视频 walk through code" 创新 review</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">26:30</div>
+      <div class="what">Building business 哲学</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">27:00</div>
+      <div class="what">"Talk to customers" 是 AI 帮不了的</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:00</div>
+      <div class="what">"What can I remove from my app?"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">28:30</div>
+      <div class="what">Hiring tension：senior vs junior</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">29:30</div>
+      <div class="what">AX vs DX 实战</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:00</div>
+      <div class="what">"If you excited about AI, will thrive"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">30:50</div>
+      <div class="what"><b>Closing：delete everything, start blank</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">31:30</div>
+      <div class="what">AFK setup 建议</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">31:55</div>
+      <div class="what">aihero.dev / aihero.dev/skills</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/matt-pocock-skills-130k-stars/</code></p>
+  <p>Desktop: <code>~/Desktop/matt-pocock-skills-130k-stars-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=nQwJVHCtDDY">https://www.youtube.com/watch?v=nQwJVHCtDDY</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

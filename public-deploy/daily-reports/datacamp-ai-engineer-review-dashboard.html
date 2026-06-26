@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI Engineer 学习路径：DataCamp 实地评测 — Tech With Tim</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .phase-flow {
+    display: flex; align-items: stretch; flex-wrap: wrap; gap: 0.4rem;
+    margin: 1.2rem 0; font-size: 0.9rem;
+  }
+  .phase {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.8rem; color: var(--text);
+    flex: 1; min-width: 200px;
+  }
+  .phase .num { color: var(--accent); font-weight: 700; }
+  .phase .name { font-size: 0.95rem; font-weight: 600; margin: 0.2rem 0; }
+  .phase .detail { font-size: 0.78rem; color: var(--text-dim); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  .warning-card {
+    border-left: 3px solid var(--yellow);
+    background: var(--bg-card);
+    border-radius: 0 8px 8px 0;
+    padding: 0.8rem 1.1rem;
+    margin: 0.8rem 0;
+  }
+  .warning-card h4 { color: var(--yellow); margin: 0 0 0.4rem; font-size: 0.95rem; }
+  .warning-card p, .warning-card li { color: var(--text-dim); font-size: 0.9rem; margin: 0.2rem 0; }
+  .warning-card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">AI Engineer 在 2026 是什么？</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 主要工作内容</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">课程详情：9 门 + 3 项目 + 26 小时</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 学习流程图</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">学习方式（最大特色）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Tim 优缺点评价（亲自跑完）</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">适合谁 / 不适合谁</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">Patrick 实战路线（5 分钟 → 3 个月）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 与 hybrid-llm-routing-framework 关联</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 关键金句</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">完整时间线（18 段字幕）</a></li>
+  </ol>
+</aside>
+
+
+<h1>AI Engineer 学习路径</h1>
+<p class="subtitle">DataCamp 实地评测 — Tech With Tim 跑完 20+ 小时</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=ki0UR5ZP_QY" target="_blank">Do THIS Instead of watching endless AI Engineer Roadmaps</a></span>
+  <span><strong>频道：</strong>Tech With Tim</span>
+  <span><strong>时长：</strong>15:29（929s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-16</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p><b>别看数百个 AI Engineer Roadmap 了</b>——跟着一条跑通就行。Tim 亲自花 20+ 小时跑完 DataCamp "Associate AI Engineer for Developers" 课程，得出：这是<b>目前最扎实、最系统</b>的入门路径之一（$13/月），但<b>不完美</b>（前期偏慢 / LLM Ops 浅 / 缺综合 capstone）。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">子课数</div>
+    <div class="value">9</div>
+    <div class="sub">+ 3 项目</div>
+  </div>
+  <div class="stat">
+    <div class="label">预计耗时</div>
+    <div class="value">26 h</div>
+    <div class="sub">~ 1 个月</div>
+  </div>
+  <div class="stat">
+    <div class="label">价格</div>
+    <div class="value">$13/月</div>
+    <div class="sub">订阅制 + 25% off</div>
+  </div>
+  <div class="stat">
+    <div class="label">Tim 投入</div>
+    <div class="value">20+ h</div>
+    <div class="sub">亲自跑完</div>
+  </div>
+  <div class="stat">
+    <div class="label">起薪参考</div>
+    <div class="value">$150K+</div>
+    <div class="sub">2026 AI engineer</div>
+  </div>
+  <div class="stat">
+    <div class="label">Tim 评分</div>
+    <div class="value">⭐⭐⭐⭐</div>
+    <div class="sub">强烈推荐 + 诚实缺点</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="role">🎯 AI Engineer 是什么</button>
+  <button class="tab" data-tab="curriculum">📚 9 门子课</button>
+  <button class="tab" data-tab="method">💻 学习方式</button>
+  <button class="tab" data-tab="proscons">⚖️ 优缺点</button>
+  <button class="tab" data-tab="whofor">👤 适合谁</button>
+  <button class="tab" data-tab="route">🗺️ Patrick 路线</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: ROLE -->
+<div class="tab-content active" data-tab-content="role">
+  <h2 id="h2-2" class="section">AI Engineer 在 2026 是什么？</h2>
+
+  <blockquote>
+    "AI engineering is a lot less about training ML models or doing statistics and mathematics and much more about <b>applying things that have already been built</b>."
+  </blockquote>
+
+  <h3 id="h3-1">主要工作内容</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🤖 使用 pre-trained 模型</h4>
+      <p>OpenAI / Anthropic / 开源 LLM</p>
+    </div>
+    <div class="card">
+      <h4>🔍 创建 RAG pipelines</h4>
+      <p>检索增强生成</p>
+    </div>
+    <div class="card">
+      <h4>🚀 部署 LLM 应用到生产</h4>
+      <p>从 demo 到 production</p>
+    </div>
+    <div class="card">
+      <h4>🤗 集成 Hugging Face 模型</h4>
+      <p>开源模型 + transformer pipeline</p>
+    </div>
+    <div class="card">
+      <h4>⛓️ LangChain / LlamaIndex</h4>
+      <p>框架 + agent 编排</p>
+    </div>
+    <div class="card">
+      <h4>📊 不需要数学</h4>
+      <p>重在<b>实现</b>，不是训练</p>
+    </div>
+  </div>
+
+  <div class="warning-card">
+    <h4>💰 2026 薪资</h4>
+    <p>入门起薪 <b>$150K+/年</b>，是 2026 年增长最快的开发岗位之一</p>
+  </div>
+</div>
+
+<!-- TAB 2: CURRICULUM -->
+<div class="tab-content" data-tab-content="curriculum">
+  <h2 id="h2-3" class="section">课程详情：9 门 + 3 项目 + 26 小时</h2>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>课程名</th><th>核心内容</th><th>Tim 评价</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>①</td>
+        <td><b>Working with OpenAI API</b></td>
+        <td>请求 / model selection / response API / system/user/assistant messages</td>
+        <td><span class="badge">基础</span></td>
+      </tr>
+      <tr class="highlight">
+        <td>②</td>
+        <td><b>Prompt Engineering</b> ⭐</td>
+        <td>one-shot / multi-shot / few examples / structured outputs</td>
+        <td><span class="badge accent">Tim 收获最大</span></td>
+      </tr>
+      <tr>
+        <td>③</td>
+        <td><b>Project 1: OpenAI 多轮对话</b></td>
+        <td>存储 context / token tracking / cost 计算</td>
+        <td><span class="badge blue">实战</span></td>
+      </tr>
+      <tr>
+        <td>④</td>
+        <td><b>Working with Hugging Face</b></td>
+        <td>开源模型 / text classification / image classification / auto classes / tokenization / Q&A pipeline / PDF extraction</td>
+        <td><span class="badge">系统</span></td>
+      </tr>
+      <tr>
+        <td>⑤</td>
+        <td><b>LLM Ops</b></td>
+        <td>高层概念（开发 vs 运维）/ 开源 vs 闭源 / fine-tune 决策</td>
+        <td><span class="badge yellow">偏浅</span></td>
+      </tr>
+      <tr>
+        <td>⑥</td>
+        <td><b>Developing AI Systems with OpenAI</b></td>
+        <td>HF + OpenAI 组合应用</td>
+        <td><span class="badge">难度上升</span></td>
+      </tr>
+      <tr class="highlight">
+        <td>⑦</td>
+        <td><b>Embeddings + Vector DB + RAG</b> ⭐</td>
+        <td>embedding models / Chroma DB / Pinecone / RAG 实战</td>
+        <td><span class="badge accent">核心</span></td>
+      </tr>
+      <tr>
+        <td>⑧</td>
+        <td><b>LangChain + AI Agents</b></td>
+        <td>链式调用 / tool calling / 复合 agent</td>
+        <td><span class="badge">实战</span></td>
+      </tr>
+      <tr>
+        <td>⑨</td>
+        <td><b>高级轨道（选修）</b></td>
+        <td>LLM concepts / 高级主题</td>
+        <td><span class="badge purple">延伸</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-2">学习流程图</h3>
+  <div class="phase-flow">
+    <div class="phase">
+      <div class="num">①</div>
+      <div class="name">OpenAI API</div>
+      <div class="detail">基础调用</div>
+    </div>
+    <div class="phase">
+      <div class="num">②</div>
+      <div class="name">Prompt Eng</div>
+      <div class="detail">⭐ Tim 收获</div>
+    </div>
+    <div class="phase">
+      <div class="num">③</div>
+      <div class="name">Project 1</div>
+      <div class="detail">多轮对话</div>
+    </div>
+    <div class="phase">
+      <div class="num">④</div>
+      <div class="name">Hugging Face</div>
+      <div class="detail">开源模型</div>
+    </div>
+    <div class="phase">
+      <div class="num">⑤</div>
+      <div class="name">LLM Ops</div>
+      <div class="detail">⚠️ 偏浅</div>
+    </div>
+    <div class="phase">
+      <div class="num">⑥</div>
+      <div class="name">复合应用</div>
+      <div class="detail">HF+OpenAI</div>
+    </div>
+    <div class="phase">
+      <div class="num">⑦</div>
+      <div class="name">RAG</div>
+      <div class="detail">⭐ 核心</div>
+    </div>
+    <div class="phase">
+      <div class="num">⑧</div>
+      <div class="name">LangChain</div>
+      <div class="detail">Agent</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: METHOD -->
+<div class="tab-content" data-tab-content="method">
+  <h2 id="h2-4" class="section">学习方式（最大特色）</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>🎥 4-5 分钟视频</h4>
+      <p>概念讲解，1.5-2x 速度看完</p>
+    </div>
+    <div class="card">
+      <h4>💻 立即写代码</h4>
+      <p>test cases 必须 pass 才能进</p>
+    </div>
+    <div class="card">
+      <h4>🔍 回看视频找答案</h4>
+      <p>不会就回退查</p>
+    </div>
+    <div class="card">
+      <h4>📊 80% 时间在 code editor</h4>
+      <p>主动学习 > 被动观看</p>
+    </div>
+  </div>
+
+  <div class="warning-card">
+    <h4>💡 优势</h4>
+    <ul>
+      <li><b>主动学习</b> > 被动观看</li>
+      <li><b>实战</b> > 理论</li>
+      <li><b>小步快跑</b> > 一次灌 30 分钟</li>
+      <li><b>互动云端环境</b>：run / submit / hints 一体</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 4: PROSCONS -->
+<div class="tab-content" data-tab-content="proscons">
+  <h2 id="h2-5" class="section">Tim 优缺点评价（亲自跑完）</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 优点</h4>
+      <ul>
+        <li><b>系统性强</b> — 9 门课逻辑清晰</li>
+        <li><b>实战项目</b> — 3 个 + 大量练习</li>
+        <li><b>Tim 亲自跑完 20+ 小时</b>（不是看大纲瞎评）</li>
+        <li><b>experienced engineer 也有收获</b></li>
+        <li><b>价格合理</b> $13/月</li>
+        <li><b>认证可挂 LinkedIn</b></li>
+        <li><b>覆盖 2026 主流栈</b>：OpenAI + HF + LangChain + RAG</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 缺点</h4>
+      <ul>
+        <li><b>前期偏慢</b> — 太多重复基础练习</li>
+        <li><b>LLM Ops 浅</b> — 没真部署 Docker/K8s</li>
+        <li><b>难度突然上升</b> — embeddings 段断崖</li>
+        <li><b>缺综合 capstone</b> — 没 final project 串起来</li>
+        <li><b>不适合完全零基础</b></li>
+        <li><b>Instructor 不统一</b>（不同老师）</li>
+      </ul>
+    </div>
+  </div>
+
+  <blockquote>
+    "I don't feel this covers everything to become an AI engineer. <b>But it gets you halfway there</b>, which is a good starting point."
+  </blockquote>
+</div>
+
+<!-- TAB 5: WHOFOR -->
+<div class="tab-content" data-tab-content="whofor">
+  <h2 id="h2-6" class="section">适合谁 / 不适合谁</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 适合</h4>
+      <ul>
+        <li><b>已掌握 Core Python</b> 的开发者</li>
+        <li>想从 web dev / backend 转向 AI engineering</li>
+        <li>想<b>系统入门</b>而不是看 YouTube 拼凑</li>
+        <li>愿意 26 小时集中投入（约 1 个月）</li>
+        <li>需要项目作品集 + 证书</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 不适合</h4>
+      <ul>
+        <li><b>完全零基础</b>（先学 Python 基础）</li>
+        <li>已是有经验的 AI engineer（内容偏入门）</li>
+        <li>想要 ML 理论 / 训练模型</li>
+        <li>想要 deep MLOps / 部署实战（课程太浅）</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-7" class="section">Patrick 实战路线（5 分钟 → 3 个月）</h2>
+
+  <h3 id="h3-3">与 hybrid-llm-routing-framework 关联</h3>
+  <div class="card">
+    <p>这门课覆盖的内容<b>正好是 hybrid router 的实操层</b>：</p>
+    <ul>
+      <li>OpenAI API + Hugging Face → 选模型（<b>第 1 步</b>）</li>
+      <li>RAG + Vector DB → 上下文管理（<b>第 2 步</b>）</li>
+      <li>LangChain agents → 工具调用（<b>第 3 步</b>）</li>
+      <li>LLM Ops → 部署 + 监控（<b>第 4 步</b>）</li>
+    </ul>
+    <p style="color: var(--text-dim); margin-top: 0.6rem;">学完 = 能用 LiteLLM 搭生产级 hybrid workflow</p>
+  </div>
+
+  <h3 id="h3-4">实战路线</h3>
+  <div class="phase-flow">
+    <div class="phase">
+      <div class="num">5 min</div>
+      <div class="name">立即可做</div>
+      <div class="detail">注册免费 basic → 试 2 节课</div>
+    </div>
+    <div class="phase">
+      <div class="num">1 mo</div>
+      <div class="name">完成课程</div>
+      <div class="detail">$13/月，跑通 3 个项目</div>
+    </div>
+    <div class="phase">
+      <div class="num">2-3 mo</div>
+      <div class="name">实战 hybrid</div>
+      <div class="detail">LiteLLM + 本地 Qwen + cloud</div>
+    </div>
+  </div>
+
+  <h3 id="h3-5">关键金句</h3>
+  <blockquote>
+    "<b>AI engineering is applying things already built.</b> You don't need math. You use pre-trained models to create applications that deliver real value."
+  </blockquote>
+  <blockquote>
+    "This is one of the best resources I found. I have personally tested and tried it. It is very high quality and goes through content in a way that's very digestible and interactive to learn."
+  </blockquote>
+</div>
+
+<!-- TAB 7: TIMELINE -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-8" class="section">完整时间线（18 段字幕）</h2>
+  <p style="color: var(--text-mute); font-size: 0.85rem;">从 0:00 到 15:14 的关键节点</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">Hook：别看 roadmap 了，跟这条就行</div>
+      <div class="note">"save you months of time"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:30</div>
+      <div class="what">AI Engineer 是什么（不训练模型）</div>
+      <div class="note">"applying things that have already been built"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:11</div>
+      <div class="what">2026 起薪 $150K+</div>
+      <div class="note">"fastest growing job for software engineers"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:22</div>
+      <div class="what">DataCamp 合作 + 信用声明</div>
+      <div class="note">"3+ years, gone through many myself"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:19</div>
+      <div class="what">💰 价格 $13/月 + 25% 折扣</div>
+      <div class="note">订阅制，免费 basic 试用</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:44</div>
+      <div class="what">课程定位（不是零基础）</div>
+      <div class="note">Core Python 必学</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:00</div>
+      <div class="what">9 门课 + 3 项目 + 26 小时</div>
+      <div class="note">+ DataCamp 认证</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:13</div>
+      <div class="what">① OpenAI API</div>
+      <div class="note">基础调用</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:20</div>
+      <div class="what">② ⭐ Prompt Engineering</div>
+      <div class="note">"教了我不少没学过的 prompting 技巧"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:31</div>
+      <div class="what">③ Project 1: 多轮对话 + token</div>
+      <div class="note">context + cost</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:50</div>
+      <div class="what">④ Hugging Face 实战</div>
+      <div class="note">text / image / Q&A pipeline</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:53</div>
+      <div class="what">⑤ LLM Ops（偏浅）</div>
+      <div class="note">"没真部署 Docker/K8s"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:13</div>
+      <div class="what">⑥ OpenAI + HF 组合</div>
+      <div class="note">难度开始上升</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:32</div>
+      <div class="what">⑦ ⭐ Embeddings + Vector DB + RAG</div>
+      <div class="note">Chroma DB → Pinecone</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:27</div>
+      <div class="what">⑧ LangChain + agents</div>
+      <div class="note">chain / tool calling</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:17</div>
+      <div class="what">DataCamp 认证</div>
+      <div class="note">timed proctored exam</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:44</div>
+      <div class="what">互动学习环境（80% 写代码）</div>
+      <div class="note">interactive cloud-based</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:57</div>
+      <div class="what">⚖️ 诚实评价：优点 + 缺点</div>
+      <div class="note">"not perfect, not for zero beginners"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:36</div>
+      <div class="what">总结：能跑完 50% 入门</div>
+      <div class="note">"gets you halfway there"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:14</div>
+      <div class="what">Closing</div>
+      <div class="note">"won't regret checking it out"</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/datacamp-ai-engineer-review/</code></p>
+  <p>Desktop: <code>~/Desktop/datacamp-ai-engineer-review-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=ki0UR5ZP_QY">https://www.youtube.com/watch?v=ki0UR5ZP_QY</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+# GCP-1.2.0 12 小时 Launch Digest v2 — 2026-06-12
+
+> **作者**: Hermes Agent (single DA)
+> **整合**: 5 份今日报告 (cheat sheet + MemGraphRAG 笔记 + PageRank 实验 + GCP-1.2.0 batch fix + 收尾报告)
+> **协议版本**: GCP-1.0.0 → **GCP-1.2.0** (12 小时内 2 个 P0 升级)
+> **总耗时**: 5 phase (~3 小时 active + cron sync)
+> **真实产出**: 23+ 份 artifact, 6 Gold Mine, **真实覆盖率 16.3% → 21.7%**, PageRank 5 query recall **60% → 100%**
+
+---
+
+## 1. 一句话总结 (TL;DR)
+
+Patrick 1 个 prompt (用 Gene+Capsule 协议结构化 238 skills) 触发**双协议版本 (1.0 → 1.1 → 1.2)**。从覆盖率 16% 升到 22%, PageRank 召回 60% 升到 100%, 关键发现是 **数据稀疏 = 算法失败** (Pitfall 8), 协议核心 umbrella / registry skill 必须先有 frontmatter, 否则图遍历是空中楼阁。
+
+---
+
+## 2. 协议版本演进 (12 小时)
+
+| 版本 | 触发事件 | 关键变更 | 覆盖率 | PageRank 5 query |
+|------|----------|----------|--------|-------------------|
+| **v1.0.0** | 6-11 17:14 | 协议首版 + registry + align v1.1.0 (auto_trigger) | 1.3% | n/a |
+| **v1.1.0** | 6-11 18:30 | 3 P0 patch: 拆 audit 为 Pre+Post, registry 自示范, YAML 格式统一 | 16.3% | n/a |
+| **v1.1.1** | 6-12 21:30 | +7-lessons launch checklist (源自 7 phase 24 份 artifact 复盘) | 17.1% | 3/5 (60%) |
+| **v1.2.0** | 6-12 22:45 | **9 步** (加 Step 9 修复循环) + **Pitfall 8 数据稀疏性** + **7 Gene** (ios-development) | **21.7%** | **5/5 (100%)** |
+
+**关键转折**: v1.1.1 → v1.2.0 用了 ~1.5 小时, 不是改算法, 是**给协议核心 3 个 skill (gene-capsule-protocol / gene-registry / align) 补 frontmatter**, 把 ios-development 域从 0 拉到 5 节点。
+
+---
+
+## 3. 6 Gene → 7 Gene 演进 (新晋 ios-development)
+
+| Gene | v1.0.0 | v1.1.0 | v1.1.1 | **v1.2.0** |
+|------|--------|--------|--------|-----------|
+| agentic-os | 13 | 21 | 21 | 21 |
+| emai-workflow | 6 | 6 | 6 | 6 |
+| knowledge-synthesis | 5 | 5 | 5 | 5 |
+| cross-domain-intent | 1 | 1 | 4 | 4 |
+| project-coordination | 2 | 2 | 2 | 2 |
+| ios-development | **0** | **0** | **0** | **5** ⬆️ |
+
+**ios-development 域新晋 5 节点** (Fix 4 落地): visionos-3d-project-lifecycle / ios-safari-web-app-fixes / ios-develop / macos-computer-use / imessage
+
+---
+
+## 4. 7-lessons (从 GCP-1.1.0 7 phase 复盘, 写进 v1.1.1)
+
+1. ✓ **Cross-Subagent Verification** — 任何 subagent 报数字, 主线程 re-verify (find 不用 glob)
+2. ✓ **Pre+Post-Audit Split** — audit 拆 2 步, 早发现 + 后校验
+3. ✓ **Self-Referential Consistency** — 全局文件必须满足自己定义的合规
+4. ✓ **YAML 风格铁律** — `gene: <id>` 带空格
+5. ✓ **Progressive Migration** — 每次新加 1 skill 加 1 字段
+6. ✓ **诚实标"未跑"** — 不编数据
+7. ✓ **Calibrate 固化为协议第 8 步** — 任何 protocol launch 后必跑
+
+**新增 lesson 8 (v1.2.0)**: **数据稀疏性 = PageRank / Graph RAG 算法失败** — 协议核心 umbrella + registry skill **必须**先有 frontmatter
+
+---
+
+## 5. 4 大数据纠错 (诚实记录)
+
+| 错误 | 真值 | 来源 |
+|------|------|------|
+| Artisan $30M ARR | **$5M ARR** (2025-04 TechCrunch) | 3 公司调研 subagent |
+| Cognosys 2023 YC 可复制 | **2025-05 被 Cohere 收购 + sunsetted** | 3 公司调研 subagent |
+| Coverage 5/239 (2.1%) | **45/226 active (19.9%)** | find 黄金法则重测 |
+| GCP 协议核心 3 skill 缺数据 | **已补 frontmatter, PageRank 召回 100%** | Q1 fix |
+
+---
+
+## 6. LLM 8 任务路由 (local-llm-benchmark v1.1.0)
+
+| 任务 | 推荐模型 | 实测 |
+|------|----------|------|
+| 短摘要 | **qwen3 5.2GB** | 31.7 tok/s 速度冠军 |
+| **严格分类** | **gemma4:e4b 9.6GB** | **9.8s 严格 5 词稳赢 qwen3 20.5s** |
+| codegen | hermes3 4.7GB | 5.6s 真实代码 |
+| 长翻译/多步/FC/CSV | **云端** (MiniMax-M3) | 本地 thinking 灾难 / 造数据幻觉 |
+
+---
+
+## 7. 5 query PageRank 召回测试 (v1.1.1 → v1.2.0)
+
+| Query | v1.1.1 (Fix 前) | v1.2.0 (Fix 后) |
+|-------|----------------|-----------------|
+| GCP-1.1.0 协议 | ❌ 0/3 | ✅ align + gene-capsule-protocol + burst/devil/tweak |
+| 本地 LLM benchmark | ❌ 0/3 | ✅ local-llm-benchmark + llm-wiki + agent-observability |
+| NotebookLM 集成 | ❌ 0/3 | ✅ notebooklm + llm-wiki + arxiv |
+| 跨 subagent 验证 | ✅ 1/3 | ✅ parallel-subagent + evaluation + audit |
+| emai 工作流 | ✅ 1/3 | ✅ emai-vault + emai-new + emai-today |
+| **平均** | **20%** | **100%** |
+
+---
+
+## 8. GCP-1.2.0 协议 9 步流程 (新)
+
+1. **Step 1**: 选 Gene
+2. **Step 2**: 加 frontmatter 字段
+3. **Step 2.5**: Pre-Audit (frontmatter 写完即跑, 不打断)
+4. **Step 3**: 写依赖表
+5. **Step 4**: 更新 gene-registry
+6. **Step 5**: (deprecated, 拆为 2.5 + 6.5)
+7. **Step 6.5**: Post-Audit (NotebookLM 加载后跑, 必须通过)
+8. **Step 7**: Launch (跑 gcp_self_heal.py 验证 5 query recall ≥ 80%)
+9. **Step 8**: Post-Audit + Calibrate
+10. **Step 9**: **修复循环 (新)** — 跑 gcp_self_heal.py 自动 patch, 循环至 recall ≥ 80%
+
+---
+
+## 9. 4 件 GCP-1.2.0 工具 (写进 scripts/)
+
+| 工具 | 用途 | 行数 |
+|------|------|------|
+| `audit_gene_fields.py` v1.0 | 扫所有 SKILL.md 验证 gene/capsule/depends_on 合规 | ~200 |
+| `gene-relevance-pagerank.py` v0.1 | 图遍历选相关 skill (标准 + Personalized) | ~250 |
+| `gcp_self_heal.py` v0.1 (新) | 4 阶段自动化 (audit + PageRank + patch 建议 + 报告) | 480 |
+| (待 GCP-1.3.0) `gcp_auto_patch.py` | 真正 patch 文件, 不只建议 | n/a |
+
+---
+
+## 10. 23:30 cron sync 公网交付
+
+| 文件 | URL |
+|------|-----|
+| 7-lessons cheat sheet | `patrick-reports.../7-lessons-cheatsheet-2026-06-11.html` |
+| MemGraphRAG 笔记 | `.../memgraph-rag-outperforms-every-rag-2026-06-03.html` |
+| PageRank 实验 | `.../pagerank-gcp-experiment-2026-06-12.md` |
+| GCP-1.2.0 batch fix | `.../gcp-1.2.0-batch-fix-2026-06-12.md` |
+| GCP-1.2.0 收尾报告 | `.../gcp-1.2.0-收尾报告-2026-06-12.md` |
+| **本 digest v2** | `.../gcp-1.2.0-launch-digest-v2-2026-06-12.html` (新) |
+
+---
+
+## 11. 1 句话最核心 takeaway
+
+**GCP-1.0/1.1.0 是"协议定义", GCP-1.2.0 是"协议自检+修复闭环"**。从 60% recall 升到 100% 靠的不是改 PageRank 算法, 是给协议核心 skill 补 frontmatter, 把 ios-development 域从 0 拉到 5 节点。
+
+下一步 (GCP-1.3.0): 把 `gcp_self_heal.py` 的 patch 建议升级为真 patch (`gcp_auto_patch.py`), 让下次 5 query 召回 100% 不再依赖人。
+
+---
+
+_Generated 2026-06-12 · Patrick Personal Agentic OS · source: 5 份今日报告整合 + GCP-1.2.0 协议 v1.2.0 + gcp_self_heal.py v0.1_

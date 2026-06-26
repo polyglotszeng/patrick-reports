@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WWDC26: Bringing Cyberpunk 2077 to Mac</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --cyan: #39c5cf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.7; padding: 2rem; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+  h2 { font-size: 1.15rem; color: var(--text); margin: 1.5rem 0 0.5rem; }
+  h3 { font-size: 1rem; color: var(--text-muted); margin: 1rem 0 0.3rem; }
+  p { color: var(--text); margin: 0.4rem 0; }
+  .meta { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+  .highlight { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.9rem; }
+  th { text-align: left; background: var(--surface); color: var(--accent); padding: 0.5rem 0.75rem; border: 1px solid var(--border); }
+  td { padding: 0.45rem 0.75rem; border: 1px solid var(--border); color: var(--text); }
+  td:first-child { color: var(--text-muted); font-size: 0.85rem; }
+  ul { margin: 0.4rem 0 0.4rem 1.2rem; }
+  li { margin: 0.2rem 0; color: var(--text); font-size: 0.9rem; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem; overflow-x: auto; margin: 0.6rem 0; font-family: 'SF Mono', Menlo, monospace; font-size: 0.82rem; }
+  .flow { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+  .flow-step { background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; padding: 0.5rem 1rem; color: var(--accent); font-weight: 600; font-size: 0.85rem; }
+  .flow-arrow { color: var(--text-muted); font-size: 1.2rem; }
+  .metric { display: flex; gap: 1.5rem; margin: 1rem 0; flex-wrap: wrap; }
+  .metric-item { text-align: center; }
+  .metric-num { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+  .tag { display: inline-block; background: var(--accent); color: var(--bg); font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 20px; font-weight: 600; margin-right: 0.3rem; }
+  .tech-tag { display: inline-block; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; margin: 0.1rem; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+
+<h1>Bringing Cyberpunk 2077 to Mac</h1>
+<p class="meta">Garrett Austin（Apple 游戏性能团队）&nbsp;+&nbsp;Pavle Soskic（CD Projekt Red，associate game director）</p>
+
+<div class="highlight">
+  <strong style="color: var(--accent)">核心主旨</strong>
+  <p style="margin-top: 0.4rem;">Cyberpunk 2077 Ultimate Edition（完整游戏 + 所有 DLC）正式登陆 Mac，展示 Apple Silicon 游戏能力 + Game Porting Toolkit 4 全套移植工具链。</p>
+</div>
+
+<h2>🍎 Apple Silicon 游戏优势</h2>
+<table>
+  <tr><th>特性</th><th>说明</th></tr>
+  <tr><td>Unified Memory</td><td>CPU 和 GPU 共享内存，无需独立 VRAM pool，消除数据拷贝开销</td></tr>
+  <tr><td>原生 ARM64</td><td>无需 x86 模拟，运行效率接近原生水平</td></tr>
+  <tr><td>Havok Physics</td><td>原生支持 Apple Silicon，无模拟器</td></tr>
+  <tr><td>硬件光追</td><td>所有 Apple Silicon（M1+）均支持硬件加速光追</td></tr>
+  <tr><td>Mesh Shaders</td><td>Apple Silicon GPU 原生支持 tessellation 和 mesh shading</td></tr>
+</table>
+
+<h2>🕹️ Metal 3 特性</h2>
+<div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin:0.8rem 0;">
+  <span class="tech-tag">硬件加速光追</span>
+  <span class="tech-tag">Mesh Shaders</span>
+  <span class="tech-tag">Variable Rate Shading</span>
+  <span class="tech-tag">Sampler Feedback</span>
+  <span class="tech-tag">Metal GPU Capture</span>
+  <span class="tech-tag">Shader Debugger</span>
+</div>
+
+<h2>🔧 Game Porting Toolkit 4：四步工作流</h2>
+<div class="flow">
+  <div class="flow-step">Analyze</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step">Translate</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step">Build</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step">Optimize</div>
+</div>
+<table>
+  <tr><th>步骤</th><th>工具</th><th>作用</th></tr>
+  <tr><td>Analyze</td><td>DirectX → Metal 对应表</td><td>分析游戏用了哪些 DirectX 特性，找出 Metal 等价替代</td></tr>
+  <tr><td>Translate</td><td>Metal Shader Converter</td><td>将 HLSL shader 转换为 Metal（支持大多数游戏 shader）</td></tr>
+  <tr><td>Build</td><td>Xcode</td><td>编译项目，迭代修复编译错误</td></tr>
+  <tr><td>Optimize</td><td>Metal 性能工具</td><td>帧分析、shader profiling、GPU 性能瓶颈定位</td></tr>
+</table>
+
+<h2>📊 Cyberpunk 2077 Mac 版性能</h2>
+<div class="metric">
+  <div class="metric-item"><div class="metric-num">M3 Max</div><div class="metric-label">MacBook Pro<br>1440p / 60fps</div></div>
+  <div class="metric-item"><div class="metric-num">M4</div><div class="metric-label">Mac<br>4K / 60fps</div></div>
+</div>
+<p style="color:var(--text-muted); font-size:0.82rem;">路径追踪（Path Tracing）光追效果仅限高端 Mac。硬件光追所有 Apple Silicon（M1+）均支持。</p>
+
+<h2>🎮 Game Mode on Mac</h2>
+<ul>
+  <li>全屏游戏自动激活</li>
+  <li>降低后台 OS 开销</li>
+  <li>减少输入延迟</li>
+</ul>
+
+<h2>🤖 Agentic Coding 对游戏移植的帮助</h2>
+<ul>
+  <li>AI 编写 boilerplate 代码</li>
+  <li>自动修复移植过程中的错误</li>
+</ul>
+
+<h2>🌍 Apple 游戏生态</h2>
+<div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin:0.8rem 0;">
+  <span class="tech-tag">Steam</span>
+  <span class="tech-tag">Epic</span>
+  <span class="tech-tag">Mac App Store</span>
+  <span class="tech-tag">Unreal Engine 5</span>
+</div>
+<p>CD Projekt Red 与 Apple 合作优化 Cyberpunk 2077 Mac 版。</p>
+
+<h2>🔄 Windows 游戏 → Mac 完整路径</h2>
+<pre style="color:var(--green);">Windows Game (DirectX / HLSL)
+    ↓  Game Porting Toolkit 4
+Analyze → Translate → Build → Optimize
+    ↓
+Mac Game (Metal)
+    ↓
+上线 Steam / Epic / Mac App Store</pre>
+
+</body>
+</html>

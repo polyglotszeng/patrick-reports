@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>推理文学巡礼 · 12 位 × 核心理念 × 故事脉络</title>
+<style>
+  :root { --bg:#0a0a14; --card:#12122a; --card-hover:#1a1a3a; --accent:#e05555; --accent2:#7eb8f5; --accent3:#f5c77e; --accent4:#ff6b35; --text:#e8e8f8; --muted:#7878a0; --border:#2a2a50; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; line-height: 1.65; padding: 32px 24px 80px; }
+  .container { max-width: 1280px; margin: 0 auto; }
+  .hero { text-align: center; padding: 48px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .hero h1 { font-size: 36px; font-weight: 700; background: linear-gradient(120deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 720px; margin: 0 auto; }
+  .hero .meta { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; font-size: 13px; }
+  .hero .meta span { background: var(--card); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); }
+  .hero .meta b { color: var(--accent); }
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; padding: 16px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+  .filter-chip { padding: 6px 14px; border-radius: 20px; background: transparent; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .filter-chip:hover { border-color: var(--accent); color: var(--text); }
+  .filter-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .era-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .era-tab { padding: 12px 20px; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 15px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .era-tab:hover { color: var(--text); }
+  .era-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .era-section { display: none; }
+  .era-section.active { display: block; }
+  .era-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; }
+  .era-header h2 { font-size: 22px; color: var(--accent); }
+  .era-header .years { color: var(--muted); font-size: 14px; }
+  .era-header .desc { color: var(--muted); font-size: 14px; flex: 1; }
+  .author-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; margin-bottom: 48px; }
+  .author-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+  .author-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0; transition: opacity 0.25s; }
+  .author-card:hover { background: var(--card-hover); transform: translateY(-2px); border-color: var(--accent); }
+  .author-card:hover::before { opacity: 1; }
+  .author-card.hidden { display: none; }
+  .author-card .name { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .author-card .name-cn { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+  .author-card .meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .author-card .core { font-size: 14px; color: var(--text); margin-bottom: 12px; line-height: 1.55; }
+  .author-card .core b { color: var(--accent3); }
+  .author-card .works { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .author-card .work-chip { font-size: 11px; padding: 3px 8px; background: rgba(224,85,85,0.12); color: var(--accent); border-radius: 4px; border: 1px solid rgba(224,85,85,0.25); }
+  .author-card .expand-hint { font-size: 11px; color: var(--muted); margin-top: 10px; text-align: right; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(2,4,12,0.92); backdrop-filter: blur(8px); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 820px; width: 100%; position: relative; animation: modalIn 0.3s ease; }
+  @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal .close { position: absolute; top: 16px; right: 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .modal .close:hover { color: var(--text); border-color: var(--accent); }
+  .modal h2 { font-size: 24px; margin-bottom: 4px; color: var(--accent); }
+  .modal h2 .cn { font-size: 16px; color: var(--accent2); font-weight: 400; margin-left: 8px; }
+  .modal .modal-meta { color: var(--muted); font-size: 13px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .modal h3 { font-size: 16px; color: var(--accent3); margin: 20px 0 8px; }
+  .modal p { color: var(--text); font-size: 14px; line-height: 1.75; margin-bottom: 8px; }
+  .modal b { color: var(--accent2); }
+  .patrick-cards { background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, rgba(224,85,85,0.05) 100%); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+  .patrick-cards h2 { font-size: 22px; color: var(--accent4); margin-bottom: 8px; }
+  .patrick-cards .intro { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .patrick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .patrick-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent4); border-radius: 8px; padding: 16px; }
+  .patrick-card .label { font-size: 11px; color: var(--accent4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .patrick-card .value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 32px 0 0; border-top: 1px solid var(--border); margin-top: 32px; }
+  .footer a { color: var(--accent2); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  @media (max-width: 720px) { body { padding: 16px 12px 60px; } .hero h1 { font-size: 24px; } .author-grid { grid-template-columns: 1fr; } .modal { padding: 20px; } .era-tab { font-size: 13px; padding: 10px 12px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🔍 推理文学巡礼</h1>
+    <p>15 位推理小说大师 · 经典本格 + 社会派 + 硬汉 + 冷硬 · 犯罪与正义的百年博弈</p>
+    <div class="meta">
+      <span><b>3</b> 时期</span>
+      <span><b>15</b> 位作家</span>
+      <span><b>40+</b> 代表作</span>
+      <span>🔗 姊妹: <a href="/sci-fi-authors/sci-fi-authors.html" style="color:var(--accent)">科幻</a> · <a href="/fantasy-authors/fantasy-authors.html" style="color:var(--accent)">奇幻</a></span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span style="color:var(--muted);font-size:13px;align-self:center;margin-right:8px;">🏷️ 范式</span>
+    <button class="filter-chip active" data-tag="all">全部</button>
+    <button class="filter-chip" data-tag="honkaku">本格派</button>
+    <button class="filter-chip" data-tag="social">社会派</button>
+    <button class="filter-chip" data-tag="hard">硬汉派</button>
+    <button class="filter-chip" data-tag="noir">冷硬 / Noir</button>
+    <button class="filter-chip" data-tag="cops">警察程序</button>
+    <button class="filter-chip" data-tag="scandi">北欧 / 心理</button>
+  </div>
+
+  <div class="era-tabs">
+    <button class="era-tab active" data-era="all">全部</button>
+    <button class="era-tab" data-era="1">🕯️ 黄金奠基 (1841-1920)</button>
+    <button class="era-tab" data-era="2">🚬 硬汉 / 冷硬 (1920-1970)</button>
+    <button class="era-tab" data-era="3">🌏 全球化 (1970-)</button>
+  </div>
+
+  <div class="era-section active" data-era-section="1">
+    <div class="era-header"><h2>🕯️ 黄金奠基</h2><span class="years">1841 - 1920</span><span class="desc">侦探小说诞生 · 本格范式确立 · 古典解谜</span></div>
+    <div class="author-grid" id="grid-1"></div>
+  </div>
+  <div class="era-section active" data-era-section="2">
+    <div class="era-header"><h2>🚬 硬汉 / 冷硬</h2><span class="years">1920 - 1970</span><span class="desc">钱德勒 / 哈米特 · 黑色电影 · 美国反英雄</span></div>
+    <div class="author-grid" id="grid-2"></div>
+  </div>
+  <div class="era-section active" data-era-section="3">
+    <div class="era-header"><h2>🌏 全球化</h2><span class="years">1970 - 至今</span><span class="desc">社会派 + 北欧 + 程序 + 心理悬疑</span></div>
+    <div class="author-grid" id="grid-3"></div>
+  </div>
+
+  <div class="patrick-cards">
+    <h2>🔗 Patrick 工作关联</h2>
+    <p class="intro">推理文学对 Patrick 调研 / 写作 / 思维模式的具体启发</p>
+    <div class="patrick-grid">
+      <div class="patrick-card"><div class="label">📚 阅读路径</div><div class="value"><b>新手</b>: 阿加莎《无人生还》→ 东野圭吾《嫌疑人 X》→ 钱德勒《漫长的告别》→ 柯南道尔《福尔摩斯》→ 紫金陈《坏小孩》<br><b>老粉</b>: 钱德勒 7 部马洛 → 雷蒙德·钱德勒《再见，吾爱》→ 詹姆斯·艾尔罗伊《黑色大丽花》</div></div>
+      <div class="patrick-card"><div class="label">💡 推理方法</div><div class="value"><b>福尔摩斯演绎法</b> = 模式识别 + 排除；<b>阿加莎公平性</b> = 信息公开透明；<b>东野圭吾动机</b> = 因果链追溯；<b>马洛硬汉</b> = 原则 > 利益</div></div>
+      <div class="patrick-card"><div class="label">🛠️ 调试 / 调查</div><div class="value"><b>硬汉派</b> = 不接烂活 + 自我边界；<b>本格派</b> = 系统化排除变量；<b>社会派</b> = 看到系统问题；<b>程序派</b> = 流程 + 物证</div></div>
+      <div class="patrick-card"><div class="label">🌏 跨文化调研</div><div class="value"><b>东野圭吾</b> 日本社会派 = 东亚社会议题；<b>奈斯博</b> 挪威黑色 = 福利国家阴暗面；<b>紫金陈</b> 中国推理 = 城乡转型 + 互联网 + 房价</div></div>
+      <div class="patrick-card"><div class="label">🔁 Loop 启示</div><div class="value">侦探都用 <b>"看似无关线索" + 唯一动机</b> 起手 → Patrick 的 agent 调查也应如此：每个故障 = "看似无关的迹象" 链通向根因</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>📄 <a href="mystery-authors.md" target="_blank">查看完整 .md 源文件</a> · 调研基于 2026-06 公开资料 · HTML dashboard by Hermes Agent</p>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <button class="close" data-close>✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const AUTHORS = [  // Era 1: Golden Foundation
+  {id:1, era:1, name:"Edgar Allan Poe", cn:"爱伦·坡", years:"1809-1849", country:"美国", tags:["honkaku","noir"],
+   core:"<b>侦探小说之父</b> — 1841 年《莫格街谋杀案》创造 Dupin，<b>推理范式的发明者</b>。也是科幻 / 恐怖 / 心理小说的开创者。",
+   works:["《莫格街谋杀案》(1841)","《失窃的信》(1844)","《金甲虫》(1843)"],
+   detail:`
+     <h3>《莫格街谋杀案》(1841)</h3>
+     <p>巴黎公寓双尸案，母亲被割喉，女儿被勒死，反锁室内无人进出。C. Auguste Dupin 通过报纸 + 推理破案。<b>这是世界上第一篇侦探小说</b>，创造了"看似超自然 → 实际是凡人 + 异常观察力"范式。</p>
+     <h3>《失窃的信》(1844)</h3>
+     <p>皇室信件被大臣偷走，警察搜查无果。Dupin 分析：<b>最聪明藏匿 = 把信放在最显眼的地方</b>。影响了福尔摩斯、罗尔德·达尔的《坦尼森》等。</p>
+     <h3>范式贡献</h3>
+     <p>侦探小说 + 推理方法 + 心理悬疑 + 黑色恐怖 = 现代通俗文学的"创世者"</p>`},
+
+  {id:2, era:1, name:"Sir Arthur Conan Doyle", cn:"柯南·道尔", years:"1859-1930", country:"英国", tags:["honkaku","scandi"],
+   core:"<b>福尔摩斯</b> — 把 Poe 范式扩展为 60 篇 + 4 部小说，<b>\"演绎法\"</b>成为推理代名词。",
+   works:["《血字的研究》(1887)","《巴斯克维尔的猎犬》(1902)","《四签名》(1890)"],
+   detail:`
+     <h3>福尔摩斯系列</h3>
+     <p>Sherlock Holmes 住在贝克街 221B，<b>演绎法 (deduction) + 化学实验 + 易容术 + 小提琴</b>。华生医生 = 叙述者。核心：<b>观察 + 排除法 + 反常细节</b>。60 篇中包含《波西米亚丑闻》《红发会》《银色马》等经典。</p>
+     <h3>《巴斯克维尔的猎犬》(1902)</h3>
+     <p>Devon 荒原的诅咒猎犬，<b>真实是巨型猎犬 + 磷光涂料</b>。第一个长篇福尔摩斯。</p>
+     <h3>范式贡献</h3>
+     <p>侦探 + 助手 范式 / 演绎法 / 烟雾弹 + 误导 / BBC《神探夏洛克》延续至今</p>`},
+
+  {id:3, era:1, name:"Agatha Christie", cn:"阿加莎·克里斯蒂", years:"1890-1976", country:"英国", tags:["honkaku"],
+   core:"<b>本格女王</b> — 66 部推理 + 14 部短篇集，<b>\"侦探小说黄金时代\" 中心</b>。创立波洛 + 马普尔两大侦探。",
+   works:["《无人生还》(1939)","《东方快车谋杀案》(1934)","《罗杰疑案》(1926)","《尼罗河上的惨案》(1937)"],
+   detail:`
+     <h3>《无人生还》(1939)</h3>
+     <p>10 个陌生人被邀请到士兵岛，<b>按童谣顺序一个一个死去</b>。结局：凶手也是受害者之一，已经死了。<b>开创"密室 + 童谣"范式</b>，影响后来 100+ 作品。</p>
+     <h3>《东方快车谋杀案》(1934)</h3>
+     <p>东方快车一节车厢里美国富商被刺 12 刀，<b>12 个乘客每人一刀</b>。波洛选择"陪审团"结局，<b>法律之外的正义</b>。</p>
+     <h3>《罗杰疑案》(1926)</h3>
+     <p>叙述者第一人称 + 凶手是叙述者本人。<b>"叙述性诡计"开山</b>。</p>
+     <h3>范式贡献</h3>
+     <p>本格范式 + 公平性原则 / 卧底式叙述诡计 / 战后社会派也承认她奠基 / 销售量 20 亿仅次于莎士比亚</p>`},
+
+  {id:4, era:1, name:"G.K. Chesterton", cn:"切斯特顿", years:"1874-1936", country:"英国", tags:["honkaku","scandi"],
+   core:"<b>布朗神父</b> — 反 Sherlock 的「演绎法」，<b>用心理学 + 神学</b>理解罪犯。开了「心理侦探」先河。",
+   works:["《布朗神父探案集》(1910-1935, 5 部 51 篇)"],
+   detail:`
+     <h3>布朗神父系列</h3>
+     <p>Brown 神父身材矮小，<b>用"忏悔者心理学"破案：他自己也有犯罪冲动，所以他能理解</b>。每个故事都是道德悖论。这是后来黑社会 + 心理悬疑的源头。</p>
+     <h3>范式贡献</h3>
+     <p>心理侦探 / 道德悬疑 / 反 Sherlock 的"凡人之智" / 影响了 Umberto Eco</p>`},
+
+  // Era 2: Hardboiled
+  {id:5, era:2, name:"Dashiell Hammett", cn:"达希尔·哈米特", years:"1894-1961", country:"美国", tags:["hard","noir"],
+   core:"<b>硬汉派 / 黑色小说之父</b> — Sam Spade + Continental Op，<b>把侦探小说从\"解谜游戏\"变成\"社会黑暗面\"</b>。",
+   works:["《马耳他之鹰》(1930)","《血腥的收获》(1929)","《玻璃钥匙》(1931)"],
+   detail:`
+     <h3>《马耳他之鹰》(1930)</h3>
+     <p>Sam Spade 调查合伙人谋杀，<b>各路人物围绕传说中马耳他之鹰雕像（实际是假的）</b>。核心：<b>没有神探，只有吃差价 + 背叛的各方</b>。电影版 Humphrey Bogart 1956 影史经典。</p>
+     <h3>范式贡献</h3>
+     <p>硬汉派范式 / 黑色电影 / "私家侦探"子类型 / 影响了钱德勒、罗斯·麦克唐纳</p>`},
+
+  {id:6, era:2, name:"Raymond Chandler", cn:"雷蒙德·钱德勒", years:"1888-1959", country:"美国/英国", tags:["hard","noir"],
+   core:"<b>硬汉派诗人</b> — Philip Marlowe 7 部，<b>把硬汉派变成文学</b>。\"当他退出时, 他想说他所见过的一切都比这更无情\"。",
+   works:["《漫长的告别》(1953)","《再见，吾爱》(1940)","《大眠》(1939)","《高窗》(1942)"],
+   detail:`
+     <h3>《漫长的告别》(1953)</h3>
+     <p>醉鬼 Terry Lennox 找 Marlowe 帮忙逃出墨西哥，<b>几月后朋友尸体出现，Marlowe 调查真相</b>。核心：<b>友谊 + 失落的加州 + 写作的孤独</b>。村上春树译本让他在日本封神。</p>
+     <h3>范式贡献</h3>
+     <p>硬汉派文学化 / 比喻风格 / "马洛"成为侦探代名词 / 影响了罗伯特·奥特曼、鲍勃·迪伦</p>`},
+
+  {id:7, era:2, name:"Mickey Spillane", cn:"米基·斯皮兰", years:"1918-2006", country:"美国", tags:["hard","noir"],
+   core:"<b>Mike Hammer 暴力</b> — 比钱德勒更暴力、更直接，<b>冷战时期美国男性焦虑的化身</b>。",
+   works:["《审判者》(I, the Jury, 1947)","《我的枪是忠诚的》(My Gun Is Quick, 1950)"],
+   detail:`
+     <h3>《审判者》(1947)</h3>
+     <p>Mike Hammer 发现朋友 Jack 被杀，<b>一路追查凶手包括开膛手 + 黑社会 + 变性人</b>。核心：暴力 + 复仇 + 性 + 反共 = 1950 年代美国 B 级书爆款。Spillane 销量一度超 Hemingway。</p>
+     <h3>范式贡献</h3>
+     <p>暴力硬汉范式 / 反共冷战小说 / 影响了 Lee Child (Jack Reacher)</p>`},
+
+  // Era 3: Global Era
+  {id:8, era:3, name:"东野圭吾", cn:"东野圭吾", years:"1958-", country:"日本", tags:["social","scandi"],
+   core:"<b>日本社会派 + 推理产业化</b> — 90+ 部，<b>把「动机」作为推理核心</b>。直木奖 + 销量 1 亿+。",
+   works:["《嫌疑人 X 的献身》(2005)","《白夜行》(1999)","《恶意》(1996)","《放学后》(1985)"],
+   detail:`
+     <h3>《嫌疑人 X 的献身》(2005)</h3>
+     <p>数学天才石神帮邻居靖子处理杀夫案，<b>设计一个完全在警察视野之外的新嫌疑人 = 他自己</b>。结局：<b>汤川学识破，但靖子已经知道真相，承担道德责任</b>。核心：<b>爱 = 自我毁灭</b>。</p>
+     <h3>《白夜行》(1999)</h3>
+     <p>两个小孩 1973 年犯下命案，<b>余生 19 年一个在暗处一个在明处，互相利用 + 互相保护</b>。无推理但"犯罪与时间的史诗"。</p>
+     <h3>《恶意》(1996)</h3>
+     <p>畅销作家被杀，凶手被捕后无动机，<b>野野口修的"恶意"是核心</b>。核心：<b>有些犯罪没有动机，只是纯粹的恨</b>。</p>
+     <h3>范式贡献</h3>
+     <p>日本社会派 + 动机推理 / "献身"概念 / 中国销量 1000 万+ / 影响了紫金陈</p>`},
+
+  {id:9, era:3, name:"Keigo Higashino 重复条", cn:"", years:"", country:"", tags:[], core:"", works:[], detail:""},
+
+  {id:10, era:3, name:"Ed McBain", cn:"埃德·麦可班恩", years:"1926-2005", country:"美国", tags:["cops","noir"],
+   core:"<b>87 区警察程序派</b> — 55 部 Isola 警察程序系列，<b>把警察写成一个机构</b>。",
+   works:["《87 区警察》(The 87th Precinct, 1956-2005, 55 部)"],
+   detail:`
+     <h3>87 区警察系列</h3>
+     <p>虚构 Isola 城市 87 区，<b>多个侦探协同办案，每个案件都展现程序 + 物证 + 审讯</b>。55 部跨度 50 年，<b>是后来 Law & Order 等警察程序剧的直接祖先</b>。</p>
+     <h3>范式贡献</h3>
+     <p>警察程序范式 / 多侦探协同 / 影响了 Ed McBain 学徒 Joseph Wambaugh</p>`},
+
+  {id:11, era:3, name:"Stieg Larsson", cn:"斯蒂格·拉森", years:"1954-2004", country:"瑞典", tags:["scandi","social"],
+   core:"<b>千禧系列 / Nordic Noir 旗手</b> — 《龙纹身的女孩》三部曲，<b>黑客女侦探 + 瑞典福利国家阴暗面</b>。",
+   works:["《龙纹身的女孩》(2005)","《玩火的女孩》(2006)","《捅马蜂窝的女孩》(2007)"],
+   detail:`
+     <h3>《龙纹身的女孩》(2005)</h3>
+     <p>财经记者 Mikael Blomkvist 调查 40 年前少女失踪案，<b>联合 19 岁黑客 Lisbeth Salander</b>。核心：<b>福利国家也掩盖性暴力 + 财阀腐败</b>。Larsson 死后出版，销量 1 亿+。</p>
+     <h3>范式贡献</h3>
+     <p>Nordic Noir 范式 / 黑客女侦探 / 政治 + 调查记者 + 推理融合 / 影响了 Jo Nesbø</p>`},
+
+  {id:12, era:3, name:"Jo Nesbø", cn:"尤·奈斯博", years:"1960-", country:"挪威", tags:["scandi","noir","social"],
+   core:"<b>Harry Hole 警探系列</b> — 12 部，<b>奥斯陆 + 雪 + 心理黑暗</b>。21 世纪北欧 Noir 代表。",
+   works:["《蝙蝠》(1997)","《雪人》(2007)","《猎豹》(2009)"],
+   detail:`
+     <h3>《雪人》(2007)</h3>
+     <p>初雪降临奥斯陆，<b>有妇之夫失踪 + 雪人出现 + 25 年前开始的连环</b>。Harry Hole 嗜酒 + 独居 + PTSD，<b>用变态心理学追凶</b>。</p>
+     <h3>范式贡献</h3>
+     <p>北欧黑色 + 心理变态 / 影响了 Michael Connelly、Karl Ove Knausgård</p>`},
+
+  {id:13, era:3, name:"Michael Connelly", cn:"迈克尔·康奈利", years:"1956-", country:"美国", tags:["cops","hard"],
+   core:"<b>Harry Bosch 警察程序</b> — 35+ 部，<b>洛杉矶警局 LAPD 罗伊中尉</b>。前《洛杉矶时报》犯罪记者，专业可信。",
+   works:["《黑色回声》(1992)","《混凝土里的金发女郎》(1994)","《血工作》(1998)"],
+   detail:`
+     <h3>《黑色回声》(1992)</h3>
+     <p>LAPD 警探 Harry Bosch (名字来自画家 Hieronymus Bosch) 调查隧道命案，<b>追到越战老兵 + 1970 年代黑历史</b>。核心：<b>程序正义 + 个人正义冲突</b>。Amazon Bosch 剧 7 季。</p>
+     <h3>范式贡献</h3>
+     <p>程序正义范式 / LAPD 详细描写 / 新闻 + 小说 双专业 / 影响了 Tana French</p>`},
+
+  {id:14, era:3, name:"Tana French", cn:"塔娜·法兰奇", years:"1973-", country:"爱尔兰", tags:["scandi","cops"],
+   core:"<b>都柏林凶案组</b> — 8 部，<b>每部换主角警探 + 心理深度</b>。文学化推理 + 心理学融合。",
+   works:["《林中秘径》(In the Woods, 2007)","《神秘化身》(The Likeness, 2008)"],
+   detail:`
+     <h3>《林中秘径》(2007)</h3>
+     <p>都柏林 1984 年三个小孩失踪, 唯一回来的 Rob 失去记忆。<b>20 年后他成为警探，又遇到相似案件</b>。核心：<b>童年创伤 + 调查者本身是嫌疑人</b>。畅销 100+ 国。</p>
+     <h3>范式贡献</h3>
+     <p>都柏林学派 / 心理悬疑 + 推理 / 影响了 Gillian Flynn</p>`},
+
+  {id:15, era:3, name:"紫金陈", cn:"紫金陈", years:"1982-", country:"中国", tags:["social","noir"],
+   core:"<b>中国当代推理产业旗手</b> — 《坏小孩》《长夜难明》《低智商犯罪》系列，<b>中国城乡转型 + 互联网 + 房价</b>。",
+   works:["《坏小孩》(2014)","《长夜难明》(2017)","《低智商犯罪》(2017)"],
+   detail:`
+     <h3>《坏小孩》(2014)</h3>
+     <p>三个孩子策划杀害对自己施压的大人，<b>用日记 + 反侦察误导警察</b>。改编剧《隐秘的角落》(2020) 现象级。<b>社会议题：单亲 + 婚外情 + 教育焦虑</b>。</p>
+     <h3>《长夜难明》(2017)</h3>
+     <p>检察官江阳为冤案追查 10 年，<b>用自杀式方式揭开真相</b>。社会派 = 司法黑暗面。</p>
+     <h3>范式贡献</h3>
+     <p>中国当代推理 / 城乡转型议题 / 影响了《沉默的真相》《隐秘的角落》</p>`},
+];
+
+const CLEAN = AUTHORS.filter(a => a.name && a.core);
+
+const grids = {1: document.getElementById('grid-1'), 2: document.getElementById('grid-2'),
+               3: document.getElementById('grid-3')};
+
+function renderCards() {
+  for (const a of CLEAN) {
+    const el = document.createElement('div');
+    el.className = `author-card`;
+    el.dataset.authorId = a.id;
+    el.dataset.tags = a.tags.join(',');
+    el.innerHTML = `
+      <div class="name">${a.name} <span class="name-cn">${a.cn}</span></div>
+      <div class="meta">${a.years} · ${a.country}</div>
+      <div class="core">${a.core}</div>
+      <div class="works">${a.works.map(w => `<span class="work-chip">${w}</span>`).join('')}</div>
+      <div class="expand-hint">点击查看完整 →</div>`;
+    grids[a.era].appendChild(el);
+  }
+}
+
+document.querySelectorAll('.era-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.era-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const era = tab.dataset.era;
+    document.querySelectorAll('.era-section').forEach(s => {
+      s.classList.toggle('active', era === 'all' || s.dataset.eraSection === era);
+    });
+  });
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const tag = chip.dataset.tag;
+    document.querySelectorAll('.author-card').forEach(card => {
+      const tags = (card.dataset.tags || '').split(',');
+      const match = (tag === 'all') || tags.includes(tag);
+      card.classList.toggle('hidden', !match);
+    });
+  });
+});
+
+window.showAuthor = function(id) {
+  const a = CLEAN.find(x => x.id === id);
+  if (!a) return;
+  const modal = document.getElementById('modal-backdrop');
+  const content = document.getElementById('modal-content');
+  content.innerHTML = `
+    <h2>${a.name} <span class="cn">${a.cn}</span></h2>
+    <div class="modal-meta">${a.years} · ${a.country} · 浪潮 ${a.era}</div>
+    <h3>核心理念</h3>
+    <p>${a.core}</p>
+    <h3>代表作故事脉络</h3>
+    ${a.detail}`;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeModal = function() {
+  document.getElementById('modal-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+};
+
+document.addEventListener('click', e => {
+  const card = e.target.closest && e.target.closest('.author-card');
+  if (card && card.dataset.authorId) {
+    window.showAuthor(parseInt(card.dataset.authorId));
+    return;
+  }
+  if (e.target.dataset.close !== undefined || e.target.id === 'modal-backdrop') {
+    window.closeModal();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') window.closeModal();
+});
+
+function renderDashboard() {
+  try {
+    renderCards();
+    window.__stage = 'rendered';
+  } catch(e) {
+    window.__err = e.message + ' @ ' + (e.stack||'').split('\n')[1];
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderDashboard);
+} else {
+  renderDashboard();
+}
+</script>
+</body>
+</html>

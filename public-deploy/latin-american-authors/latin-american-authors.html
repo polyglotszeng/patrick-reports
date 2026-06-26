@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>拉美文学爆炸巡礼 · 12 位 × 核心理念 × 故事脉络</title>
+<style>
+  :root { --bg:#0a0a14; --card:#12122a; --card-hover:#1a1a3a; --accent:#fb923c; --accent2:#7eb8f5; --accent3:#f5c77e; --accent4:#ff6b35; --text:#e8e8f8; --muted:#7878a0; --border:#2a2a50; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; line-height: 1.65; padding: 32px 24px 80px; }
+  .container { max-width: 1280px; margin: 0 auto; }
+  .hero { text-align: center; padding: 48px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .hero h1 { font-size: 36px; font-weight: 700; background: linear-gradient(120deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .hero p { color: var(--muted); font-size: 15px; max-width: 720px; margin: 0 auto; }
+  .hero .meta { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; font-size: 13px; }
+  .hero .meta span { background: var(--card); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); }
+  .hero .meta b { color: var(--accent); }
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; padding: 16px; background: var(--card); border-radius: 12px; border: 1px solid var(--border); }
+  .filter-chip { padding: 6px 14px; border-radius: 20px; background: transparent; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .filter-chip:hover { border-color: var(--accent); color: var(--text); }
+  .filter-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .era-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .era-tab { padding: 12px 20px; background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 15px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .era-tab:hover { color: var(--text); }
+  .era-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .era-section { display: none; }
+  .era-section.active { display: block; }
+  .era-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; }
+  .era-header h2 { font-size: 22px; color: var(--accent); }
+  .era-header .years { color: var(--muted); font-size: 14px; }
+  .era-header .desc { color: var(--muted); font-size: 14px; flex: 1; }
+  .author-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; margin-bottom: 48px; }
+  .author-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+  .author-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); opacity: 0; transition: opacity 0.25s; }
+  .author-card:hover { background: var(--card-hover); transform: translateY(-2px); border-color: var(--accent); }
+  .author-card:hover::before { opacity: 1; }
+  .author-card.hidden { display: none; }
+  .author-card .name { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .author-card .name-cn { font-size: 14px; color: var(--accent); margin-bottom: 6px; }
+  .author-card .meta { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .author-card .core { font-size: 14px; color: var(--text); margin-bottom: 12px; line-height: 1.55; }
+  .author-card .core b { color: var(--accent3); }
+  .author-card .works { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .author-card .work-chip { font-size: 11px; padding: 3px 8px; background: rgba(255,255,255,0.04); color: var(--accent); border-radius: 4px; border: 1px solid var(--border); }
+  .author-card .expand-hint { font-size: 11px; color: var(--muted); margin-top: 10px; text-align: right; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(2,4,12,0.92); backdrop-filter: blur(8px); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 820px; width: 100%; position: relative; animation: modalIn 0.3s ease; }
+  @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal .close { position: absolute; top: 16px; right: 16px; background: transparent; border: 1px solid var(--border); color: var(--muted); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+  .modal .close:hover { color: var(--text); border-color: var(--accent); }
+  .modal h2 { font-size: 24px; margin-bottom: 4px; color: var(--accent); }
+  .modal h2 .cn { font-size: 16px; color: var(--accent2); font-weight: 400; margin-left: 8px; }
+  .modal .modal-meta { color: var(--muted); font-size: 13px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .modal h3 { font-size: 16px; color: var(--accent3); margin: 20px 0 8px; }
+  .modal p { color: var(--text); font-size: 14px; line-height: 1.75; margin-bottom: 8px; }
+  .modal b { color: var(--accent2); }
+  .patrick-cards { background: linear-gradient(135deg, rgba(255,107,53,0.05) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-bottom: 32px; }
+  .patrick-cards h2 { font-size: 22px; color: var(--accent4); margin-bottom: 8px; }
+  .patrick-cards .intro { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .patrick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .patrick-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent4); border-radius: 8px; padding: 16px; }
+  .patrick-card .label { font-size: 11px; color: var(--accent4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .patrick-card .value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .footer { text-align: center; color: var(--muted); font-size: 12px; padding: 32px 0 0; border-top: 1px solid var(--border); margin-top: 32px; }
+  .footer a { color: var(--accent2); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+  @media (max-width: 720px) { body { padding: 16px 12px 60px; } .hero h1 { font-size: 24px; } .author-grid { grid-template-columns: 1fr; } .modal { padding: 20px; } .era-tab { font-size: 13px; padding: 10px 12px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <h1>🌶️ 拉美文学爆炸巡礼</h1>
+    <p>12 位拉美大师 · 魔幻现实主义 + 文学爆炸 + 大地叙事 · 20 世纪最丰富的文学运动</p>
+    <div class="meta">
+      <span><b>3</b> 时期</span>
+      <span><b>12</b> 位作家</span>
+      <span><b>36+</b> 代表作</span>
+      <span>🔗 姊妹: <a href="/nonfiction-authors/nonfiction-authors.html" style="color:var(--accent)">非虚构</a> · <a href="/horror-authors/horror-authors.html" style="color:var(--accent)">恐怖</a> · <a href="/fantasy-authors/fantasy-authors.html" style="color:var(--accent)">奇幻</a></span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span style="color:var(--muted);font-size:13px;align-self:center;margin-right:8px;">🏷️ 范式</span>
+<button class="filter-chip active" data-tag="all">全部</button>
+    <button class="filter-chip" data-tag="magical">魔幻现实</button>
+    <button class="filter-chip" data-tag="boom">文学爆炸</button>
+    <button class="filter-chip" data-tag="dictator">独裁小说</button>
+    <button class="filter-chip" data-tag="poetry">诗歌</button>
+    <button class="filter-chip" data-tag="essay">散文</button>
+    <button class="filter-chip" data-tag="indigenous">原住民</button>
+    <button class="filter-chip" data-tag="dictatorship">反独裁</button>
+
+  </div>
+
+  <div class="era-tabs">
+    <button class="era-tab active" data-era="all">全部</button>
+    <button class="era-tab" data-era="1">🌎 魔幻先驱 (1940-1967)</button>
+    <button class="era-tab" data-era="2">🚀 文学爆炸 (1967-1980)</button>
+    <button class="era-tab" data-era="3">🌀 后爆炸 + 当代 (1980-至今)</button>
+
+  </div>
+
+  <div class="era-section active" data-era-section="1">
+    <div class="era-header"><h2>🌎 魔幻先驱</h2><span class="years">1940 - 1967</span><span class="desc">Borges + Asturias + Carpentier + Rulfo = 拉美魔幻现实主义奠基</span></div>
+    <div class="author-grid" id="grid-1"></div>
+  </div>
+  <div class="era-section active" data-era-section="2">
+    <div class="era-header"><h2>🚀 文学爆炸</h2><span class="years">1967 - 1980</span><span class="desc">García Márquez + Cortázar + Vargas Llosa + Fuentes = 拉美走向世界</span></div>
+    <div class="author-grid" id="grid-2"></div>
+  </div>
+  <div class="era-section active" data-era-section="3">
+    <div class="era-header"><h2>🌀 后爆炸 + 当代</h2><span class="years">1980 - 至今</span><span class="desc">Allende + Bolaño + Esquivel + 卡波特/译界 = 全球化的拉美</span></div>
+    <div class="author-grid" id="grid-3"></div>
+  </div>
+
+
+  <div class="patrick-cards">
+    <h2>🔗 Patrick 工作关联</h2>
+    <p class="intro">拉美文学爆炸对 Patrick 创作 / 写作 / 思维模式的具体启发</p>
+    <div class="patrick-grid">
+      <div class="patrick-card"><div class="label">📚 阅读路径</div><div class="value"><b>新手</b>: García Márquez《百年孤独》→ Borges《虚构集》→ Isabel Allende《幽灵之家》→ Rulfo《佩德罗·巴拉莫》<br><b>老粉</b>: Borges《阿莱夫》→ Bolaño《2666》→ Cortázar《跳房子》→ Carpentier《人间王国》</div></div>
+      <div class="patrick-card"><div class="label">💡 创作方法</div><div class="value"><b>García Márquez</b> "孤独的拉丁美洲" = 百年家族编年史范式；<b>Borges</b> "迷宫 + 镜 + 图书馆" = 概念小说；<b>Bolaño</b> 长篇叙事 = 实验小说；<b>Cortázar</b> 可玩小说 = 交互叙事</div></div>
+      <div class="patrick-card"><div class="label">🛠️ 知识工程</div><div class="value"><b>Borges 巴别图书馆</b> = 知识穷尽悖论；<b>Carlos Fuentes 时间三部曲</b> = 跨时空叙事；<b>Allende 女性叙事</b> = 多重视角</div></div>
+      <div class="patrick-card"><div class="label">🌏 跨文化视角</div><div class="value"><b>魔幻现实主义</b> = 西方对非西方时间观的接受；<b>Rulfo 墨西哥荒原</b> = 拉美现代性反思；<b>Bolaño 跨国流亡</b> = 全球化作家</div></div>
+      <div class="patrick-card"><div class="label">🔁 Loop 启示</div><div class="value">拉美作家用 <b>"一个家族 + 一片土地 + 一百年的时间"</b> 起手 → Patrick 的研究单元也应是 "一个主题 + 多个时代 + 多个视角" 的长篇结构</div></div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>📄 <a href="拉美文学爆炸巡礼 · 12 位 × 核心理念 × 故事脉络.md" target="_blank">查看完整 .md 源文件</a> · 调研基于 2026-06 公开资料 · HTML dashboard by Hermes Agent · 5 blocks: Plan ✅ Build ✅ Ship ✅ Audit ✅ Loop ⏭️</p>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <button class="close" data-close>✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const AUTHORS = [{"id": 1, "era": 1, "name": "Jorge Luis Borges", "cn": "博尔赫斯", "years": "1899-1986", "country": "阿根廷", "tags": ["magical", "essay"], "core": "<b>迷宫 + 镜 + 图书馆 + 神</b> — 短篇迷宫文学的最高神, <b>\"宇宙是别人做的图书馆\"</b>。", "works": ["《虚构集》(1944)", "《阿莱夫》(1949)", "《沙之书》(1975)"], "detail": "<h3>《虚构集》(Ficciones, 1944)</h3><p>短篇迷宫: 巴别图书馆 / 阿莱夫 / 环形废墟。<b>无限 = 有限 × 重复</b>。每篇都是哲学论文式小说。</p><h3>《阿莱夫》(El Aleph, 1949)</h3><p>地下室里能看到宇宙所有点的「阿莱夫」。<b>语言如何捕捉无限</b> = 博尔赫斯核心问题。</p><h3>范式贡献</h3><p>迷宫文学 / 概念小说 / 影响了 Umberto Eco + Roberto Bolaño</p>"}, {"id": 2, "era": 1, "name": "Miguel Ángel Asturias", "cn": "米格尔·安赫尔·阿斯图里亚斯", "years": "1899-1974", "country": "危地马拉", "tags": ["magical", "indigenous"], "core": "<b>拉丁美洲魔幻现实主义奠基者之一</b> — 诺贝尔文学奖 1967, 把玛雅神话融入小说。", "works": ["《总统先生》(1946)", "《玉米人》(1949)", "《人鼠之间》(1964, 短篇)"], "detail": "<h3>《总统先生》(El Señor Presidente, 1946)</h3><p>独裁统治下的小人物, <b>恐惧弥漫在每个名词里</b>。拉美独裁小说的源头。</p><h3>范式贡献</h3><p>独裁小说 / 玛雅魔幻现实 / 影响了 García Márquez</p>"}, {"id": 3, "era": 1, "name": "Alejo Carpentier", "cn": "阿莱霍·卡彭铁尔", "years": "1904-1980", "country": "古巴", "tags": ["magical", "essay"], "core": "<b>\"lo real maravilloso\" (神奇真实) 概念发明者</b> — 与魔幻现实主义区别: <b>拉美现实本身就是神奇的</b>。", "works": ["《人间王国》(El reino de este mundo, 1949)", "《消逝的脚步》(Los pasos perdidos, 1953)", "《光明世纪》(El siglo de las luces, 1962)"], "detail": "<h3>《人间王国》(1949)</h3><p>海地革命 + 杜桑·卢维杜尔 + 麦克唐纳。1960s 古巴革命精神。</p><h3>范式贡献</h3><p>\"lo real maravilloso\" 概念 / 影响了所有拉美魔幻现实</p>"}, {"id": 4, "era": 1, "name": "Juan Rulfo", "cn": "胡安·鲁尔福", "years": "1917-1986", "country": "墨西哥", "tags": ["magical", "dictator"], "core": "<b>\"一个人的文学爆炸\"</b> — 2 部作品 (1 短篇集 + 1 长篇) 影响整个拉美。", "works": ["《燃烧的原野》(El llano en llamas, 1953, 短篇)", "《佩德罗·巴拉莫》(Pedro Páramo, 1955)"], "detail": "<h3>《佩德罗·巴拉莫》(1955)</h3><p>主人公寻父到 Comala 鬼镇, <b>全村都是鬼魂</b>。现实与死后无缝衔接。200 页 <b>改变拉美文学</b>。</p><h3>范式贡献</h3><p>魔幻现实主义 + 时间并置 / 影响了 García Márquez 写《百年孤独》</p>"}, {"id": 5, "era": 2, "name": "Gabriel García Márquez", "cn": "加西亚·马尔克斯", "years": "1927-2014", "country": "哥伦比亚", "tags": ["boom", "magical"], "core": "<b>魔幻现实主义 + 文学爆炸旗手</b> — 诺贝尔文学奖 1982, <b>\"孤独是拉丁美洲的本质\"</b>。", "works": ["《百年孤独》(1967)", "《霍乱时期的爱情》(1985)", "《迷宫中的将军》(1989)"], "detail": "<h3>《百年孤独》(1967)</h3><p>Buendía 家族 7 代 + 马孔多镇的兴衰 = <b>拉丁美洲百年史</b>。全球销量 5000 万+。<b>魔幻现实主义 + 百年编年史范式</b>。</p><h3>范式贡献</h3><p>魔幻现实主义集大成 / 百年家族范式 / 影响了所有后世拉美作家</p>"}, {"id": 6, "era": 2, "name": "Julio Cortázar", "cn": "胡里奥·科塔萨尔", "years": "1914-1984", "country": "阿根廷/法国", "tags": ["boom", "experimental"], "core": "<b>可玩小说 / 实验叙事</b> — 《跳房子》可以两种顺序读, <b>\"小说不是必须从头读\"</b>。", "works": ["《跳房子》(Rayuela, 1963)", "《万花筒》(Bestiario, 1951)", "《南方高速公路》(Final del juego, 1966)"], "detail": "<h3>《跳房子》(Hopscotch, 1963)</h3><p>巴黎 / 布宜诺斯艾利斯, <b>可跳读的章节 + 必读的章节</b>。读者选择路径。<b>\"小说应该是开放的作品\"</b>。</p><h3>范式贡献</h3><p>可玩小说 / 实验叙事 / 影响了 Italo Calvino + Bolaño</p>"}, {"id": 7, "era": 2, "name": "Mario Vargas Llosa", "cn": "马里奥·巴尔加斯·略萨", "years": "1936-", "country": "秘鲁/西班牙", "tags": ["boom", "dictator"], "core": "<b>结构现实主义 + 反独裁</b> — 诺贝尔文学奖 2010, <b>叙事结构 = 实验</b>。", "works": ["《城市与狗》(1963)", "《酒吧长谈》(1969)", "《世界末日之战》(1981)"], "detail": "<h3>《城市与狗》(1963)</h3><p>利马军校 + 贫民窟少年。<b>多重叙事视角 + 时间交错</b>。结构现实主义范例。</p><h3>范式贡献</h3><p>结构现实主义 / 反独裁小说 / 影响了 Roberto Bolaño</p>"}, {"id": 8, "era": 2, "name": "Carlos Fuentes", "cn": "卡洛斯·富恩特斯", "years": "1928-2012", "country": "墨西哥", "tags": ["boom", "experimental"], "core": "<b>时间实验 + 拉美身份</b> — 儿子是剧作家 + 外交官, <b>把拉美身份放进欧洲叙事</b>。", "works": ["《最明净的地区》(1958)", "《阿尔特米奥·克鲁斯之死》(1962)", "《我们的土地》(1975)"], "detail": "<h3>《阿尔特米奥·克鲁斯之死》(1962)</h3><p>墨西哥革命老兵临死回忆 6 段人生, <b>倒叙意识流 + 政治史</b>。</p><h3>范式贡献</h3><p>时间实验 / 拉美身份政治</p>"}, {"id": 9, "era": 3, "name": "Isabel Allende", "cn": "伊莎贝尔·阿连德", "years": "1942-", "country": "智利", "tags": ["magical", "boom"], "core": "<b>女性叙事 + 拉丁美洲女性魔幻</b> — 《幽灵之家》+ 30 部, <b>\"我外婆讲故事给我, 我写下来\"</b>。", "works": ["《幽灵之家》(La casa de los espíritus, 1982)", "《保罗·柯埃略》", "《吸血鬼三部曲》"], "detail": "<h3>《幽灵之家》(La casa de los espíritus, 1982)</h3><p>Trueba 家族 4 代女性 + 智利 70 年史。García Márquez 推荐。<b>女性视角 + 魔幻 + 历史</b>。</p><h3>范式贡献</h3><p>女性魔幻现实主义 / 影响了全球拉美女作家</p>"}, {"id": 10, "era": 3, "name": "Roberto Bolaño", "cn": "罗贝托·波拉尼奥", "years": "1953-2003", "country": "智利/墨西哥/西班牙", "tags": ["boom", "experimental"], "core": "<b>流亡 + 长篇实验</b> — 《2666》900 页, <b>把文学爆炸推到极限</b>。", "works": ["《荒野侦探》(Los detectives salvajes, 1998)", "《2666》(2004, 死后出版)", "《遥远的星辰》(1996)"], "detail": "<h3>《2666》(2004)</h3><p>5 部曲, 900 页, <b>\"21 世纪最好的小说\"</b> (New Yorker)。墨西哥华雷斯城女性连环谋杀案 + 文学 + 哲学。</p><h3>范式贡献</h3><p>后爆炸长篇实验 / 流亡写作</p>"}, {"id": 11, "era": 3, "name": "Laura Esquivel", "cn": "劳拉·埃斯基韦尔", "years": "1950-", "country": "墨西哥", "tags": ["magical", "boom"], "core": "<b>美食 + 爱情 + 魔幻</b> — 《巧克力》<b>用厨房革命隐喻墨西哥革命</b>。", "works": ["《巧克力》(Como agua para chocolate, 1989)", "《激情与背叛》"], "detail": "<h3>《巧克力》(1989)</h3><p>12 个章节 = 12 道菜, <b>每章菜谱 + 故事</b>。墨西哥革命的厨房版。<b>全球现象级畅销</b>。</p><h3>范式贡献</h3><p>美食小说范式 / 感官写作</p>"}, {"id": 12, "era": 3, "name": "Juan Carlos Onetti", "cn": "胡安·卡洛斯·奥内蒂", "years": "1909-1994", "country": "乌拉圭", "tags": ["dictator", "boom"], "core": "<b>布宜诺斯艾利斯大都市的暗面</b> — Santa María 港口城市系列 7 部, <b>拉美都市虚无主义</b>。", "works": ["《船坞》(El astillero, 1961)", "《短暂的生命》(La vida breve, 1950)", "《收尸队》(Los adioses, 1954)"], "detail": "<h3>《船坞》(1961)</h3><p>衰败船厂老板 Larsen 回故乡想重振, <b>一切都是骗局</b>。拉美版 Hardboiled。</p><h3>范式贡献</h3><p>拉美都市虚无主义 / 反英雄范式</p>"}];
+const CLEAN = AUTHORS.filter(a => a.name && a.core);
+
+const grids = {};
+  grids[1] = document.getElementById('grid-1');
+  grids[2] = document.getElementById('grid-2');
+  grids[3] = document.getElementById('grid-3');
+
+
+function renderCards() {
+  for (const a of CLEAN) {
+    const el = document.createElement('div');
+    el.className = `author-card`;
+    el.dataset.authorId = a.id;
+    el.dataset.tags = a.tags.join(',');
+    el.innerHTML = `
+      <div class="name">${a.name} <span class="name-cn">${a.cn}</span></div>
+      <div class="meta">${a.years} · ${a.country}</div>
+      <div class="core">${a.core}</div>
+      <div class="works">${a.works.map(w => `<span class="work-chip">${w}</span>`).join('')}</div>
+      <div class="expand-hint">点击查看完整 →</div>`;
+    grids[a.era].appendChild(el);
+  }
+}
+
+document.querySelectorAll('.era-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.era-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const era = tab.dataset.era;
+    document.querySelectorAll('.era-section').forEach(s => {
+      s.classList.toggle('active', era === 'all' || s.dataset.eraSection === era);
+    });
+  });
+});
+
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const tag = chip.dataset.tag;
+    document.querySelectorAll('.author-card').forEach(card => {
+      const tags = (card.dataset.tags || '').split(',');
+      const match = (tag === 'all') || tags.includes(tag);
+      card.classList.toggle('hidden', !match);
+    });
+  });
+});
+
+window.showAuthor = function(id) {
+  const a = CLEAN.find(x => x.id === id);
+  if (!a) return;
+  const modal = document.getElementById('modal-backdrop');
+  const content = document.getElementById('modal-content');
+  content.innerHTML = `
+    <h2>${a.name} <span class="cn">${a.cn}</span></h2>
+    <div class="modal-meta">${a.years} · ${a.country} · 浪潮 ${a.era}</div>
+    <h3>核心理念</h3>
+    <p>${a.core}</p>
+    <h3>代表作故事脉络</h3>
+    ${a.detail}`;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeModal = function() {
+  document.getElementById('modal-backdrop').classList.remove('show');
+  document.body.style.overflow = '';
+};
+
+document.addEventListener('click', e => {
+  const card = e.target.closest && e.target.closest('.author-card');
+  if (card && card.dataset.authorId) {
+    window.showAuthor(parseInt(card.dataset.authorId));
+    return;
+  }
+  if (e.target.dataset.close !== undefined || e.target.id === 'modal-backdrop') {
+    window.closeModal();
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') window.closeModal();
+});
+
+function renderDashboard() {
+  try {
+    renderCards();
+    window.__stage = 'rendered';
+  } catch(e) {
+    window.__err = e.message + ' @ ' + (e.stack||'').split('\n')[1];
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderDashboard);
+} else {
+  renderDashboard();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>GLM 5.2 vs Opus 4.8 vs GPT 5.5 — Chase AI 实战对比</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.red .value { color: var(--red); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+
+  /* v1.3.1 TOC */
+  .toc {
+    position: fixed; top: 20px; left: 16px; width: 188px;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 0.8rem;
+    z-index: 100; font-size: 0.78rem;
+  }
+  .toc-title {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  .toc-list { list-style: none; padding: 0; margin: 0; }
+  .toc-list li { margin: 0; }
+  .toc-list a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s;
+  }
+  .toc-list a:hover { color: var(--text); background: var(--bg-elevated); }
+  .toc-list a.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  @media (max-width: 1100px) {
+    body { padding-left: 0 !important; }
+    .toc { display: none; }
+  }
+  .tab-content { scroll-margin-top: 20px; }
+  .h2-section { scroll-margin-top: 20px; }
+
+
+  
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">📊 DeepSweep Benchmark</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ Max / Extra High Effort</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 但切 Effort Level（关键反超）⭐</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">💰 Per-Token Cost 现实</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 基础 per-token cost</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ 但实战 token 差距</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">🎮 Test 1：3D Racing Game</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Pass 1（13 min + 5 min + 持续）</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Pass 2（要求 "triple-A aesthetic"）</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">🕶️ Test 2：AI Glasses Landing Page</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Prompt</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🎯 Test 3：3.js Immersive 3D Experience</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Prompt</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Final Ranking（综合 3 tests）</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⚠️ "Not Really Open Source"</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ Open Source 含义澄清</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🔗 与 Patrick 工作的关联（⭐ 强制 section）</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 立即可做（1 周）</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 中期（1 月）</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 长期</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">💬 关键金句库</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">⏱️ 关键时间戳（63 段精选）</a></li>
+  </ol>
+</aside>
+
+
+
+
+
+<h1>GLM 5.2 vs Opus 4.8 vs GPT 5.5</h1>
+<p class="subtitle">Chase AI 实战对比 — "There really isn't a debate"</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=hEv_8tyfdHc" target="_blank">I Tested GLM 5.2 vs Opus 4.8 vs GPT 5.5</a></span>
+  <span><strong>频道：</strong>Chase AI</span>
+  <span><strong>时长：</strong>22:17（1337s）</span>
+  <span><strong>字幕：</strong>EN 自动 → 中文提炼</span>
+  <span><strong>日期：</strong>2026-06-22</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🔥 核心论点</h2>
+  <p><b>"GLM 5.2 is the strongest open-source model we have ever seen."</b></p>
+  <p style="margin-top: 0.6rem;"><b>但 vs frontier closed-source 仍有 gap</b>：</p>
+  <ul style="color: var(--text); margin: 0.6rem 0 0;">
+    <li><b>1 token 便宜</b> · 但 <b>用 10x+ token</b> = 实际总 cost 没省</li>
+    <li>"<b>Not really open source</b>"（see code/weights ≠ run on PC）</li>
+    <li>"<b>There really isn't a debate.</b>"</li>
+    <li>"<b>Would I suggest GLM 5.2 for your average person? No. Not really.</b>"</li>
+  </ul>
+</div>
+
+<div class="stats">
+  <div class="stat green">
+    <div class="label">GLM 5.2 定位</div>
+    <div class="value">Strongest OS</div>
+    <div class="sub">开源 #1</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">GLM 5.2 跑 GLM 跑 game</div>
+    <div class="value">1.35M tok</div>
+    <div class="sub">vs Opus 100K（13x more）</div>
+  </div>
+  <div class="stat blue">
+    <div class="label">Per-token cost</div>
+    <div class="value">$1.40 in</div>
+    <div class="sub">$4.40 out（GLM 1x）</div>
+  </div>
+  <div class="stat red">
+    <div class="label">Opus 4.8 跑 game</div>
+    <div class="value">100K tok</div>
+    <div class="sub">= 13 min 完（1st）</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">Max plan 补贴</div>
+    <div class="value">10x</div>
+    <div class="sub">API cost 1/10x</div>
+  </div>
+  <div class="stat">
+    <div class="label">DeepSweep</div>
+    <div class="value">113 tasks</div>
+    <div class="sub">5 langs · isolated env</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="benchmark">📊 DeepSweep</button>
+  <button class="tab" data-tab="cost">💰 Per-Token 现实</button>
+  <button class="tab" data-tab="t1">🎮 Test 1 Racing</button>
+  <button class="tab" data-tab="t2">🕶️ Test 2 Glasses</button>
+  <button class="tab" data-tab="t3">🎯 Test 3 3.js</button>
+  <button class="tab" data-tab="opensource">⚠️ Not Really OS</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="route">🗺️ 实战</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+</div>
+
+<!-- TAB 1: BENCHMARK -->
+<div class="tab-content active" data-tab-content="benchmark">
+  <h2 id="h2-2" class="section">📊 DeepSweep Benchmark</h2>
+
+  <p style="color: var(--text-dim);"><b>113 tasks</b> across <b>TypeScript / Go / Python / JavaScript / Rust</b> · isolated environments · program-based verifiers</p>
+
+  <h3 id="h3-1">Max / Extra High Effort</h3>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>Effort</th><th>Score</th><th>Cost/Task</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>GLM 5.2</td>
+        <td>Max</td>
+        <td><b>44%</b></td>
+        <td><b class="badge green">$3.92</b></td>
+      </tr>
+      <tr>
+        <td>Opus 4.8</td>
+        <td>Extra high</td>
+        <td><b>59%</b></td>
+        <td>$13</td>
+      </tr>
+      <tr>
+        <td>GPT 5.5</td>
+        <td>Extra high</td>
+        <td><b>67%</b></td>
+        <td>$7.23</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-2">但切 Effort Level（关键反超）⭐</h3>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>Effort</th><th>Score</th><th>Cost/Task</th><th>vs GLM 5.2 Max</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>Opus 4.8</b></td>
+        <td>Medium</td>
+        <td><b>49%</b> ⬆</td>
+        <td><b class="badge green">$3.44</b> ⬇</td>
+        <td>更便宜 + 更好 ⭐</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>GPT 5.5</b></td>
+        <td>Medium</td>
+        <td><b>54%</b> ⬆</td>
+        <td><b class="badge green">$2.75</b> ⬇</td>
+        <td>更便宜 + 更好 ⭐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <p style="font-size: 1.05rem;"><b>结论</b>：Opus 4.8 Medium 和 GPT 5.5 Medium 都能在 <b>更便宜 + 更好</b>的情况下 超越 GLM 5.2 Max</p>
+  </div>
+</div>
+
+<!-- TAB 2: COST -->
+<div class="tab-content" data-tab-content="cost">
+  <h2 id="h2-3" class="section">💰 Per-Token Cost 现实</h2>
+
+  <h3 id="h3-3">基础 per-token cost</h3>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>Input ($/M tok)</th><th>Output ($/M tok)</th><th>倍率</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>GLM 5.2</b></td>
+        <td><b>$1.40</b></td>
+        <td><b>$4.40</b></td>
+        <td>1x</td>
+      </tr>
+      <tr>
+        <td>Opus 4.8</td>
+        <td>5.7x GLM</td>
+        <td>5.7x GLM</td>
+        <td><b>5.7x</b></td>
+      </tr>
+      <tr>
+        <td>GPT 5.5</td>
+        <td>6.8x GLM</td>
+        <td>6.8x GLM</td>
+        <td><b>6.8x</b></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-4">但实战 token 差距</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🎮 3D Game Tokens</h4>
+      <p><b>Opus 4.8</b>：~100K</p>
+      <p><b>GLM 5.2</b>：<b>1.35M</b>（$1.21）</p>
+      <p style="margin-top: 0.4rem;">GLM 用 <b>13x more tokens</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>🕶️ Landing Page Tokens</h4>
+      <p><b>Opus 4.8</b>：~100K</p>
+      <p><b>GLM 5.2</b>：<b>~1M</b></p>
+      <p style="margin-top: 0.4rem;">GLM 用 <b>10x more tokens</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>💳 Max Plan 补贴</h4>
+      <p>"<b>If you are on the max plan, it's like 10x cheaper than this.</b>"</p>
+      <p style="margin-top: 0.4rem;">= API cost 1/10x</p>
+      <p style="margin-top: 0.4rem; color: var(--accent-2); font-weight: 600;">→ 补贴抹平 cost 优势</p>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--accent); margin-top: 1rem;">
+    <p style="font-size: 1.05rem;"><b>"But, we care about outcomes for a task, not necessarily a one-for-one token comparison."</b></p>
+  </div>
+</div>
+
+<!-- TAB 3: T1 -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-4" class="section">🎮 Test 1：3D Racing Game</h2>
+
+  <h3 id="h3-5">Prompt</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"build a playable 3D racing game that runs in the browser"</p>
+    <p style="margin-top: 0.4rem;"><b>Full freedom to pick stack and library</b></p>
+  </div>
+
+  <h3 id="h3-6">Pass 1（13 min + 5 min + 持续）</h3>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>时间</th><th>Tokens</th><th>结果</th><th>Ranking</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>Opus 4.8</b></td>
+        <td><b>13 min</b>（1st 完）</td>
+        <td>~100K</td>
+        <td>⭐⭐⭐ smooth gameplay · drift · low poly</td>
+        <td><span class="badge green">1st</span></td>
+      </tr>
+      <tr>
+        <td>GLM 5.2</td>
+        <td>18 min</td>
+        <td><b class="badge red">1.35M</b>（$1.21）</td>
+        <td>2nd · jumpy controls · track 不清晰</td>
+        <td>2nd</td>
+      </tr>
+      <tr>
+        <td>GPT 5.5</td>
+        <td>持续</td>
+        <td>未知</td>
+        <td>"Night shift time trial" · wheels horizontal 奇怪</td>
+        <td>2nd</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-7">Pass 2（要求 "triple-A aesthetic"）</h3>
+  <table>
+    <thead>
+      <tr><th>Model</th><th>时间</th><th>Tokens</th><th>结果</th><th>Ranking</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>Opus 4.8</b></td>
+        <td>10 min</td>
+        <td>~50K</td>
+        <td>⭐ car 大幅提升 + 阳光反射 + 阴影</td>
+        <td><span class="badge green">1st</span></td>
+      </tr>
+      <tr>
+        <td>GLM 5.2</td>
+        <td>1.2M 更多</td>
+        <td>$1.83</td>
+        <td>glare 失真 · 退步</td>
+        <td>2nd</td>
+      </tr>
+      <tr>
+        <td>GPT 5.5</td>
+        <td>持续</td>
+        <td>未知</td>
+        <td>wheels fix · 其他没变</td>
+        <td>2nd</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--green); margin-top: 1rem;">
+    <p style="font-size: 1.05rem;">"<b>Opus 4.8 clearly ahead of GLM 5.2 and 5.5</b>"（racing game ranking）</p>
+  </div>
+</div>
+
+<!-- TAB 4: T2 -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-5" class="section">🕶️ Test 2：AI Glasses Landing Page</h2>
+
+  <h3 id="h3-8">Prompt</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"AI-powered smart glasses landing page · Meta Ray-Ban style · award look · 3.js 元素"</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Model</th><th>Tokens</th><th>结果</th><th>Ranking</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Opus 4.8</td>
+        <td>~100K</td>
+        <td>暗背景 + 鼠标 hover 变色 · "HTML not found images"</td>
+        <td><span class="badge yellow">2nd</span></td>
+      </tr>
+      <tr class="highlight">
+        <td>GLM 5.2</td>
+        <td>~1M</td>
+        <td>"<b>complete failure</b>" · "kind of a disaster · barely loaded"</td>
+        <td><span class="badge red">3rd</span></td>
+      </tr>
+      <tr class="highlight">
+        <td><b>GPT 5.5</b></td>
+        <td>~100K</td>
+        <td>多色 cursor + scroll banner · "probably the best"</td>
+        <td><span class="badge green">1st</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="border-left: 3px solid var(--red); margin-top: 1rem;">
+    <p style="font-size: 1.05rem;">"<b>GPT 5.5 was the best of the bunch and GLM was like actually a complete failure.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 5: T3 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-6" class="section">🎯 Test 3：3.js Immersive 3D Experience</h2>
+
+  <h3 id="h3-9">Prompt</h3>
+  <div class="card" style="border-left: 3px solid var(--blue);">
+    <p>"Take the smart glasses landing page you've just built and rebuild it as an immersive 3D experience using 3.js"</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Model</th><th>结果</th><th>Ranking</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Opus 4.8</td>
+        <td>3.js 加了 · 但 "AI created this" 明显</td>
+        <td><span class="badge yellow">3rd</span></td>
+      </tr>
+      <tr>
+        <td>GLM 5.2</td>
+        <td>2nd · "makes sense · glasses odd but banner scroll works"</td>
+        <td><span class="badge yellow">2nd</span></td>
+      </tr>
+      <tr class="highlight">
+        <td><b>GPT 5.5</b></td>
+        <td>⭐⭐⭐ "looks better overall · motion graphics pretty cool"</td>
+        <td><span class="badge green">1st</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-10">Final Ranking（综合 3 tests）</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>🏆 Opus 4.8</h4>
+      <p>Racing game 1st</p>
+      <p>3.js 3rd</p>
+      <p style="margin-top: 0.4rem;"><b>最强单点</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>🏆 GPT 5.5</h4>
+      <p>Landing page 1st</p>
+      <p>3.js 1st</p>
+      <p style="margin-top: 0.4rem;"><b>最全面</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ GLM 5.2</h4>
+      <p>Always near bottom</p>
+      <p>"Not grossly worse · but certainly not better"</p>
+      <p style="margin-top: 0.4rem;"><b>最差综合</b></p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: OPENSOURCE -->
+<div class="tab-content" data-tab-content="opensource">
+  <h2 id="h2-7" class="section">⚠️ "Not Really Open Source"</h2>
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <p style="font-size: 1.05rem;">"<b>This is not open source like you can just download this on your computer.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>It's open source in that like you can see the code, you can see the weights.</b> It's not open source in the sense of like oh no, it's just I can go [download on PC]."</p>
+  </div>
+
+  <h3 id="h3-11">Open Source 含义澄清</h3>
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ GLM 5.2 "open source"</h4>
+      <ul>
+        <li>Can see code</li>
+        <li>Can see weights</li>
+        <li>Permissive license</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ GLM 5.2 NOT "open source"</h4>
+      <ul>
+        <li>Cannot download on PC</li>
+        <li>Cannot run locally</li>
+        <li><b>Requires ton of hardware</b></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--yellow); margin-top: 1rem;">
+    <p style="font-size: 1.05rem;">"<b>This requires a ton of hardware to use.</b>"</p>
+    <p style="margin-top: 0.5rem;">"<b>If you are open source maxing, understand this is not something you would run on your PC.</b>"</p>
+  </div>
+</div>
+
+<!-- TAB 7: RELATED -->
+<div class="tab-content" data-tab-content="related">
+  <h2 id="h2-8" class="section">🔗 与 Patrick 工作的关联（⭐ 强制 section）</h2>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🔗 Matt White "Linux Foundation CTO"</h4>
+      <p>Matt W "Open model ≠ Open source"</p>
+      <p>GLM 5.2 = <b>permissive license + 公开 code/weights, not runnable on PC</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：Matt W 警告实证</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Two Minute Papers "Multi-Agent Latent"</h4>
+      <p>Two MP "sub-10B strike distance"</p>
+      <p>GLM 5.2 = <b>部分实证（44% vs 49% Medium Opus）</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b>：但仍有 gap</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Google IO 2026 "The Line"</h4>
+      <p>Google IO "Below free · Above control"</p>
+      <p>GLM 5.2 = <b>Below the line open-source</b> = free fuel</p>
+      <p>Opus 4.8 / GPT 5.5 = <b>Above frontier</b> = control</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>实证</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Pocock "Senior 10x"</h4>
+      <p>Matt P "harness + model" 50/50</p>
+      <p>GLM 5.2 = <b>强 model · weak harness</b></p>
+      <p style="margin-top: 0.4rem; color: var(--yellow);">→ <b>同源警示</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Matt Berman "7 Loops"</h4>
+      <p>Matt B "loops need taste"</p>
+      <p>GLM 5.2 缺 taste = <b>loops 同样不擅长</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Bryant Chou "Taste"</h4>
+      <p>Bryant "Taste = 不可替代"</p>
+      <p>GLM 5.2 = <b>缺 taste（"complete failure"）</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>🔗 Hybrid LLM Router</h4>
+      <p>Hybrid = T0-T3 routing</p>
+      <p>GLM 5.2 = <b>perfect T1/T2</b>（permissive · cheap per token · 强 enough）</p>
+      <p>Opus/GPT = T3 frontier</p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：GLM T1/T2 + Opus/GPT T3</p>
+    </div>
+    <div class="card">
+      <h4>🔗 OpenSquilla + MetaSkill</h4>
+      <p>OpenSquilla = agent 编排</p>
+      <p>GLM 5.2 = MetaSkill 编排的 <b>best T1/T2 choice</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Pi Agent</h4>
+      <p>Pi = 极简 harness</p>
+      <p>GLM 5.2 + Pi = <b>cost-effective 极简 agent</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>同源</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+      <p>v1.3.0 = 用户掌控 + 极简</p>
+      <p>GLM 5.2 = 反极简（hardware 需求）</p>
+      <p style="margin-top: 0.4rem; color: var(--yellow);">→ <b>必须 API access</b>（不能本地）</p>
+    </div>
+    <div class="card">
+      <h4>🔗 Sam Altman "scale"</h4>
+      <p>Sam "scale 永远 work"</p>
+      <p>GLM 5.2 = <b>scale 1.35M tokens</b> = scale with weak harness</p>
+      <p style="margin-top: 0.4rem;">→ <b>同源警示</b>：scale ≠ efficiency</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>🔗 IndyDevDan 本地 LLM ⚠️</h4>
+      <p>IndyDevDan = 本地 LLM = 完全掌控</p>
+      <p>GLM 5.2 = <b>"not runnable on PC"</b> = 反 IndyDevDan</p>
+      <p style="margin-top: 0.4rem; color: var(--red);">→ <b>用本地 4B, 不用 GLM 5.2 "本地"</b></p>
+    </div>
+    <div class="card">
+      <h4>🔗 Fei-Fei "Top 1%"</h4>
+      <p>Fei-Fei "okay 98% = 被替代"</p>
+      <p>GLM 5.2 = <b>strong but not Top 1%</b></p>
+      <p style="margin-top: 0.4rem; color: var(--green);">→ <b>完全同源</b>：GLM 部分属于 98%</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: ROUTE -->
+<div class="tab-content" data-tab-content="route">
+  <h2 id="h2-9" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-12">立即可做（1 周）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>测 <b>GLM 5.2 via OpenRouter</b>（api.openrouter.ai）</li>
+    <li><b>Hybrid-llm-router T1/T2 配置 GLM 5.2</b>（per DeepSweep benchmark）</li>
+    <li>per-token cost 算账：GLM 5.2 vs Opus 4.8 vs GPT 5.5</li>
+    <li>测 <b>GLM 5.2 视觉能力</b>（确认 "complete failure" 风险）</li>
+  </ol>
+
+  <h3 id="h3-13">中期（1 月）</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>build <b>Patrick Hybrid Router</b>：
+      <ul>
+        <li><b>T0</b> = 本地 4B (IndyDevDan) · 0 cost</li>
+        <li><b>T1</b> = <b>GLM 5.2</b> (OpenRouter) · 1x cost</li>
+        <li><b>T2</b> = GLM 5.2 + good harness (per task)</li>
+        <li><b>T3</b> = Opus 4.8 / GPT 5.5 (Max plan) · for critical</li>
+      </ul>
+    </li>
+    <li><b>OpenSquilla MetaSkill + GLM 5.2</b>（cost-effective multi-agent）</li>
+    <li><b>Pi Agent + GLM 5.2</b>（cost-effective 极简）</li>
+    <li>批判性 eval GLM 5.2（"complete failure" 风险）</li>
+  </ol>
+
+  <h3 id="h3-14">长期</h3>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>GLM 5.2 决策框架</b>：
+      <ul>
+        <li>✅ 用 GLM 5.2：<b>T1/T2 cost-effective 任务</b></li>
+        <li>❌ 不用 GLM 5.2：<b>视觉 / 复杂 UI / critical</b>（用 Opus/GPT）</li>
+      </ul>
+    </li>
+    <li>持续追踪 <b>GLM 5.3+</b>（开源在进步 · Frontier 也在进步）</li>
+    <li>Public discourse 贡献（hype vs reality · Hybrid routing decision）</li>
+    <li>本地 4B 真 open-source（IndyDevDan 路径 · vs GLM 5.2 "open-source" hype）</li>
+  </ol>
+</div>
+
+<!-- TAB 9: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-10" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card green">
+      <div class="who">核心</div>
+      <div class="text">GLM 5.2 is the strongest open-source model we have ever seen.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">现实</div>
+      <div class="text">Not surprising. These are the best of the best frontier models. They are not open source.</div>
+    </div>
+    <div class="quote-card">
+      <div class="who">Not Debatable</div>
+      <div class="text">There really isn't a debate.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Average</div>
+      <div class="text">Would I suggest GLM 5.2 for your average person? No. Not really.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Not Really OS</div>
+      <div class="text">This is not open source like you can just download this on your computer. It's open source in that like you can see the code, you can see the weights.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Hardware</div>
+      <div class="text">This requires a ton of hardware to use.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">Not for PC</div>
+      <div class="text">If you are open source maxing, understand this is not something you would run on your PC.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Per-Token Cost</div>
+      <div class="text">GLM 5.2, $1.40 for input, $4.40 for output. Opus 4.8 is 5.7 times more expensive. 5.5 from GPT is 6.8 times more expensive.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">Outcomes Matter</div>
+      <div class="text">But, we care about outcomes for a task, not necessarily a one-for-one token comparison.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Max Plan 补贴</div>
+      <div class="text">If you are on the max plan, it's like 10x cheaper than this.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Token 差距</div>
+      <div class="text">Claude Code used about 100,000 tokens to create that and GLM 5.2 took over a million.</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">GLM Complete Failure</div>
+      <div class="text">GPT 5.5 was the best of the bunch and GLM was like actually a complete failure.</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">Opus 1st</div>
+      <div class="text">Opus 4.8 clearly ahead of GLM 5.2 and 5.5.</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">GLM Bottom</div>
+      <div class="text">GLM 5.2 was always near the bottom. It wasn't grossly worse than any of them, but it certainly wasn't better.</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">Token 浪费</div>
+      <div class="text">GLM uses infinitely more tokens.</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">Subscription</div>
+      <div class="text">There's something to be said with just like sticking with a model, especially when we're talking more like enterprise team level stuff where the API costs really start to add up.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: TIME -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-11" class="section">⏱️ 关键时间戳（63 段精选）</h2>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">0:00</div>
+      <div class="what">🎯 <b>"GLM 5.2 = strongest open-source model"</b>（开篇）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">0:55</div>
+      <div class="what">📊 <b>DeepSweep benchmark</b>（113 tasks · 5 langs）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:25</div>
+      <div class="what">Cost per task（GLM 44%/$3.92 · Opus 59%/$13 · GPT 67%/$7.23）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">1:53</div>
+      <div class="what">⭐ <b>Opus 4.8 Medium 49%/$3.44</b>（超 GLM Max · 更便宜）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:05</div>
+      <div class="what">⭐ <b>GPT 5.5 Medium 54%/$2.75</b>（更便宜 + 更好）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:14</div>
+      <div class="what">"Not surprising. Frontier closed-source"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">2:25</div>
+      <div class="what">⚠️ <b>"Open-source = see code/weights, NOT run on PC"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:50</div>
+      <div class="what">Per-token cost（GLM $1.40 in / $4.40 out）</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:55</div>
+      <div class="what">Opus 5.7x · GPT 6.8x more expensive</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">3:58</div>
+      <div class="what">"We care about outcomes, not 1-for-1 token"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:00</div>
+      <div class="what">"Max plan = 10x cheaper" = 补贴抹平 cost</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">4:45</div>
+      <div class="what">Setup：同 prompt · plan mode + execute</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:30</div>
+      <div class="what">🎮 <b>Test 1：3D racing game</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">5:48</div>
+      <div class="what">13 min 后 Opus 完（100K tokens）= 1st</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:35</div>
+      <div class="what">GLM 完（1.35M tokens · $1.21）= 2nd</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">6:50</div>
+      <div class="what">GLM "controls very jumpy"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:10</div>
+      <div class="what">GPT 5.5 出："Night shift time trial" · wheels horizontal 奇怪</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:30</div>
+      <div class="what"><b>Ranking：Opus 1st</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:48</div>
+      <div class="what">Pass 2 要求 "triple-A aesthetic"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">7:55</div>
+      <div class="what">Opus car 提升 + 阴影（10 min · 50K tokens）= 仍 1st</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:00</div>
+      <div class="what">GLM glare 失真 · 退步</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:15</div>
+      <div class="what">GPT 5.5 wheels fix · 其他没变</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:20</div>
+      <div class="what">Ranking：Opus 1st · GPT 5.5 + GLM 2nd 平庸</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">8:35</div>
+      <div class="what">🕶️ <b>Test 2：AI glasses landing page</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:00</div>
+      <div class="what">Opus 暗背景 + 鼠标 hover 变色</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:15</div>
+      <div class="what">🔴 <b>GLM "kind of a disaster · barely loaded"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:30</div>
+      <div class="what">GPT 5.5 多色 cursor + scroll banner = 1st</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:40</div>
+      <div class="what">🔴 <b>"GPT 5.5 was the best · GLM was actually a complete failure"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">9:50</div>
+      <div class="what">🎯 <b>Test 3：3.js immersive 3D experience</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:10</div>
+      <div class="what">Opus 3.js 加了 · 但 "AI created this" 明显</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:25</div>
+      <div class="what">GLM 2nd · 3.js works</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:35</div>
+      <div class="what">GPT 5.5 "winner" · 3.js motion graphics cool</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:00</div>
+      <div class="what"><b>Final ranking</b>：Opus 1st (game) · GPT 5.5 1st (glasses + 3.js) · GLM always near bottom</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:15</div>
+      <div class="what"><b>"GLM uses infinitely more tokens"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:30</div>
+      <div class="what">"GLM is at the bottom and less efficient than 5.5 and 4.8"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:45</div>
+      <div class="what">⚠️ <b>"This requires a ton of hardware to use"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:55</div>
+      <div class="what">⚠️ <b>"There really isn't a debate"</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:10</div>
+      <div class="what">⚠️ <b>"Would I suggest GLM 5.2 for your average person? No. Not really."</b></div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:30</div>
+      <div class="what">"Sticking with a model has value · 尤其 enterprise team"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:50</div>
+      <div class="what">"Max plan 补贴 = API cost 1/10x"</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:00</div>
+      <div class="what">Closing：lower level tasks 可能 OK · high-stakes 用 Opus/GPT</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:20</div>
+      <div class="what">Chase AI Plus 推广（Claude Code Masterclass）</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/glm-5-2-vs-opus-4-8-vs-gpt-5-5/</code></p>
+  <p>Desktop: <code>~/Desktop/glm-5-2-vs-opus-4-8-vs-gpt-5-5-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=hEv_8tyfdHc">https://www.youtube.com/watch?v=hEv_8tyfdHc</a></p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+
+  // v1.3.1 TOC active section highlight
+  (function() {
+    const tocLinks = document.querySelectorAll('.toc-list a');
+    if (!tocLinks.length) return;
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('href').slice(1);
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('.toc-list a[href="#' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+</script>
+
+
+  
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          const tabId = tabContent.getAttribute('data-tab-content');
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          document.querySelectorAll('.tab').forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

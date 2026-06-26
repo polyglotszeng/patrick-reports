@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Hybrid LLM 工作流：本地 vs Cloud 决策框架 + 自动路由</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.neutral { border-left: 3px solid var(--yellow); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.neutral h4 { color: var(--yellow); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  .decision-tree {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin: 1.2rem 0;
+  }
+  .decision-tree h4 { color: var(--accent-2); margin: 0 0 0.8rem; }
+  .scoring {
+    display: grid; grid-template-columns: 100px 1fr 1fr 1fr; gap: 0.3rem;
+    margin: 0.8rem 0; font-size: 0.85rem; align-items: center;
+  }
+  .scoring .head { color: var(--accent-2); font-weight: 600; padding: 0.3rem; }
+  .scoring .cell { padding: 0.4rem 0.6rem; background: var(--bg-elevated); border-radius: 4px; text-align: center; color: var(--text-dim); }
+  .scoring .label { color: var(--text); font-weight: 500; padding: 0.4rem 0.6rem; }
+
+  .score-0 { color: var(--green); }
+  .score-1 { color: var(--yellow); }
+  .score-2 { color: var(--red); }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  pre {
+    background: var(--bg-elevated); padding: 1rem; border-radius: 8px;
+    overflow-x: auto; font-size: 0.85rem; color: var(--text);
+    border: 1px solid var(--border); margin: 0.8rem 0;
+  }
+  pre code { background: transparent; padding: 0; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+/* ---------- TOC sidebar (缩在左侧, hover 弹出) ---------- */
+.toc {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 220px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  background: rgba(20, 20, 24, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 0 12px 12px 0;
+  padding: 16px 18px;
+  z-index: 40;
+  font-size: 12.5px;
+  line-height: 1.5;
+  transform: translateX(calc(-100% + 24px));
+  opacity: 0.95;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+.toc::after {
+  content: '\203A';
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 700;
+  pointer-events: none;
+  animation: tocHandleBlink 2.5s ease-in-out infinite;
+}
+@keyframes tocHandleBlink { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.toc:hover, .toc:focus-within {
+  transform: translateX(0);
+  opacity: 1;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+.toc:hover::after, .toc:focus-within::after { opacity: 0; animation: none; }
+@media (max-width: 1279px) { .toc { display: none; } }
+.toc h3 {
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+.toc li { counter-increment: toc; margin-bottom: 6px; }
+.toc li::before {
+  content: counter(toc, decimal-leading-zero) " ";
+  color: var(--text-mute);
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  margin-right: 4px;
+}
+.toc a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  display: block;
+  padding: 2px 0;
+}
+.toc a:hover { color: var(--accent); }
+.toc a.active { color: var(--accent); font-weight: 600; }
+.toc a.h3-link { padding-left: 14px; font-size: 11.5px; opacity: 0.85; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">1. 本地 vs Cloud 决策矩阵</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">2. 任务分类（多源共识）</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 代码类</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ Agent 类（限定规模）</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 数据 / NLP</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">3. 5 维决策打分（核心）</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 决策规则</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 实战打分示例</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">4. 4 大 Router 工具对比（2026）</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 选型决策</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 4 大反模式（避免）</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">5. LiteLLM 实战配置（推荐起点）</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ config.yaml</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ Docker 部署（5 分钟）</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 应用接入</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">6. 实际成本对比（2026-04）</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ Cloud API 当前价格</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Self-hosting 真实成本</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 叠加优化（Morph 2026）</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">7. Hybrid 工作流 4 个反模式</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ 关键金句</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">8. 未来趋势（2026-2027 预测）</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 2026 年底预测</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Patrick 决策路线图</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ 相关资源</a></li>
+  </ol>
+</aside>
+
+
+<h1>Hybrid LLM 工作流</h1>
+<p class="subtitle">本地 vs Cloud 决策框架 + 自动路由（2026 综合）</p>
+
+<div class="meta-bar">
+  <span><strong>类型：</strong>知识库（多源综合）</span>
+  <span><strong>日期：</strong>2026-06-16</span>
+  <span><strong>来源：</strong>8 篇文章 + 3 视频</span>
+  <span><strong>核心：</strong>5 维决策 → LiteLLM 路由</span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">核心论点</h2>
+  <p><b>2026 年 AI 工作流的真正问题不是"用哪个模型"，而是"哪个任务值得哪个层级的智能"。</b>Hybrid LLM 架构（本地 cheap + cloud SOTA）= 业界共识：节省 30-85% 成本，<b>不牺牲质量</b>（智能路由保 95% SOTA 性能）。</p>
+  <p style="margin-top: 0.5rem;"><b>3 个核心数据</b>：RouteLLM（ICLR 2025）<b>85% 成本下降 / 95% GPT-4 性能</b> · LiteLLM production 节省 2-5x · 2026 年 <b>37% 企业</b>生产用 5+ 模型。</p>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="label">RouteLLM 节省</div>
+    <div class="value">85%</div>
+    <div class="sub">保留 95% GPT-4 性能</div>
+  </div>
+  <div class="stat">
+    <div class="label">生产 routing</div>
+    <div class="value">2-5x</div>
+    <div class="sub">aggregate cost 节省</div>
+  </div>
+  <div class="stat">
+    <div class="label">企业用 5+ 模型</div>
+    <div class="value">37%</div>
+    <div class="sub">2026 生产</div>
+  </div>
+  <div class="stat">
+    <div class="label">本地 context 极限</div>
+    <div class="value">8-16K</div>
+    <div class="sub">SLM 实际可用</div>
+  </div>
+  <div class="stat">
+    <div class="label">盈亏平衡</div>
+    <div class="value">2M tok/day</div>
+    <div class="sub">self-host vs cloud</div>
+  </div>
+  <div class="stat">
+    <div class="label">叠加优化</div>
+    <div class="value">80%</div>
+    <div class="sub">Quant + Batching + Cache</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="matrix">📊 决策矩阵</button>
+  <button class="tab" data-tab="tasks">✅/❌ 任务分类</button>
+  <button class="tab" data-tab="scoring">🎯 5 维打分</button>
+  <button class="tab" data-tab="routers">🛠️ Router 工具</button>
+  <button class="tab" data-tab="litellm">⚙️ LiteLLM 配置</button>
+  <button class="tab" data-tab="cost">💰 成本对比</button>
+  <button class="tab" data-tab="antipattern">⚠️ 反模式</button>
+  <button class="tab" data-tab="future">🔮 未来</button>
+</div>
+
+<!-- TAB 1: MATRIX -->
+<div class="tab-content active" data-tab-content="matrix">
+  <h2 id="h2-2" class="section">1. 本地 vs Cloud 决策矩阵</h2>
+
+  <table>
+    <thead>
+      <tr><th>维度</th><th>本地 LLM 适合</th><th>Cloud LLM 适合</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Context 长度</b></td>
+        <td>< 8K tokens</td>
+        <td>> 16K tokens</td>
+      </tr>
+      <tr>
+        <td><b>任务类型</b></td>
+        <td>Mechanical / 重复 / 模板化</td>
+        <td>Architectural / 创意 / reasoning</td>
+      </tr>
+      <tr>
+        <td><b>复杂度</b></td>
+        <td>单文件 / ≤10 tool calls</td>
+        <td>多文件 / >26 tool calls / 长 agent</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>隐私</b></td>
+        <td><b>敏感代码 / 数据 / 内部</b></td>
+        <td>公开数据 / 通用知识</td>
+      </tr>
+      <tr>
+        <td><b>延迟要求</b></td>
+        <td>实时反馈（< 1s 启动）</td>
+        <td>可接受网络（> 200ms）</td>
+      </tr>
+      <tr>
+        <td><b>QPS</b></td>
+        <td>高 QPS 低复杂度</td>
+        <td>偶发关键决策</td>
+      </tr>
+      <tr>
+        <td><b>成本模型</b></td>
+        <td>固定（电费 + 硬件）</td>
+        <td>按 token（可变）</td>
+      </tr>
+      <tr>
+        <td><b>离线</b></td>
+        <td>必须</td>
+        <td>不必</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "The goal is not replacement, it is <b>orchestration</b>." — Cloud.in
+  </blockquote>
+</div>
+
+<!-- TAB 2: TASKS -->
+<div class="tab-content" data-tab-content="tasks">
+  <h2 id="h2-3" class="section">2. 任务分类（多源共识）</h2>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h4>✅ 本地能干</h4>
+      <h3 id="h3-1" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">代码类</h3>
+      <ul>
+        <li>Code generation（单函数 / 小段）</li>
+        <li>Refactoring（mechanical rename）</li>
+        <li>Quick debugging（syntax / 明显 bug）</li>
+        <li>Unit test scaffolding</li>
+        <li>Documentation drafts</li>
+        <li>Code autocomplete（Qwen 2.5 Coder 1.5B）</li>
+      </ul>
+      <h3 id="h3-2" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">Agent 类（限定规模）</h3>
+      <ul>
+        <li>Micro-agent（≤ 8K context，≤ 10 tool calls）</li>
+        <li>文件操作（write / read / execute / verify）</li>
+        <li>简单 code review（< 500 行）</li>
+      </ul>
+      <h3 id="h3-3" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">数据 / NLP</h3>
+      <ul>
+        <li>短总结（< 8K input）</li>
+        <li>解析 / 提取 / 分类</li>
+        <li>翻译（短文本）</li>
+        <li>Embedding + 简单 RAG</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>❌ 仍需 Cloud</h4>
+      <h3 id="h3-4" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">推理 / 设计</h3>
+      <ul>
+        <li>Architectural reasoning</li>
+        <li>Multi-file planning / refactor</li>
+        <li>复杂 algorithm design</li>
+        <li>System design</li>
+      </ul>
+      <h3 id="h3-5" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">Agent 类（重负载）</h3>
+      <ul>
+        <li>Long-context analysis（> 16K）</li>
+        <li>Multi-step research agent</li>
+        <li>Deep debugging investigation</li>
+        <li>Large codebase analysis</li>
+      </ul>
+      <h3 id="h3-6" style="font-size: 0.9rem; color: var(--text-mute); margin-top: 1rem;">质量 / SOTA</h3>
+      <ul>
+        <li>SOTA 推理质量（Opus 4 / Sonnet 4.6）</li>
+        <li>复杂 multi-file refactor</li>
+        <li>关键业务逻辑</li>
+        <li>创意写作 / 战略决策</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: SCORING -->
+<div class="tab-content" data-tab-content="scoring">
+  <h2 id="h2-4" class="section">3. 5 维决策打分（核心）</h2>
+  <p style="color: var(--text-dim);">每个任务在 5 维上打分 → 决定路由</p>
+
+  <div class="decision-tree">
+    <h4>5 维评分表</h4>
+    <div class="scoring">
+      <div class="head">维度</div>
+      <div class="head">0 分（本地）</div>
+      <div class="head">1 分（混合）</div>
+      <div class="head">2 分（Cloud）</div>
+
+      <div class="label">Context 长度</div>
+      <div class="cell score-0">&lt; 4K</div>
+      <div class="cell score-1">4K - 16K</div>
+      <div class="cell score-2">&gt; 16K</div>
+
+      <div class="label">任务复杂度</div>
+      <div class="cell score-0">Mechanical</div>
+      <div class="cell score-1">半创造性</div>
+      <div class="cell score-2">Architectural</div>
+
+      <div class="label">隐私需求</div>
+      <div class="cell score-0">高度敏感</div>
+      <div class="cell score-1">一般</div>
+      <div class="cell score-2">公开</div>
+
+      <div class="label">延迟要求</div>
+      <div class="cell score-0">实时（&lt; 200ms）</div>
+      <div class="cell score-1">容忍秒级</div>
+      <div class="cell score-2">不重要</div>
+
+      <div class="label">质量阈值</div>
+      <div class="cell score-0">够用即可</div>
+      <div class="cell score-1">高</div>
+      <div class="cell score-2">必须 SOTA</div>
+    </div>
+  </div>
+
+  <h3 id="h3-7">决策规则</h3>
+  <div class="card-grid">
+    <div class="cmp good" style="border-left: 3px solid var(--green);">
+      <h4>🟢 总分 ≤ 3</h4>
+      <p style="color: var(--text-dim);">直接走本地</p>
+      <p style="font-size: 0.9rem;">例：autocomplete (0,0,0,0,0 = 0)</p>
+    </div>
+    <div class="cmp neutral" style="border-left: 3px solid var(--yellow);">
+      <h4>🟡 总分 4 - 6</h4>
+      <p style="color: var(--text-dim);">混合：先本地，失败 fallback cloud</p>
+      <p style="font-size: 0.9rem;">例：中等 agent 任务 (1,1,0,1,1 = 4)</p>
+    </div>
+    <div class="cmp bad" style="border-left: 3px solid var(--red);">
+      <h4>🔴 总分 ≥ 7</h4>
+      <p style="color: var(--text-dim);">直接 cloud</p>
+      <p style="font-size: 0.9rem;">例：长 context 架构 (2,2,0,0,2 = 6+) 实际：<br>
+        long-context reasoning (2,2,1,0,2 = 7)</p>
+    </div>
+  </div>
+
+  <h3 id="h3-8">实战打分示例</h3>
+  <table>
+    <thead>
+      <tr><th>任务</th><th>Context</th><th>复杂度</th><th>隐私</th><th>延迟</th><th>质量</th><th>总分</th><th>决策</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>代码 autocomplete</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+        <td><b style="color: var(--green);">0</b></td><td>本地</td>
+      </tr>
+      <tr>
+        <td>短文档总结（2K）</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+        <td><b style="color: var(--green);">0</b></td><td>本地</td>
+      </tr>
+      <tr>
+        <td>Unit test 生成</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td>
+        <td><b style="color: var(--green);">1</b></td><td>本地</td>
+      </tr>
+      <tr>
+        <td>单文件 refactor</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td>
+        <td><b style="color: var(--yellow);">2</b></td><td>本地</td>
+      </tr>
+      <tr>
+        <td>多文件 debug (8K)</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td>
+        <td><b style="color: var(--yellow);">4</b></td><td>混合</td>
+      </tr>
+      <tr>
+        <td>架构 reasoning (12K)</td><td>1</td><td>2</td><td>0</td><td>1</td><td>2</td>
+        <td><b style="color: var(--red);">6</b></td><td>混合→cloud</td>
+      </tr>
+      <tr>
+        <td>大型 codebase 分析 (32K)</td><td>2</td><td>2</td><td>0</td><td>1</td><td>2</td>
+        <td><b style="color: var(--red);">7</b></td><td>Cloud</td>
+      </tr>
+      <tr>
+        <td>内部代码 + 关键逻辑</td><td>1</td><td>2</td><td>0</td><td>1</td><td>2</td>
+        <td><b style="color: var(--red);">6</b></td><td>本地（隐私 + 混合）</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 4: ROUTERS -->
+<div class="tab-content" data-tab-content="routers">
+  <h2 id="h2-5" class="section">4. 4 大 Router 工具对比（2026）</h2>
+
+  <table>
+    <thead>
+      <tr><th>工具</th><th>类型</th><th>部署</th><th>成本</th><th>路由方式</th><th>适用场景</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>LiteLLM</b></td>
+        <td>OSS gateway</td>
+        <td>Self-host (Docker)</td>
+        <td>免费（只付 provider）</td>
+        <td>规则 / fallback</td>
+        <td><b>生产 / 多 provider / 成本治理</b></td>
+      </tr>
+      <tr>
+        <td>OpenRouter</td>
+        <td>Managed SaaS</td>
+        <td>第三方</td>
+        <td>按 token</td>
+        <td>内容自动</td>
+        <td>一键接入 400+ 模型</td>
+      </tr>
+      <tr>
+        <td>Inworld Router</td>
+        <td>Managed + 智能</td>
+        <td>第三方</td>
+        <td>按 token</td>
+        <td>内容分析智能</td>
+        <td>百万级 QPS 优化</td>
+      </tr>
+      <tr>
+        <td>RouteLLM</td>
+        <td>开源模型</td>
+        <td>Self-host</td>
+        <td>免费</td>
+        <td>训练路由器</td>
+        <td>极致成本优化（ICLR 2025）</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-9">选型决策</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🧑 个人 / 小团队</h4>
+      <p><b>OpenRouter</b></p>
+      <p>managed，0 运维，一键接入 400+ 模型</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>🏢 生产 / 多 provider ⭐</h4>
+      <p><b>LiteLLM</b></p>
+      <p>OSS，完整 fallback + cost tracking + 100+ providers</p>
+    </div>
+    <div class="card">
+      <h4>🔬 极致优化 / 研究</h4>
+      <p><b>RouteLLM</b></p>
+      <p>UC Berkeley 论文，85% 成本下降 / 95% GPT-4 性能</p>
+    </div>
+    <div class="card">
+      <h4>🏭 企业 / 百万 QPS</h4>
+      <p><b>Inworld Router</b></p>
+      <p>智能内容路由 + 20x 用户增长不烧钱</p>
+    </div>
+  </div>
+
+  <h3 id="h3-10">4 大反模式（避免）</h3>
+  <table>
+    <thead>
+      <tr><th>反模式</th><th>问题</th><th>修复</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>One Model Default</td>
+        <td>全用 Opus 4，简单任务也烧 SOTA 钱</td>
+        <td>用 router，按任务分流</td>
+      </tr>
+      <tr>
+        <td>Offline-Only Dogma</td>
+        <td>硬要全本地，长 context 任务慢 30s+</td>
+        <td>接受 cloud fallback</td>
+      </tr>
+      <tr>
+        <td>Cloud-Only Habit</td>
+        <td>不优化本地潜力，高 QPS 烧钱</td>
+        <td>高 QPS 任务用本地</td>
+      </tr>
+      <tr>
+        <td>No Context Strategy</td>
+        <td>32K context 烧 Opus 4 ($25/M output)</td>
+        <td>Context Compaction 先做</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TAB 5: LITELLM -->
+<div class="tab-content" data-tab-content="litellm">
+  <h2 id="h2-6" class="section">5. LiteLLM 实战配置（推荐起点）</h2>
+
+  <h3 id="h3-11">config.yaml</h3>
+  <pre><code>model_list:
+  # 本地 - 廉价任务
+  - model_name: local-cheap
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b
+      api_base: http://localhost:11434
+
+  # 本地 - 中等任务
+  - model_name: local-mid
+    litellm_params:
+      model: ollama/qwen3.6:35b-a3b-q4
+      api_base: http://localhost:11434
+
+  # Cloud - 高级任务
+  - model_name: cloud-sota
+    litellm_params:
+      model: anthropic/claude-sonnet-4.6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+router_settings:
+  routing_strategy: simple-shuffle  # 或 usage-based
+  num_retries: 2
+  timeout: 30
+  fallbacks:
+    - local-mid: [cloud-sota]  # 本地失败 → cloud
+    - cloud-sota: [local-mid]  # cloud 失败 → 本地</code></pre>
+
+  <h3 id="h3-12">Docker 部署（5 分钟）</h3>
+  <pre><code>docker run -d \
+  -p 4000:4000 \
+  -v $(pwd)/config.yaml:/app/config.yaml \
+  -e ANTHROPIC_API_KEY=sk-ant-*** \
+  ghcr.io/berriai/litellm:main-latest \
+  --config /app/config.yaml</code></pre>
+
+  <h3 id="h3-13">应用接入</h3>
+  <pre><code># 改 base URL 即可
+import openai
+client = openai.OpenAI(
+    base_url="http://localhost:4000",  # 指向 LiteLLM proxy
+    api_key="anything",  # LiteLLM 验证用
+)
+
+response = client.chat.completions.create(
+    model="local-cheap",  # 或 "local-mid" / "cloud-sota"
+    messages=[{"role": "user", "content": "你的任务"}]
+)</code></pre>
+
+  <h3 id="h3-14">LiteLLM 核心能力</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li><b>Virtual keys</b>：每团队 / 项目独立 key + budget</li>
+    <li><b>Per-team budget</b>：自动限速 + 预算</li>
+    <li><b>Automatic fallback</b>：provider 宕机自动切换</li>
+    <li><b>Cost tracking</b>：<code>/global/spend/report</code> + UI dashboard</li>
+    <li><b>100+ providers</b>：OpenAI / Anthropic / Google / Ollama / vLLM / ...</li>
+  </ul>
+</div>
+
+<!-- TAB 6: COST -->
+<div class="tab-content" data-tab-content="cost">
+  <h2 id="h2-7" class="section">6. 实际成本对比（2026-04）</h2>
+
+  <h3 id="h3-15">Cloud API 当前价格</h3>
+  <table>
+    <thead>
+      <tr><th>模型</th><th>Input ($/1M)</th><th>Output ($/1M)</th><th>等级</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>GPT-4.1 nano</td><td>0.10</td><td>0.40</td><td><span class="badge green">Cheap</span></td>
+      </tr>
+      <tr>
+        <td>GPT-4.1 mini</td><td>0.40</td><td>1.60</td><td><span class="badge green">Cheap</span></td>
+      </tr>
+      <tr>
+        <td>Claude Haiku 4.5</td><td>1.00</td><td>5.00</td><td><span class="badge yellow">Mid</span></td>
+      </tr>
+      <tr>
+        <td>Claude Sonnet 4.6</td><td>3.00</td><td>15.00</td><td><span class="badge yellow">Mid</span></td>
+      </tr>
+      <tr>
+        <td>GPT-4.1</td><td>2.00</td><td>8.00</td><td><span class="badge red">SOTA</span></td>
+      </tr>
+      <tr>
+        <td>Claude Opus 4.6</td><td>5.00</td><td>25.00</td><td><span class="badge red">SOTA</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-16">Self-hosting 真实成本</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>💰 硬件</h4>
+      <p>M5 Max 64GB ≈ <b>$4,000</b></p>
+    </div>
+    <div class="card">
+      <h4>⚡ 电费</h4>
+      <p>30W × 24h × 365 = 263 kWh/年 ≈ <b>$35/年</b></p>
+    </div>
+    <div class="card">
+      <h4>📉 折旧（3 年）</h4>
+      <p>~$1,300/年</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⚖️ 盈亏平衡</h4>
+      <p>< 2M tokens/day → <b>self-host 便宜</b></p>
+      <p>> 2M tokens/day → <b>cloud 便宜</b></p>
+    </div>
+  </div>
+
+  <h3 id="h3-17">叠加优化（Morph 2026）</h3>
+  <table>
+    <thead>
+      <tr><th>优化层</th><th>节省</th><th>典型收益</th><th>难度</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Quantization (Q4/Q8)</td>
+        <td>Memory</td>
+        <td><b>2-4x</b> 内存，~50% 成本</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>Continuous Batching</td>
+        <td>GPU idle time</td>
+        <td><b>3-10x</b> 吞吐</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>PagedAttention (vLLM)</td>
+        <td>KV cache 浪费</td>
+        <td><b>24x</b> 吞吐</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>Speculative Decoding</td>
+        <td>Decode latency</td>
+        <td><b>2-5x</b> 速度</td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td>Context Compaction</td>
+        <td>Input tokens</td>
+        <td><b>50-70%</b> token 减少</td>
+        <td>Low</td>
+      </tr>
+      <tr>
+        <td>Prompt Caching</td>
+        <td>重复 prefill</td>
+        <td><b>90%</b> 延迟降低</td>
+        <td>Low</td>
+      </tr>
+      <tr class="highlight">
+        <td><b>Model Routing</b></td>
+        <td>每请求成本</td>
+        <td><b>2-5x</b> aggregate 节省</td>
+        <td>Medium</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <blockquote>
+    "A 60% reduction in tokens per task is a 60% cost reduction, <b>regardless of per-token pricing</b>." — Morph 2026
+  </blockquote>
+</div>
+
+<!-- TAB 7: ANTIPATTERN -->
+<div class="tab-content" data-tab-content="antipattern">
+  <h2 id="h2-8" class="section">7. Hybrid 工作流 4 个反模式</h2>
+
+  <table>
+    <thead>
+      <tr><th>反模式</th><th>问题</th><th>修复</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>One Model Default</b></td>
+        <td>全用 Opus 4 / GPT-4，简单任务也烧 SOTA 钱</td>
+        <td>用 router，按任务分流</td>
+      </tr>
+      <tr>
+        <td><b>Offline-Only Dogma</b></td>
+        <td>硬要全本地，长 context 任务慢 30s+</td>
+        <td>接受 cloud fallback</td>
+      </tr>
+      <tr>
+        <td><b>Cloud-Only Habit</b></td>
+        <td>不优化本地潜力，高 QPS 烧钱</td>
+        <td>高 QPS 任务用本地</td>
+      </tr>
+      <tr>
+        <td><b>No Context Strategy</b></td>
+        <td>32K context 烧 Opus 4 ($25/M output)</td>
+        <td>Context Compaction 先做</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-18">关键金句</h3>
+  <blockquote>
+    "One model cannot be optimal for all requests. <b>Easy requests overpay. Hard requests sometimes underdeliver.</b>" — Alex Cloud Star
+  </blockquote>
+  <blockquote>
+    "No single model is best for everything. <b>A model router is like an air traffic controller.</b>" — Swfte AI
+  </blockquote>
+  <blockquote>
+    "Just as modern infrastructure combines edge computing, on-prem systems, and cloud platforms, AI development workflows are evolving toward <b>layered intelligence architectures</b>." — Cloud.in
+  </blockquote>
+</div>
+
+<!-- TAB 8: FUTURE -->
+<div class="tab-content" data-tab-content="future">
+  <h2 id="h2-9" class="section">8. 未来趋势（2026-2027 预测）</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>🚀 硬件</h4>
+      <p>M5 Ultra / M6 Mac Mini <b>500GB RAM</b></p>
+      <p>→ 70B 模型本地能跑</p>
+    </div>
+    <div class="card">
+      <h4>⚡ MLX 优化</h4>
+      <p>Q4/Q3 量化 + MLX 优化</p>
+      <p>当前 MLX 2x GGUF</p>
+      <p>2027 年可能 3x</p>
+    </div>
+    <div class="card">
+      <h4>📏 Context</h4>
+      <p>Claude 4.6 <b>真 1M context</b></p>
+      <p>→ 重新定义 local/cloud 边界</p>
+    </div>
+    <div class="card">
+      <h4>🧩 Harness Routing</h4>
+      <p>Agent Harness 自带 router</p>
+      <p>Pi coding agent 已内置 harness 自定义</p>
+    </div>
+  </div>
+
+  <h3 id="h3-19">2026 年底预测</h3>
+  <div class="card" style="border-left: 3px solid var(--accent);">
+    <h4>🔮 IndyDevDan 预测</h4>
+    <p>"Sonnet / Opus 4.0 等级模型在设备上可跑"</p>
+    <p>→ M5 Ultra / M6 Mac Mini 500GB RAM 是关键</p>
+  </div>
+
+  <h3 id="h3-20">Patrick 决策路线图</h3>
+
+  <h4>立即可用（5 分钟装好）</h4>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li><b>LiteLLM 启起来</b>（Docker 一行命令）</li>
+    <li><b>本地 3 模型</b>：autocomplete (1.5B) + chat (35B A3B Q4) + backup (14B)</li>
+    <li><b>Cloud 1 模型</b>：Claude Sonnet 4.6 作为 fallback</li>
+    <li><b>5 维打分路由</b>（参考 §3）</li>
+  </ol>
+
+  <h4>中期（1-2 周）</h4>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>跑通 OpenRouter 作为 LiteLLM 备选 provider</li>
+    <li>加成本 tracking dashboard</li>
+    <li>设计 prompt caching 策略（重复 context 90% 折扣）</li>
+  </ol>
+
+  <h4>长期（2026 Q4）</h4>
+  <ol style="color: var(--text-dim); line-height: 2;">
+    <li>评估 M5 Ultra 500GB RAM（70B 本地）</li>
+    <li>自训练 RouteLLM 路由器（基于自家流量数据）</li>
+    <li>全 agent 流程接 harness-level routing</li>
+  </ol>
+
+  <h3 id="h3-21">相关资源</h3>
+  <ul style="color: var(--text-dim); line-height: 1.8;">
+    <li><a href="https://github.com/BerriAI/litellm" target="_blank">LiteLLM GitHub</a>（OSS）</li>
+    <li><a href="https://openrouter.ai" target="_blank">OpenRouter</a>（managed, 400+ models）</li>
+    <li><a href="https://ollama.com" target="_blank">Ollama</a>（本地 LLM runtime）</li>
+    <li><a href="https://lmstudio.ai" target="_blank">LM Studio</a>（本地 LLM 桌面工具）</li>
+    <li><a href="https://blog.cloud.in/2026/05/building-hybrid-llm-development.html" target="_blank">Cloud.in 完整文章</a></li>
+  </ul>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/hybrid-llm-routing-framework/</code></p>
+  <p>Desktop: <code>~/Desktop/hybrid-llm-routing-dashboard.html</code></p>
+  <p style="margin-top:1rem;">基于 8 篇文章 + 3 视频综合 · 2026-06-16</p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+<script>
+(function(){
+  if (!document.querySelector('.toc')) return;
+  const tocLinks = document.querySelectorAll('.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+  const targets = Array.from(tocLinks).map(a => {
+    const id = a.dataset.tocTarget;
+    return { link: a, target: document.getElementById(id) };
+  }).filter(x => x.target);
+
+  // 1) Click handler: activate tab (if needed) + smooth scroll
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = a.dataset.tocTarget;
+      const target = document.getElementById(id);
+      if (!target) return;
+      const tabContent = target.closest('.tab-content');
+      if (tabContent && !tabContent.classList.contains('active')) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        const m = document.querySelector('.tab[data-tab="' + tabContent.dataset.tabContent + '"]');
+        if (m) m.classList.add('active');
+      }
+      history.replaceState(null, '', '#' + id);
+      const rect = target.getBoundingClientRect();
+      window.scrollTo({ top: rect.top + window.scrollY - 80, behavior: 'smooth' });
+    });
+  });
+
+  // 2) Active highlight on scroll
+  const io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const entry = targets.find(t => t.target === en.target);
+      if (!entry) return;
+      if (en.isIntersecting) {
+        targets.forEach(t => t.link.classList.remove('active'));
+        entry.link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+  targets.forEach(t => io.observe(t.target));
+})();
+</script>
+</body>
+</html>

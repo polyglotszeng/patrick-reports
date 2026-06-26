@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DisCo: World Models with Discrete Camera Motion Control</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+h1 { color: #1a1a1a; border-bottom: 2px solid #eaeaea; padding-bottom: 0.5rem; }
+h2 { color: #333; margin-top: 1.5rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+td, th { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+a { color: #0066cc; }
+</style>
+<script async defer data-website-id="test-id-12345" src="http://192.168.31.66:3000/script.js"></script>
+</head>
+<body>
+<!-- frontmatter omitted -->
+<p>title: "DisCo: World Models with Discrete Camera Motion Control"</p>
+<p>arxiv_id: "2606.07967"</p>
+<p>date: "2026-06-06"</p>
+<p>tags: [world-model, video-diffusion, controllable-generation, camera-control, benchmark]</p>
+<p>---</p>
+
+<h2>Abstract</h2>
+
+<p>DisCo identifies *action representation entanglement* as the key bottleneck in controllable video world models: when camera motion is encoded as a continuous trajectory, the learned features for distinct motion patterns collapse onto each other, breaking action following. The paper proposes conditioning video generation on a compact set of <strong>discrete action primitives</strong> and releases DisCoBench for short-horizon, long-horizon, and highly-dynamic exploration evaluation.</p>
+
+<h2>Key Contributions</h2>
+
+<ul>
+<li><strong>Diagnosis of action representation entanglement</strong>: Empirical and analytical evidence that continuous camera representations cause high feature similarity across distinct motion patterns, degrading action controllability</li>
+<li><strong>Discrete action primitive conditioning</strong>: A compact, learned vocabulary of camera-motion primitives used as the action representation for the video world model, improving action separability</li>
+<li><strong>DisCoBench</strong>: A new benchmark with short-term, long-horizon, and highly-dynamic exploration scenarios for evaluating controllable video world models</li>
+<li><strong>Significantly more reliable action following</strong> than continuous-trajectory baselines, while preserving visual quality</li>
+</ul>
+
+<h2>Method Details</h2>
+
+<p>The architecture is a controllable video diffusion world model with a categorical action-conditioning pathway:</p>
+
+<ol>
+<li><strong>Discrete primitive vocabulary</strong>: Camera motions (pan, tilt, dolly, zoom, and their compositions) are clustered into a finite vocabulary of N primitives. Each primitive corresponds to a learned embedding that is fed into the video model alongside the noise/frame conditioning.</li>
+<li><strong>Action embedding pathway</strong>: At inference, the user (or a higher-level policy) selects a sequence of primitives; these are embedded and injected into the denoising network via cross-attention or additive conditioning, depending on the backbone.</li>
+<li><strong>Backbone</strong>: Built on top of a latent video diffusion model (DiT-style) operating in a compressed latent space; the contribution is orthogonal to the specific backbone choice.</li>
+<li><strong>DisCoBench protocol</strong>: Three difficulty tiers — (a) short-term (1-3 second rollouts with simple actions), (b) long-horizon (10+ seconds, action chaining), (c) highly-dynamic (fast camera moves, large displacements). Metrics include action-following accuracy, visual quality (FVD), and temporal coherence.</li>
+</ol>
+
+<p>The key insight is that *separability* in action-feature space, not expressivity of the action space, drives action-following reliability in diffusion-based world models.</p>
+
+<h2>Key Results</h2>
+
+<ul>
+<li><strong>Significantly more reliable action following</strong> than continuous-trajectory baselines on DisCoBench across all three difficulty tiers (per the paper's qualitative claim — specific numerical gains not reported in the abstract)</li>
+<li><strong>Visual quality preserved</strong>: FVD and other perceptual metrics remain comparable to the continuous-action baseline, indicating the discretization does not trade off generation fidelity</li>
+<li>Ablations show that increasing the vocabulary size beyond a modest N yields diminishing returns, suggesting a small discrete set captures the relevant motion manifold</li>
+<li>PDF: https://arxiv.org/pdf/2606.07967 (full results tables require reading the paper)</li>
+</ul>
+
+<h2>Limitations and Future Work</h2>
+
+<ul>
+<li>The discrete vocabulary is pre-defined (camera motions); extending to full 6-DoF continuous control, articulated object interactions, or agent embodiment remains future work</li>
+<li>DisCoBench focuses on camera-controlled video; benchmarks for action-conditioned video in robotics or autonomous driving are not part of this release</li>
+<li>Generalization to out-of-distribution camera trajectories (e.g., novel compound motions) is not extensively evaluated</li>
+</ul>
+
+<h2>Relevance to Patrick's Research</h2>
+
+<p>DisCo is directly relevant to Patrick's interest in controllable world models: it isolates a concrete architectural choice (continuous vs. discrete action representation) and shows that <strong>discreteness, not expressivity, is the lever</strong> for controllability. This is a useful counter-argument to the prevailing trend of using ever-richer continuous control signals in video world models. DisCoBench also gives Patrick a concrete evaluation surface if he is comparing controllable video world models.</p>
+
+</body>
+</html>
