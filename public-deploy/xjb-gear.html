@@ -307,5 +307,26 @@ h3{font-size:17px;color:var(--blued);margin:18px 0 8px}
   </div>
 
 </div>
+
+<!-- PWA + Analytics -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(
+      reg => console.log('[PWA] SW registered:', reg.scope),
+      err => console.warn('[PWA] SW registration failed:', err)
+    );
+  });
+}
+(function() {
+  const track = (action, props) => {
+    const payload = {t: Date.now(), p: location.pathname, r: document.referrer || 'direct', ua: navigator.userAgent, ...(props || {})};
+    console.log(`[xjb-analytics] ${action}:`, JSON.stringify(payload));
+  };
+  window.xjbTrack = track;
+  track('page_view');
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
+})();
+</script>
 </body>
 </html>

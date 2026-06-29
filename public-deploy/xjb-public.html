@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>新疆伊犁+北疆自驾 · 行程分享</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c8714e">
+<link rel="apple-touch-icon" href="/xjb-icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
   :root{
@@ -401,6 +404,27 @@ setTimeout(()=>map.invalidateSize(),300);
   [...grid.children].forEach(ch=>{if(ch.classList.contains("vcat")){ci++;return;}
     var th=ch.querySelector&&ch.querySelector(".vthumb");if(!th)return;var c=cats[Math.max(0,Math.min(ci,3))];
     th.classList.add(c[0]);var ico=document.createElement("span");ico.className="ico";ico.textContent=c[1];th.insertBefore(ico,th.firstChild);});})();
+</script>
+
+<!-- 新疆自驾 PWA + Analytics -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(
+      reg => console.log('[PWA] SW registered:', reg.scope),
+      err => console.warn('[PWA] SW registration failed:', err)
+    );
+  });
+}
+(function() {
+  const track = (action, props) => {
+    const payload = {t: Date.now(), p: location.pathname, r: document.referrer || 'direct', ua: navigator.userAgent, ...(props || {})};
+    console.log(`[xjb-analytics] ${action}:`, JSON.stringify(payload));
+  };
+  window.xjbTrack = track;
+  track('page_view');
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
+})();
 </script>
 </body>
 </html>
