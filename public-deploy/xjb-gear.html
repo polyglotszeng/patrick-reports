@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎒 新疆自驾装备清单 · 13 天伊犁+北疆</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#c8714e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="新疆自驾">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="apple-touch-icon" href="/xjb-icon-192.png">
 <style>
 :root{
   --cream:#f6f1e7; --paper:#fcf9f1; --ink:#33414f; --soft:#5f6f7c;
@@ -70,6 +77,9 @@ h3{font-size:17px;color:var(--blued);margin:18px 0 8px}
     <a href="/视频库/day_recommend" class="secondary">📅 Day 推荐</a>
     <a href="/视频库/xjb_overview_map" class="secondary">🗺 总览地图</a>
     <a href="/xjb-public" class="secondary">📋 公开版</a>
+    <button id="xjb-stats-btn" data-xjb-share="xjb-gear"
+            style="background:var(--accent);color:#000;border:0;padding:7px 14px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;margin-left:4px"
+            title="触发埋点事件">📊 统计</button>
   </div>
 
   <div class="alert">
@@ -308,25 +318,15 @@ h3{font-size:17px;color:var(--blued);margin:18px 0 8px}
 
 </div>
 
-<!-- PWA + Analytics -->
+<!-- PWA + Umami Analytics (v12) -->
+<script src="/js/xjb-analytics.js" defer></script>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(
-      reg => console.log('[PWA] SW registered:', reg.scope),
-      err => console.warn('[PWA] SW registration failed:', err)
-    );
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('xjb-stats-btn');
+    if (btn) btn.addEventListener('click', function() {
+      window.xjbTrack('xjb_open_stats', { from: location.pathname });
+    });
   });
-}
-(function() {
-  const track = (action, props) => {
-    const payload = {t: Date.now(), p: location.pathname, r: document.referrer || 'direct', ua: navigator.userAgent, ...(props || {})};
-    console.log(`[xjb-analytics] ${action}:`, JSON.stringify(payload));
-  };
-  window.xjbTrack = track;
-  track('page_view');
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
-})();
 </script>
 </body>
 </html>

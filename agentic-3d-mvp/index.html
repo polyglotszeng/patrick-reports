@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agentic 3D · Muse + Vision Pro 技术选型与 MVP 路线图</title>
+<style>
+:root{
+  --bg:#0a0a14; --card:#12122a; --card2:#0f0f22;
+  --accent:#ff6b35; --accent2:#7eb8f5; --accent3:#f5c77e;
+  --accent4:#00e5c3; --accent5:#c084fc;
+  --text:#e8e8f8; --muted:#9090b8; --muted2:#5a5a7a;
+  --border:#2a2a50; --green:#00c896; --red:#e05555; --amber:#f5a623;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;line-height:1.6;overflow-x:hidden}
+body{padding-bottom:80px}
+a{color:var(--accent2);text-decoration:none}
+a:hover{color:var(--accent)}
+
+/* Hero */
+.hero{position:relative;padding:72px 24px 48px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(255,107,53,.10),transparent 60%)}
+.hero-eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px}
+.hero h1{font-size:clamp(28px,5.2vw,52px);font-weight:800;letter-spacing:-.025em;line-height:1.1;background:linear-gradient(135deg,#fff 0%,var(--accent) 50%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;max-width:920px;margin:0 auto 18px}
+.hero-sub{font-size:clamp(15px,1.8vw,18px);color:var(--muted);max-width:720px;margin:0 auto 28px;line-height:1.55}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:760px;margin:0 auto}
+.chip{padding:7px 13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:12.5px;color:var(--text)}
+.chip b{color:var(--accent);font-weight:700}
+
+/* Layout */
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+section{padding:56px 0}
+h2.section{font-size:clamp(22px,3.2vw,30px);font-weight:800;letter-spacing:-.02em;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+h2.section .num{font-size:13px;color:var(--accent);font-weight:600;background:rgba(255,107,53,.10);border:1px solid rgba(255,107,53,.3);padding:3px 9px;border-radius:6px;letter-spacing:0}
+.lead{color:var(--muted);font-size:15px;max-width:680px;margin-bottom:28px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:32px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:13px 18px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Cards */
+.grid{display:grid;gap:18px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:880px){.grid-3,.grid-2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;transition:all .2s}
+.card:hover{border-color:rgba(255,107,53,.4);transform:translateY(-2px)}
+.card .icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;background:rgba(255,107,53,.10);border:1px solid rgba(255,107,53,.25);margin-bottom:14px}
+.card h3{font-size:16px;font-weight:700;margin-bottom:6px;letter-spacing:-.005em}
+.card .meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.card p{font-size:13.5px;color:var(--muted);line-height:1.55}
+.card .verdict{display:inline-block;margin-top:12px;padding:4px 10px;background:rgba(0,200,150,.12);color:var(--green);border-radius:6px;font-size:11.5px;font-weight:600}
+
+/* Comparison table */
+.cmp{width:100%;border-collapse:collapse;font-size:13.5px;margin:20px 0}
+.cmp th,.cmp td{padding:13px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.cmp th{background:var(--card2);color:var(--muted);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+.cmp td.dim{color:var(--muted);font-weight:600;width:22%}
+.cmp td.opt{font-family:ui-monospace,"SF Mono",monospace;font-size:12.5px}
+.cmp tr:hover td{background:rgba(255,255,255,.02)}
+.badge-win{color:var(--green);font-weight:700}
+.badge-lose{color:var(--red);font-weight:700}
+.badge-mid{color:var(--amber);font-weight:700}
+
+/* Architecture SVG */
+.arch{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:20px;margin:20px 0}
+.arch svg{width:100%;height:auto;display:block}
+
+/* Path cards */
+.path{display:grid;grid-template-columns:60px 1fr;gap:18px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:14px;position:relative;overflow:hidden}
+.path::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.path.b::before{background:var(--accent2)}
+.path.c::before{background:var(--red)}
+.path .tag{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:700;padding:6px 0;margin-bottom:4px}
+.path.b .tag{color:var(--accent2)}
+.path.c .tag{color:var(--red)}
+.path h3{font-size:18px;margin-bottom:6px}
+.path p{color:var(--muted);font-size:13.5px}
+.path .verdict-pill{display:inline-block;margin-top:10px;padding:4px 10px;background:rgba(0,200,150,.12);color:var(--green);border-radius:6px;font-size:12px;font-weight:600}
+.path.c .verdict-pill{background:rgba(224,85,85,.12);color:var(--red)}
+
+/* Timeline / Roadmap */
+.roadmap{position:relative;padding-left:32px}
+.roadmap::before{content:'';position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,var(--accent),var(--accent2),var(--green))}
+.leg{position:relative;padding:14px 0}
+.leg::before{content:'';position:absolute;left:-27px;top:18px;width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--accent)}
+.leg.w2::before{background:var(--accent2);box-shadow:0 0 0 1px var(--accent2)}
+.leg.w3::before{background:var(--accent4);box-shadow:0 0 0 1px var(--accent4)}
+.leg.w4::before{background:var(--green);box-shadow:0 0 0 1px var(--green)}
+.leg h4{font-size:15px;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.leg h4 .w{padding:2px 8px;background:rgba(255,107,53,.15);color:var(--accent);font-size:11px;border-radius:4px;font-weight:600;letter-spacing:.04em}
+.leg.w2 h4 .w{background:rgba(126,184,245,.15);color:var(--accent2)}
+.leg.w3 h4 .w{background:rgba(0,229,195,.15);color:var(--accent4)}
+.leg.w4 h4 .w{background:rgba(0,200,150,.15);color:var(--green)}
+.leg .when{font-size:11.5px;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.leg ul{list-style:none;padding:0}
+.leg li{font-size:13.5px;color:var(--muted);padding:3px 0 3px 18px;position:relative}
+.leg li::before{content:'▸';position:absolute;left:0;color:var(--accent)}
+.leg.w2 li::before{color:var(--accent2)}
+.leg.w3 li::before{color:var(--accent4)}
+.leg.w4 li::before{color:var(--green)}
+
+/* Loop */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}
+@media (max-width:880px){.loop{grid-template-columns:repeat(2,1fr)}}
+.lp{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;position:relative}
+.lp .ix{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.lp h4{font-size:14px;margin:6px 0 4px}
+.lp p{font-size:12px;color:var(--muted)}
+.lp::after{content:'→';position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.lp:last-child::after{content:''}
+
+/* Code block */
+pre{background:#06060e;border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;font-family:ui-monospace,"SF Mono",monospace;font-size:12.5px;line-height:1.6;margin:12px 0}
+code{font-family:ui-monospace,"SF Mono",monospace;font-size:12.5px;background:rgba(255,255,255,.04);padding:1px 6px;border-radius:4px}
+pre code{background:none;padding:0}
+.kw{color:var(--accent5)}.fn{color:var(--accent2)}.str{color:var(--green)}.com{color:var(--muted2);font-style:italic}
+
+/* Patrick 关联 */
+.assoc{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:24px}
+@media (max-width:980px){.assoc{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.assoc{grid-template-columns:1fr}}
+.acard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .2s}
+.acard:hover{border-color:rgba(255,107,53,.3);transform:translateY(-1px)}
+.acard .ic{font-size:22px;margin-bottom:8px}
+.acard h4{font-size:13.5px;margin-bottom:6px;color:var(--accent)}
+.acard p{font-size:12.5px;color:var(--muted);line-height:1.5}
+.acard ul{list-style:none;padding:0;margin-top:8px}
+.acard li{font-size:12px;color:var(--text);padding:2px 0 2px 14px;position:relative}
+.acard li::before{content:'→';position:absolute;left:0;color:var(--accent)}
+
+/* Footer */
+footer{padding:48px 24px 24px;text-align:center;border-top:1px solid var(--border);margin-top:40px}
+footer .small{font-size:11.5px;color:var(--muted2);margin-top:10px;letter-spacing:.04em}
+.strip{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.strip span{padding:3px 10px;border:1px solid var(--border);border-radius:5px}
+.strip .ok{color:var(--green);border-color:rgba(0,200,150,.3)}
+.strip .skip{color:var(--muted2)}
+
+/* helpers */
+.gap-sm{height:14px}.gap-md{height:28px}
+.tag-inline{display:inline-block;padding:2px 8px;background:rgba(126,184,245,.10);color:var(--accent2);font-size:11px;border-radius:5px;margin-right:4px}
+.warn{background:rgba(245,166,35,.08);border-left:3px solid var(--amber);padding:14px 16px;border-radius:6px;font-size:13.5px;color:var(--text);margin:16px 0}
+.warn b{color:var(--amber)}
+.callout{background:rgba(255,107,53,.06);border-left:3px solid var(--accent);padding:14px 16px;border-radius:6px;font-size:13.5px;margin:16px 0}
+.callout b{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">AGENTIC 3D · MUSE × VISION PRO</div>
+  <h1>把 Hermes 装进一个 App<br>用 Muse 笔 + Vision Pro 制作 3D Assets</h1>
+  <p class="hero-sub">visionOS 27 + Foundation Models + App Intents 的 agentic 拐点已到。技术选型、3 条路径、4 周 MVP 路线图、市场全景，全部在 1 页。</p>
+  <div class="chips">
+    <span class="chip">🕶 <b>visionOS 27</b> (Fall 2026)</span>
+    <span class="chip">✏️ <b>Logitech Muse</b> $129.99</span>
+    <span class="chip">🧠 <b>Foundation Models</b> on-device LLM</span>
+    <span class="chip">🔌 <b>App Intents</b> + MCP 兼容</span>
+    <span class="chip">📦 <b>Hermes CLI</b> on Mac</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Tabs -->
+<section>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="t1">① 现状盘点</div>
+    <div class="tab" data-tab="t2">② 3 条路径</div>
+    <div class="tab" data-tab="t3">③ 3D 后端选型</div>
+    <div class="tab" data-tab="t4">④ 4 周 MVP</div>
+    <div class="tab" data-tab="t5">⑤ 关键风险</div>
+  </div>
+
+  <!-- Tab 1 -->
+  <div class="tab-pane active" id="t1">
+    <h2 class="section"><span class="num">1</span>硬件 + 平台 + 玩家</h2>
+    <p class="lead">你的硬件 (Muse + M5 Vision Pro) 已就位；visionOS 27 引入 Foundation Models + App Intents + Visual Intelligence，是把 agent 真正"塞进" Vision Pro 的拐点。</p>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="icon">🕶</div>
+        <h3>Apple Vision Pro</h3>
+        <div class="meta">M2 / M5 · visionOS 27 · $3,499+</div>
+        <p>沉浸式 XR 头显，eye-tracking + pinch gesture + 6DoF。RealityKit / SwiftUI / Foundation Models 原生支持。是 Agent 的"眼睛和手"。</p>
+        <span class="verdict">📍 你已拥有</span>
+      </div>
+      <div class="card">
+        <div class="icon">✏️</div>
+        <h3>Logitech Muse</h3>
+        <div class="meta">$129.99 · 6DoF · haptic · force-sensing</div>
+        <p>visionOS 26+ 原生支持，2026 年 2 月上市。空间精确绘制 / 测量 / 注释 / 操控 3D 物体 — Shapr3D 风格 CAD 笔的 XR 化身。</p>
+        <span class="verdict">📍 你已拥有</span>
+      </div>
+      <div class="card">
+        <div class="icon">🧠</div>
+        <h3>visionOS 27 (Fall 2026)</h3>
+        <div class="meta">Foundation Models · App Intents · MCP</div>
+        <p>Apple Intelligence 第二代：on-device LLM 框架，接任何 Language Model protocol 兼容 provider (OpenAI / Anthropic / 自托管)。Siri AI orb 可钉在空间里。</p>
+        <span class="verdict">✅ 拐点</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>核心机会：</b>Vision Pro App Store 目前 <b>没有任何</b> agentic OS 类 App（多 agent、持久 memory、cron、tool use）。Shapr3D 不开放 API。没人把"agent 调度 Tripo/Meshy → 出 USDZ → 空间 Muse 编辑 → push 回项目" 串成闭环。<b>这是 1 个人能 ship 的窗口。</b>
+    </div>
+  </div>
+
+  <!-- Tab 2 -->
+  <div class="tab-pane" id="t2">
+    <h2 class="section"><span class="num">2</span>三条架构路径</h2>
+    <p class="lead">"把 Hermes 装进一个 App" 有 3 种走法，只有 1 种对 1 人 + 2 周 MVP 现实。</p>
+
+    <div class="path a">
+      <div style="font-size:36px;text-align:center;color:var(--accent);font-weight:800">A</div>
+      <div>
+        <div class="tag">纯 visionOS 原生</div>
+        <h3>Foundation Models + App Intents + RealityKit</h3>
+        <p>全部 SwiftUI，agent loop 跑在 Vision Pro 本地 on-device。隐私最佳、零云依赖、离线工作。</p>
+        <p style="color:var(--muted2);font-size:12px;margin-top:6px">但：M5 16GB 内存跑 3B 模型已紧张，agent loop 不能太深；持久化靠 CloudKit；不可能跑 cron / 跨设备多 agent。</p>
+        <span class="verdict-pill">⚠ 适合 demo，不适合 agentic OS</span>
+      </div>
+    </div>
+
+    <div class="path b">
+      <div style="font-size:36px;text-align:center;color:var(--accent2);font-weight:800">B</div>
+      <div>
+        <div class="tag">桌面 Hermes + Vision Pro Viewer ⭐ 推荐</div>
+        <h3>Mac 跑 Hermes CLI · visionOS 跑 Spatial UI + Muse</h3>
+        <p>Hermes 多 agent loop / cron / memory / 工具调度跑在 Mac (M-series，足够 70B+ 模型)；visionOS app 做 spatial UI + Muse 笔交互 + USDZ 渲染。Bonjour + CloudKit 同步。</p>
+        <p style="color:var(--muted2);font-size:12px;margin-top:6px">好处：Mac 算力无限、复用现有 hermes-cli / cron / skills / memory；visionOS 只做"前端"；1 人 2 周出 MVP。</p>
+        <span class="verdict-pill">✅ 1 人可 ship</span>
+      </div>
+    </div>
+
+    <div class="path c">
+      <div style="font-size:36px;text-align:center;color:var(--red);font-weight:800">C</div>
+      <div>
+        <div class="tag">visionOS 沙箱跑 Hermes 二进制</div>
+        <h3>技术不可行</h3>
+        <p>Vision Pro 是 visionOS (基于 iOS)，不是 macOS。Hermes CLI / Python / 任何 x86/arm64 macOS 二进制都不兼容。</p>
+        <p style="color:var(--muted2);font-size:12px;margin-top:6px">没有 Rosetta，没有 macOS 兼容层。visionOS sandbox 不允许加载外部可执行文件。</p>
+        <span class="verdict-pill" style="background:rgba(224,85,85,.12);color:var(--red)">❌ 死路</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3 -->
+  <div class="tab-pane" id="t3">
+    <h2 class="section"><span class="num">3</span>3D Asset 后端选型对比</h2>
+    <p class="lead">Hermes 调度哪些 API 来出 USDZ？9 个工具同 prompt 头对头测试（2026 Indie Hackers），生产可用前 4 名如下：</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>维度</th>
+          <th>🥇 Rodin (Hyper3D)</th>
+          <th>🥈 Meshy</th>
+          <th>🥉 Tripo 3.0</th>
+          <th>Hunyuan3D (Tencent)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="dim">最佳场景</td>
+          <td>Production assets · photorealism</td>
+          <td>Blender/Unity 插件 · 迭代</td>
+          <td>Game-ready · 角色 props</td>
+          <td>自托管 · 完全控制</td>
+        </tr>
+        <tr>
+          <td class="dim">输入</td>
+          <td>Text / Image / API</td>
+          <td>Text / Image / Multi-view</td>
+          <td>Text / Image / Multi-image</td>
+          <td>Text / Image</td>
+        </tr>
+        <tr>
+          <td class="dim">纹理</td>
+          <td class="badge-win">4K PBR</td>
+          <td>PBR · auto-rig</td>
+          <td class="badge-mid">2M polys · stylized</td>
+          <td>PBR</td>
+        </tr>
+        <tr>
+          <td class="dim">导出</td>
+          <td>GLB · FBX · OBJ · STL</td>
+          <td class="badge-win">USDZ · GLB · FBX</td>
+          <td>GLB · FBX</td>
+          <td>GLB · OBJ</td>
+        </tr>
+        <tr>
+          <td class="dim">速度</td>
+          <td>30-120s</td>
+          <td class="badge-win">~60s (8 preview)</td>
+          <td class="badge-win">~10s base</td>
+          <td>30-90s</td>
+        </tr>
+        <tr>
+          <td class="dim">价格</td>
+          <td>$30/mo Creator</td>
+          <td>$20/mo Pro</td>
+          <td class="badge-win">$12/mo</td>
+          <td class="badge-win">免费 (要 GPU)</td>
+        </tr>
+        <tr>
+          <td class="dim">API quality</td>
+          <td class="badge-win">★★★★★ API-first</td>
+          <td>★★★★ 有但弱</td>
+          <td>★★★★</td>
+          <td>★★★ 自托管才能</td>
+        </tr>
+        <tr>
+          <td class="dim">推荐度</td>
+          <td class="badge-win">⭐ 默认主用</td>
+          <td>⭐ 角色/rig</td>
+          <td>⭐ 速度优先</td>
+          <td>⭐ 隐私/免费</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <b>Hernes 工具链建议：</b>首选 <b>Rodin API</b>（质量 + API 体验最佳）做 hero asset；<b>Meshy</b> 补 USDZ 直出 + auto-rig 角色；<b>Tripo</b> 做快速 prototype 试错；<b>Hunyuan3D</b> 跑在 Mac 本地做私密/批量。三家 API key 都可走同一 hermes-tools 抽象层。
+    </div>
+
+    <div class="grid grid-2" style="margin-top:18px">
+      <div class="card">
+        <div class="icon">🥽</div>
+        <h3>NeRF / 实拍路径</h3>
+        <div class="meta">Luma AI · Polycam · KIRI Engine</div>
+        <p>把真实物体扫描进 3D（iPhone LiDAR + 视频），不是 generative。配合 agent 做"扫描 → 自动 retopo → 资产化"。Polycam 已有 visionOS 原生 viewer。</p>
+      </div>
+      <div class="card">
+        <div class="icon">🎭</div>
+        <h3>Avatar / Animation</h3>
+        <div class="meta">Ready Player Me · Audio2Face · Meshy Auto-Rig</div>
+        <p>agent 调度：照片 → Ready Player Me avatar → Audio2Face 唇形 → Meshy rig → USDZ。VR/AR 角色全链路。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4 -->
+  <div class="tab-pane" id="t4">
+    <h2 class="section"><span class="num">4</span>4 周 MVP 路线图</h2>
+    <p class="lead">路径 B 落地，1 人，4 周，周周有可验证 demo。</p>
+
+    <div class="arch">
+      <svg viewBox="0 0 1100 380" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#7eb8f5"/>
+          </marker>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ff6b35"/><stop offset="1" stop-color="#7eb8f5"/>
+          </linearGradient>
+        </defs>
+        <!-- VP box -->
+        <rect x="40" y="40" width="280" height="300" rx="14" fill="#12122a" stroke="#ff6b35" stroke-width="2"/>
+        <text x="180" y="70" text-anchor="middle" fill="#ff6b35" font-size="13" font-weight="700" letter-spacing="2">VISION PRO (visionOS 27)</text>
+        <rect x="60" y="90" width="240" height="50" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="180" y="112" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="600">Siri AI Orb</text>
+        <text x="180" y="130" text-anchor="middle" fill="#9090b8" font-size="11">Foundation Models on-device</text>
+        <rect x="60" y="155" width="240" height="50" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="180" y="177" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="600">Spatial UI (SwiftUI Volumetric)</text>
+        <text x="180" y="195" text-anchor="middle" fill="#9090b8" font-size="11">RealityKit · 3D windows</text>
+        <rect x="60" y="220" width="240" height="50" rx="8" fill="#0f0f22" stroke="#ff6b35" stroke-opacity=".5"/>
+        <text x="180" y="242" text-anchor="middle" fill="#ff6b35" font-size="13" font-weight="600">🎯 Muse Input</text>
+        <text x="180" y="260" text-anchor="middle" fill="#9090b8" font-size="11">6DoF · haptic · force-sense</text>
+        <rect x="60" y="285" width="240" height="40" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="180" y="302" text-anchor="middle" fill="#e8e8f8" font-size="12" font-weight="600">USDZ Renderer</text>
+        <text x="180" y="318" text-anchor="middle" fill="#9090b8" font-size="11">Quick Look · 3D annotation</text>
+
+        <!-- Mac box -->
+        <rect x="780" y="40" width="280" height="300" rx="14" fill="#12122a" stroke="#7eb8f5" stroke-width="2"/>
+        <text x="920" y="70" text-anchor="middle" fill="#7eb8f5" font-size="13" font-weight="700" letter-spacing="2">MAC (M-series)</text>
+        <rect x="800" y="90" width="240" height="50" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="920" y="112" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="600">Hermes CLI</text>
+        <text x="920" y="130" text-anchor="middle" fill="#9090b8" font-size="11">Multi-agent loop · cron · memory</text>
+        <rect x="800" y="155" width="240" height="50" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="920" y="177" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="600">Tool Dispatcher</text>
+        <text x="920" y="195" text-anchor="middle" fill="#9090b8" font-size="11">Tripo · Meshy · Rodin · Luma</text>
+        <rect x="800" y="220" width="240" height="50" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="920" y="242" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="600">USDZ Pipeline</text>
+        <text x="920" y="260" text-anchor="middle" fill="#9090b8" font-size="11">generate → texture → retopo</text>
+        <rect x="800" y="285" width="240" height="40" rx="8" fill="#0f0f22" stroke="#2a2a50"/>
+        <text x="920" y="302" text-anchor="middle" fill="#e8e8f8" font-size="12" font-weight="600">Memory + Skills DB</text>
+        <text x="920" y="318" text-anchor="middle" fill="#9090b8" font-size="11">~/.hermes persistent</text>
+
+        <!-- Middle: connection -->
+        <rect x="350" y="160" width="400" height="60" rx="10" fill="#0f0f22" stroke="url(#g1)" stroke-width="2"/>
+        <text x="550" y="183" text-anchor="middle" fill="#e8e8f8" font-size="13" font-weight="700">Bonjour / CloudKit Sync</text>
+        <text x="550" y="205" text-anchor="middle" fill="#9090b8" font-size="11">intents ↓ · USDZ ↑ · session state ⇆</text>
+
+        <!-- arrows -->
+        <path d="M320,185 L350,185" stroke="#7eb8f5" stroke-width="2" marker-end="url(#ar)"/>
+        <path d="M750,200 L780,200" stroke="#ff6b35" stroke-width="2" marker-end="url(#ar)"/>
+        <text x="335" y="175" fill="#7eb8f5" font-size="10">intents</text>
+        <text x="755" y="190" fill="#ff6b35" font-size="10">USDZ</text>
+      </svg>
+    </div>
+
+    <div class="roadmap">
+      <div class="leg">
+        <h4>Week 1 · Hermes → Tripo 单向链路 <span class="w">W1</span></h4>
+        <div class="when">🟢 验证核心 loop · 周五有 demo</div>
+        <ul>
+          <li>Mac 跑 hermes-cli 接 Tripo API（text/img → USDZ）</li>
+          <li>visionOS SwiftUI app 启动 → Foundation Models 解析语音 prompt → 发 Hermes HTTP</li>
+          <li>Hermes 调 Tripo → 推 USDZ 回 Vision Pro → Quick Look 渲染</li>
+          <li><b>验证：</b>语音"做一个赛博朋克路灯" → Vision Pro 30s 后出 3D 物体</li>
+        </ul>
+      </div>
+      <div class="leg w2">
+        <h4>Week 2 · Muse 笔交互 + 多模态 <span class="w">W2</span></h4>
+        <div class="when">🔵 加上 Muse 笔精修 · 周五 demo</div>
+        <ul>
+          <li>Muse 笔输入事件接入（推/拉面、标注、改尺寸）</li>
+          <li>Hermes 接收 edit intent → 调 Meshy Retexture / Tripo edit</li>
+          <li>visionOS RealityKit 实时显示 + 多人 Spatial Share</li>
+          <li><b>验证：</b>Muse 笔微调一个 3D 物体，Herme 持久化 edit 历史到 memory</li>
+        </ul>
+      </div>
+      <div class="leg w3">
+        <h4>Week 3 · 多 agent + cron + memory <span class="w">W3</span></h4>
+        <div class="when">🟣 agent 化 · 周五完整 demo</div>
+        <ul>
+          <li>Hermes 多 agent：planner (Foundation Models) / generator (Tripo) / critic (Meshy) / publisher (USDZ pipeline)</li>
+          <li>cron job：每天自动生成 1 个 3D asset（场景模板可换）</li>
+          <li>visionOS 钉一个 dashboard widget 显今日资产</li>
+          <li><b>验证：</b>设置 cron "每天早上 8 点" → Vision Pro 主屏 widget 收到新 3D 资产</li>
+        </ul>
+      </div>
+      <div class="leg w4">
+        <h4>Week 4 · Skills marketplace + 公网 <span class="w">W4</span></h4>
+        <div class="when">🟢 ship · TestFlight + 公网 landing</div>
+        <ul>
+          <li>导出 hermes-skill："vision-3d" / "usdz-publisher" 复用</li>
+          <li>TestFlight beta（10 个有 Muse + VP 的人）</li>
+          <li>landing page 上 patricks-reports，写 1 页 README</li>
+          <li><b>验证：</b>陌生人能 5 分钟内复现 "语音 → 3D asset in Vision Pro" 全流程</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="warn">
+      <b>⚠ 硬护栏：</b>Hernes 不会写也不会发 user 的 API key (OpenAI / Tripo / Meshy)。所有 API key 你自己 UI 填，agent 只写不涉 key 的代码。Vision Pro 不跑 hermes 二进制（路径 C 已死）。
+    </div>
+  </div>
+
+  <!-- Tab 5 -->
+  <div class="tab-pane" id="t5">
+    <h2 class="section"><span class="num">5</span>关键风险与硬约束</h2>
+    <p class="lead">5 个会卡死 MVP 的硬约束，按严重度排序：</p>
+
+    <table class="cmp">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>风险</th>
+          <th>影响</th>
+          <th>对策</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="badge-lose">1</td>
+          <td class="opt">visionOS 27 beta 变数</td>
+          <td>Foundation Models 协议 / App Intents 接口可能 9 月前再改</td>
+          <td>Week 1-2 用 visionOS 26 RealityKit 先行；27 出来后只换 intent 层</td>
+        </tr>
+        <tr>
+          <td class="badge-lose">2</td>
+          <td class="opt">3D API 额度</td>
+          <td>Tripo $12/mo = 200 credits，迭代会爆</td>
+          <td>默认 Rodin 限 10 次/天；Meshy 兜底免费 tier；Hunyuan3D 本地无限制</td>
+        </tr>
+        <tr>
+          <td class="badge-lose">3</td>
+          <td class="opt">Muse haptic 6DoF 精度</td>
+          <td>实测反馈"比 2D 难"（TechRadar 26 字）</td>
+          <td>UI 给 reset/undo；不要做"必须一次精准"的操作</td>
+        </tr>
+        <tr>
+          <td class="badge-mid">4</td>
+          <td class="opt">Vision Pro App Store 审核</td>
+          <td>agent 类 app 模糊，外部支付/AI 生成内容审查</td>
+          <td>Week 4 才上 store；先 TestFlight + 公网 demo HTML</td>
+        </tr>
+        <tr>
+          <td class="badge-mid">5</td>
+          <td class="opt">Bonour 跨网段</td>
+          <td>VP 和 Mac 不在同网时同步会断</td>
+          <td>默认走 CloudKit（VP 有 Apple ID 就行），Bonjour 只在同网加速</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <b>为什么是 2026 的窗口：</b>visionOS 27 是 Apple 第一次把 on-device LLM 框架化 + 第三方可达；3D generative API 第一次跨过"production-ready"门槛；Muse 第一次有原生 6DoF 笔。三个拐点同一年，错过 2026 H2，2027 就有大厂挤进来。
+    </div>
+  </div>
+</section>
+
+<!-- 立即可做 -->
+<section>
+  <h2 class="section"><span class="num">▶</span>本周可做的 3 件最小动作</h2>
+  <p class="lead">不等 visionOS 27 公发，本周就能启动：</p>
+  <div class="grid grid-3">
+    <div class="card">
+      <div class="icon">🔑</div>
+      <h3>1. 申请 3 个 API key</h3>
+      <p>Tripo ($12) + Meshy (免费) + Rodin ($30)。10 分钟搞定，月成本 $42。</p>
+    </div>
+    <div class="card">
+      <div class="icon">🧪</div>
+      <h3>2. Hermes CLI 加一个 tool</h3>
+      <p>从 <code>hermes-tools/tripo.py</code> 开始，跑通 <code>python -m hermes_tools.tripo --prompt "cyberpunk lantern"</code> 出 USDZ。</p>
+    </div>
+    <div class="card">
+      <div class="icon">🥽</div>
+      <h3>3. Xcode 建 visionOS 26 target</h3>
+      <p>SwiftUI + RealityKit Model3D 加载 USDZ 验证渲染；M5 跑 5 分钟 hello world。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5-card Patrick 关联 -->
+<section>
+  <h2 class="section"><span class="num">🔗</span>Patrick 工作关联</h2>
+  <div class="assoc">
+    <div class="acard">
+      <div class="ic">🛠</div>
+      <h4>实施路径</h4>
+      <p>Week 1 起：hermes-tools 抽象层 + 路径 B 的 Mac-VP 桥接最小可用版。</p>
+      <ul>
+        <li>hermes-cli 已就绪（cron / memory / multi-agent）</li>
+        <li>visionOS 26 SwiftUI 可直接用</li>
+        <li>无新基建要学</li>
+      </ul>
+    </div>
+    <div class="acard">
+      <div class="ic">💡</div>
+      <h4>方法论映射</h4>
+      <p>Hermes Agentic OS 的 "skill = micro-prompt + tool" 模式 = VP 里每个 Muse 笔 gesture = 1 个新 skill。</p>
+      <ul>
+        <li>推笔面 = extrude skill</li>
+        <li>长按 = material swap</li>
+        <li>spatial annotation = voice intent</li>
+      </ul>
+    </div>
+    <div class="acard">
+      <div class="ic">🧬</div>
+      <h4>创作落地</h4>
+      <p>把现有 3 个 dashboard 思维（research-synthesis / loop-engineering / triad-bridge）翻译成 spatial UI 模式。</p>
+      <ul>
+        <li>spatial cards = triad pillars</li>
+        <li>loop = spatial timer</li>
+        <li>filter chips = Muse 笔圈选</li>
+      </ul>
+    </div>
+    <div class="acard">
+      <div class="ic">🌏</div>
+      <h4>市场卡位</h4>
+      <p>目前 visionOS App Store 没有 agentic 类 app。Shapr3D / Polycam 都不开放 API。</p>
+      <ul>
+        <li>window: 2026 H2 唯一 1 人能 ship 的窗口</li>
+        <li>差异化: Hermes 的 memory/cron 别人没</li>
+        <li>Muse 笔 + VP 是 Apple 自家 demo 路径</li>
+      </ul>
+    </div>
+    <div class="acard">
+      <div class="ic">🔁</div>
+      <h4>Loop 启示</h4>
+      <p>agent + hardware = physical computing 2.0 范式。visionOS 27 的 App Intents + Foundation Models 是 Apple 押注"AI as OS layer"的信号。</p>
+      <ul>
+        <li>Hernes 多 agent → App Intents extension</li>
+        <li>memory → Foundation Models context</li>
+        <li>cron → Spatial widget</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div style="font-size:13px;color:var(--muted)">本地预览 · 第 1 版</div>
+  <div class="strip">
+    <span class="ok">● Plan</span>
+    <span class="ok">● Build</span>
+    <span class="skip">○ Ship</span>
+    <span class="skip">○ Audit</span>
+    <span class="skip">○ Loop</span>
+  </div>
+  <div class="small">2026-06-19 · patricks-reports/agentic-3d-mvp/ · Hermes Agent</div>
+</footer>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    const id = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(id).classList.add('active');
+    history.replaceState(null, '', '#' + id);
+  });
+});
+// restore from hash
+const h = location.hash.replace('#','');
+if (h && document.getElementById(h)) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(x => x.classList.remove('active'));
+  const target = document.querySelector(`.tab[data-tab="${h}"]`);
+  if (target) target.classList.add('active');
+  document.getElementById(h).classList.add('active');
+}
+</script>
+</body>
+</html>

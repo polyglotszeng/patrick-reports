@@ -2,10 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>新疆伊犁+北疆自驾 · 行程分享</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#c8714e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="新疆自驾">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="apple-touch-icon" href="/xjb-icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
@@ -143,6 +146,9 @@
   <span class="brand">🚙 新疆自驾全攻略</span>
   <a href="#top" class="on">概览</a><a href="#map">实时地图</a><a href="#plan">每日行程</a>
   <a href="#booked">已订清单</a><a href="#videos">视频库</a><a href="视频库/index.html" target="_blank">📁完整片库</a><a href="视频库/live_info" target="_blank">🌤️实时</a><a href="视频库/day_recommend" target="_blank">📅Day</a><a href="视频库/xjb_overview_map" target="_blank">🗺地图</a><a href="#tips">贴士</a>
+  <button id="xjb-stats-btn" data-xjb-share="xjb-public"
+          style="background:var(--accent);color:#000;border:0;padding:6px 12px;border-radius:6px;font-weight:600;font-size:13px;cursor:pointer;margin-left:6px"
+          title="触发埋点事件 (打开 Umami dashboard)">📊 统计</button>
 </div></nav>
 
 <!-- HERO -->
@@ -406,25 +412,16 @@ setTimeout(()=>map.invalidateSize(),300);
     th.classList.add(c[0]);var ico=document.createElement("span");ico.className="ico";ico.textContent=c[1];th.insertBefore(ico,th.firstChild);});})();
 </script>
 
-<!-- 新疆自驾 PWA + Analytics -->
+<!-- 新疆自驾 PWA + Umami Analytics (v12) -->
+<script src="/js/xjb-analytics.js" defer></script>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(
-      reg => console.log('[PWA] SW registered:', reg.scope),
-      err => console.warn('[PWA] SW registration failed:', err)
-    );
+  // 演示按钮：手动触发埋点
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('xjb-stats-btn');
+    if (btn) btn.addEventListener('click', function() {
+      window.xjbTrack('xjb_open_stats', { from: location.pathname });
+    });
   });
-}
-(function() {
-  const track = (action, props) => {
-    const payload = {t: Date.now(), p: location.pathname, r: document.referrer || 'direct', ua: navigator.userAgent, ...(props || {})};
-    console.log(`[xjb-analytics] ${action}:`, JSON.stringify(payload));
-  };
-  window.xjbTrack = track;
-  track('page_view');
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.deferredPrompt = e; });
-})();
 </script>
 </body>
 </html>

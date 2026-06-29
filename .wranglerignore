@@ -30,9 +30,25 @@
 # Build artefacts of the wrapper repo itself (this is just a deploy
 # repo — there are no source files to build, all assets are pre-built)
 node_modules/
+**/node_modules/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# 06-27: neo-labs-build/ is the Next.js SOURCE for /neo-labs/ deploy
+# (build output goes to neo-labs/, not neo-labs-build/). neo-labs-build/
+# holds 666 MB of source code + node_modules with 134 MB swc binaries
+# that crash the 25 MiB Workers asset limit.
+neo-labs-build/
+
+# 06-27: agentic-3d-mvp/ is untracked local development scratch with
+# 72 MB of Swift toolchain binaries (.pcm files) — not part of deploy.
+agentic-3d-mvp/
+
+# 06-27: .github/ contains local workflow files (cf-pages-deploy.yml is
+# the original GH Action config but deploy actually runs via CF Workers
+# GitHub App, not this workflow).
+.github/
 
 # Python tooling
 __pycache__/
