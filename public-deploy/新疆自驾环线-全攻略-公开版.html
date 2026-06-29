@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新疆伊犁+北疆自驾 · 行程分享</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+  :root{
+    --cream:#f6f1e7; --paper:#fcf9f1; --ink:#33414f; --soft:#5f6f7c;
+    --blue:#2f6193; --blued:#234c74; --bluel:#e3edf6;
+    --green:#5b8a52; --greenl:#e6efdd; --terra:#c8714e; --terral:#f3e2d7;
+    --gold:#d9a441; --line:#e2d8c2;
+    --sh:0 6px 20px rgba(80,64,40,.13); --shs:0 3px 10px rgba(80,64,40,.09);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:60px}
+  body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    background:var(--cream);color:var(--ink);line-height:1.6;
+    background-image:radial-gradient(circle at 12% 6%,#fff7e8 0,transparent 38%),radial-gradient(circle at 92% 90%,#eef3e6 0,transparent 42%)}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:1500;background:rgba(252,249,241,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);box-shadow:var(--shs)}
+  .navin{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:8px 14px;overflow-x:auto}
+  .brand{font-weight:800;color:var(--blued);font-size:15px;margin-right:10px;white-space:nowrap}
+  nav a{color:var(--soft);text-decoration:none;font-size:13.5px;padding:6px 11px;border-radius:999px;white-space:nowrap}
+  nav a.on,nav a:hover{background:var(--blue);color:#fff}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+  section{padding:30px 0 6px;scroll-margin-top:58px}
+  h2.sec{font-size:22px;margin:6px 0 16px;display:flex;align-items:center;gap:10px;color:var(--blued)}
+  h2.sec .tg{background:var(--gold);color:#fff;font-size:12.5px;padding:3px 12px;border-radius:999px;font-weight:700}
+
+  /* HERO */
+  .hero{background:linear-gradient(135deg,#2f6193,#3a76ad);color:#fff;border-radius:0 0 26px 26px;
+    padding:30px 26px 26px;position:relative;overflow:hidden;box-shadow:var(--sh)}
+  .hero::after{content:"🏔️";position:absolute;right:18px;top:-12px;font-size:130px;opacity:.16}
+  .hero .in{max-width:1144px;margin:0 auto}
+  .hero h1{font-size:29px;letter-spacing:.5px;margin-bottom:6px}
+  .hero .sub{font-size:14.5px;opacity:.93}
+  .hero .pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+  .pill{background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.34);
+    padding:6px 13px;border-radius:999px;font-size:12.8px}
+  .pill b{font-weight:700}
+  .cd{margin-top:14px;display:inline-block;background:#ffd75e;color:#5a4300;font-weight:800;
+    padding:7px 16px;border-radius:999px;font-size:14px}
+
+  /* FLOW */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px;justify-content:center;
+    background:var(--paper);border:1.5px dashed var(--line);border-radius:16px;padding:14px;margin-top:18px;box-shadow:var(--shs)}
+  .flow .nd{background:#fff;border-radius:11px;padding:7px 13px;font-size:13px;font-weight:600;box-shadow:var(--shs);white-space:nowrap}
+  .flow .nd.a{background:var(--bluel);color:var(--blued)} .flow .nd.d{background:var(--greenl);color:#3f6a37}
+  .flow .ar{color:var(--blue);font-weight:800}
+
+  /* MAP */
+  .maprow{display:flex;gap:16px;align-items:stretch}
+  #map{flex:1;min-height:520px;border-radius:18px;box-shadow:var(--sh);background:#cdd9c8;z-index:1}
+  .tl{width:330px;flex:0 0 330px;background:var(--paper);border-radius:18px;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column}
+  .tlbar{padding:10px 13px;display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .b{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .b.go{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+  .b:active{transform:scale(.96)}
+  .tllist{overflow-y:auto;flex:1;max-height:470px}
+  .di{display:flex;gap:9px;padding:9px 13px;border-bottom:1px solid #ece3d0;cursor:pointer}
+  .di:hover{background:#f2ead7}
+  .di.cur{background:#fff5dc;border-left:4px solid var(--gold)}
+  .di.done .dn{background:#9bbb8f}
+  .dn{flex:0 0 28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px}
+  .di.s1 .dn{background:var(--green)} .di.s2 .dn{background:var(--terra)}
+  .dx{flex:1;min-width:0}.dx .a{font-size:11px;color:#8a7f6a}.dx .b2{font-size:13px;font-weight:600;line-height:1.32}
+  .dx .h{font-size:11px;color:var(--green);margin-top:1px}
+  .dx .v{font-size:11px;color:var(--terra);text-decoration:none;font-weight:600;display:inline-block;margin-top:2px}
+  .ck{align-self:center;font-size:17px;color:#c3b89e}.di.done .ck{color:var(--green)}
+  .legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);border-radius:10px;padding:7px 10px;font-size:11px;box-shadow:var(--shs);z-index:600;line-height:1.7}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+  .leaflet-popup-content{margin:9px 12px;font-size:13px}
+  .pt{font-weight:700;color:var(--blued);font-size:14px} .pd{font-size:11px;color:#8a7f6a;margin:2px 0 3px}
+  .pn{display:inline-block;margin-top:5px;background:var(--blue);color:#fff;padding:3px 9px;border-radius:6px;font-size:11.5px;text-decoration:none}
+  .mk{display:flex;align-items:center;justify-content:center;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:13px;width:25px;height:25px;font-weight:700;color:#fff}
+  .mk.h{background:var(--gold)} .mk.s1{background:var(--green)} .mk.s2{background:var(--blue)} .mk.air{background:var(--terra)} .mk.opt{background:#9aa0a6;border-style:dashed}
+  .me{background:#1a73e8;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 3px rgba(26,115,232,.35)}
+  #toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:rgba(40,40,40,.92);color:#fff;padding:7px 15px;border-radius:999px;font-size:12.5px;z-index:2000;display:none}
+
+  /* DAY CARDS */
+  .day{display:flex;gap:15px;background:var(--paper);border-radius:15px;padding:13px 17px;margin-bottom:11px;box-shadow:var(--shs);border-left:6px solid var(--green)}
+  .day.s2{border-left-color:var(--blue)} .day.fly{border-left-color:var(--gold)}
+  .day .nn{flex:0 0 58px;text-align:center}.day .nn .a{font-size:11px;color:var(--soft)}.day .nn .n{font-size:25px;font-weight:800;color:var(--blued);line-height:1}
+  .day .bd{flex:1}.day .bd .r{font-weight:700;font-size:15px;margin-bottom:2px}.day .bd .r .km{font-size:12px;color:var(--terra);font-weight:600;margin-left:5px}
+  .day .bd .t{font-size:13px;color:var(--soft)}.day .bd .st{font-size:12.3px;color:var(--green);margin-top:3px}.day .bd .st b{color:#3f6a37}
+  .day .bd .vl{font-size:12px;color:var(--terra);text-decoration:none;font-weight:600;margin-left:8px}
+
+  /* CARD GRIDS */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+  .card{background:#fff;border-radius:15px;padding:15px;box-shadow:var(--shs);border:1px solid #efe7d6;position:relative}
+  .card .num{position:absolute;top:-11px;left:14px;width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;box-shadow:var(--shs)}
+  .card h3{font-size:15.5px;margin:8px 0 6px;color:var(--blued)} .card ul{list-style:none;font-size:12.7px;color:var(--soft)}
+  .card ul li{padding-left:13px;position:relative;margin:3px 0}.card ul li::before{content:"●";position:absolute;left:0;color:var(--green);font-size:8px;top:5px}
+
+  /* BUDGET */
+  .panel{background:var(--paper);border-radius:18px;padding:20px;box-shadow:var(--sh)}
+  table{width:100%;border-collapse:collapse;font-size:13.3px}
+  th,td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--line)}
+  th{background:var(--bluel);color:var(--blued);font-weight:700}.r{text-align:right}
+  .total td{background:#fdf3df;font-weight:800;font-size:14px;color:var(--blued)}
+  .callout{border-radius:14px;padding:14px 18px;margin-top:14px;font-size:13px}
+  .callout.t{background:#fdf0e6;border:1.5px solid var(--terra);color:#8a4a2c}
+  .callout.b{background:#eef3f8;border:1.5px solid var(--blue);color:var(--blued)}
+
+  /* VIDEOS */
+  .vcat{grid-column:1/-1;margin:6px 0 0;font-weight:700;color:var(--terra);font-size:15px;display:flex;align-items:center;gap:8px}
+  .vcat::before{content:"";width:5px;height:18px;background:var(--terra);border-radius:3px}
+  .vcard{background:#fff;border:1px solid #efe7d6;border-radius:13px;overflow:hidden;box-shadow:var(--shs)}
+  .vthumb{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#2f6193,#5b8a52);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .vthumb .play{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.93);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--terra);box-shadow:0 3px 10px rgba(0,0,0,.3);transition:transform .15s}
+  .vthumb:hover .play{transform:scale(1.12)} .vthumb .tg{position:absolute;top:7px;left:7px;background:rgba(0,0,0,.55);color:#fff;font-size:10.5px;padding:2px 8px;border-radius:999px}
+  .vthumb iframe{width:100%;height:100%;border:0;display:block}
+  .vthumb .ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:62px;opacity:.32;pointer-events:none}
+  .vthumb .play{position:relative;z-index:2}
+  .vthumb.c0{background:linear-gradient(135deg,#2f6193,#5b8a52)}
+  .vthumb.c1{background:linear-gradient(135deg,#c8714e,#234c74)}
+  .vthumb.c2{background:linear-gradient(135deg,#2f88a8,#2f6193)}
+  .vthumb.c3{background:linear-gradient(135deg,#5b8a52,#2f7a6a)}
+  .vm{padding:8px 11px;font-size:12.5px}.vm a{color:var(--blued);font-weight:600;text-decoration:none}.vm a:hover{text-decoration:underline}
+
+  .tips{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+  .tip{background:#fff;border-radius:13px;padding:13px 16px;box-shadow:var(--shs);border:1px solid #efe7d6;font-size:13px;color:var(--soft)}
+  .tip b{color:var(--terra);display:block;margin-bottom:3px;font-size:13.5px}
+  .foot{text-align:center;color:var(--soft);font-size:12px;margin:30px 0 40px;line-height:1.8}
+
+  @media (max-width:820px){
+    .maprow{flex-direction:column}.tl{width:100%;flex:0 0 auto}#map{min-height:360px}.tllist{max-height:300px}
+    .grid{grid-template-columns:1fr}.tips{grid-template-columns:1fr}.legend{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="navin">
+  <span class="brand">🚙 新疆自驾全攻略</span>
+  <a href="#top" class="on">概览</a><a href="#map">实时地图</a><a href="#plan">每日行程</a>
+  <a href="#booked">已订清单</a><a href="#videos">视频库</a><a href="视频库/index.html" target="_blank">📁完整片库</a><a href="#tips">贴士</a>
+</div></nav>
+
+<!-- HERO -->
+<header class="hero" id="top"><div class="in">
+  <h1>新疆 · 伊犁环线 + 北疆喀纳斯 自驾全攻略</h1>
+  <div class="sub">北京 ✈ 伊宁取车（坦克300）· 两大一小 · 2026/08/14–08/26（次日抵京）</div>
+  <div class="pills">
+    <span class="pill">🗓️ <b>13天 · 8/14–8/26</b></span>
+    <span class="pill">👨‍👩‍👧 <b>2大1小</b></span>
+    <span class="pill">✈️ <b>机票已出票3程</b></span>
+    <span class="pill">🚙 <b>坦克300 2段</b></span>
+    <span class="pill">🏨 <b>住宿全12晚已订</b></span>
+    <span class="pill">💰 <b>行程已全部预订</b></span>
+  </div>
+  <div class="cd" id="countdown">⏳ 计算中…</div>
+  <div class="flow">
+    <span class="nd a">✈ 北京</span><span class="ar">→</span>
+    <span class="nd a">伊宁取车</span><span class="ar">→</span>
+    <span class="nd d">🚙 伊犁环线</span><span class="ar">→</span>
+    <span class="nd a">伊宁还车✈阿勒泰</span><span class="ar">→</span>
+    <span class="nd d">🚙 北疆喀纳斯</span><span class="ar">→</span>
+    <span class="nd a">阿勒泰✈北京</span>
+  </div>
+</div></header>
+
+<div class="wrap">
+
+  <!-- MAP -->
+  <section id="map-sec">
+    <h2 class="sec"><span class="tg">实时</span>🗺️ 动态地图追踪（出发后可定位、打卡）</h2>
+    <div class="maprow">
+      <div id="map"><div class="legend">
+        <span><i style="background:#5b8a52"></i>伊犁景点</span> <span><i style="background:#2f6193"></i>北疆景点</span><br>
+        <span><i style="background:#d9a441"></i>住宿</span> <span><i style="background:#c8714e"></i>机场</span> <span><i style="background:#9aa0a6"></i>可选</span>
+      </div></div>
+      <div class="tl">
+        <div class="tlbar">
+          <button class="b go" onclick="locateMe()">📍 定位</button>
+          <button class="b" onclick="focusToday()">🎯 今天</button>
+          <button class="b" onclick="overview()">🗺️ 全程</button>
+          <button class="b" onclick="toggleSat()">🛰️ 卫星</button>
+        </div>
+        <div class="tllist" id="tllist"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section id="plan">
+    <h2 class="sec"><span class="tg">指引</span>🗓️ 逐日行程（13天）</h2>
+    <div id="plancards"></div>
+  </section>
+
+  <!-- BOOKED -->
+  <section id="booked">
+    <h2 class="sec"><span class="tg">已订</span>✈️ 机票 · 🚙 租车 · 🏨 住宿</h2>
+    <div class="grid">
+      <div class="card"><span class="num" style="background:#2f6193">✈</span><h3>北京 → 伊宁</h3>
+        <ul><li>08/14 · 09:15–14:25</li><li>南航 CZ5437</li><li>含随票租车券</li></ul></div>
+      <div class="card"><span class="num" style="background:#2f6193">✈</span><h3>伊宁 → 阿勒泰</h3>
+        <ul><li>08/21 · 15:25–16:40</li><li>成都航空 EU2295</li><li>含随票租车券</li></ul></div>
+      <div class="card"><span class="num" style="background:#2f6193">✈</span><h3>阿勒泰 → 北京（中转）</h3>
+        <ul><li>08/26 · 15:55–次日19:30</li><li>东航 MU6674/MU9191</li><li>✅ 已出票</li></ul></div>
+      <div class="card"><span class="num" style="background:#5b8a52">🚙</span><h3>坦克300 · 伊犁段</h3>
+        <ul><li>取 08/14 15:30 伊宁机场</li><li>还 08/21 15:30 伊宁机场</li><li>7天</li></ul></div>
+      <div class="card"><span class="num" style="background:#5b8a52">🚙</span><h3>坦克300 · 北疆段</h3>
+        <ul><li>取 08/21 17:30 阿勒泰雪都机场</li><li>还 08/26 17:30 阿勒泰雪都机场</li><li>5天</li></ul></div>
+    </div>
+    <div class="callout t" style="margin-top:16px">
+      <b>⚠️ 还车—航班衔接很紧：</b>8/21 须 <b>13:30 前</b>在伊宁机场还车赶 EU2295（15:25 起飞）；8/26 须 <b>14:00 前</b>在阿勒泰还车赶 MU 航班（15:55 起飞）。预订还车时间仅为计费截止，可提前还。
+    </div>
+    <h3 style="margin:20px 0 12px;color:var(--blued);font-size:16px">🏨 已预订住宿（12晚全部锁定）</h3>
+    <div class="grid">
+      <div class="card"><span class="num" style="background:#2c4a3e">EH</span><h3>EVEN · 伊宁绿发逸衡</h3><ul><li>08/14–15 · Day1</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#1f3a5f">HX</span><h3>Holiday Inn Express · 那拉提智选</h3><ul><li>08/15–16 · Day2</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#2f5d3a">HI</span><h3>Holiday Inn · 巴音布鲁克</h3><ul><li>08/16–17 · Day3</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#1f3a5f">IN</span><h3>Hotel Indigo · 那拉提英迪格</h3><ul><li>08/17–18 · Day4</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#8a5a2c">奎</span><h3>奎屯万达美华</h3><ul><li>08/18–19 · Day5</li><li>非IHG（已预订）</li></ul></div>
+      <div class="card"><span class="num" style="background:#1f3a5f">IN</span><h3>Hotel Indigo · 赛里木湖</h3><ul><li>08/19–21 · 2晚 Day6–7</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#8a5a2c">布</span><h3>布尔津金津假日</h3><ul><li>08/21–22 · Day8</li><li>非IHG（已预订）</li></ul></div>
+      <div class="card"><span class="num" style="background:#5a2f6e">HR</span><h3>Holiday Inn Resort · 喀纳斯禾木</h3><ul><li>08/22–25 · 3晚 Day9–11</li><li>IHG · 已预订</li></ul></div>
+      <div class="card"><span class="num" style="background:#8a5a2c">福</span><h3>阿勒泰福朋喜来登</h3><ul><li>08/25–26 · Day12</li><li>非IHG（已预订）</li></ul></div>
+    </div>
+  </section>
+
+  <!-- VIDEOS -->
+  <section id="videos">
+    <h2 class="sec"><span class="tg">片单</span>📺 行前 & 路上视频库（点击▶播放）</h2>
+    <div class="panel">
+      <div style="font-size:12.5px;color:var(--soft);margin-bottom:12px">攻略 / 装备片 / 独库纪录片 / 4K风景样片，点击封面加载播放器，标题跳转B站。</div>
+      <a href="视频库/index.html" target="_blank" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#234c74,#2f6193);color:#fff;text-decoration:none;border-radius:14px;padding:15px 20px;margin-bottom:16px;box-shadow:0 3px 10px rgba(80,64,40,.18)">
+        <span style="font-size:30px">📁</span>
+        <span style="flex:1"><b style="font-size:15.5px">打开完整视频库（31 条 · 按 Day 整理）</b><br><span style="font-size:12.5px;opacity:.92">Obsidian 风格片库 · 含 9 宫总览地图与实时信息 · 进入子页面 →</span></span>
+        <span style="font-size:22px">→</span>
+      </a>
+      <div class="grid">
+        <div class="vcat">🎒 全程攻略 · 装备 · 坦克300</div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1zWdBB2E2j')"><span class="tg">路书</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1zWdBB2E2j/">北疆大环线3500km自驾路书</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1nCqoYhEzB')"><span class="tg">坦克300</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1nCqoYhEzB/">在新疆租一周坦克300实测</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV12s4y1J73r')"><span class="tg">🎒装备片</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV12s4y1J73r/">自驾新疆该准备哪些物品</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1cm4y1T74Z')"><span class="tg">🎒清单</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1cm4y1T74Z/">来新疆必备物品详细清单</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV17zuSzGEc3')"><span class="tg">伊犁攻略</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV17zuSzGEc3/">8天伊犁环线自驾攻略</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1YX4y1F7t3')"><span class="tg">北疆攻略</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1YX4y1F7t3/">北疆喀纳斯环线·路线扫盲</a></div></div>
+
+        <div class="vcat">🛣️ 独库公路（攻略·纪录片·样片）</div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1mM4m1S7Rd')"><span class="tg">攻略</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1mM4m1S7Rd/">独库公路完整全攻略·11问</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1Mi4y1G7Mj')"><span class="tg">🎬纪录片</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1Mi4y1G7Mj/">独库骑行纪录片·天山峡谷</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1RnVU6FEYj')"><span class="tg">样片</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1RnVU6FEYj/">最美公路·独库561km一天四季</a></div></div>
+
+        <div class="vcat">🏞️ 伊犁 · 赛里木湖 · 草原（4K）</div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV15z4y177Fv')"><span class="tg">4K样片</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV15z4y177Fv/">【4K】伊犁纯享:赛湖|喀拉峻|那拉提</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1514y1q7jR')"><span class="tg">4K样片</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1514y1q7jR/">我去过赛里木湖|4K纯享版</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1pA41147Fs')"><span class="tg">航拍</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1pA41147Fs/">新疆航拍Mix:赛湖·喀纳斯</a></div></div>
+
+        <div class="vcat">🌲 喀纳斯 · 禾木 · 北疆</div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1524y1Z7p5')"><span class="tg">攻略</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1524y1Z7p5/">禾木·喀纳斯·白哈巴徒步攻略</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV19s4y1673m')"><span class="tg">vlog</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV19s4y1673m/">新疆值不值得去?喀纳斯/禾木实拍</a></div></div>
+        <div class="vcard"><div class="vthumb" onclick="pv(this,'BV1i1xveJEe6')"><span class="tg">沉浸</span><span class="play">▶</span></div><div class="vm"><a target="_blank" href="https://www.bilibili.com/video/BV1i1xveJEe6/">一个人沉浸式徒步喀纳斯</a></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIPS -->
+  <section id="tips">
+    <h2 class="sec"><span class="tg">贴士</span>🧭 自驾小贴士</h2>
+    <div class="tips">
+      <div class="tip"><b>🛣️ 独库公路季节</b>一般6月中—10月通车，出发前查实时路况与封路；山区天气多变，备保暖衣。</div>
+      <div class="tip"><b>🚙 两段租车</b>伊犁/北疆各一辆，分别在伊宁、阿勒泰就近取还；提车先验车拍照、确认坦克300车型。</div>
+      <div class="tip"><b>👧 带娃节奏</b>每天车程尽量≤3h，多留草原湖边自由活动；备晕车药、防晒、零食，赛湖海拔约2070m问题不大。</div>
+      <div class="tip"><b>⚠️ 8/21 八卦城</b>飞行日时间极紧，赛湖→八卦城→伊宁机场约370km赶不上15:25航班，<b>建议放弃</b>，稳妥走果子沟回机场。</div>
+      <div class="tip"><b>📶 信号与加油</b>独库、禾木部分路段信号弱，离线地图必备；山区加油站少，见站即加满。</div>
+      <div class="tip"><b>🎟️ 租车券</b>两张机票附「租车券」7/29 前失效，记得核销抵扣租车费。</div>
+    </div>
+  </section>
+
+  <div class="foot">
+    公开分享版 · 实时地图 + 每日指引 + 视频库（已隐去预订号与价格）<br>
+    里程/车程为概值，价格随季节波动，请以实时查询为准 · 2026-08 新疆伊犁+北疆自驾
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+function pv(el,bv){el.innerHTML='<iframe src="https://player.bilibili.com/player.html?bvid='+bv+'&autoplay=1&high_quality=1&danmaku=0&as_wide=1&page=1" scrolling="no" frameborder="0" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>';el.style.cursor='default';}
+
+/* WGS84 -> GCJ02 */
+function outChina(lng,lat){return(lng<72||lng>137.9||lat<0.8||lat>55.9)}
+function tl(x,y){let r=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;r+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;return r}
+function tg(x,y){let r=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;r+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return r}
+function G(lat,lng){if(outChina(lng,lat))return[lat,lng];const a=6378245,ee=.00669342162296594323;let dla=tl(lng-105,lat-35),dln=tg(lng-105,lat-35);const rl=lat/180*Math.PI;let m=Math.sin(rl);m=1-ee*m*m;const sm=Math.sqrt(m);dla=dla*180/((a*(1-ee))/(m*sm)*Math.PI);dln=dln*180/(a/sm*Math.cos(rl)*Math.PI);return[lat+dla,lng+dln];}
+
+const START="2026-08-14";
+const DAYS=[
+ {d:1,date:"8/14 周四",s:1,fly:1,r:"北京 ✈ 伊宁（CZ5437）· 取车",km:"飞行",det:"14:25抵伊宁，15:30伊宁机场提坦克300；六星街、喀赞其民俗村。",ho:"EVEN 伊宁绿发逸衡 已预订",vid:"BV1nCqoYhEzB",vidt:"坦克300实测",
+  pts:[{n:"伊宁机场(取车)",la:43.9558,ln:81.3303,t:"air",dc:"CZ5437 14:25抵·15:30提车"},{n:"EVEN 伊宁绿发逸衡",la:43.916,ln:81.330,t:"h",dc:"IHG · 已预订"}]},
+ {d:2,date:"8/15 周五",s:1,r:"伊宁 → 那拉提（直达）",km:"约260km",det:"伊犁河谷东行直奔那拉提（八卦城已调到赛湖之后），傍晚小镇休整。",ho:"Holiday Inn Express 那拉提智选 已预订",
+  pts:[{n:"Holiday Inn Express 那拉提智选",la:43.330,ln:84.020,t:"h",dc:"IHG · 已预订"}]},
+ {d:3,date:"8/16 周六",s:1,r:"那拉提 → 独库南段 → 巴音布鲁克",km:"约150km",det:"独库南段进巴音布鲁克，傍晚九曲十八弯日落、天鹅湖。",ho:"Holiday Inn 巴音布鲁克假日 已预订",vid:"BV1Mi4y1G7Mj",vidt:"独库纪录片",
+  pts:[{n:"巴音布鲁克·九曲十八弯",la:42.88,ln:84.10,t:"s1",dc:"天鹅湖·落日"},{n:"Holiday Inn 巴音布鲁克假日",la:43.03,ln:84.15,t:"h",dc:"IHG · 已预订"}]},
+ {d:4,date:"8/17 周日",s:1,r:"巴音布鲁克 → 那拉提空中草原",km:"约110km",det:"返那拉提，区间车上空中草原，木栈道徒步、草原野餐。",ho:"Hotel Indigo 那拉提英迪格 已预订",
+  pts:[{n:"那拉提空中草原",la:43.30,ln:84.05,t:"s1",dc:"世界四大草原之一"},{n:"Hotel Indigo 那拉提英迪格",la:43.325,ln:84.025,t:"h",dc:"IHG · 已预订"}]},
+ {d:5,date:"8/18 周一",s:1,r:"那拉提 → 独库北段 → 独山子大峡谷 → 奎屯",km:"约320km",det:"独库北段乔尔玛、防雪走廊；独山子大峡谷观景，傍晚抵奎屯。",ho:"奎屯万达美华 非IHG（已预订）",vid:"BV1mM4m1S7Rd",vidt:"独库全攻略",
+  pts:[{n:"独山子大峡谷",la:44.10,ln:84.80,t:"s1",dc:"独库北段·峡谷壮观"},{n:"奎屯万达美华酒店",la:44.43,ln:84.89,t:"h",dc:"非IHG（已预订）"}]},
+ {d:6,date:"8/19 周二",s:1,r:"奎屯 → 赛里木湖",km:"约230km",det:"上午抵赛里木湖，环湖看蓝湖雪山，傍晚守日落。",ho:"Hotel Indigo 赛里木湖 已预订（连住2晚）",vid:"BV1514y1q7jR",vidt:"赛湖4K纯享",
+  pts:[{n:"赛里木湖",la:44.58,ln:81.15,t:"s1",dc:"大西洋最后一滴眼泪"},{n:"Hotel Indigo 赛里木湖英迪格",la:44.52,ln:81.12,t:"h",dc:"IHG · 已预订"}]},
+ {d:7,date:"8/20 周三",s:1,r:"赛里木湖 · 环湖深度一日",km:"环湖约90km",det:"不赶路：日出、环湖、湖边野餐、再守一次日落。带娃放松最佳。",ho:"Hotel Indigo 赛里木湖 已预订",
+  pts:[{n:"赛里木湖·环湖观景",la:44.61,ln:81.20,t:"s1",dc:"日出日落"}]},
+ {d:8,date:"8/21 周四",s:1,fly:1,r:"赛湖→〔⚠️八卦城可选〕→伊宁还车→✈阿勒泰→布尔津",km:"飞行+约100km",det:"⚠️飞行日极赶：建议放弃八卦城，赛湖→果子沟→伊宁机场，13:30前还车赶EU2295；16:40抵阿勒泰17:30提车→布尔津五彩滩、夜市。",ho:"布尔津金津假日 非IHG（已预订）",
+  pts:[{n:"特克斯八卦城(⚠️可选·极赶)",la:43.215,ln:81.84,t:"opt",dc:"建议放弃·赶不上航班"},{n:"果子沟大桥",la:44.40,ln:80.99,t:"s1",dc:"伊犁第一景"},{n:"伊宁机场(还车·飞)",la:43.9558,ln:81.3303,t:"air",dc:"13:30前还车·EU2295 15:25"},{n:"阿勒泰雪都机场(取车)",la:47.7405,ln:88.0857,t:"air",dc:"16:40抵·17:30提车"},{n:"五彩滩",la:47.74,ln:86.80,t:"s2",dc:"雅丹落日"},{n:"布尔津金津假日",la:47.70,ln:86.87,t:"h",dc:"非IHG（已预订）"}]},
+ {d:9,date:"8/22 周五",s:2,r:"布尔津 → 贾登峪 → 喀纳斯",km:"约160km",det:"进喀纳斯换乘区间车，三湾连珠、观鱼台、图瓦村落。",ho:"Holiday Inn Resort 喀纳斯禾木 已预订（连住3晚）",vid:"BV1524y1Z7p5",vidt:"喀纳斯禾木徒步",
+  pts:[{n:"喀纳斯湖",la:48.77,ln:87.02,t:"s2",dc:"三湾连珠·观鱼台"},{n:"Holiday Inn Resort 喀纳斯禾木",la:48.55,ln:87.45,t:"h",dc:"IHG · 已预订"}]},
+ {d:10,date:"8/23 周六",s:2,r:"喀纳斯 / 禾木 深度游",km:"约70km+区间车",det:"前往禾木村，村中漫步、牧场木屋；观景台晨雾炊烟（北疆名场面）。",ho:"Holiday Inn Resort 喀纳斯禾木 已预订",vid:"BV19s4y1673m",vidt:"禾木实拍vlog",
+  pts:[{n:"禾木村",la:48.555,ln:87.46,t:"s2",dc:"神的后花园·晨雾"}]},
+ {d:11,date:"8/24 周日",s:2,r:"禾木 · 机动深度 / 周边补游",km:"机动",det:"禾木日出、骑马、徒步；或白哈巴/周边补打卡，整理装备。",ho:"Holiday Inn Resort 喀纳斯禾木 已预订",
+  pts:[{n:"禾木观景台",la:48.565,ln:87.45,t:"s2",dc:"日出·骑马"}]},
+ {d:12,date:"8/25 周一",s:2,r:"禾木 → 布尔津 → 阿勒泰",km:"约250km",det:"禾木退房返阿勒泰，布尔津补游/采购特产，缓冲一天避免返程奔波。",ho:"阿勒泰福朋喜来登 非IHG（已预订）",
+  pts:[{n:"阿勒泰福朋喜来登酒店",la:47.84,ln:88.13,t:"h",dc:"非IHG（已预订）"}]},
+ {d:13,date:"8/26 周二",s:2,fly:1,r:"阿勒泰还车 → ✈ 北京（MU 15:55，次日抵）",km:"飞行",det:"⚠️14:00前在阿勒泰雪都机场还车；东航MU6674/9191 15:55起飞，中转次日19:30抵京。",ho:"—",
+  pts:[{n:"阿勒泰雪都机场(还车·返京)",la:47.7405,ln:88.0857,t:"air",dc:"14:00前还车·MU 15:55"}]}
+];
+
+/* MAP */
+const street=L.tileLayer("https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl=1&style=7&x={x}&y={y}&z={z}",{subdomains:"1234",maxZoom:18,attribution:"高德地图"});
+const sat=L.tileLayer("https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",{subdomains:"1234",maxZoom:18});
+const map=L.map("map",{layers:[street]}).setView([46,84.5],6);
+let satOn=false;function toggleSat(){satOn=!satOn;if(satOn){map.removeLayer(street);map.addLayer(sat);}else{map.removeLayer(sat);map.addLayer(street);}toast(satOn?"卫星图":"街道图");}
+function ic(t,label){let c="mk ",x=label||"";if(t==="h"){c+="h";x="🛏";}else if(t==="air"){c+="air";x="✈";}else if(t==="opt"){c+="opt";x="?";}else if(t==="s2"){c+="s2";}else{c+="s1";}return L.divIcon({className:"",html:'<div class="'+c+'">'+x+'</div>',iconSize:[25,25],iconAnchor:[12,12]});}
+function nav(n,la,ln){const g=G(la,ln);return "https://uri.amap.com/marker?position="+g[1]+","+g[0]+"&name="+encodeURIComponent(n)+"&coordinate=gaode&src=trip";}
+const dm={},all=[];
+DAYS.forEach(day=>{dm[day.d]=[];day.pts.forEach(p=>{const g=G(p.la,p.ln);const lab=(p.t==="s1"||p.t==="s2")?String(day.d):null;const m=L.marker(g,{icon:ic(p.t,lab)}).addTo(map);
+  m.bindPopup('<div class="pt">'+p.n+'</div><div class="pd">Day '+day.d+' · '+day.date+'</div>'+p.dc+'<br><a class="pn" target="_blank" href="'+nav(p.n,p.la,p.ln)+'">高德导航 ›</a>');
+  dm[day.d].push(m);if(p.t!=="opt")all.push(g);});});
+const yili=[[43.9558,81.3303],[43.330,84.020],[42.88,84.10],[43.30,84.05],[44.10,84.80],[44.43,84.89],[44.58,81.15],[44.40,80.99],[43.9558,81.3303]].map(c=>G(c[0],c[1]));
+const bei=[[47.7405,88.0857],[47.74,86.80],[47.70,86.87],[48.77,87.02],[48.55,87.45],[48.565,87.45],[47.84,88.13],[47.7405,88.0857]].map(c=>G(c[0],c[1]));
+L.polyline(yili,{color:"#5b8a52",weight:4,opacity:.85}).addTo(map);
+L.polyline(bei,{color:"#2f6193",weight:4,opacity:.85}).addTo(map);
+L.polyline([G(44.58,81.15),G(43.215,81.84),G(43.9558,81.3303)],{color:"#9aa0a6",weight:2.5,opacity:.7,dashArray:"4,7"}).addTo(map);
+L.polyline([G(43.9558,81.3303),G(47.7405,88.0857)],{color:"#c8714e",weight:2.5,opacity:.8,dashArray:"2,8"}).addTo(map);
+map.fitBounds(L.latLngBounds(all).pad(.12));
+
+/* TIMELINE + PLAN CARDS */
+const STORE="xj_fuse_done_v1";let done=JSON.parse(localStorage.getItem(STORE)||"{}");
+function curIdx(){const t=new Date(),s=new Date(START+"T00:00:00");const x=Math.floor((t-s)/864e5)+1;return x<1?0:(x>13?14:x);}
+function buildTL(){const box=document.getElementById("tllist");box.innerHTML="";const cur=curIdx();
+  DAYS.forEach(day=>{const el=document.createElement("div");el.className="di s"+day.s+(day.d===cur?" cur":"")+(done[day.d]?" done":"");
+    el.innerHTML='<div class="dn">'+day.d+'</div><div class="dx"><div class="a">'+day.date+'</div><div class="b2">'+day.r+'</div><div class="h">🛏 '+day.ho+'</div>'+(day.vid?'<a class="v" target="_blank" href="https://www.bilibili.com/video/'+day.vid+'/" onclick="event.stopPropagation()">📺 '+(day.vidt||"相关视频")+'</a>':'')+'</div><div class="ck">'+(done[day.d]?"✓":"○")+'</div>';
+    el.querySelector(".ck").onclick=e=>{e.stopPropagation();done[day.d]=!done[day.d];localStorage.setItem(STORE,JSON.stringify(done));buildTL();};
+    el.onclick=()=>flyDay(day.d);box.appendChild(el);});}
+function buildCards(){const box=document.getElementById("plancards");box.innerHTML="";
+  DAYS.forEach(day=>{const el=document.createElement("div");el.className="day s"+day.s+(day.fly?" fly":"");
+    el.innerHTML='<div class="nn"><div class="a">'+day.date.split(" ")[0]+'</div><div class="n">'+day.d+'</div></div><div class="bd"><div class="r">'+day.r+'<span class="km">'+day.km+'</span>'+(day.vid?'<a class="vl" target="_blank" href="https://www.bilibili.com/video/'+day.vid+'/">📺 '+(day.vidt||"")+'</a>':'')+'</div><div class="t">'+day.det+'</div><div class="st">🛏 <b>'+day.ho+'</b></div></div>';
+    el.onclick=()=>{document.getElementById("map-sec").scrollIntoView({behavior:"smooth"});setTimeout(()=>flyDay(day.d),500);};box.appendChild(el);});}
+function flyDay(d){const ms=dm[d];if(!ms||!ms.length)return;map.flyToBounds(L.latLngBounds(ms.map(m=>m.getLatLng())).pad(.3),{maxZoom:11,duration:.8});setTimeout(()=>ms[0].openPopup(),700);}
+function focusToday(){const c=curIdx();if(c<1){toast("距出发 "+Math.ceil((new Date(START)-new Date())/864e5)+" 天");flyDay(1);return;}if(c>13){overview();return;}toast("今天 Day "+c);flyDay(c);}
+function overview(){map.flyToBounds(L.latLngBounds(all).pad(.12),{duration:.8});}
+let me=null,ml=null;
+function locateMe(){if(!navigator.geolocation){toast("不支持定位");return;}toast("定位中…");
+  navigator.geolocation.getCurrentPosition(p=>{const g=G(p.coords.latitude,p.coords.longitude);if(me)map.removeLayer(me);
+    me=L.marker(g,{icon:L.divIcon({className:"",html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);me.bindPopup("📍 我的位置").openPopup();
+    let bd=1e9,bb=null;DAYS.forEach(day=>day.pts.forEach(pt=>{const pg=G(pt.la,pt.ln);const d=map.distance(g,pg);if(d<bd){bd=d;bb={pt,day,pg};}}));
+    if(bb){if(ml)map.removeLayer(ml);ml=L.polyline([g,bb.pg],{color:"#1a73e8",weight:2,dashArray:"3,6"}).addTo(map);toast("最近：Day"+bb.day.d+" "+bb.pt.n+" 约"+(bd/1000).toFixed(1)+"km");}
+    map.flyTo(g,9,{duration:.8});},e=>{toast(e.code===1?"请允许定位权限":"定位失败，请重试");},{enableHighAccuracy:true,timeout:10000});}
+let tt;function toast(m){const e=document.getElementById("toast");e.textContent=m;e.style.display="block";clearTimeout(tt);tt=setTimeout(()=>e.style.display="none",3000);}
+
+/* COUNTDOWN + NAV SPY */
+(function(){const c=curIdx();const cd=document.getElementById("countdown");
+  if(c<1)cd.textContent="⏳ 距出发还有 "+Math.ceil((new Date(START)-new Date())/864e5)+" 天";
+  else if(c>13)cd.textContent="✅ 行程已结束 · 旅途愉快回顾";
+  else cd.textContent="🚙 进行中 · 今天是 Day "+c;})();
+buildTL();buildCards();
+const secs=[...document.querySelectorAll("section[id],header[id]")];const links=[...document.querySelectorAll("nav a")];
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;links.forEach(l=>l.classList.toggle("on",l.getAttribute("href")==="#"+id||(id==="map-sec"&&l.getAttribute("href")==="#map")||(id==="top"&&l.getAttribute("href")==="#top")));}});},{rootMargin:"-45% 0px -50% 0px"});
+secs.forEach(s=>io.observe(s));
+setTimeout(()=>map.invalidateSize(),300);
+/* 视频海报式封面（主题渐变+场景图标） */
+(function(){var cats=[["c0","🎒"],["c1","🛣️"],["c2","🏞️"],["c3","🌲"]];var grid=document.querySelector("#videos .grid");if(!grid)return;var ci=-1;
+  [...grid.children].forEach(ch=>{if(ch.classList.contains("vcat")){ci++;return;}
+    var th=ch.querySelector&&ch.querySelector(".vthumb");if(!th)return;var c=cats[Math.max(0,Math.min(ci,3))];
+    th.classList.add(c[0]);var ico=document.createElement("span");ico.className="ico";ico.textContent=c[1];th.insertBefore(ico,th.firstChild);});})();
+</script>
+</body>
+</html>

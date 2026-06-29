@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌤️ 实时信息 · 新疆自驾 (天气 + 独库通车)</title>
+<style>
+:root{--bg:#1e1e1e;--bg2:#252525;--bg3:#2d2d2d;--text:#dcddde;--text-dim:#999;--accent:#ffd75e;--link:#5a8dee;--border:#3a3a3a;--green:#5b8a52;--red:#e74c3c;--orange:#e8834a;--blue:#3498db}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px;padding:40px 24px;max-width:1300px;margin:0 auto}
+h1{font-size:30px;color:#fff;margin-bottom:8px}
+.sub{color:var(--text-dim);font-size:14px;margin-bottom:8px}
+.fetched{display:inline-block;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12.5px;color:var(--text-dim);margin-bottom:24px}
+.toolbar{margin-bottom:24px}
+.toolbar a{display:inline-block;background:var(--accent);color:#000;padding:8px 16px;border-radius:6px;font-weight:600;text-decoration:none;font-size:14px;margin-right:8px}
+.toolbar a.secondary{background:var(--bg3);color:var(--text)}
+h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--accent)}
+.weather-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px}
+.loc-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;transition:transform .15s,border-color .15s}
+.loc-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.loc-card.failed{border-left:4px solid var(--red)}
+.loc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.loc-name{color:#fff;font-size:15px;font-weight:600}
+.loc-cat{color:var(--text-dim);font-size:11px}
+.loc-temp-row{display:flex;align-items:flex-start;gap:14px;margin:8px 0 6px}
+.loc-temp{font-size:36px;font-weight:800;color:var(--accent);line-height:1}
+.loc-today{font-size:11px;color:var(--text);line-height:1.45}
+.loc-today b{color:#fff;font-size:14px;font-weight:700}
+.loc-today .mini{color:var(--text-dim);font-size:10px}
+.loc-today .rain{color:var(--blue);font-weight:600}
+.loc-desc{color:var(--text);font-size:13.5px;margin-bottom:6px}
+.loc-meta{color:var(--text-dim);font-size:11.5px;font-family:monospace;margin-bottom:6px}
+.loc-coord{color:var(--text-dim);font-size:10.5px;font-family:monospace}
+.section-desc{font-size:13.5px;color:var(--text-dim);margin-bottom:10px;padding:10px 14px;background:var(--bg2);border-radius:8px;border-left:4px solid var(--blue)}
+.forecast{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:10px}
+.forecast summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
+.forecast summary:hover{color:#fff}
+.forecast-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}
+.forecast-table th{text-align:left;color:var(--text-dim);font-weight:500;padding:4px 8px;border-bottom:1px solid var(--border)}
+.forecast-table td{padding:6px 8px;border-bottom:1px dashed var(--border);vertical-align:top}
+.forecast-table tr:last-child td{border-bottom:none}
+.forecast-table .date{color:#fff;font-weight:600;font-size:13px;width:60px}
+.forecast-table .wd{color:var(--text-dim);font-size:10px}
+.forecast-table .icon{font-size:18px;line-height:1}
+.forecast-table .icon .desc{display:block;font-size:10px;color:var(--text-dim);margin-top:2px}
+.forecast-table .temp b{color:var(--accent);font-size:14px}
+.forecast-table .wind{font-family:monospace;font-size:11.5px}
+.forecast-table .rain{color:var(--blue);font-weight:600;font-size:11.5px}
+.duku-card{background:linear-gradient(135deg,#2d2d2d,#1a1a1a);border:1px solid var(--accent);border-radius:12px;padding:18px 20px;margin-bottom:20px}
+.duku-card h3{color:var(--accent);font-size:18px;margin-bottom:10px}
+.duku-card .key-fact{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.duku-card .fact{background:var(--bg3);padding:8px 12px;border-radius:6px;font-size:13px}
+.duku-card .fact b{color:var(--accent);display:block;font-size:11px;text-transform:uppercase;margin-bottom:3px}
+.source-list{list-style:none;padding:0}
+.source-list li{padding:6px 0;border-bottom:1px dashed var(--border);font-size:13.5px}
+.source-list li:last-child{border-bottom:none}
+.source-list a{color:var(--link)}
+.src-type{color:var(--text-dim);font-size:11px;margin-left:6px}
+.tips{background:var(--bg2);border-left:4px solid var(--orange);padding:12px 18px;border-radius:6px;margin:14px 0}
+.tips ul{list-style:none;padding:0;margin:0}
+.tips li{padding:3px 0;font-size:13px}
+.season-banner{background:linear-gradient(135deg,#5b8a52,#2f7a6a);color:#fff;padding:14px 18px;border-radius:8px;margin-bottom:14px;font-size:14px}
+.cross-day-banner{background:linear-gradient(135deg,#3d2d1a,#1a1a1a);border:1px solid var(--orange);border-radius:12px;padding:18px 20px;margin:14px 0}
+.cross-day-banner h3{color:var(--orange);font-size:17px;margin-bottom:10px}
+.cross-day-banner p{font-size:13.5px;color:var(--text);margin-bottom:8px;line-height:1.6}
+.cross-day-banner p b{color:var(--orange)}
+.cross-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.cross-table th{text-align:left;color:var(--orange);font-weight:600;padding:6px 10px;border-bottom:2px solid var(--orange)}
+.cross-table td{padding:8px 10px;border-bottom:1px dashed var(--border)}
+.cross-table td:first-child{color:#fff;font-weight:600}
+@media(max-width:640px){.weather-grid{grid-template-columns:1fr}.duku-card .key-fact{grid-template-columns:1fr}.forecast-table{font-size:11px}.alerts-list{grid-template-columns:1fr}.hourly-table{font-size:10px}}
+
+/* V6: Alerts banner */
+.alerts-banner{background:linear-gradient(135deg,#7a2828,#3a1010);border:1.5px solid #e74c3c;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.alerts-banner.ok{background:linear-gradient(135deg,#1f3d24,#0a1f10);border-color:#5b8a52}
+.alerts-banner h3{color:#fff;font-size:17px;margin-bottom:8px}
+.alerts-banner.ok h3{color:#5b8a52}
+.alerts-summary{margin-bottom:10px;font-size:13px}
+.alert-tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11.5px;font-weight:600;color:#fff;margin-right:6px}
+.alert-tag.danger{background:#e74c3c}
+.alert-tag.warning{background:#e8834a}
+.alerts-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.alert-item{background:rgba(0,0,0,.3);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:6px;font-size:12px;border-left:3px solid #e8834a}
+.alert-item.danger{border-left-color:#e74c3c}
+.alert-loc{color:#fff;font-weight:600;min-width:60px}
+.alert-day{color:var(--text-dim);font-family:monospace;font-size:11px;min-width:34px}
+.alert-icon{font-size:16px}
+.alert-desc{color:var(--text);font-size:11.5px}
+
+/* V6: Hourly timeline */
+.hourly-wrap{margin-top:10px;background:rgba(0,0,0,.2);border-radius:8px;padding:10px 12px}
+.hourly-title{font-size:11.5px;color:var(--accent);font-weight:600;margin-bottom:6px}
+.hourly-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.hourly-table th{color:var(--text-dim);font-weight:500;padding:3px 4px;text-align:center}
+.hourly-table .day-label{color:#fff;font-weight:600;text-align:left;padding-right:8px;min-width:42px}
+.hourly-table td{padding:4px 3px;text-align:center;border-bottom:1px dashed rgba(255,255,255,.1)}
+.hourly-table td:last-child{border-bottom:none}
+.hr-time{color:var(--text-dim);font-size:10px;font-family:monospace}
+.hr-icon{font-size:18px;line-height:1;margin:2px 0}
+.hr-temp{color:#fff;font-weight:600;font-size:12px}
+.hr-rain{color:#3498db;font-size:10px;font-weight:600;margin-top:1px}
+.hourly-empty{padding:8px;color:var(--text-dim);font-size:12px;text-align:center;background:rgba(0,0,0,.2);border-radius:6px;margin-top:8px}
+
+/* V7: Day-by-Day 行动计划 */
+.day-plan{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;border-left:6px solid var(--border)}
+.day-plan.ok{border-left-color:#5b8a52}
+.day-plan.info{border-left-color:#3498db}
+.day-plan.warning{border-left-color:#e8834a}
+.day-plan.danger{border-left-color:#e74c3c}
+.day-plan.out-of-range{border-left-color:#666;opacity:.7}
+.day-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.day-num{color:var(--accent);font-weight:700;font-size:14px;font-family:monospace;background:rgba(255,215,0,.1);padding:2px 8px;border-radius:4px}
+.day-title{color:#fff;font-weight:600;font-size:15px;flex:1}
+.day-date{color:var(--text-dim);font-size:11.5px;font-family:monospace}
+.day-verdict{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;color:#fff}
+.day-verdict.ok{background:#5b8a52}
+.day-verdict.info{background:#3498db}
+.day-verdict.warning{background:#e8834a}
+.day-verdict.danger{background:#e74c3c}
+.day-advice{font-size:13px;color:var(--text);margin:6px 0;line-height:1.55}
+.day-advice b{color:#fff}
+.day-meta{color:var(--text-dim);font-size:11.5px;font-family:monospace;margin-bottom:4px}
+.day-severe{color:#e74c3c;font-size:12px;font-weight:600;margin-bottom:4px}
+.day-recs{background:rgba(255,215,0,.06);border-radius:6px;padding:6px 10px;font-size:12.5px;color:var(--text);margin-top:6px;border:1px solid rgba(255,215,0,.15)}
+.day-plan.out-of-range .day-advice{color:var(--text-dim);font-style:italic}
+.start-date-control{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:16px;font-size:12.5px;color:var(--text-dim)}
+.start-date-control code{background:var(--code-bg);padding:2px 6px;border-radius:3px;color:var(--accent)}
+
+/* V8: 一日时段建议 */
+.day-schedule{margin-top:10px;background:rgba(0,0,0,.2);border-radius:8px;padding:8px 10px}
+.schedule-title{font-size:11.5px;color:var(--accent);font-weight:600;margin-bottom:6px}
+.schedule-item{display:flex;align-items:center;gap:8px;padding:5px 6px;font-size:11.5px;border-bottom:1px dashed rgba(255,255,255,.06)}
+.schedule-item:last-child{border-bottom:none}
+.schedule-time{min-width:90px;color:#fff;font-weight:600;font-family:monospace;font-size:11px}
+.schedule-action{color:var(--text);font-weight:600;min-width:90px}
+.schedule-loc{color:var(--text-dim);font-size:11px;flex:1}
+.schedule-item.early .schedule-time{color:#fbc02d}
+.schedule-item.midday .schedule-time{color:#ff9800}
+.schedule-item.evening .schedule-time{color:#e91e63}
+.schedule-item.night .schedule-time{color:#9c27b0}
+</style>
+</head>
+<body>
+
+<h1>🌤️ 实时信息 · 新疆自驾</h1>
+<div class="sub">13 地点实时天气 + 8 天预报 + 独库公路实时通车</div>
+<div class="fetched">📅 数据抓取时间: <b>2026-06-30 03:15:58</b> · 行程 Day 1 = <b>2026-06-30</b> (修改 <code>START_DATE</code> 变量可换日期) · 本地缓存 · 出发前 1-2 天重新生成 live_info.html</div>
+
+<div class="start-date-control">💡 当前 cache 覆盖 <b>2026-06-30</b> ~ <b>2026-07-07</b>. 若 START_DATE 在该范围内, 直接显示行动计划. 若超出, 显示"待查询"提示.</div>
+
+<div class="toolbar">
+  <a href="index.html">← 视频索引</a>
+  <a href="xjb_overview_map.html" class="secondary">🗺 总览地图</a>
+  <a href="day_recommend.html" class="secondary">📅 Day-by-Day</a>
+</div>
+
+<h2 class="sec">🌡️ 实时天气 (13 地点 · 含今天 8h 预报)</h2>
+<div class="section-desc">数据源: <a href="https://wttr.in" target="_blank">wttr.in</a> (实时) + <a href="https://open-meteo.com" target="_blank">open-meteo.com</a> (8 天预报)。</div>
+<div class="weather-grid">
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 伊宁</span>
+        <span class="loc-cat">Day 1 取车 + 市区</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">21°C</div>
+        <div class="loc-today">今天 ☁️<br><b>37.2°/22.1°C</b><br><span class="mini">阴天</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 17°C</div>
+      <div class="loc-meta">
+        💧 36% &nbsp; ☁ 9% &nbsp; 💨 NNE 4 km/h
+      </div>
+      <div class="loc-coord">(经度 81.3200, 纬度 43.9200)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 赛里木湖</span>
+        <span class="loc-cat">Day 6/7 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">27°C</div>
+        <div class="loc-today">今天 ☁️<br><b>23.6°/12.3°C</b><br><span class="mini">阴天</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 21°C</div>
+      <div class="loc-meta">
+        💧 28% &nbsp; ☁ 9% &nbsp; 💨 NW 9 km/h
+      </div>
+      <div class="loc-coord">(经度 81.1500, 纬度 44.5800)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 霍城/果子沟</span>
+        <span class="loc-cat">Day 7 顺路</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">21°C</div>
+        <div class="loc-today">今天 ⛅<br><b>38.0°/24.0°C</b><br><span class="mini">局部多云</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 17°C</div>
+      <div class="loc-meta">
+        💧 36% &nbsp; ☁ 8% &nbsp; 💨 NE 4 km/h
+      </div>
+      <div class="loc-coord">(经度 80.8500, 纬度 44.0500)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 特克斯八卦城</span>
+        <span class="loc-cat">Day 2 顺路</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">21°C</div>
+        <div class="loc-today">今天 ⛅<br><b>28.4°/13.7°C</b><br><span class="mini">局部多云</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 16°C</div>
+      <div class="loc-meta">
+        💧 28% &nbsp; ☁ 2% &nbsp; 💨 SE 7 km/h
+      </div>
+      <div class="loc-coord">(经度 81.8400, 纬度 43.2200)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 那拉提</span>
+        <span class="loc-cat">Day 2/4 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">10°C</div>
+        <div class="loc-today">今天 🌤️<br><b>27.9°/12.2°C</b><br><span class="mini">基本晴朗</span></div>
+      </div>
+      <div class="loc-desc">Partly Cloudy  · 体感 5°C</div>
+      <div class="loc-meta">
+        💧 46% &nbsp; ☁ 33% &nbsp; 💨 SSE 4 km/h
+      </div>
+      <div class="loc-coord">(经度 84.0200, 纬度 43.3000)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 巴音布鲁克</span>
+        <span class="loc-cat">Day 3 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">10°C</div>
+        <div class="loc-today">今天 🌦️<br><b>22.7°/7.7°C</b><br><span class="mini">毛毛雨-轻</span><br><span class="rain">🌧 0.2mm</span></div>
+      </div>
+      <div class="loc-desc">Partly Cloudy  · 体感 5°C</div>
+      <div class="loc-meta">
+        💧 46% &nbsp; ☁ 33% &nbsp; 💨 SSE 4 km/h
+      </div>
+      <div class="loc-coord">(经度 84.1000, 纬度 42.8800)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 独山子大峡谷</span>
+        <span class="loc-cat">Day 5 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">29°C</div>
+        <div class="loc-today">今天 🌤️<br><b>25.6°/14.4°C</b><br><span class="mini">基本晴朗</span></div>
+      </div>
+      <div class="loc-desc">Severe sandstorm · 体感 23°C</div>
+      <div class="loc-meta">
+        💧 25% &nbsp; ☁ 0% &nbsp; 💨 SSE 10 km/h
+      </div>
+      <div class="loc-coord">(经度 84.8000, 纬度 44.1000)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 奎屯</span>
+        <span class="loc-cat">Day 5 住宿</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">28°C</div>
+        <div class="loc-today">今天 ☀️<br><b>39.0°/22.8°C</b><br><span class="mini">晴朗</span></div>
+      </div>
+      <div class="loc-desc">Severe sandstorm · 体感 22°C</div>
+      <div class="loc-meta">
+        💧 25% &nbsp; ☁ 0% &nbsp; 💨 SSE 11 km/h
+      </div>
+      <div class="loc-coord">(经度 84.8900, 纬度 44.4300)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 布尔津</span>
+        <span class="loc-cat">Day 8 住宿 + 五彩滩</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">22°C</div>
+        <div class="loc-today">今天 🌦️<br><b>34.6°/23.4°C</b><br><span class="mini">毛毛雨-轻</span><br><span class="rain">🌧 0.1mm</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 16°C</div>
+      <div class="loc-meta">
+        💧 48% &nbsp; ☁ 3% &nbsp; 💨 NE 13 km/h
+      </div>
+      <div class="loc-coord">(经度 86.8700, 纬度 47.7000)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 库尔滨/喀纳斯</span>
+        <span class="loc-cat">Day 9 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">5°C</div>
+        <div class="loc-today">今天 🌦️<br><b>24.6°/13.3°C</b><br><span class="mini">毛毛雨-轻</span><br><span class="rain">🌧 0.8mm</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 3°C</div>
+      <div class="loc-meta">
+        💧 81% &nbsp; ☁ 9% &nbsp; 💨 WSW 6 km/h
+      </div>
+      <div class="loc-coord">(经度 87.0200, 纬度 48.7700)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 禾木</span>
+        <span class="loc-cat">Day 10/11 主景点</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">5°C</div>
+        <div class="loc-today">今天 🌦️<br><b>26.4°/12.8°C</b><br><span class="mini">毛毛雨-轻</span><br><span class="rain">🌧 0.2mm</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 3°C</div>
+      <div class="loc-meta">
+        💧 81% &nbsp; ☁ 9% &nbsp; 💨 WSW 6 km/h
+      </div>
+      <div class="loc-coord">(经度 87.4600, 纬度 48.5550)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 阿勒泰</span>
+        <span class="loc-cat">Day 12 住宿 + 机场</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">16°C</div>
+        <div class="loc-today">今天 ☁️<br><b>33.1°/18.5°C</b><br><span class="mini">阴天</span></div>
+      </div>
+      <div class="loc-desc">Clear  · 体感 10°C</div>
+      <div class="loc-meta">
+        💧 46% &nbsp; ☁ 5% &nbsp; 💨 NNE 12 km/h
+      </div>
+      <div class="loc-coord">(经度 88.1300, 纬度 47.8400)</div>
+    </div>
+    <div class="loc-card">
+      <div class="loc-h">
+        <span class="loc-name">📍 乌鲁木齐</span>
+        <span class="loc-cat">中转/备降</span>
+      </div>
+      <div class="loc-temp-row">
+        <div class="loc-temp">25°C</div>
+        <div class="loc-today">今天 🌤️<br><b>35.3°/20.6°C</b><br><span class="mini">基本晴朗</span></div>
+      </div>
+      <div class="loc-desc">Severe sandstorm · 体感 20°C</div>
+      <div class="loc-meta">
+        💧 28% &nbsp; ☁ 2% &nbsp; 💨 SW 5 km/h
+      </div>
+      <div class="loc-coord">(经度 87.6200, 纬度 43.8300)</div>
+    </div>
+</div>
+
+<h2 class="sec">📅 8 天天气预报 (重点地点)</h2>
+<div class="section-desc">⚠️ 这是关键 actionable 信息: 出发前 1-2 天重跑 <code>/tmp/build_live_info.py</code> 获取最新预报。注意关注降雨 (🌧 mm) 和大风 (💨 km/h) 警告。</div>
+<details class="forecast" open><summary>📍 赛里木湖 · Day 6/7 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>23.6°</b> / 12.3°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">⛈️<br><span class="desc">雷暴</span></td>
+          <td class="temp"><b>21.6°</b> / 13.9°C</td>
+          <td class="wind">💨 14km/h</td>
+          <td class="rain-cell"><span class="rain">1.4mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">🌧️<br><span class="desc">毛毛雨-浓</span></td>
+          <td class="temp"><b>21.7°</b> / 13.8°C</td>
+          <td class="wind">💨 20km/h</td>
+          <td class="rain-cell"><span class="rain">4.7mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">🌦️<br><span class="desc">阵雨-轻</span></td>
+          <td class="temp"><b>22.3°</b> / 13.8°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell"><span class="rain">3.2mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">⛈️<br><span class="desc">雷暴</span></td>
+          <td class="temp"><b>19.6°</b> / 13.5°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">6.6mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-中</span></td>
+          <td class="temp"><b>18.7°</b> / 13.9°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">4.8mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>15.5°</b> / 12.3°C</td>
+          <td class="wind">💨 12km/h</td>
+          <td class="rain-cell"><span class="rain">3.3mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>17.6°</b> / 12.1°C</td>
+          <td class="wind">💨 7km/h</td>
+          <td class="rain-cell"><span class="rain">0.6mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">13°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">21°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">23°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div><div class="hr-rain">24%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">⛅</div><div class="hr-temp">22°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">15°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">14°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☁️</div><div class="hr-temp">14°</div><div class="hr-rain">35%</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">16°</div><div class="hr-rain">40%</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☁️</div><div class="hr-temp">19°</div><div class="hr-rain">52%</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">21°</div><div class="hr-rain">76%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">21°</div><div class="hr-rain">76%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☁️</div><div class="hr-temp">20°</div><div class="hr-rain">44%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">17°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">15°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">🌧️</div><div class="hr-temp">14°</div><div class="hr-rain">76%</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">🌧️</div><div class="hr-temp">15°</div><div class="hr-rain">67%</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">18°</div><div class="hr-rain">50%</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">21°</div><div class="hr-rain">34%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">⛅</div><div class="hr-temp">22°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">⛅</div><div class="hr-temp">20°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☁️</div><div class="hr-temp">17°</div><div class="hr-rain">27%</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">15°</div><div class="hr-rain">48%</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 独山子大峡谷 · Day 5 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>25.6°</b> / 14.4°C</td>
+          <td class="wind">💨 14km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>25.0°</b> / 16.5°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">⛅<br><span class="desc">局部多云</span></td>
+          <td class="temp"><b>24.2°</b> / 16.1°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>25.2°</b> / 15.5°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>21.9°</b> / 17.1°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">0.3mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>22.3°</b> / 16.2°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>19.2°</b> / 15.7°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell"><span class="rain">0.6mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>19.1°</b> / 16.3°C</td>
+          <td class="wind">💨 3km/h</td>
+          <td class="rain-cell"><span class="rain">2.4mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">15°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☀️</div><div class="hr-temp">25°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">26°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">22°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">17°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">15°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">21°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div><div class="hr-rain">21%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">25°</div><div class="hr-rain">59%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">23°</div><div class="hr-rain">37%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">19°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">18°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">22°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☀️</div><div class="hr-temp">23°</div><div class="hr-rain">34%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div><div class="hr-rain">64%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">22°</div><div class="hr-rain">42%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">18°</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 奎屯 · Day 5 住宿 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">☀️<br><span class="desc">晴朗</span></td>
+          <td class="temp"><b>39.0°</b> / 22.8°C</td>
+          <td class="wind">💨 16km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>39.0°</b> / 27.3°C</td>
+          <td class="wind">💨 16km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>37.8°</b> / 27.6°C</td>
+          <td class="wind">💨 20km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>39.4°</b> / 29.6°C</td>
+          <td class="wind">💨 19km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>35.7°</b> / 26.8°C</td>
+          <td class="wind">💨 27km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">⛅<br><span class="desc">局部多云</span></td>
+          <td class="temp"><b>36.5°</b> / 27.8°C</td>
+          <td class="wind">💨 16km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>33.0°</b> / 24.6°C</td>
+          <td class="wind">💨 22km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>32.1°</b> / 27.2°C</td>
+          <td class="wind">💨 17km/h</td>
+          <td class="rain-cell">—</td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">23°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">30°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">35°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☀️</div><div class="hr-temp">39°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">☀️</div><div class="hr-temp">39°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">35°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">30°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">28°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">28°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">30°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">35°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☀️</div><div class="hr-temp">38°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">☀️</div><div class="hr-temp">39°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">36°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">31°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">29°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">28°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">29°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">33°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">37°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">38°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">36°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">31°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">29°</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 巴音布鲁克 · Day 3 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>22.7°</b> / 7.7°C</td>
+          <td class="wind">💨 14km/h</td>
+          <td class="rain-cell"><span class="rain">0.2mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>24.7°</b> / 10.2°C</td>
+          <td class="wind">💨 12km/h</td>
+          <td class="rain-cell"><span class="rain">0.4mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>25.3°</b> / 7.3°C</td>
+          <td class="wind">💨 18km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>26.8°</b> / 8.5°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>25.6°</b> / 14.5°C</td>
+          <td class="wind">💨 24km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>24.5°</b> / 12.6°C</td>
+          <td class="wind">💨 26km/h</td>
+          <td class="rain-cell"><span class="rain">1.8mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>19.6°</b> / 14.0°C</td>
+          <td class="wind">💨 22km/h</td>
+          <td class="rain-cell"><span class="rain">1.5mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>16.4°</b> / 11.8°C</td>
+          <td class="wind">💨 12km/h</td>
+          <td class="rain-cell"><span class="rain">3.3mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">8°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">11°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">17°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">22°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">23°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">19°</div><div class="hr-rain">35%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">9°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">8°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">11°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">14°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">25°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">22°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">14°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">13°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">☁️</div><div class="hr-temp">8°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">⛅</div><div class="hr-temp">12°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">⛅</div><div class="hr-temp">25°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">21°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">14°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">9°</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 那拉提 · Day 2/4 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>27.9°</b> / 12.2°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>26.7°</b> / 15.0°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell"><span class="rain">0.6mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>23.8°</b> / 13.4°C</td>
+          <td class="wind">💨 5km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>23.1°</b> / 15.2°C</td>
+          <td class="wind">💨 8km/h</td>
+          <td class="rain-cell"><span class="rain">0.1mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-中</span></td>
+          <td class="temp"><b>21.6°</b> / 14.9°C</td>
+          <td class="wind">💨 8km/h</td>
+          <td class="rain-cell"><span class="rain">2.7mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>20.3°</b> / 15.6°C</td>
+          <td class="wind">💨 9km/h</td>
+          <td class="rain-cell"><span class="rain">1.5mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>17.6°</b> / 14.2°C</td>
+          <td class="wind">💨 4km/h</td>
+          <td class="rain-cell"><span class="rain">5.1mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-中</span></td>
+          <td class="temp"><b>15.3°</b> / 13.7°C</td>
+          <td class="wind">💨 5km/h</td>
+          <td class="rain-cell"><span class="rain">8.4mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">12°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">18°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">25°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☀️</div><div class="hr-temp">27°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">28°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">15°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">13°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">15°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">26°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">27°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">23°</div><div class="hr-rain">42%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">20°</div><div class="hr-rain">58%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">18°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">15°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">14°</div><div class="hr-rain">32%</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">18°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">19°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">23°</div><div class="hr-rain">22%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">⛅</div><div class="hr-temp">24°</div><div class="hr-rain">57%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">22°</div><div class="hr-rain">44%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">17°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div><div class="hr-rain">28%</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 库尔滨/喀纳斯 · Day 9 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>24.6°</b> / 13.3°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">0.8mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-中</span></td>
+          <td class="temp"><b>26.7°</b> / 13.3°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">0.6mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>27.4°</b> / 13.4°C</td>
+          <td class="wind">💨 6km/h</td>
+          <td class="rain-cell"><span class="rain">0.7mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>30.2°</b> / 11.8°C</td>
+          <td class="wind">💨 6km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>25.2°</b> / 15.3°C</td>
+          <td class="wind">💨 6km/h</td>
+          <td class="rain-cell"><span class="rain">0.3mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>27.4°</b> / 15.0°C</td>
+          <td class="wind">💨 4km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>26.2°</b> / 17.0°C</td>
+          <td class="wind">💨 3km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>25.9°</b> / 14.9°C</td>
+          <td class="wind">💨 6km/h</td>
+          <td class="rain-cell"><span class="rain">1.8mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">13°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">18°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">23°</div><div class="hr-rain">61%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">☁️</div><div class="hr-temp">20°</div><div class="hr-rain">76%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">20°</div><div class="hr-rain">51%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">⛅</div><div class="hr-temp">15°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">14°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☁️</div><div class="hr-temp">13°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">19°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">⛅</div><div class="hr-temp">25°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☁️</div><div class="hr-temp">26°</div><div class="hr-rain">26%</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">19°</div><div class="hr-rain">49%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☁️</div><div class="hr-temp">19°</div><div class="hr-rain">54%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">⛅</div><div class="hr-temp">14°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">13°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">⛅</div><div class="hr-temp">17°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☁️</div><div class="hr-temp">25°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☁️</div><div class="hr-temp">27°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">22°</div><div class="hr-rain">40%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">21°</div><div class="hr-rain">28%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">17°</div><div class="hr-rain">48%</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">⛅</div><div class="hr-temp">15°</div><div class="hr-rain">21%</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 禾木 · Day 10/11 主景点 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>26.4°</b> / 12.8°C</td>
+          <td class="wind">💨 9km/h</td>
+          <td class="rain-cell"><span class="rain">0.2mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-中</span></td>
+          <td class="temp"><b>28.6°</b> / 13.6°C</td>
+          <td class="wind">💨 11km/h</td>
+          <td class="rain-cell"><span class="rain">0.8mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">🌦️<br><span class="desc">阵雨-轻</span></td>
+          <td class="temp"><b>28.9°</b> / 15.7°C</td>
+          <td class="wind">💨 9km/h</td>
+          <td class="rain-cell"><span class="rain">3.4mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">🌤️<br><span class="desc">基本晴朗</span></td>
+          <td class="temp"><b>31.2°</b> / 10.9°C</td>
+          <td class="wind">💨 5km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>28.7°</b> / 17.6°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">1.2mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>29.8°</b> / 16.6°C</td>
+          <td class="wind">💨 8km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>27.6°</b> / 19.0°C</td>
+          <td class="wind">💨 9km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>26.8°</b> / 16.2°C</td>
+          <td class="wind">💨 10km/h</td>
+          <td class="rain-cell"><span class="rain">0.6mm</span></td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">13°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☁️</div><div class="hr-temp">19°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☁️</div><div class="hr-temp">25°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☁️</div><div class="hr-temp">26°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">☁️</div><div class="hr-temp">26°</div><div class="hr-rain">21%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">17°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">14°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">14°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">⛅</div><div class="hr-temp">26°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">⛅</div><div class="hr-temp">28°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">23°</div><div class="hr-rain">27%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☁️</div><div class="hr-temp">22°</div><div class="hr-rain">37%</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">⛅</div><div class="hr-temp">18°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">14°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">16°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">⛅</div><div class="hr-temp">18°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">26°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☁️</div><div class="hr-temp">29°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">22°</div><div class="hr-rain">28%</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">22°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">🌦️</div><div class="hr-temp">18°</div><div class="hr-rain">38%</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">18°</div><div class="hr-rain">21%</div></td></tr></tbody></table></div></details><details class="forecast" open><summary>📍 阿勒泰 · Day 12 住宿 + 机场 · 8 天预报 + 3 天逐 3h</summary><table class="forecast-table"><thead><tr><th>日期</th><th>天气</th><th>温度</th><th>风</th><th>降雨</th></tr></thead><tbody>
+        <tr>
+          <td class="date">06/30<br><span class="wd">二</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>33.1°</b> / 18.5°C</td>
+          <td class="wind">💨 15km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/01<br><span class="wd">三</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>34.6°</b> / 20.1°C</td>
+          <td class="wind">💨 16km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/02<br><span class="wd">四</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>35.5°</b> / 23.6°C</td>
+          <td class="wind">💨 25km/h</td>
+          <td class="rain-cell"><span class="rain">0.3mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/03<br><span class="wd">五</span></td>
+          <td class="icon">⛅<br><span class="desc">局部多云</span></td>
+          <td class="temp"><b>36.5°</b> / 20.9°C</td>
+          <td class="wind">💨 20km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/04<br><span class="wd">六</span></td>
+          <td class="icon">⛅<br><span class="desc">局部多云</span></td>
+          <td class="temp"><b>34.8°</b> / 22.8°C</td>
+          <td class="wind">💨 16km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/05<br><span class="wd">日</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>34.3°</b> / 22.0°C</td>
+          <td class="wind">💨 24km/h</td>
+          <td class="rain-cell">—</td>
+        </tr>
+        <tr>
+          <td class="date">07/06<br><span class="wd">一</span></td>
+          <td class="icon">🌦️<br><span class="desc">毛毛雨-轻</span></td>
+          <td class="temp"><b>31.2°</b> / 23.1°C</td>
+          <td class="wind">💨 17km/h</td>
+          <td class="rain-cell"><span class="rain">2.4mm</span></td>
+        </tr>
+        <tr>
+          <td class="date">07/07<br><span class="wd">二</span></td>
+          <td class="icon">☁️<br><span class="desc">阴天</span></td>
+          <td class="temp"><b>31.2°</b> / 21.9°C</td>
+          <td class="wind">💨 15km/h</td>
+          <td class="rain-cell">—</td>
+        </tr></tbody></table><div class="hourly-wrap"><div class="hourly-title">🕐 逐 3 小时预报 (3 天 · 跨天)</div><table class="hourly-table"><thead><tr><th>日</th><th>06:00</th><th>09:00</th><th>12:00</th><th>15:00</th><th>18:00</th><th>21:00</th><th>00:00</th><th>03:00</th></tr></thead><tbody><tr><td class="day-label">06-30</td><td><div class="hr-time">06:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">18°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☁️</div><div class="hr-temp">27°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">☀️</div><div class="hr-temp">30°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">☁️</div><div class="hr-temp">32°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">☁️</div><div class="hr-temp">33°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☀️</div><div class="hr-temp">30°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☀️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">20°</div></td></tr><tr><td class="day-label">07-01</td><td><div class="hr-time">06:00</div><div class="hr-icon">☀️</div><div class="hr-temp">20°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">28°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">32°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">34°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">⛅</div><div class="hr-temp">34°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">☁️</div><div class="hr-temp">32°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">⛅</div><div class="hr-temp">25°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☀️</div><div class="hr-temp">21°</div></td></tr><tr><td class="day-label">07-02</td><td><div class="hr-time">06:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">24°</div></td><td><div class="hr-time">09:00</div><div class="hr-icon">☀️</div><div class="hr-temp">29°</div></td><td><div class="hr-time">12:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">34°</div></td><td><div class="hr-time">15:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">35°</div></td><td><div class="hr-time">18:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">32°</div></td><td><div class="hr-time">21:00</div><div class="hr-icon">🌤️</div><div class="hr-temp">32°</div></td><td><div class="hr-time">00:00</div><div class="hr-icon">☁️</div><div class="hr-temp">27°</div></td><td><div class="hr-time">03:00</div><div class="hr-icon">☁️</div><div class="hr-temp">28°</div></td></tr></tbody></table></div></details>
+
+<div class="alerts-banner"><h3>⚠️ 特殊天气警告 (8 条)</h3><div class="alerts-summary"><span class="alert-tag danger">4 危险</span> <span class="alert-tag warning">4 警告</span></div><div class="alerts-list"><div class="alert-item warning"><span class="alert-loc">伊宁</span><span class="alert-day">07-03</span><span class="alert-icon">💨</span><span class="alert-desc">💨 大风 31km/h</span></div><div class="alert-item danger"><span class="alert-loc">赛里木湖</span><span class="alert-day">07-01</span><span class="alert-icon">⛈️</span><span class="alert-desc">⛈️ 雷暴</span></div><div class="alert-item danger"><span class="alert-loc">赛里木湖</span><span class="alert-day">07-04</span><span class="alert-icon">⛈️</span><span class="alert-desc">⛈️ 雷暴</span></div><div class="alert-item warning"><span class="alert-loc">赛里木湖</span><span class="alert-day">07-04</span><span class="alert-icon">🌧️</span><span class="alert-desc">🌧️ 暴雨 6.6mm</span></div><div class="alert-item warning"><span class="alert-loc">霍城/果子沟</span><span class="alert-day">07-03</span><span class="alert-icon">💨</span><span class="alert-desc">💨 大风 31km/h</span></div><div class="alert-item danger"><span class="alert-loc">霍城/果子沟</span><span class="alert-day">07-04</span><span class="alert-icon">⛈️</span><span class="alert-desc">⛈️ 雷暴</span></div></div></div><h2 class="sec">📋 Day-by-Day 行动计划 (12 天)</h2>
+<div class="section-desc">⚠️ 这是 <b>关键 actionable 信息</b> — 每 Day 一个 actionable card, 整合天气 + 推荐视频 + 严重警告. ⚠️ badge 表示当日需要行动调整.</div>
+<div class="day-plan warning"><div class="day-head"><span class="day-num">Day 1</span><span class="day-title">伊宁取车 + 市区</span><span class="day-date">2026-06-30</span><span class="day-verdict warning">☀️ 高温</span></div><div class="day-advice">☀️ <b>高温 37°C</b>: 防晒 + 多喝水. </div><div class="day-meta">风 14km/h · 雨 0.0mm · 温 22~37°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:55</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">伊宁</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:21</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">伊宁</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>EVEN 伊宁绿发逸衡</b></span><span class="schedule-loc">舒适 22°C</span></div></div><div class="day-recs">📺 今日推荐: #06 赛里木湖蓝 · #08 中国国家地理·赛里木</div></div><div class="day-plan ok"><div class="day-head"><span class="day-num">Day 2</span><span class="day-title">伊宁→八卦城→那拉提</span><span class="day-date">2026-07-01</span><span class="day-verdict ok">✅ 良好</span></div><div class="day-advice">✅ <b>天气良好</b>: 适合所有行程, 视频攻略提前看</div><div class="day-meta">风 17km/h · 雨 0.6mm · 温 15~28°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:56</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">特克斯八卦城</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:16</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">特克斯八卦城</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>Holiday Inn Express 那拉提智选</b></span><span class="schedule-loc">舒适 15°C</span></div></div><div class="day-recs">📺 今日推荐: #09 那拉提避雷 · #10 那拉提草原 · #11/12/13 八卦城 (3 视频)</div></div><div class="day-plan ok"><div class="day-head"><span class="day-num">Day 3</span><span class="day-title">那拉提→巴音布鲁克</span><span class="day-date">2026-07-02</span><span class="day-verdict ok">✅ 良好</span></div><div class="day-advice">✅ <b>天气良好</b>: 适合所有行程, 视频攻略提前看</div><div class="day-meta">风 18km/h · 雨 0.0mm · 温 7~25°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:47</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:07</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>Holiday Inn 巴音布鲁克假日</b></span><span class="schedule-loc">最低 7°C, 备外套</span></div></div><div class="day-recs">📺 今日推荐: #14 九色日落 · #16 独库南段</div></div><div class="day-plan ok"><div class="day-head"><span class="day-num">Day 4</span><span class="day-title">巴音→那拉提空中草原</span><span class="day-date">2026-07-03</span><span class="day-verdict ok">✅ 良好</span></div><div class="day-advice">✅ <b>天气良好</b>: 适合所有行程, 视频攻略提前看</div><div class="day-meta">风 10km/h · 雨 0.1mm · 温 8~27°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:48</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:07</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>Hotel Indigo 那拉提英迪格</b></span><span class="schedule-loc">最低 8°C, 备外套</span></div></div><div class="day-recs">📺 今日推荐: 无 (行车日, 详见 Day 4 跨日讲解)</div></div><div class="day-plan warning"><div class="day-head"><span class="day-num">Day 5</span><span class="day-title">独库北段·独山子·奎屯</span><span class="day-date">2026-07-04</span><span class="day-verdict warning">☀️ 高温</span></div><div class="day-advice">☀️ <b>高温 36°C</b>: 防晒 + 多喝水. </div><div class="day-meta">风 27km/h · 雨 2.7mm · 温 15~36°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:48</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:07</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">那拉提</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>奎屯万达美华</b></span><span class="schedule-loc">舒适 15°C</span></div></div><div class="day-recs">📺 今日推荐: #20 独山子航拍 · #21 独山子攻略 · (路上可看 #17/18 独库公路)</div></div><div class="day-plan warning"><div class="day-head"><span class="day-num">Day 6</span><span class="day-title">奎屯→赛里木湖</span><span class="day-date">2026-07-05</span><span class="day-verdict warning">☀️ 高温</span></div><div class="day-advice">☀️ <b>高温 36°C</b>: 防晒 + 多喝水. </div><div class="day-meta">风 16km/h · 雨 4.8mm · 温 14~36°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:57</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:23</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>Hotel Indigo 赛里木湖英迪格</b></span><span class="schedule-loc">舒适 14°C</span></div></div><div class="day-recs">📺 今日推荐: #22 Dory vlog · #23 4K 赛里木日出</div></div><div class="day-plan ok"><div class="day-head"><span class="day-num">Day 7</span><span class="day-title">赛里木环湖+果子沟</span><span class="day-date">2026-07-06</span><span class="day-verdict ok">✅ 良好</span></div><div class="day-advice">✅ <b>天气良好</b>: 适合所有行程, 视频攻略提前看</div><div class="day-meta">风 16km/h · 雨 3.3mm · 温 12~23°C</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:57</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:23</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>Hotel Indigo 赛里木湖英迪格</b></span><span class="schedule-loc">舒适 12°C</span></div></div><div class="day-recs">📺 今日推荐: #24 果子沟大桥 · #25 赛湖+果子沟梳理</div></div><div class="day-plan info"><div class="day-head"><span class="day-num">Day 8</span><span class="day-title">赛湖→伊宁机场→阿勒泰→布尔津</span><span class="day-date">2026-07-07</span><span class="day-verdict info">💨 阵风</span></div><div class="day-advice">💨 <b>阵风 32km/h</b>: 户外注意防风. </div><div class="day-meta">风 32km/h · 雨 0.6mm · 温 12~33°C</div><div class="day-severe">⚠️ 💨 大风 32km/h</div><div class="day-schedule"><div class="schedule-title">🕐 一日时段建议</div><div class="schedule-item early"><span class="schedule-time">☀️ 06:58</span><span class="schedule-action">日出观赏</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item midday"><span class="schedule-time">🕐 13-15 时</span><span class="schedule-action">午休 + 午餐</span><span class="schedule-loc">避免暴晒, 餐厅/酒店休息</span></div><div class="schedule-item evening"><span class="schedule-time">🌆 22:22</span><span class="schedule-action">日落拍照</span><span class="schedule-loc">赛里木湖</span></div><div class="schedule-item night"><span class="schedule-time">🌙 晚餐</span><span class="schedule-action">晚餐 + 入住 <b>布尔津金津假日</b></span><span class="schedule-loc">舒适 12°C</span></div></div><div class="day-recs">📺 今日推荐: #26 大地调色盘 · #27 五彩滩日落</div></div><div class="day-plan out-of-range"><span class="day-num">Day 9</span><span class="day-title">布尔津→喀纳斯</span><span class="day-date">2026-07-08</span><span class="day-advice out-of-range-text">⚠️ 超出预报范围 · 出发前 1-2 天重跑脚本获取真实预报</span></div><div class="day-plan out-of-range"><span class="day-num">Day 10</span><span class="day-title">喀纳斯→禾木</span><span class="day-date">2026-07-09</span><span class="day-advice out-of-range-text">⚠️ 超出预报范围 · 出发前 1-2 天重跑脚本获取真实预报</span></div><div class="day-plan out-of-range"><span class="day-num">Day 11</span><span class="day-title">禾木机动</span><span class="day-date">2026-07-10</span><span class="day-advice out-of-range-text">⚠️ 超出预报范围 · 出发前 1-2 天重跑脚本获取真实预报</span></div><div class="day-plan out-of-range"><span class="day-num">Day 12</span><span class="day-title">禾木→布尔津→阿勒泰</span><span class="day-date">2026-07-11</span><span class="day-advice out-of-range-text">⚠️ 超出预报范围 · 出发前 1-2 天重跑脚本获取真实预报</span></div>
+
+<h2 class="sec">🛣️ 独库公路 (G217) 实时通车情况</h2>
+<div class="duku-card">
+  <h3>独库公路 (G217)</h3>
+  <div class="season-banner">
+    📅 <b>历史通车季节: 6 月中 — 10 月中</b> (受天气/积雪影响, 每年微调)
+  </div>
+  <div class="key-fact">
+    <div class="fact"><b>📏 全长</b>独山子 (北) ↔ 库车 (南), 全长 561km</div>
+    <div class="fact"><b>⛰️ 最高海拔</b>铁力买提达坂 3200m</div>
+    <div class="fact"><b>🗓️ 通行月份</b>6 月中 — 10 月中</div>
+    <div class="fact"><b>🕐 每日通行</b>7:00 - 20:00</div>
+  </div>
+</div>
+
+
+<div class="cross-day-banner">
+  <h3>🛣️ Day 4 独库公路视频跨日讲解</h3>
+  <p><b>问题:</b> Day 4 (巴音布鲁克 → 那拉提空中草原, 约 110km) 推荐视频 = 0, 因为 #17/18/19 "独库公路" 拍摄地点坐标 (44.10, 84.80) 在 Day 4 路线 107km 直线距离外。</p>
+  <p><b>真实情况:</b> 独库公路 G217 全长 561km, 跨越 4 个达坂。<b>#17-19 独库公路视频实际拍摄的是独库公路北段 (独山子 → 乔尔玛)</b>, 会在 <b>Day 5 行程 (那拉提 → 独山子大峡谷 → 奎屯, 320km) 沿途经过</b>。</p>
+  <p><b>建议:</b> #17/18/19 这 3 个独库公路视频 <b>在 Day 5 路上看最合适</b> (实景 + 攻略 + 4K 第一人称)。Day 4 的"独库穿越"主要在 Day 4 路线上的 <b>乔尔玛 / 防雪走廊</b> 段 (Day 3 视频 #15 已涵盖)。</p>
+  <table class="cross-table">
+    <thead><tr><th>视频</th><th>实际拍摄段</th><th>最佳观看 Day</th></tr></thead>
+    <tbody>
+      <tr><td>#17 8天四季更迭</td><td>独库北段 (独山子 → 乔尔玛)</td><td><b>Day 5</b> (那拉提 → 独山子)</td></tr>
+      <tr><td>#18 11问全攻略</td><td>独库全段 (独山子 → 库车)</td><td><b>Day 5</b> (北段) + Day 3 (南段)</td></tr>
+      <tr><td>#19 历史纪录片</td><td>独库历史 + 全景</td><td><b>Day 4</b> (行前参考, 不依赖位置)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<h3 style="color:var(--accent);margin:20px 0 10px">📡 官方实时查询入口 (出发前必查)</h3>
+<ul class="source-list">
+<li><a href="https://www.xjjtt.gov.cn/" target="_blank">新疆路网 (新疆交通运输厅路网监测与应急处置中心)</a> <span class="src-type">[官网]</span></li>
+<li><a href="https://weixin.sogou.com/weixin?type=2&query=%E7%8B%AC%E5%BA%93%E5%85%AC%E8%B7%AF+%E9%80%9A%E8%BD%A6" target="_blank">中国公路 公众号</a> <span class="src-type">[公众号]</span></li>
+<li><a href="https://www.xjjtt.gov.cn/ztzl/lkxx/" target="_blank">新疆维吾尔自治区交通运输厅 路况通报</a> <span class="src-type">[路况通报]</span></li>
+<li><a href="https://weibo.com/u/2733062074" target="_blank">独山子/库车交警 官方微博 (实时通报)</a> <span class="src-type">[微博]</span></li>
+<li><a href="https://www.xjbs.com.cn/" target="_blank">新疆交通广播 FM94.9 (实时播报)</a> <span class="src-type">[广播]</span></li>
+</ul>
+
+<h3 style="color:var(--accent);margin:20px 0 10px">⚠️ 通行小贴士</h3>
+<div class="tips">
+  <ul>
+    <li>🚗 每天仅允许 7:00-20:00通行 (限时段)</li>
+    <li>⚠️ 山区 7座以上客车/货车禁止通行 (自驾轿车/越野 OK)</li>
+    <li>🛢️ 沿途加油站少 (独山子/乔尔玛/巴音布鲁克/库车 4 处), 见站即加满</li>
+    <li>📶 信号弱, 离线地图必装 (高德/百度均可离线下载)</li>
+    <li>🌡️ 山口温差大, 备 -5°C 保暖衣物 (8 月山口可遇雨雪)</li>
+    <li>⛰️ 全程翻越 4 个达坂 (铁力买提/玉希莫勒盖/拉尔敦/哈希勒根)</li>
+  </ul>
+</div>
+
+<h2 class="sec">🛠️ 数据刷新</h2>
+<div class="section-desc">
+本页面数据由 <code>build_live_info.py</code> 自动抓取并生成, 默认缓存到 <code>/tmp/weather_cache_v5.json</code>。<br>
+出发前 1-2 天重新生成一次 (在 Hermes 中调用 build_live_info.py), 获得最新 8 天预报 + 通行信息。
+</div>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🗺 新疆自驾总览地图 · 视频地点 + 酒店 + 2h 车程</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root{--cream:#f6f1e7;--paper:#fcf9f1;--ink:#33414f;--soft:#5f6f7c;--blue:#2f6193;--blued:#234c74;--bluel:#e3edf6;--green:#5b8a52;--greenl:#e6efdd;--terra:#c8714e;--terral:#f3e2d7;--gold:#d9a441;--line:#e2d8c2;--sh:0 6px 20px rgba(80,64,40,.13);--shs:0 3px 10px rgba(80,64,40,.09);--red:#e74c3c}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;background:var(--cream);color:var(--ink);line-height:1.6}
+.hero{background:linear-gradient(135deg,#2f6193,#3a76ad);color:#fff;padding:30px 26px;box-shadow:var(--sh)}
+.hero h1{font-size:28px;margin-bottom:8px}
+.hero .sub{font-size:14px;opacity:.93;margin-bottom:14px}
+.hero .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.hero a{display:inline-block;background:rgba(255,255,255,.18);color:#fff;padding:6px 14px;border-radius:999px;font-size:13px;text-decoration:none;border:1px solid rgba(255,255,255,.3)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+section{padding:30px 0 6px}
+h2.sec{font-size:22px;margin:6px 0 16px;display:flex;align-items:center;gap:10px;color:var(--blued)}
+h2.sec .tg{background:var(--gold);color:#fff;font-size:12.5px;padding:3px 12px;border-radius:999px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center;box-shadow:var(--shs)}
+.stat .num{font-size:28px;font-weight:800;color:var(--blued);line-height:1}
+.stat.ok .num{color:var(--green)}
+.stat.warn .num{color:#e8834a}
+.stat.fail .num{color:var(--red)}
+.stat.neutral .num{color:#666}
+.stat .lbl{font-size:11.5px;color:var(--soft);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.maprow{display:flex;gap:16px;align-items:stretch;margin-top:14px}
+#map{flex:1;min-height:620px;border-radius:18px;box-shadow:var(--sh);background:#cdd9c8;z-index:1}
+.tl{width:340px;flex:0 0 340px;background:var(--paper);border-radius:18px;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column}
+.tlbar{padding:10px 13px;display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.b{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.b.go{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:700}
+.tllist{overflow-y:auto;flex:1;max-height:570px}
+.di{display:flex;gap:9px;padding:7px 13px;border-bottom:1px #ece3d0;cursor:pointer;font-size:12.5px}
+.di:hover{background:#f2ead7}
+.dn{flex:0 0 24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px}
+.di.vid .dn{background:var(--terra)}
+.di.ok{border-left:3px solid var(--green)}
+.di.fail{border-left:3px solid var(--red)}
+.di.warn{border-left:3px solid #e8834a}
+.dx{flex:1;min-width:0}
+.dx .a{font-size:10.5px;color:#8a7f6a}
+.dx .b2{font-size:12px;font-weight:600;line-height:1.3}
+.dx .h{font-size:10px;color:var(--green);margin-top:1px}
+.legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.94);border-radius:10px;padding:7px 10px;font-size:11px;box-shadow:var(--shs);z-index:600;line-height:1.7}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.leaflet-popup-content{margin:9px 12px;font-size:13px;line-height:1.4}
+.pt{font-weight:700;color:var(--blued);font-size:14px}
+.pd{font-size:11px;color:#8a7f6a;margin:2px 0 3px}
+.pn{display:inline-block;margin-top:5px;background:var(--blue);color:#fff;padding:3px 9px;border-radius:6px;font-size:11.5px;text-decoration:none}
+.pn.terra{background:var(--terra)}
+.pn.green{background:var(--green)}
+.pn.red{background:var(--red)}
+.mk{display:flex;align-items:center;justify-content:center;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:11px;width:25px;height:25px;font-weight:700;color:#fff}
+.mk.h{background:var(--gold)}
+#toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:rgba(40,40,40,.92);color:#fff;padding:7px 15px;border-radius:999px;font-size:12.5px;z-index:2000;display:none}
+.section-desc{font-size:13.5px;color:var(--soft);margin-bottom:10px;padding:10px 14px;background:var(--paper);border-radius:8px;border-left:4px solid var(--blue)}
+@media (max-width:820px){.maprow{flex-direction:column}.tl{width:100%;flex:0 0 auto}#map{min-height:380px}.tllist{max-height:300px}.legend{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>🗺 新疆自驾总览地图 · 视频地点 + 酒店 + 2h 车程</h1>
+  <div class="sub">31 视频 · 9 酒店 · 13 天行程 · 北京 ✈ 伊宁取车 · 伊犁段 + 北疆段 · 2h 车程严格约束</div>
+  <div class="toolbar">
+    <a href="#map-sec">🗺 地图</a>
+    <a href="#stats-sec">📊 统计</a>
+    <a href="#rule-sec">📐 2h 车程定义</a>
+    <a href="index.html">← 返回视频索引</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="stats-sec">
+  <h2 class="sec"><span class="tg">统计</span>📊 2h 车程检查结果</h2>
+  <div class="section-desc">按 Day 严格约束: 每个视频的拍摄地点 vs 当天入住酒店, 计算直线距离, 100km 内 (≈ 2h 路程) 标 ✓ 可当天往返, 超 100km 标 ✗ 需重新规划。</div>
+  <div class="stats">
+    <div class="stat ok"><div class="num">25</div><div class="lbl">✓ 全部在 2h 内</div></div>
+    <div class="stat warn"><div class="num">3</div><div class="lbl">⚠ 部分超 2h</div></div>
+    <div class="stat fail"><div class="num">3</div><div class="lbl">✗ 全部超 2h</div></div>
+    <div class="stat neutral"><div class="num">5</div><div class="lbl">— 参考视频</div></div>
+  </div>
+</section>
+
+<section id="map-sec">
+  <h2 class="sec"><span class="tg">地图</span>🗺️ 动态地图</h2>
+  <div class="maprow">
+    <div id="map"><div class="legend">
+      <span><i style="background:var(--green)"></i>✓ 沿路 2h (可当天往返)</span><br>
+      <span><i style="background:var(--red)"></i>✗ 离路 2h (需重新规划)</span><br>
+      <span><i style="background:#999"></i>— 参考视频 (行前/装备)</span><br>
+      <span><i style="background:var(--gold)"></i>酒店 (9)</span><br>
+      <span><i style="background:rgba(217,164,65,.25);border:1px dashed var(--gold)"></i>Day 行驶路线 (100km 直线)</span>
+    </div></div>
+    <div class="tl">
+      <div class="tlbar">
+        <button class="b go" onclick="overview()">🗺️ 全程</button>
+        <button class="b" onclick="showHotels()">🏨 酒店</button>
+        <button class="b" onclick="showOK()">✓ 沿路 2h</button>
+        <button class="b" onclick="showFail()">✗ 离路 2h</button>
+      </div>
+      <div class="tllist" id="tllist"></div>
+    </div>
+  </div>
+</section>
+
+<section id="rule-sec">
+  <h2 class="sec"><span class="tg">定义</span>📐 2h 车程定义</h2>
+  <div class="section-desc">
+    <strong>2 小时车程 (Day-specific 路线)</strong> = 新疆山路 60-70 km/h × 2h = 120-140 km 路程。<br>
+    由于山区弯路多, 实际 <strong>路程 ≈ 1.3× 直线距离</strong>, 因此 <strong>直线 100km</strong> 作为 2h 车程上限。<br>
+    严格约束: 视频拍摄地点必须 <strong>沿当天行驶路线 polyline ≤ 100km</strong> (考虑沿途绕行), 才算「可当天往返」。<br>
+    <span style="color:var(--text-dim);font-size:12px">例: Day 4 (巴音布鲁克→那拉提空中草原) 路线 ~110km, 沿途独库北段 107km ✓; Day 1 (伊宁取车) 不会去那拉提。</span>
+  </div>
+</section>
+
+<div id="toast"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const HOTELS = [{"n": "EVEN 伊宁绿发逸衡", "la": 43.916, "ln": 81.33, "d": 1}, {"n": "Holiday Inn Express 那拉提智选", "la": 43.33, "ln": 84.02, "d": 2}, {"n": "Holiday Inn 巴音布鲁克假日", "la": 43.03, "ln": 84.15, "d": 3}, {"n": "Hotel Indigo 那拉提英迪格", "la": 43.325, "ln": 84.025, "d": 4}, {"n": "奎屯万达美华", "la": 44.43, "ln": 84.89, "d": 5}, {"n": "Hotel Indigo 赛里木湖英迪格", "la": 44.52, "ln": 81.12, "d": 6}, {"n": "布尔津金津假日", "la": 47.7, "ln": 86.87, "d": 8}, {"n": "Holiday Inn Resort 喀纳斯禾木", "la": 48.55, "ln": 87.45, "d": 9}, {"n": "阿勒泰福朋喜来登", "la": 47.84, "ln": 88.13, "d": 12}];
+const VIDEOS_PLACES = [{"bv": "BV1Y64y1i7ue", "idx": 1, "title": "如何把一辆本田飞度改装成露营车 床车 身高180可完全躺平", "up": "刘师傅游记", "cat": "装备 🔧", "day": null, "place": "伊犁", "la": 43.92, "ln": 81.5, "ok": true, "km": 14.15908792908298}, {"bv": "BV1Po4y1V7hW", "idx": 2, "title": "坦克300自驾游新疆，双人带宠物猫狗自驾游，出发前准备【自驾游装备篇】", "up": "吴擦擦大魔王", "cat": "装备 🚙", "day": null, "place": "伊犁", "la": 43.92, "ln": 81.5, "ok": true, "km": 14.15908792908298}, {"bv": "BV1Po4y1V7hW", "idx": 2, "title": "坦克300自驾游新疆，双人带宠物猫狗自驾游，出发前准备【自驾游装备篇】", "up": "吴擦擦大魔王", "cat": "装备 🚙", "day": null, "place": "那拉提", "la": 43.3, "ln": 84.02, "ok": true, "km": 2.427739139004281}, {"bv": "BV13zyRBnEBa", "idx": 3, "title": "这，才叫独库公路！", "up": "Roc山海行", "cat": "行前必看 🎬", "day": null, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": true, "km": 0.0}, {"bv": "BV13zyRBnEBa", "idx": 3, "title": "这，才叫独库公路！", "up": "Roc山海行", "cat": "行前必看 🎬", "day": null, "place": "巴音布鲁克", "la": 42.88, "ln": 84.1, "ok": true, "km": 0.0}, {"bv": "BV1Hv411n7oc", "idx": 4, "title": "【4K治愈】真实存在的动漫场景，在新疆！《伊犁的童话II：鹰的国》", "up": "练凌飞lkemon", "cat": "行前必看 🎬", "day": null, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": true, "km": 0.0}, {"bv": "BV1Hv411n7oc", "idx": 4, "title": "【4K治愈】真实存在的动漫场景，在新疆！《伊犁的童话II：鹰的国》", "up": "练凌飞lkemon", "cat": "行前必看 🎬", "day": null, "place": "巴音布鲁克", "la": 42.88, "ln": 84.1, "ok": true, "km": 0.0}, {"bv": "BV1194y1k7bw", "idx": 5, "title": "送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版", "up": "迈得丘MadQ", "cat": "行前必看 📋", "day": null, "place": "伊犁", "la": 43.92, "ln": 81.5, "ok": true, "km": 14.15908792908298}, {"bv": "BV1194y1k7bw", "idx": 5, "title": "送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版", "up": "迈得丘MadQ", "cat": "行前必看 📋", "day": null, "place": "那拉提", "la": 43.3, "ln": 84.02, "ok": true, "km": 2.427739139004281}, {"bv": "BV1194y1k7bw", "idx": 5, "title": "送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版", "up": "迈得丘MadQ", "cat": "行前必看 📋", "day": null, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 0.0}, {"bv": "BV1194y1k7bw", "idx": 5, "title": "送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版", "up": "迈得丘MadQ", "cat": "行前必看 📋", "day": null, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": true, "km": 0.0}, {"bv": "BV1Zm7N64Erz", "idx": 6, "title": "果然是大西洋最后一滴眼泪，有一种蓝叫赛里木湖蓝", "up": "阿天骑行日记", "cat": "Day 1 赛里木湖 💎", "day": 1, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 70.87700800822198}, {"bv": "BV1yu4m1M7rj", "idx": 7, "title": "【4K新疆航拍】赛里木湖🏔️8日｜公路旅行 山川 湖泊🏞️雪山 ｜XINJIANG TRIP｜DJI MARVIC3 CLASSIC", "up": "jbbds基本不等式", "cat": "Day 1 赛里木湖 🎬", "day": 1, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 70.87700800822198}, {"bv": "BV1yu4m1M7rj", "idx": 7, "title": "【4K新疆航拍】赛里木湖🏔️8日｜公路旅行 山川 湖泊🏞️雪山 ｜XINJIANG TRIP｜DJI MARVIC3 CLASSIC", "up": "jbbds基本不等式", "cat": "Day 1 赛里木湖 🎬", "day": 1, "place": "果子沟", "la": 44.4, "ln": 80.99, "ok": true, "km": 56.35683443567452}, {"bv": "BV1yu4m1M7rj", "idx": 7, "title": "【4K新疆航拍】赛里木湖🏔️8日｜公路旅行 山川 湖泊🏞️雪山 ｜XINJIANG TRIP｜DJI MARVIC3 CLASSIC", "up": "jbbds基本不等式", "cat": "Day 1 赛里木湖 🎬", "day": 1, "place": "那拉提", "la": 43.3, "ln": 84.02, "ok": false, "km": 228.0366745884847}, {"bv": "BV15C411s7q8", "idx": 8, "title": "你一定要去看新疆的赛里木湖，去吹自由的风，去找灵魂里的另一个自己！", "up": "中国国家地理频道", "cat": "Day 1 赛里木湖 💎", "day": 1, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 70.87700800822198}, {"bv": "BV1GpWSe1EAJ", "idx": 9, "title": "4K | 全网避雷那拉提？那我可要去看看！去了还想去", "up": "Eric旅行记", "cat": "Day 2 那拉提 🌿", "day": 2, "place": "那拉提空中草原", "la": 43.3, "ln": 84.05, "ok": true, "km": 2.427739139004281}, {"bv": "BV1GpWSe1EAJ", "idx": 9, "title": "4K | 全网避雷那拉提？那我可要去看看！去了还想去", "up": "Eric旅行记", "cat": "Day 2 那拉提 🌿", "day": 2, "place": "那拉提", "la": 43.3, "ln": 84.02, "ok": true, "km": 0.0}, {"bv": "BV1rN411a767", "idx": 10, "title": "那拉提｜奔赴一场治愈的草原行", "up": "中国国家地理景观", "cat": "Day 2 那拉提 🌿", "day": 2, "place": "那拉提空中草原", "la": 43.3, "ln": 84.05, "ok": true, "km": 2.427739139004281}, {"bv": "BV1rN411a767", "idx": 10, "title": "那拉提｜奔赴一场治愈的草原行", "up": "中国国家地理景观", "cat": "Day 2 那拉提 🌿", "day": 2, "place": "那拉提", "la": 43.3, "ln": 84.02, "ok": true, "km": 0.0}, {"bv": "BV1Qq4y1v7yc", "idx": 11, "title": "实拍新疆特克斯县城，这里宛如一幅巨大的八卦图，设计太精妙了", "up": "巡游轨迹", "cat": "Day 2 八卦城 🏯", "day": 2, "place": "特克斯八卦城", "la": 43.215, "ln": 81.84, "ok": true, "km": 0.0}, {"bv": "BV1p3411G7Qf", "idx": 12, "title": "新疆特克斯八卦城，皮带面椒麻鸡，羊排揪片子，阿星吃乾街美食", "up": "阿星探店", "cat": "Day 2 八卦城 🏯", "day": 2, "place": "特克斯八卦城", "la": 43.215, "ln": 81.84, "ok": true, "km": 0.0}, {"bv": "BV1Vr421W75f", "idx": 13, "title": "新疆特克斯八卦城！中国唯一没红绿灯还不堵车的城市！吃啥玩啥，航拍咋报备，全攻略！", "up": "行走的盘子哥", "cat": "Day 2 八卦城 🏯", "day": 2, "place": "特克斯八卦城", "la": 43.215, "ln": 81.84, "ok": true, "km": 0.0}, {"bv": "BV1o64y1Q7CN", "idx": 14, "title": "九个太阳的日落！巴音布鲁克没有海。", "up": "幻想家姜时一", "cat": "Day 3 巴音布鲁克 🌅", "day": 3, "place": "巴音布鲁克九曲十八弯", "la": 42.88, "ln": 84.1, "ok": true, "km": 0.0}, {"bv": "BV1x9saeWE6D", "idx": 15, "title": "独库公路中集 - 乔尔玛至巴音布鲁克，中国最美公路 - 4K第一人称视角驾车全程记录", "up": "行走中国WalkChina", "cat": "Day 3 巴音布鲁克 🎬", "day": 3, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": false, "km": 108.8335223794532}, {"bv": "BV1x9saeWE6D", "idx": 15, "title": "独库公路中集 - 乔尔玛至巴音布鲁克，中国最美公路 - 4K第一人称视角驾车全程记录", "up": "行走中国WalkChina", "cat": "Day 3 巴音布鲁克 🎬", "day": 3, "place": "乔尔玛", "la": 43.78, "ln": 84.5, "ok": true, "km": 65.92138543077083}, {"bv": "BV1x9saeWE6D", "idx": 15, "title": "独库公路中集 - 乔尔玛至巴音布鲁克，中国最美公路 - 4K第一人称视角驾车全程记录", "up": "行走中国WalkChina", "cat": "Day 3 巴音布鲁克 🎬", "day": 3, "place": "巴音布鲁克", "la": 42.88, "ln": 84.1, "ok": true, "km": 0.0}, {"bv": "BV1fM4y1T7Js", "idx": 16, "title": "游疆50：自驾新疆独库公路南段，那拉提到巴音布鲁克，最全攻略！", "up": "信仰是风景", "cat": "Day 3 巴音布鲁克 🌿", "day": 3, "place": "独库公路南段", "la": 42.95, "ln": 84.15, "ok": true, "km": 8.78432485483749}, {"bv": "BV1fM4y1T7Js", "idx": 16, "title": "游疆50：自驾新疆独库公路南段，那拉提到巴音布鲁克，最全攻略！", "up": "信仰是风景", "cat": "Day 3 巴音布鲁克 🌿", "day": 3, "place": "巴音布鲁克", "la": 42.88, "ln": 84.1, "ok": true, "km": 0.0}, {"bv": "BV1r441167d7", "idx": 17, "title": "【新疆独库公路】8天公路旅行历经四季更迭｜Xinjiang ROAD TRIP｜公路旅行", "up": "Blank_Vision", "cat": "Day 4 独库公路 🚙", "day": 4, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": false, "km": 107.46220091552023}, {"bv": "BV1mM4m1S7Rd", "idx": 18, "title": "独库公路完整全攻略！！解决这些关键问题，自驾独库毫无压力！一共11个关键问题哦！", "up": "行走的盘子哥", "cat": "Day 4 独库公路 🚙", "day": 4, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": false, "km": 107.46220091552023}, {"bv": "BV1ao4y1C7mi", "idx": 19, "title": "数万人修建，百人牺牲，10年通车，独库公路有多重要？", "up": "三维地图看世界", "cat": "Day 4 独库公路 📋", "day": 4, "place": "独库公路", "la": 44.1, "ln": 84.8, "ok": false, "km": 107.46220091552023}, {"bv": "BV1Ta4y137eS", "idx": 20, "title": "独山子大峡谷航拍", "up": "CHN.Lee", "cat": "Day 5 独山子 🏔", "day": 5, "place": "独山子大峡谷", "la": 44.1, "ln": 84.8, "ok": true, "km": 0.0}, {"bv": "BV1uv4y1J7x9", "idx": 21, "title": "独库公路第一景独山子大峡谷游玩攻略", "up": "弓长张大人耶", "cat": "Day 5 独山子 📋", "day": 5, "place": "独山子大峡谷", "la": 44.1, "ln": 84.8, "ok": true, "km": 0.0}, {"bv": "BV1uv4y1J7x9", "idx": 21, "title": "独库公路第一景独山子大峡谷游玩攻略", "up": "弓长张大人耶", "cat": "Day 5 独山子 📋", "day": 5, "place": "独库公路北段", "la": 44.2, "ln": 84.9, "ok": true, "km": 13.685708583647912}, {"bv": "BV18bmVY7EMy", "idx": 22, "title": "Dory｜一个人公共交通勇闯新疆！终于来到我魂牵梦萦的地方｜匆匆一瞥的赛里木湖｜喀纳斯徒步三湾｜在炊烟袅袅的禾木清晨，吃包尔萨克配奶茶｜旅行Vlog", "up": "爱喝的Dory", "cat": "Day 6 赛里木环湖 💎", "day": 6, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 0.0}, {"bv": "BV18bmVY7EMy", "idx": 22, "title": "Dory｜一个人公共交通勇闯新疆！终于来到我魂牵梦萦的地方｜匆匆一瞥的赛里木湖｜喀纳斯徒步三湾｜在炊烟袅袅的禾木清晨，吃包尔萨克配奶茶｜旅行Vlog", "up": "爱喝的Dory", "cat": "Day 6 赛里木环湖 💎", "day": 6, "place": "喀纳斯", "la": 48.77, "ln": 87.02, "ok": false, "km": 509.22942769345406}, {"bv": "BV18bmVY7EMy", "idx": 22, "title": "Dory｜一个人公共交通勇闯新疆！终于来到我魂牵梦萦的地方｜匆匆一瞥的赛里木湖｜喀纳斯徒步三湾｜在炊烟袅袅的禾木清晨，吃包尔萨克配奶茶｜旅行Vlog", "up": "爱喝的Dory", "cat": "Day 6 赛里木环湖 💎", "day": 6, "place": "禾木", "la": 48.555, "ln": 87.46, "ok": false, "km": 499.01588736037166}, {"bv": "BV1T2RXBPE9f", "idx": 23, "title": "【4K航拍】在赛里木湖，等一场橘色日出", "up": "渣渣辉摄影", "cat": "Day 6 赛里木日出 🌅", "day": 6, "place": "赛里木湖", "la": 44.58, "ln": 81.15, "ok": true, "km": 0.0}, {"bv": "BV1HM4y1b7oc", "idx": 24, "title": "果子沟大桥：给你说个不用无人机拍全貌的好位置", "up": "葱疆蒜-游新疆", "cat": "Day 7 果子沟 🌉", "day": 7, "place": "果子沟大桥", "la": 44.4, "ln": 80.99, "ok": true, "km": 0.0}, {"bv": "BV1bYWQe1Esj", "idx": 25, "title": "赛里木湖游玩攻略，线路规划游玩建议，果子沟大桥观赏点全梳理", "up": "阿眯sn", "cat": "Day 7 果子沟 🌉", "day": 7, "place": "果子沟大桥", "la": 44.4, "ln": 80.99, "ok": true, "km": 0.0}, {"bv": "BV1YnEfzUEw9", "idx": 26, "title": "大地打翻了调色盘｜新疆五彩滩，美到窒息的彩虹滩！", "up": "花花世界Scenery", "cat": "Day 8 五彩滩 🌅", "day": 8, "place": "五彩滩", "la": 47.74, "ln": 86.8, "ok": true, "km": 0.0}, {"bv": "BV18y4y1C7b2", "idx": 27, "title": "五彩滩的日落，是突破想象的神之配色", "up": "超时空路过的鹤", "cat": "Day 8 五彩滩 🌅", "day": 8, "place": "五彩滩", "la": 47.74, "ln": 86.8, "ok": true, "km": 0.0}, {"bv": "BV1tV26YJEVU", "idx": 28, "title": "新疆阿勒泰喀纳斯河 4K HDR - 在中国最美的河滨步行道漫步", "up": "行走中国WalkChina", "cat": "Day 9 喀纳斯 🏔", "day": 9, "place": "喀纳斯湖", "la": 48.77, "ln": 87.02, "ok": true, "km": 0.0}, {"bv": "BV1tV26YJEVU", "idx": 28, "title": "新疆阿勒泰喀纳斯河 4K HDR - 在中国最美的河滨步行道漫步", "up": "行走中国WalkChina", "cat": "Day 9 喀纳斯 🏔", "day": 9, "place": "喀纳斯三湾", "la": 48.65, "ln": 87.04, "ok": true, "km": 13.423844358550353}, {"bv": "BV1Tz4y157yq", "idx": 29, "title": "秋到禾木｜这里的秋色登峰造极", "up": "中国国家地理景观", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木观景台", "la": 48.565, "ln": 87.45, "ok": true, "km": 1.333424257850641}, {"bv": "BV1Tz4y157yq", "idx": 29, "title": "秋到禾木｜这里的秋色登峰造极", "up": "中国国家地理景观", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木村", "la": 48.555, "ln": 87.46, "ok": true, "km": 0.0}, {"bv": "BV1sY4y177tc", "idx": 30, "title": "北疆喀纳斯的禾木村，夏天也美得像童话【4K】", "up": "申请的申同学", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木观景台", "la": 48.565, "ln": 87.45, "ok": true, "km": 1.333424257850641}, {"bv": "BV1sY4y177tc", "idx": 30, "title": "北疆喀纳斯的禾木村，夏天也美得像童话【4K】", "up": "申请的申同学", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木村", "la": 48.555, "ln": 87.46, "ok": true, "km": 0.0}, {"bv": "BV1wf4y1G7ag", "idx": 31, "title": "新疆vlog——五一北疆游 （可可托海-禾木村-喀纳斯-五彩滩-魔鬼城）", "up": "大雄你听我解释", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木观景台", "la": 48.565, "ln": 87.45, "ok": true, "km": 1.333424257850641}, {"bv": "BV1wf4y1G7ag", "idx": 31, "title": "新疆vlog——五一北疆游 （可可托海-禾木村-喀纳斯-五彩滩-魔鬼城）", "up": "大雄你听我解释", "cat": "Day 10 禾木 🏔", "day": 10, "place": "禾木村", "la": 48.555, "ln": 87.46, "ok": true, "km": 0.0}];
+
+const street=L.tileLayer("https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl=1&style=7&x={x}&y={y}&z={z}",{subdomains:"1234",maxZoom:18,attribution:"高德地图"});
+const map=L.map("map",{layers:[street]}).setView([46,84.5],6);
+
+function outChina(lng,lat){return(lng<72||lng>137.9||lat<0.8||lat>55.9)}
+function tl(x,y){let r=-100+2*x+3*y+.2*y*y+.1*x*y+.2*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(y*Math.PI)+40*Math.sin(y/3*Math.PI))*2/3;r+=(160*Math.sin(y/12*Math.PI)+320*Math.sin(y*Math.PI/30))*2/3;return r}
+function tg(x,y){let r=300+x+2*y+.1*x*x+.1*x*y+.1*Math.sqrt(Math.abs(x));r+=(20*Math.sin(6*x*Math.PI)+20*Math.sin(2*x*Math.PI))*2/3;r+=(20*Math.sin(x*Math.PI)+40*Math.sin(x/3*Math.PI))*2/3;r+=(150*Math.sin(x/12*Math.PI)+300*Math.sin(x/30*Math.PI))*2/3;return r}
+function G(lat,lng){if(outChina(lng,lat))return[lat,lng];const a=6378245,ee=.00669342162296594323;let dla=tl(lng-105,lat-35),dln=tg(lng-105,lat-35);const rl=lat/180*Math.PI;let m=Math.sin(rl);m=1-ee*m*m;const sm=Math.sqrt(m);dla=dla*180/((a*(1-ee))/(m*sm)*Math.PI);dln=dln*180/(a/sm*Math.cos(rl)*Math.PI);return[lat+dla,lng+dln];}
+
+const hotelMarkers=[], videoMarkers=[], circles=[];
+HOTELS.forEach(h=>{
+  const g=G(h.la,h.ln);
+  const m=L.marker(g,{icon:L.divIcon({className:"",html:'<div class="mk h">🛏</div>',iconSize:[25,25],iconAnchor:[12,12]})}).addTo(map);
+  m.bindPopup('<div class="pt">🛏 '+h.n+'</div><div class="pd">Day '+h.d+' 住宿 · 2h 圈 100km</div><a class="pn" target="_blank" href="https://uri.amap.com/marker?position='+g[1]+','+g[0]+'&name='+encodeURIComponent(h.n)+'&coordinate=gaode">高德导航 ›</a>');
+  hotelMarkers.push(m);
+  const c=L.circle(g,{radius:100000,color:"#d9a441",weight:1.5,fillColor:"#d9a441",fillOpacity:.06,dashArray:"4,6"}).addTo(map);
+  c.bindTooltip(h.n+" · 2h ≈ 100km 直线",{permanent:false,direction:"center"});
+  circles.push(c);
+});
+
+VIDEOS_PLACES.forEach(v=>{
+  const g=G(v.la,v.ln);
+  let bg = v.ok===true ? 'var(--green)' : v.ok===false ? 'var(--red)' : '#999';
+  let popupBadge = v.ok===true ? '<span class="pn green">✓ 沿路 2h</span>' : v.ok===false ? `<span class="pn red">✗ 离路 2h (${Math.round(v.km)}km)</span>` : '<span class="pn">— 参考</span>';
+  const m=L.marker(g,{icon:L.divIcon({className:"",html:'<div class="mk" style="background:'+bg+'">'+v.idx+'</div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);
+  m.bindPopup('<div class="pt">📹 #'+v.idx+' '+v.title.substring(0,28)+'…</div><div class="pd">'+v.cat+' · Day '+(v.day||"—")+' · 📍 '+v.place+'</div>'+popupBadge+'<br><a class="pn terra" href="video_'+String(v.idx).padStart(2,"0")+'.html" target="_blank">Obsidian 笔记 ›</a><br><a class="pn" target="_blank" href="https://www.bilibili.com/video/'+v.bv+'/">B 站 ›</a>');
+  videoMarkers.push(m);
+});
+
+const yili=[[43.9558,81.3303],[43.330,84.020],[42.88,84.10],[43.30,84.05],[44.10,84.80],[44.43,84.89],[44.58,81.15],[44.40,80.99],[43.9558,81.3303]].map(c=>G(c[0],c[1]));
+const bei=[[47.7405,88.0857],[47.74,86.80],[47.70,86.87],[48.77,87.02],[48.55,87.45],[48.565,87.45],[47.84,88.13],[47.7405,88.0857]].map(c=>G(c[0],c[1]));
+L.polyline(yili,{color:"#5b8a52",weight:4,opacity:.85}).addTo(map);
+L.polyline(bei,{color:"#2f6193",weight:4,opacity:.85}).addTo(map);
+
+// V3 新增: Day-specific polyline (淡色细线, 可点击跳到对应 Day)
+const DAY_POLYLINE_JS = {"1": [[43.9558, 81.3303], [43.92, 81.32]], "2": [[43.92, 81.32], [43.215, 81.84], [43.3, 84.02]], "3": [[43.3, 84.02], [42.88, 84.1]], "4": [[42.88, 84.1], [43.3, 84.05]], "5": [[43.3, 84.05], [44.1, 84.8], [44.43, 84.89]], "6": [[44.43, 84.89], [44.58, 81.15]], "7": [[44.58, 81.15], [44.4, 80.99], [44.58, 81.15]], "8": [[44.58, 81.15], [43.9558, 81.3303], [47.7405, 88.0857], [47.74, 86.8], [47.7, 86.87]], "9": [[47.7, 86.87], [48.77, 87.02], [48.55, 87.45]], "10": [[48.55, 87.45], [48.555, 87.46]], "11": [[48.555, 87.46], [48.565, 87.45]], "12": [[48.565, 87.45], [47.7, 86.87], [47.84, 88.13]]};
+Object.entries(DAY_POLYLINE_JS).forEach(([d, pts]) => {
+  const gc = pts.map(c => G(c[0], c[1]));
+  L.polyline(gc, {color:"#d9a441",weight:2,opacity:.4,dashArray:"2,8"}).addTo(map).bindTooltip("Day "+d+" 行驶路线",{permanent:false,direction:"center"});
+});
+
+const allMarkers=[...hotelMarkers, ...videoMarkers];
+map.fitBounds(L.latLngBounds(allMarkers.map(m=>m.getLatLng())).pad(.15));
+
+function buildTL(){
+  const box=document.getElementById("tllist");
+  box.innerHTML="";
+  const hotelH=document.createElement("div");
+  hotelH.style.cssText="padding:8px 13px;font-size:11px;font-weight:700;color:var(--gold);background:#fdf3df";
+  hotelH.textContent="🏨 住宿 (9)";
+  box.appendChild(hotelH);
+  HOTELS.forEach((h,i)=>{
+    const el=document.createElement("div");
+    el.className="di";
+    el.innerHTML='<div class="dn" style="background:var(--gold)">🛏</div><div class="dx"><div class="a">Day '+h.d+'</div><div class="b2">'+h.n+'</div><div class="h">2h 圈 100km</div></div>';
+    el.onclick=()=>{hotelMarkers[i].openPopup();map.flyTo(hotelMarkers[i].getLatLng(),9,{duration:.6})};
+    box.appendChild(el);
+  });
+  const vidH=document.createElement("div");
+  vidH.style.cssText="padding:8px 13px;font-size:11px;font-weight:700;color:var(--terra);background:#fdf0e6;margin-top:8px";
+  vidH.textContent="📹 视频地点 (51)";
+  box.appendChild(vidH);
+  VIDEOS_PLACES.forEach((v,i)=>{
+    let cls = v.ok===true ? 'ok' : v.ok===false ? 'fail' : 'warn';
+    const el=document.createElement("div");
+    el.className="di vid "+cls;
+    const icon = v.ok===true ? '✓' : v.ok===false ? '✗' : '—';
+    el.innerHTML='<div class="dn">'+v.idx+'</div><div class="dx"><div class="a">'+icon+' Day '+(v.day||"—")+' · '+v.place+'</div><div class="b2">'+v.title.substring(0,28)+'…</div><div class="h">'+v.up+'</div></div>';
+    el.onclick=()=>{videoMarkers[i].openPopup();map.flyTo(videoMarkers[i].getLatLng(),9,{duration:.6})};
+    box.appendChild(el);
+  });
+}
+buildTL();
+
+function overview(){map.fitBounds(L.latLngBounds(allMarkers.map(m=>m.getLatLng())).pad(.15),{duration:.6});toast("全程概览")}
+function showHotels(){hotelMarkers.forEach(m=>m.openPopup());map.flyToBounds(L.latLngBounds(hotelMarkers.map(m=>m.getLatLng())).pad(.2),{duration:.6});toast("显示 9 酒店")}
+function showOK(){const ok=videoMarkers.filter((_,i)=>VIDEOS_PLACES[i].ok===true);if(!ok.length){toast("无 2h 圈内视频");return}ok.forEach(m=>m.openPopup());map.flyToBounds(L.latLngBounds(ok.map(m=>m.getLatLng())).pad(.15),{duration:.6});toast("显示 "+ok.length+" 圈内视频")}
+function showFail(){const f=videoMarkers.filter((_,i)=>VIDEOS_PLACES[i].ok===false);if(!f.length){toast("无超 2h 视频");return}f.forEach(m=>m.openPopup());map.flyToBounds(L.latLngBounds(f.map(m=>m.getLatLng())).pad(.15),{duration:.6});toast("显示 "+f.length+" 超 2h 视频")}
+let tt;function toast(m){const e=document.getElementById("toast");e.textContent=m;e.style.display="block";clearTimeout(tt);tt=setTimeout(()=>e.style.display="none",2500)};
+setTimeout(()=>map.invalidateSize(),300);
+</script>
+</body>
+</html>
