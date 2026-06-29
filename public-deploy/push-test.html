@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧪 Push Notification 测试 · 新疆自驾</title>
+<style>
+:root{--bg:#1e1e1e;--bg2:#252525;--bg3:#2d2d2d;--text:#dcddde;--text-dim:#999;--accent:#ffd75e;--link:#5a8dee;--border:#3a3a3a;--green:#5b8a52;--red:#e74c3c;--orange:#e8834a;--blue:#3498db}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC",monospace,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px;padding:40px 24px;max-width:900px;margin:0 auto}
+h1{font-size:28px;color:#fff;margin-bottom:8px}
+h2{font-size:20px;color:var(--accent);margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+.sub{color:var(--text-dim);font-size:13px;margin-bottom:20px}
+.box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+label{display:block;color:var(--text-dim);font-size:12px;margin-bottom:4px;text-transform:uppercase;font-weight:600}
+input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:6px;font-size:14px;font-family:inherit;margin-bottom:14px}
+textarea{min-height:140px;font-family:monospace;font-size:12px;resize:vertical}
+button{background:var(--accent);color:#000;border:none;padding:10px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;margin-right:8px;margin-bottom:6px}
+button:hover{background:#fff}
+button.secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+button.danger{background:var(--red);color:#fff}
+.btn-row{margin:14px 0;display:flex;flex-wrap:wrap;gap:6px}
+.status{padding:10px 14px;border-radius:6px;font-size:13px;margin:10px 0;font-family:monospace}
+.status.ok{background:rgba(91,138,82,.2);border:1px solid var(--green);color:var(--green)}
+.status.warn{background:rgba(232,131,74,.2);border:1px solid var(--orange);color:var(--orange)}
+.status.err{background:rgba(231,76,60,.2);border:1px solid var(--red);color:var(--red)}
+.info{color:var(--text-dim);font-size:12px;margin:6px 0 14px;line-height:1.6}
+.code{background:var(--bg3);padding:10px 12px;border-radius:6px;font-family:monospace;font-size:11.5px;color:var(--accent);overflow-x:auto;word-break:break-all}
+.tip{background:var(--bg3);border-left:4px solid var(--blue);padding:10px 14px;border-radius:4px;margin:10px 0;font-size:13px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<h1>🧪 Web Push 测试台</h1>
+<p class="sub">触发 mock push → 检查 Service Worker → 显示系统通知 → 点击跳转 URL</p>
+
+<h2>① Service Worker 状态</h2>
+<div class="box">
+  <div id="sw-status" class="status warn">检查中...</div>
+  <div class="btn-row">
+    <button onclick="checkSW()">🔄 重新检查</button>
+    <button class="secondary" onclick="unregisterSW()">🗑 注销 SW</button>
+    <button class="secondary" onclick="location.reload()">↻ 刷新页面</button>
+  </div>
+  <div class="info">⚠️ 浏览器 DevTools → Application → Service Workers 可看到 sw.js 状态. 注意 SW 仅在 HTTPS / localhost 生效.</div>
+</div>
+
+<h2>② VAPID 公钥 (mock 占位)</h2>
+<div class="box">
+  <div class="code" id="vapid-display">加载中...</div>
+  <div class="info">📌 真实部署时, 后端 web-push generate-vapid-keys 生成 key pair, 公钥放在 SW 顶部, 私钥用于发送.</div>
+</div>
+
+<h2>③ 订阅状态</h2>
+<div class="box">
+  <div id="sub-status" class="status warn">检查中...</div>
+  <div class="btn-row">
+    <button onclick="subscribePush()">🔔 订阅独库预警</button>
+    <button class="danger" onclick="unsubscribePush()">取消订阅</button>
+  </div>
+  <div id="sub-detail" class="code" style="display:none"></div>
+</div>
+
+<h2>④ 触发 Mock Push</h2>
+<div class="box">
+  <div class="tip">
+    💡 点击下方按钮, 直接通过 SW 的 <code>showNotification()</code> 弹出测试通知 (无需真实服务器 push).<br>
+    真实流程: 后端 POST 到 web-push library → 浏览器 push service → SW push event → showNotification.
+  </div>
+
+  <label>通知标题 (title)</label>
+  <input type="text" id="push-title" value="⚠️ 独库公路 · 暴雨预警">
+
+  <label>通知正文 (body)</label>
+  <textarea id="push-body">独库公路北段 (哈希勒根达坂) 未来 3 小时有大暴雨, 能见度 < 100m, 建议暂停通行. 点击查看实时路况.</textarea>
+
+  <label>跳转 URL</label>
+  <input type="text" id="push-url" value="/视频库/live_info">
+
+  <label>图标 (icon)</label>
+  <input type="text" id="push-icon" value="/xjb-icon-192.png">
+
+  <div class="btn-row">
+    <button onclick="triggerPushDirect()">🚀 直接触发通知</button>
+    <button onclick="triggerPushPOST()" class="secondary">📡 POST /api/push-send</button>
+  </div>
+  <div id="push-result" class="status" style="display:none"></div>
+</div>
+
+<h2>⑤ 预设场景</h2>
+<div class="box">
+  <div class="btn-row">
+    <button onclick="useScenario('duku_rain')">🌧 独库暴雨</button>
+    <button onclick="useScenario('duku_snow')" class="secondary">❄️ 哈希勒根大雪</button>
+    <button onclick="useScenario('yili_hot')" class="secondary">🔥 伊犁高温</button>
+    <button onclick="useScenario('road_closed')" class="secondary">🚧 道路封闭</button>
+    <button onclick="useScenario('camp_fire')" class="secondary">🔥 营地火警</button>
+  </div>
+</div>
+
+<script>
+const VAPID_PUBLIC_KEY = 'BK1pDThjr7tJqxQ6QyQ9fK8dZ2cM4nX5lP7vT8wH9jR6yN3sA1bC0eG';
+
+document.getElementById('vapid-display').textContent = VAPID_PUBLIC_KEY;
+
+// ============ ① Service Worker ============
+function checkSW() {
+  if (!('serviceWorker' in navigator)) {
+    setStatus('sw-status', 'err', '❌ 浏览器不支持 Service Worker');
+    return;
+  }
+  navigator.serviceWorker.getRegistration()
+    .then((reg) => {
+      if (reg) {
+        setStatus('sw-status', 'ok', `✅ SW 已注册 · scope: ${reg.scope} · state: ${reg.active?.state || 'installing'}`);
+      } else {
+        setStatus('sw-status', 'warn', '⚠️ SW 未注册, 请点击下方按钮注册');
+        registerSW();
+      }
+      checkSubscription();
+    });
+}
+
+function registerSW() {
+  navigator.serviceWorker.register('/sw.js')
+    .then((reg) => {
+      console.log('[Test] SW registered:', reg);
+      setStatus('sw-status', 'ok', `✅ SW 注册成功 · scope: ${reg.scope}`);
+      // 等激活
+      return navigator.serviceWorker.ready;
+    })
+    .then(() => checkSubscription())
+    .catch((err) => setStatus('sw-status', 'err', `❌ SW 注册失败: ${err.message}`));
+}
+
+function unregisterSW() {
+  navigator.serviceWorker.getRegistration()
+    .then((reg) => reg && reg.unregister())
+    .then(() => {
+      setStatus('sw-status', 'warn', '🗑 SW 已注销, 刷新页面后失效');
+      setStatus('sub-status', 'warn', '需要重新订阅');
+    });
+}
+
+// ============ ② Push 订阅 ============
+function urlB64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  const output = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
+function checkSubscription() {
+  navigator.serviceWorker.ready
+    .then((reg) => reg.pushManager.getSubscription())
+    .then((sub) => {
+      if (sub) {
+        const json = sub.toJSON();
+        setStatus('sub-status', 'ok', `✅ 已订阅 · endpoint: ${json.endpoint.substring(0, 60)}...`);
+        document.getElementById('sub-detail').style.display = 'block';
+        document.getElementById('sub-detail').textContent = JSON.stringify({
+          endpoint: json.endpoint,
+          keys: json.keys,
+        }, null, 2);
+      } else {
+        setStatus('sub-status', 'warn', '⚠️ 未订阅 · 点击下方 "🔔 订阅独库预警"');
+        document.getElementById('sub-detail').style.display = 'none';
+      }
+    })
+    .catch((err) => setStatus('sub-status', 'err', `❌ 查询订阅失败: ${err.message}`));
+}
+
+function subscribePush() {
+  if (!('PushManager' in window)) {
+    setStatus('sub-status', 'err', '❌ 浏览器不支持 Push API');
+    return;
+  }
+  Notification.requestPermission()
+    .then((perm) => {
+      if (perm !== 'granted') {
+        setStatus('sub-status', 'err', `❌ 权限被拒: ${perm}`);
+        return null;
+      }
+      setStatus('sub-status', 'warn', '⏳ 正在调用 pushManager.subscribe()...');
+      return navigator.serviceWorker.ready
+        .then((reg) => reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY),
+        }));
+    })
+    .then((sub) => {
+      if (!sub) return;
+      const json = sub.toJSON();
+      setStatus('sub-status', 'ok', `✅ 订阅成功! POST /api/push-subscribe ...`);
+      document.getElementById('sub-detail').style.display = 'block';
+      document.getElementById('sub-detail').textContent = JSON.stringify(json, null, 2);
+
+      // POST 到后端 (mock, 真后端会把 subscription 存 DB)
+      return fetch('/api/push-subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      })
+        .then((resp) => resp.json())
+        .then((data) => {
+          setStatus('sub-status', 'ok',
+            `✅ 订阅成功 + 后端响应 (${data.status || 'ok'}) · ${data.subscribers ?? 1} 个订阅者`);
+        })
+        .catch(() => {
+          // 后端 mock 失败也无所谓, 订阅本身已成功
+          setStatus('sub-status', 'ok', `✅ 订阅成功 (本地 SW) · 后端 POST 失败 (无后端, mock 模式)`);
+        });
+    })
+    .catch((err) => setStatus('sub-status', 'err', `❌ 订阅失败: ${err.message}`));
+}
+
+function unsubscribePush() {
+  navigator.serviceWorker.ready
+    .then((reg) => reg.pushManager.getSubscription())
+    .then((sub) => {
+      if (!sub) {
+        setStatus('sub-status', 'warn', '⚠️ 当前未订阅');
+        return null;
+      }
+      return sub.unsubscribe();
+    })
+    .then((ok) => {
+      if (ok === undefined) return;
+      setStatus('sub-status', ok ? 'ok' : 'err', ok ? '🗑 已取消订阅' : '❌ 取消订阅失败');
+      if (ok) document.getElementById('sub-detail').style.display = 'none';
+    })
+    .catch((err) => setStatus('sub-status', 'err', `❌ 错误: ${err.message}`));
+}
+
+// ============ ③ 触发 Push ============
+function buildPayload() {
+  return {
+    title: document.getElementById('push-title').value,
+    body: document.getElementById('push-body').value,
+    icon: document.getElementById('push-icon').value,
+    badge: document.getElementById('push-icon').value,
+    url: document.getElementById('push-url').value,
+    tag: 'xjb-test-' + Date.now(),
+    renotify: true,
+  };
+}
+
+function triggerPushDirect() {
+  // 直接在 SW 里 showNotification, 跳过真实 push service
+  // (开发测试用, 真实流程走 push event)
+  const payload = buildPayload();
+  navigator.serviceWorker.ready
+    .then((reg) => reg.showNotification(payload.title, {
+      body: payload.body,
+      icon: payload.icon,
+      badge: payload.badge,
+      data: { url: payload.url },
+      tag: payload.tag,
+      renotify: true,
+      vibrate: [200, 100, 200],
+    }))
+    .then(() => {
+      setStatus('push-result', 'ok', `✅ 通知已弹出 · 点击测试跳转 → ${payload.url}`);
+    })
+    .catch((err) => setStatus('push-result', 'err', `❌ 通知失败: ${err.message}`));
+}
+
+function triggerPushPOST() {
+  // 模拟后端 POST /api/push-send → 真后端会用 web-push library 推送到 push service
+  const payload = buildPayload();
+  fetch('/api/push-send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+    .then((resp) => resp.json())
+    .then((data) => {
+      setStatus('push-result', 'ok',
+        `📡 后端响应: ${JSON.stringify(data)} · 真实场景下浏览器会收到 push event → SW showNotification`);
+    })
+    .catch((err) => {
+      setStatus('push-result', 'warn',
+        `⚠️ 后端无响应 (${err.message}) · CF Pages 是纯静态, 没有 /api/push-send 端点. 用 "🚀 直接触发通知" 测试 UI 流程.`);
+    });
+}
+
+// ============ ④ 预设场景 ============
+const SCENARIOS = {
+  duku_rain: {
+    title: '⚠️ 独库公路 · 暴雨预警',
+    body: '独库公路北段 (哈希勒根达坂) 未来 3 小时有大暴雨, 能见度 < 100m, 建议暂停通行.',
+    url: '/视频库/live_info',
+    icon: '/xjb-icon-192.png',
+  },
+  duku_snow: {
+    title: '❄️ 哈希勒根达坂 · 大雪',
+    body: '海拔 3390m, 实时气温 -8°C, 路面积雪 5cm. 必须带防滑链!',
+    url: '/视频库/live_info',
+    icon: '/xjb-icon-192.png',
+  },
+  yili_hot: {
+    title: '🔥 伊犁 · 高温橙色预警',
+    body: '赛里木湖/霍城薰衣草 今日最高 38°C, 注意防中暑, 车内禁放压力喷雾.',
+    url: '/视频库/live_info',
+    icon: '/xjb-icon-192.png',
+  },
+  road_closed: {
+    title: '🚧 独库公路临时封闭',
+    body: 'K635 段发生落石, 双向封闭至明日 10:00. 请改道 G218.',
+    url: '/视频库/live_info',
+    icon: '/xjb-icon-192.png',
+  },
+  camp_fire: {
+    title: '🔥 营地 · 火警风险',
+    body: '那拉提草原风力 6 级, 干燥指数极高, 严禁野外用火!',
+    url: '/xjb-gear',
+    icon: '/xjb-icon-192.png',
+  },
+};
+
+function useScenario(key) {
+  const s = SCENARIOS[key];
+  if (!s) return;
+  document.getElementById('push-title').value = s.title;
+  document.getElementById('push-body').value = s.body;
+  document.getElementById('push-url').value = s.url;
+  document.getElementById('push-icon').value = s.icon;
+  triggerPushDirect();
+}
+
+// ============ Helpers ============
+function setStatus(id, cls, msg) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + cls;
+  el.textContent = msg;
+}
+
+// Init
+if ('serviceWorker' in navigator) {
+  checkSW();
+} else {
+  setStatus('sw-status', 'err', '❌ 浏览器不支持 Service Worker');
+}
+</script>
+
+</body>
+</html>
