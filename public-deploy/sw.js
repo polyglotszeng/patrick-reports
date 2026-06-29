@@ -23,8 +23,10 @@ const CORE_ASSETS = [
   '/manifest.json',
 ];
 
-// VAPID 公钥 (mock 占位, 真实部署时换为后端生成的 key pair)
-const VAPID_PUBLIC_KEY = 'BK1pDThjr7tJqxQ6QyQ9fK8dZ2cM4nX5lP7vT8wH9jR6yN3sA1bC0eG';
+// VAPID 公钥 (真 ECDH P-256 key pair, generated 2026-06-30, RFC 8292)
+// 配套: workers-push/ Cloudflare Worker push server (待 Workers scope deploy)
+// 私钥: /tmp/vapid_keys.json (JWK format, 不提交)
+const VAPID_PUBLIC_KEY = 'BOu0iiO0J4AHfzawpD5h4Th0EGXg_HRWjGPtW8LA5EOTIm_qEfLGonTv8J9WvwgpWU0F1zv9jNRRddW5Dn4VJBs=';
 
 // ================== Install: 预缓存核心页面 ==================
 self.addEventListener('install', (e) => {

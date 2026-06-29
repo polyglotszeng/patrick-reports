@@ -915,8 +915,9 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
 
 <script>
 // V11: Web Push 订阅 (client-side handler)
-// VAPID 公钥占位 - 真实部署时后端用 web-push generate-vapid-keys 生成
-const VAPID_PUBLIC_KEY = 'BK1pDThjr7tJqxQ6QyQ9fK8dZ2cM4nX5lP7vT8wH9jR6yN3sA1bC0eG';
+// VAPID 公钥 (真 ECDH P-256, 2026-06-30 生成, 详见 sw.js 注释)
+const VAPID_PUBLIC_KEY = 'BOu0iiO0J4AHfzawpD5h4Th0EGXg_HRWjGPtW8LA5EOTIm_qEfLGonTv8J9WvwgpWU0F1zv9jNRRddW5Dn4VJBs=';
+const PUSH_BACKEND = null;  // null = localStorage only mode (待 Workers scope deploy)
 const PUSH_BTN = document.getElementById('pushBtn');
 const PUSH_ICON = document.getElementById('pushIcon');
 const PUSH_LABEL = document.getElementById('pushLabel');
@@ -1004,22 +1005,35 @@ function subscribe() {
       const json = sub.toJSON();
       console.log('[live_info] subscribed:', json);
 
-      // POST 到后端 (mock - CF Pages 是纯静态, 没有后端, 这里只演示)
-      return fetch('/api/push-subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(json),
-      })
-        .then((resp) => resp.json())
-        .then((data) => {
-          showToast('订阅成功! ' + (data.subscribers || 1) + ' 个订阅者');
-          updateUI(sub);
+      // V12: 推到后端 (PUSH_BACKEND=null 时只存 localStorage)
+      console.log('[live_info] subscribed:', json);
+
+      if (PUSH_BACKEND) {
+        return fetch(PUSH_BACKEND + '/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json),
         })
-        .catch(() => {
-          // 后端无响应 (CF Pages 静态托管), 本地订阅已生效
-          showToast('订阅成功 (本地, 后端无响应)');
-          updateUI(sub);
-        });
+          .then((resp) => resp.json())
+          .then((data) => {
+            showToast('订阅成功! ' + (data.subscribers || 1) + ' 个订阅者');
+            updateUI(sub);
+          })
+          .catch((err) => {
+            showToast('后端无响应, 仅本地订阅: ' + err.message, true);
+            updateUI(sub);
+          });
+      } else {
+        // localStorage mode: 存订阅, 等真后端 deploy 后再 push
+        try {
+          localStorage.setItem('xjb_push_sub', JSON.stringify(json));
+          showToast('本地订阅成功! 推送后端部署后将自动同步');
+        } catch (e) {
+          showToast('订阅成功 (本地存储失败)');
+        }
+        updateUI(sub);
+        return null;
+      }
     })
     .catch((err) => {
       console.error('[live_info] subscribe fail:', err);
