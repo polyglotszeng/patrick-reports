@@ -78,11 +78,14 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
 @media(max-width:640px){.weather-grid{grid-template-columns:1fr}.duku-card .key-fact{grid-template-columns:1fr}.forecast-table{font-size:11px}.alerts-list{grid-template-columns:1fr}.hourly-table{font-size:10px}}
 
 /* V11: Push 订阅按钮 (底部固定) */
-.push-fab{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-.push-fab-btn{background:linear-gradient(135deg,#ffd75e,#e8834a);color:#1e1e1e;border:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,215,94,.2);transition:transform .15s,box-shadow .15s;font-family:inherit;display:flex;align-items:center;gap:8px}
+.push-fab{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.push-fab-btn{background:linear-gradient(135deg,#ffd75e,#e8834a);color:#1e1e1e;border:none;padding:14px 22px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 3px rgba(255,215,94,.2);transition:transform .15s,box-shadow .15s;font-family:inherit;display:flex;align-items:center;gap:8px;text-decoration:none}
 .push-fab-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 0 4px rgba(255,215,94,.3)}
 .push-fab-btn:active{transform:translateY(0)}
 .push-fab-btn.subscribed{background:linear-gradient(135deg,#5b8a52,#3d6b35);color:#fff}
+/* V13: 官方小程序 (微信深蓝绿渐变, 不与 push 黄橙冲突) */
+.push-fab-mp{background:linear-gradient(135deg,#07c160,#00a854)!important;color:#fff!important;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 3px rgba(7,193,96,.2)!important;text-decoration:none}
+.push-fab-mp:hover{box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 0 4px rgba(7,193,96,.3)!important}
 .push-fab-btn.denied{background:#555;color:#999;cursor:not-allowed}
 .push-fab-btn.loading{opacity:.7;cursor:wait}
 .push-fab-hint{background:rgba(30,30,30,.95);color:#dcddde;padding:8px 14px;border-radius:8px;font-size:12.5px;border:1px solid #3a3a3a;max-width:260px;line-height:1.5;backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(0,0,0,.4)}
@@ -904,13 +907,23 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
 出发前 1-2 天重新生成一次 (在 Hermes 中调用 build_live_info.py), 获得最新 8 天预报 + 通行信息。
 </div>
 
-<!-- V11: Push 订阅 FAB -->
+<!-- V13: Push 订阅 + 官方小程序 复合 FAB -->
 <div class="push-fab" id="pushFab">
-  <div class="push-fab-hint" id="pushHint" style="display:none">点击订阅, 接收 <b>独库公路</b> 实时预警 · 暴雨 / 大雪 / 封闭 / 营地火警</div>
+  <!-- A. 官方小程序 (新疆路网 - 实时独库预警权威源) -->
+  <a class="push-fab-btn push-fab-mp" id="mpBtn" target="_blank" rel="noopener" aria-label="打开新疆路网小程序">
+    <span>📱</span>
+    <span id="mpLabel">官方小程序</span>
+  </a>
+  <!-- B. Push 订阅 (本机浏览器) -->
   <button class="push-fab-btn" id="pushBtn" aria-label="订阅独库预警">
     <span id="pushIcon">🔔</span>
     <span id="pushLabel">订阅独库预警</span>
   </button>
+  <!-- C. 折叠提示 -->
+  <div class="push-fab-hint" id="pushHint" style="display:none">
+    <b>📱 官方小程序</b> (新疆路网) 看 <b>实测独库路况</b> · <b>🔔 浏览器推送</b> 看 <b>汇总预警</b><br>
+    两路并行 = <b>0 漏推送</b>
+  </div>
 </div>
 
 <script>
@@ -922,7 +935,12 @@ const PUSH_BTN = document.getElementById('pushBtn');
 const PUSH_ICON = document.getElementById('pushIcon');
 const PUSH_LABEL = document.getElementById('pushLabel');
 const PUSH_HINT = document.getElementById('pushHint');
+const MP_BTN = document.getElementById('mpBtn');
 let swReg = null;
+
+// V13: 官方小程序 - 延迟到 showToast 之后执行 (见底部)
+const MP_QUERY = encodeURIComponent('新疆路网');
+const MP_SOGOU_URL = `https://weixin.sogou.com/weixin?query=${MP_QUERY}&type=1&ie=utf8`;
 
 function urlB64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -1101,6 +1119,37 @@ setTimeout(() => {
 if ('serviceWorker' in navigator) {
   registerSW();
 }
+
+// V13: 官方小程序 deep-link (Mobile weixin:// + Desktop Sogou 公号搜 fallback)
+(function setupMpDeepLink() {
+  if (!MP_BTN) return;
+  const ua = navigator.userAgent;
+  const isMobile = /Mobile|iPhone|Android|iPad/i.test(ua);
+  const weixinDeepLink = `weixin://search/${MP_QUERY}`;
+
+  if (isMobile) {
+    MP_BTN.href = weixinDeepLink;
+    MP_BTN.target = '_self';
+    MP_BTN.addEventListener('click', (e) => {
+      e.preventDefault();
+      // 尝试 weixin universal link
+      window.location.href = weixinDeepLink;
+      // 1.5s 后 check (weixin 接管就 document.hidden=true; 否则保留页内提示)
+      setTimeout(() => {
+        if (!document.hidden) {
+          showToast('未检测到微信, 请手动: 微信 → 搜 "新疆路网" → 关注"新疆路网"小程序');
+        }
+      }, 1500);
+    });
+  } else {
+    MP_BTN.href = MP_SOGOU_URL;
+    MP_BTN.target = '_blank';
+    MP_BTN.addEventListener('click', () => {
+      showToast('Sogou 公众号搜已开, 找 "新疆路网"小程序, 长按二维码可获取 gh_id');
+    });
+  }
+  console.log('[live_info] mp deep-link:', MP_BTN.href);
+})();
 </script>
 <script src="/js/xjb-analytics.js" defer></script>
 
