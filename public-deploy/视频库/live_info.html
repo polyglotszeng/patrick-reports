@@ -86,6 +86,19 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
 /* V13: 官方小程序 (微信深蓝绿渐变, 不与 push 黄橙冲突) */
 .push-fab-mp{background:linear-gradient(135deg,#07c160,#00a854)!important;color:#fff!important;box-shadow:0 6px 20px rgba(0,0,0,.5),0 0 0 3px rgba(7,193,96,.2)!important;text-decoration:none}
 .push-fab-mp:hover{box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 0 4px rgba(7,193,96,.3)!important}
+
+/* V14: 官方小程序 QR Modal (长按识别) */
+.mp-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center}
+.mp-modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(4px)}
+.mp-modal-card{position:relative;background:#1e1e1e;border-radius:16px;padding:24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px #333;text-align:center;color:#dcddde}
+.mp-modal-title{font-size:18px;font-weight:700;margin-bottom:6px;color:#fff}
+.mp-modal-subtitle{font-size:12px;color:#999;margin-bottom:16px;line-height:1.4}
+.mp-modal-img{width:100%;max-width:300px;border-radius:8px;background:#fff;padding:8px;margin:0 auto;display:block}
+.mp-modal-steps{text-align:left;font-size:13px;line-height:1.7;margin:14px 0;padding:12px;background:#2a2a2a;border-radius:8px}
+.mp-modal-steps ol{margin:6px 0 0 20px;padding:0}
+.mp-modal-steps li{margin:4px 0}
+.mp-modal-close{background:linear-gradient(135deg,#3a3a3a,#2a2a2a);color:#fff;border:1px solid #555;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;font-weight:600;margin-top:8px}
+.mp-modal-close:hover{background:#3a3a3a}
 .push-fab-btn.denied{background:#555;color:#999;cursor:not-allowed}
 .push-fab-btn.loading{opacity:.7;cursor:wait}
 .push-fab-hint{background:rgba(30,30,30,.95);color:#dcddde;padding:8px 14px;border-radius:8px;font-size:12.5px;border:1px solid #3a3a3a;max-width:260px;line-height:1.5;backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(0,0,0,.4)}
@@ -909,11 +922,11 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
 
 <!-- V13: Push 订阅 + 官方小程序 复合 FAB -->
 <div class="push-fab" id="pushFab">
-  <!-- A. 官方小程序 (新疆路网 - 实时独库预警权威源) -->
-  <a class="push-fab-btn push-fab-mp" id="mpBtn" target="_blank" rel="noopener" aria-label="打开新疆路网小程序">
+  <!-- A. 官方小程序 (新疆路网 - 显示 QR 截图让用户长按识别) -->
+  <button class="push-fab-btn push-fab-mp" id="mpBtn" aria-label="显示官方小程序二维码">
     <span>📱</span>
     <span id="mpLabel">官方小程序</span>
-  </a>
+  </button>
   <!-- B. Push 订阅 (本机浏览器) -->
   <button class="push-fab-btn" id="pushBtn" aria-label="订阅独库预警">
     <span id="pushIcon">🔔</span>
@@ -923,6 +936,28 @@ h2.sec{font-size:22px;color:var(--accent);margin:36px 0 16px;padding-bottom:8px;
   <div class="push-fab-hint" id="pushHint" style="display:none">
     <b>📱 官方小程序</b> (新疆路网) 看 <b>实测独库路况</b> · <b>🔔 浏览器推送</b> 看 <b>汇总预警</b><br>
     两路并行 = <b>0 漏推送</b>
+  </div>
+</div>
+
+<!-- V14: QR Modal (长按识别小程序) -->
+<div id="mpModal" class="mp-modal" style="display:none">
+  <div class="mp-modal-bg" id="mpModalBg"></div>
+  <div class="mp-modal-card">
+    <div class="mp-modal-title">📱 官方小程序: 新疆路网</div>
+    <div class="mp-modal-subtitle">新疆维吾尔自治区交通运输厅路网监测与应急处置中心</div>
+    <img class="mp-modal-img" src="img/xj-luwang-mp.png" alt="新疆路网小程序码" />
+    <div class="mp-modal-steps">
+      <p><b>📱 微信扫码 3 步:</b></p>
+      <ol>
+        <li>长按上方二维码</li>
+        <li>弹出菜单选 <b>"识别图中二维码"</b></li>
+        <li>微信自动跳入 <b>"新疆路网"</b> 小程序</li>
+      </ol>
+      <p style="color:#999;font-size:11px;margin-top:12px">
+        💡 或微信 → 搜索 "新疆路网" → 进官方小程序
+      </p>
+    </div>
+    <button class="mp-modal-close" id="mpModalClose">关闭</button>
   </div>
 </div>
 
@@ -938,9 +973,12 @@ const PUSH_HINT = document.getElementById('pushHint');
 const MP_BTN = document.getElementById('mpBtn');
 let swReg = null;
 
-// V13: 官方小程序 - 延迟到 showToast 之后执行 (见底部)
-const MP_QUERY = encodeURIComponent('新疆路网');
-const MP_SOGOU_URL = `https://weixin.sogou.com/weixin?query=${MP_QUERY}&type=1&ie=utf8`;
+// V14: 官方小程序 → 弹 QR Modal 让用户长按识别
+const MP_IMG_URL = 'img/xj-luwang-mp.png';
+const MP_MODAL = document.getElementById('mpModal');
+const MP_MODAL_BG = document.getElementById('mpModalBg');
+const MP_MODAL_CLOSE = document.getElementById('mpModalClose');
+const MP_MODAL_IMG = MP_MODAL?.querySelector('.mp-modal-img');
 
 function urlB64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -1120,35 +1158,21 @@ if ('serviceWorker' in navigator) {
   registerSW();
 }
 
-// V13: 官方小程序 deep-link (Mobile weixin:// + Desktop Sogou 公号搜 fallback)
-(function setupMpDeepLink() {
-  if (!MP_BTN) return;
-  const ua = navigator.userAgent;
-  const isMobile = /Mobile|iPhone|Android|iPad/i.test(ua);
-  const weixinDeepLink = `weixin://search/${MP_QUERY}`;
-
-  if (isMobile) {
-    MP_BTN.href = weixinDeepLink;
-    MP_BTN.target = '_self';
-    MP_BTN.addEventListener('click', (e) => {
-      e.preventDefault();
-      // 尝试 weixin universal link
-      window.location.href = weixinDeepLink;
-      // 1.5s 后 check (weixin 接管就 document.hidden=true; 否则保留页内提示)
-      setTimeout(() => {
-        if (!document.hidden) {
-          showToast('未检测到微信, 请手动: 微信 → 搜 "新疆路网" → 关注"新疆路网"小程序');
-        }
-      }, 1500);
-    });
-  } else {
-    MP_BTN.href = MP_SOGOU_URL;
-    MP_BTN.target = '_blank';
-    MP_BTN.addEventListener('click', () => {
-      showToast('Sogou 公众号搜已开, 找 "新疆路网"小程序, 长按二维码可获取 gh_id');
-    });
+// V14: 官方小程序 QR Modal (任何设备都通过长按截图识别)
+(function setupMpModal() {
+  if (!MP_BTN || !MP_MODAL) {
+    console.warn('[live_info] mp modal elements missing, fall back');
+    return;
   }
-  console.log('[live_info] mp deep-link:', MP_BTN.href);
+  MP_BTN.addEventListener('click', () => {
+    MP_MODAL.style.display = 'flex';
+    console.log('[live_info] mp modal shown');
+  });
+  MP_MODAL_BG.addEventListener('click', () => { MP_MODAL.style.display = 'none'; });
+  MP_MODAL_CLOSE.addEventListener('click', () => { MP_MODAL.style.display = 'none'; });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') MP_MODAL.style.display = 'none';
+  });
 })();
 </script>
 <script src="/js/xjb-analytics.js" defer></script>
