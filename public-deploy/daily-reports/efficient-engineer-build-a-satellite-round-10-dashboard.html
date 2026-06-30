@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>How to Build a Satellite — The Efficient Engineer (Gopal) 卫星工程深度解读</title>
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+    --cyan: #22d3ee;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.7; padding: 2rem 1rem 4rem; max-width: 1180px; margin: 0 auto;
+  }
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin: 0 0 0.4rem;
+  }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+  }
+  .meta-bar strong { color: var(--text-dim); }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: var(--bg-elevated); padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.9em; }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(96,165,250,0.08));
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+  }
+  .hero h2 { color: var(--accent-2); margin: 0 0 0.6rem; font-size: 1.2rem; }
+  .hero p { margin: 0; color: var(--text-dim); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem; margin-bottom: 2.5rem;
+  }
+  .stat {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .stat .label { font-size: 0.75rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat .value { font-size: 1.4rem; font-weight: 600; color: var(--accent-2); margin-top: 0.3rem; }
+  .stat .sub { font-size: 0.78rem; color: var(--text-mute); margin-top: 0.2rem; }
+  .stat.green .value { color: var(--green); }
+  .stat.yellow .value { color: var(--yellow); }
+  .stat.blue .value { color: var(--blue); }
+  .stat.purple .value { color: var(--purple); }
+  .stat.red .value { color: var(--red); }
+  .stat.cyan .value { color: var(--cyan); }
+
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .tab {
+    padding: 0.6rem 1.1rem; background: transparent; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); background: var(--bg-elevated); }
+  .tab.active { color: var(--accent-2); background: var(--bg-card); border-color: var(--border); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  h2.section {
+    font-size: 1.35rem; color: var(--accent-2);
+    margin: 2.5rem 0 1rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--text); font-size: 1.05rem; margin: 1.3rem 0 0.6rem; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem; margin: 1rem 0;
+  }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.3rem;
+  }
+  .card h4 { margin: 0 0 0.5rem; color: var(--accent-2); font-size: 1rem; }
+  .card p, .card li { color: var(--text-dim); font-size: 0.92rem; margin: 0.3rem 0; }
+  .card ul { padding-left: 1.2rem; margin: 0.3rem 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  td { color: var(--text-dim); }
+  tr:hover td { background: var(--bg-elevated); }
+  tr.highlight td { background: rgba(255, 107, 53, 0.08); }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  .cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .cmp.good { border-left: 3px solid var(--green); }
+  .cmp.bad { border-left: 3px solid var(--red); }
+  .cmp.yellow { border-left: 3px solid var(--yellow); }
+  .cmp.purple { border-left: 3px solid var(--purple); }
+  .cmp h4 { margin: 0 0 0.6rem; }
+  .cmp.good h4 { color: var(--green); }
+  .cmp.bad h4 { color: var(--red); }
+  .cmp.yellow h4 { color: var(--yellow); }
+  .cmp.purple h4 { color: var(--purple); }
+  .cmp ul { padding-left: 1.2rem; margin: 0.3rem 0; color: var(--text-dim); font-size: 0.92rem; }
+
+  blockquote {
+    border-left: 3px solid var(--accent); padding: 0.6rem 1rem;
+    margin: 1rem 0; background: var(--bg-card); color: var(--text-dim);
+    border-radius: 0 8px 8px 0; font-style: italic;
+  }
+
+  .quote-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 0.8rem; margin: 1rem 0;
+  }
+  .quote-card {
+    background: var(--bg-card); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 0.8rem 1.1rem;
+  }
+  .quote-card .who { color: var(--accent-2); font-size: 0.8rem; margin-bottom: 0.3rem; }
+  .quote-card .text { color: var(--text); font-size: 0.95rem; font-style: italic; }
+  .quote-card.yellow { border-left-color: var(--yellow); }
+  .quote-card.yellow .who { color: var(--yellow); }
+  .quote-card.green { border-left-color: var(--green); }
+  .quote-card.green .who { color: var(--green); }
+  .quote-card.blue { border-left-color: var(--blue); }
+  .quote-card.blue .who { color: var(--blue); }
+  .quote-card.purple { border-left-color: var(--purple); }
+  .quote-card.purple .who { color: var(--purple); }
+  .quote-card.red { border-left-color: var(--red); }
+  .quote-card.red .who { color: var(--red); }
+  .quote-card.cyan { border-left-color: var(--cyan); }
+  .quote-card.cyan .who { color: var(--cyan); }
+
+  .timeline { position: relative; padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0.45rem; top: 0.5rem; bottom: 0.5rem;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; padding: 0.5rem 0 1rem 1.3rem; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -0.4rem; top: 0.85rem;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 0 3px var(--bg);
+  }
+  .tl-item .time {
+    color: var(--accent-2); font-weight: 600; font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { color: var(--text); margin: 0.2rem 0; }
+  .tl-item .note { color: var(--text-mute); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block; padding: 0.15em 0.55em; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .badge.green { color: var(--green); border-color: var(--green); }
+  .badge.red { color: var(--red); border-color: var(--red); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); }
+  .badge.accent { color: var(--accent); border-color: var(--accent); }
+  .badge.cyan { color: var(--cyan); border-color: var(--cyan); }
+
+  /* v1.4.4 TOC — COLLAPSIBLE sidebar (user requirement 06-29: persistent toggle button + 2-state + localStorage) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 240px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem 0.9rem 0.9rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Default (expanded). Collapsed state applied via .toc-collapsed class on <body>. */
+    transform: translateX(0);
+  }
+  /* COLLAPSED state — body class controls, persists via localStorage */
+  body.toc-collapsed aside.toc {
+    transform: translateX(-12px); /* only 12px peek shows — handle + chevron */
+    opacity: 0.85;
+  }
+  body.toc-collapsed aside.toc:hover,
+  body.toc-collapsed aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  /* Persistent toggle button */
+  .toc-toggle {
+    position: fixed; top: 80px; left: 240px;
+    width: 28px; height: 32px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    color: var(--accent-2);
+    font-size: 14px; line-height: 1;
+    cursor: pointer; z-index: 41;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+  }
+  body.toc-collapsed .toc-toggle { left: 12px; }
+  .toc-toggle:hover { color: var(--text); background: var(--bg); }
+  .toc-toggle .chev { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  body.toc-collapsed .toc-toggle .chev { transform: rotate(180deg); }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  /* Mobile: hide TOC + toggle button entirely */
+  @media (max-width: 1279px) {
+    aside.toc, .toc-toggle { display: none; }
+  }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.85rem; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🛰️ 核心论点</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🛰️ 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 7 大主线</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ ⭐ 「倒着设计」法则</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">① 7 大子系统总览</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 7 子系统甘特图</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ ⭐ 板载计算机 = 系统枢纽</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">② Electrical Power System (EPS)</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 太阳能板 4 选型维度</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 电池选型三角</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ ⭐ Power Budget 计算法</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">③ 通信子系统 (Comms)</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 业余频段 (UHF/VHF) vs 商业 S/X</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ ⭐ 链路预算 7 步法</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">④ ADCS 姿态控制</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 3 种稳定方式对比</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ ⭐ 传感器 3 件套</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 执行器 3 件套</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">⑤ 板载计算机 (OBC) & 软件</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ OBC 选型 4 维度</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ ⭐ 软件开发 = 12 步流程</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">⑥ Payload 载荷</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 5 大常见载荷类型</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ ⭐ 真实任务 = 90% 时间在 Payload</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">⑦ 机械结构 (Structure)</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 4 种材料对比</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ ⭐ 6U CubeSat 标准</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">⑧ 热控 (Thermal)</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ 4 大热控机制</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ ⭐ 真空 = 只能辐射散热</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">⑨ 「倒着设计」5 步法</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ Step 1: 任务定义</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Step 2: 载荷驱动</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ Step 3: 子系统派生</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ Step 4: 接口冻结</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ Step 5: 测试验证</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🗺️ 工程师系统思维 (⭐ 17 card)</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ 与软件工程的相似性</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ 工程师 5 大反模式</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ ⭐ 工程师核心 = 系统层级权衡</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">💬 关键金句库</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">⏱️ 关键时间戳（精选）</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">🔗 资源 & 关联</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ 主要链接</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ 关键概念词</a></li>
+  </ol>
+</aside>
+
+<button class="toc-toggle" type="button" aria-label="Toggle sidebar" title="Toggle TOC">
+  <span class="chev">◀</span>
+</button>
+
+
+<h1>How to Build a Satellite — 卫星工程全栈深度解读</h1>
+<p class="subtitle">The Efficient Engineer (Gopal) · ~20 min 视频 + 7 大子系统 + 倒着设计法则 + 系统思维</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=5voQfQOTem8" target="_blank">How to Build a Satellite</a></span>
+  <span><strong>频道：</strong>The Efficient Engineer (Gopal)</span>
+  <span><strong>语言：</strong>English (with 中文解读)</span>
+  <span><strong>时长：</strong>~20 min</span>
+  <span><strong>主题：</strong><span class="badge accent">Aerospace</span> <span class="badge blue">System Engineering</span> <span class="badge cyan">Hardtech</span></span>
+</div>
+
+<div class="hero">
+  <h2 id="h2-1">🛰️ 核心论点</h2>
+  <p><b>"造卫星 = 7 大子系统的工程权衡 + 倒着设计 (从任务 → 载荷 → 子系统)。工程师的核心能力不是精通某子系统，而是在受限预算/质量/功率下做系统级 trade-off。"</b></p>
+  <p style="margin-top: 0.6rem;"><b>7 大主线</b>：</p>
+  <ol style="color: var(--text); margin: 0.6rem 0 0;">
+    <li>🛰️ <b>7 大子系统</b>：EPS / Comms / ADCS / OBC / Payload / Structure / Thermal</li>
+    <li>⭐ <b>倒着设计法则</b>：从任务定义开始，载荷驱动，子系统派生，接口冻结</li>
+    <li>⭐ <b>板载计算机 (OBC) = 系统枢纽</b>：所有子系统都连 OBC</li>
+    <li>⚡ <b>Power Budget</b>：太阳能板功率峰值 + 电池容量 + 占空比 = 决定任务寿命</li>
+    <li>📡 <b>链路预算 (Link Budget)</b>：发射功率 + 增益 - 路径损耗 = 决定能否通信</li>
+    <li>🌡️ <b>真空环境</b>：无对流散热，只能辐射 = 热控设计 = 决定元件寿命</li>
+    <li>🧠 <b>工程师系统思维</b>：与软件工程高度相似 — 接口、解耦、trade-off、测试金字塔</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat blue">
+    <div class="label">7 大子系统</div>
+    <div class="value">EPS / Comms / ADCS / OBC / Payload / Structure / Thermal</div>
+    <div class="sub">每个都是独立工程领域</div>
+  </div>
+  <div class="stat yellow">
+    <div class="label">典型质量预算</div>
+    <div class="value">1U ≈ 1 kg</div>
+    <div class="sub">CubeSat 1U = 10×10×10 cm</div>
+  </div>
+  <div class="stat green">
+    <div class="label">典型功率预算</div>
+    <div class="value">2-5 W</div>
+    <div class="sub">1U CubeSat 平均功耗</div>
+  </div>
+  <div class="stat purple">
+    <div class="label">典型成本</div>
+    <div class="value">$50K-$500K</div>
+    <div class="sub">大学 1U → 商业 12U</div>
+  </div>
+  <div class="stat red">
+    <div class="label">研发周期</div>
+    <div class="value">2-5 年</div>
+    <div class="sub">从概念 → 发射</div>
+  </div>
+  <div class="stat cyan">
+    <div class="label">业余频段</div>
+    <div class="value">UHF/VHF</div>
+    <div class="sub">爱好者/学生项目首选</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🛰️ 核心</button>
+  <button class="tab" data-tab="t1">① 7 子系统</button>
+  <button class="tab" data-tab="t2">② EPS 电源</button>
+  <button class="tab" data-tab="t3">③ 通信</button>
+  <button class="tab" data-tab="t4">④ ADCS 姿态</button>
+  <button class="tab" data-tab="t5">⑤ OBC 软件</button>
+  <button class="tab" data-tab="t6">⑥ Payload 载荷</button>
+  <button class="tab" data-tab="t7">⑦ 机械结构</button>
+  <button class="tab" data-tab="t8">⑧ 热控</button>
+  <button class="tab" data-tab="reverse">⑨ 倒着设计</button>
+  <button class="tab" data-tab="systems">🧠 系统思维</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="time">⏱️ 时间戳</button>
+  <button class="tab" data-tab="links">🔗 资源</button>
+</div>
+
+<!-- TAB 1: CORE -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 id="h2-2" class="section">🛰️ 核心论点</h2>
+
+  <blockquote>
+    "造卫星不是从硬件开始，而是从<b>任务定义</b>开始。<b>倒着设计</b>：先想清楚要做什么任务 → 选载荷 → 推导需要的子系统规格 → 最后才选硬件。<b>工程师的核心能力是系统级权衡</b> — 在质量/功率/成本/复杂度之间做 trade-off。"
+  </blockquote>
+
+  <h3 id="h3-1">7 大主线</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>① EPS 电源</h4>
+      <p>太阳能板 + 电池 + 电源管理</p>
+      <p style="margin-top: 0.4rem;">决定任务寿命的关键子系统</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>② 通信 Comms</h4>
+      <p>UHF/VHF/S/X 频段 + 链路预算</p>
+      <p style="margin-top: 0.4rem;">业余频段 = 学生首选</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>③ ADCS 姿态</h4>
+      <p>磁力矩器 + 反作用轮 + 推力器</p>
+      <p style="margin-top: 0.4rem;">决定载荷能否对准目标</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>④ OBC 板载计算机</h4>
+      <p>所有子系统的大脑</p>
+      <p style="margin-top: 0.4rem;">⭐ 系统枢纽 — 所有子系统的接口</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>⑤ Payload 载荷</h4>
+      <p>任务的真正价值所在</p>
+      <p style="margin-top: 0.4rem;">⭐ 90% 设计时间花在 Payload</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--cyan);">
+      <h4>⑥ Structure 结构</h4>
+      <p>铝合金 / 碳纤维 / 3D 打印</p>
+      <p style="margin-top: 0.4rem;">⭐ 6U CubeSat = 行业标准</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>⑦ Thermal 热控</h4>
+      <p>MLI / 加热器 / 散热器 / 涂层</p>
+      <p style="margin-top: 0.4rem;">⭐ 真空环境 — 只能辐射散热</p>
+    </div>
+  </div>
+
+  <h3 id="h3-2">⭐ 「倒着设计」法则</h3>
+  <div class="quote-grid">
+    <div class="quote-card yellow">
+      <div class="who">Gopal — 核心方法论</div>
+      <div class="text">"不要从硬件开始 — 从任务开始。从你要完成的任务 → 推导载荷 → 推导子系统规格 → 最后选硬件。这是工程师和 hacker 的根本区别。"</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">5 步倒着设计法</div>
+      <div class="text">① 任务定义 → ② 载荷选型 → ③ 子系统派生 → ④ 接口冻结 → ⑤ 测试验证</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ 关键洞察</div>
+      <div class="text">"真实卫星项目 = 90% 时间在 Payload 设计，10% 在卫星平台 (bus)。很多人搞反了。"</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: 7 SUB-SYSTEMS -->
+<div class="tab-content" data-tab-content="t1">
+  <h2 id="h2-3" class="section">① 7 大子系统总览</h2>
+
+  <blockquote>
+    "一颗卫星 = 7 个相互耦合的子系统 + 1 个板载计算机做总控。看似简单的 1U CubeSat 也是 7 个独立工程领域的交汇。"
+  </blockquote>
+
+  <h3 id="h3-3">7 子系统一览</h3>
+  <table>
+    <thead>
+      <tr><th>子系统</th><th>缩写</th><th>核心功能</th><th>典型参数</th><th>关键 trade-off</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><b>Electrical Power System</b></td>
+        <td>EPS</td>
+        <td>发电 + 储能 + 配电</td>
+        <td>2-5 W 平均 / 30 Wh 电池</td>
+        <td>功率 vs 质量 vs 太阳能板面积</td>
+      </tr>
+      <tr>
+        <td><b>Communications</b></td>
+        <td>Comms</td>
+        <td>地面站 ↔ 卫星双向链路</td>
+        <td>UHF/VHF (业余) / S/X (商业)</td>
+        <td>数据率 vs 发射功率 vs 天线尺寸</td>
+      </tr>
+      <tr>
+        <td><b>Attitude Determination & Control</b></td>
+        <td>ADCS</td>
+        <td>姿态感知 + 控制</td>
+        <td>±5° (典型) / ±0.01° (高精度)</td>
+        <td>精度 vs 功耗 vs 质量</td>
+      </tr>
+      <tr>
+        <td><b>On-Board Computer</b></td>
+        <td>OBC</td>
+        <td>系统大脑 + 任务调度</td>
+        <td>Cortex-M4 / ARM Cortex-A53</td>
+        <td>算力 vs 功耗 vs 抗辐射</td>
+      </tr>
+      <tr>
+        <td><b>Payload</b></td>
+        <td>PL</td>
+        <td>任务的真正价值</td>
+        <td>相机 / 传感器 / SDR / 实验装置</td>
+        <td>性能 vs 质量 vs 功耗</td>
+      </tr>
+      <tr>
+        <td><b>Structure</b></td>
+        <td>STR</td>
+        <td>机械支撑 + 热界面</td>
+        <td>铝 7075 / 碳纤维 / 3D 打印</td>
+        <td>刚度 vs 质量 vs 制造难度</td>
+      </tr>
+      <tr>
+        <td><b>Thermal</b></td>
+        <td>THM</td>
+        <td>温度控制</td>
+        <td>-40°C ~ +85°C (工作范围)</td>
+        <td>被动 vs 主动 / 质量 vs 精度</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-4">⭐ 板载计算机 = 系统枢纽</h3>
+  <div class="compare">
+    <div class="cmp good">
+      <h4>OBC 职责</h4>
+      <ul>
+        <li>接收 EPS 状态 → 调度占空比</li>
+        <li>发送指令到 ADCS → 控制姿态</li>
+        <li>采集 Payload 数据 → 打包</li>
+        <li>通过 Comms 下传 → 地面站</li>
+        <li>监控 Thermal → 必要时切到安全模式</li>
+      </ul>
+    </div>
+    <div class="cmp bad">
+      <h4>OBC 失败 = 全系统死</h4>
+      <ul>
+        <li>单点故障最高风险</li>
+        <li>必须有 watchdog + safe mode</li>
+        <li>商业卫星 = 双机冷/热备份</li>
+        <li>学生项目 = 单机 + 硬件看门狗</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: EPS -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-4" class="section">② Electrical Power System (EPS)</h2>
+
+  <blockquote>
+    "EPS 决定任务寿命。太阳能板峰值功率不够 = 电池每天深度放电 = 容量衰减加速 = 任务半年就死。"
+  </blockquote>
+
+  <h3 id="h3-5">太阳能板 4 选型维度</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>选项</th><th>优</th><th>劣</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>材料</td><td>三结砷化镓 (GaAs)</td><td>效率 30%+ / 抗辐射</td><td>昂贵</td></tr>
+      <tr><td></td><td>单晶硅</td><td>便宜 / 易采购</td><td>效率 15-18% / 体积大</td></tr>
+      <tr><td></td><td>多结柔性 (CIGS)</td><td>可贴曲面</td><td>效率 15% / 寿命短</td></tr>
+      <tr class="highlight"><td>布局</td><td>体装式 (Body-mounted)</td><td>简单 / 便宜</td><td>面积受限</td></tr>
+      <tr><td></td><td>展开式 (Deployable)</td><td>面积大 / 功率高</td><td>机械复杂 / 风险</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-6">电池选型三角</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Li-ion (18650 / 软包)</h4>
+      <p><b>能量密度高 / 便宜</b></p>
+      <p>商业 1U-12U 主流</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>Li-Po (聚合物)</h4>
+      <p><b>形状灵活</b></p>
+      <p>学生项目常用</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>Li-SOCl₂ (锂亚硫酰氯)</h4>
+      <p><b>工作温度 -55°C ~ +125°C</b></p>
+      <p>深空 / 军事任务</p>
+    </div>
+  </div>
+
+  <h3 id="h3-7">⭐ Power Budget 计算法</h3>
+  <div class="quote-card yellow">
+    <div class="who">Gopal — 公式</div>
+    <div class="text">
+      <b>P_orbit_avg = P_solar × S × cos(θ) × T_sun / T_orbit − P_losses</b><br>
+      约束：<code>P_orbit_avg ≥ Σ(P_subsystem × duty_cycle)</code><br>
+      否则电池每天深度放电 → 任务寿命缩短
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: COMMS -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-5" class="section">③ 通信子系统 (Comms)</h2>
+
+  <blockquote>
+    "通信 = 链路预算数学题。业余频段便宜但慢，商业频段快但要协调轨道频率。学生首选 UHF/VHF。"
+  </blockquote>
+
+  <h3 id="h3-8">业余频段 (UHF/VHF) vs 商业 S/X</h3>
+  <table>
+    <thead>
+      <tr><th>频段</th><th>频率</th><th>数据率</th><th>许可</th><th>典型用户</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>UHF</td><td>437 MHz</td><td>1.2-9.6 kbps</td><td>业余 (需执照)</td><td>学生 / 大学</td>
+      </tr>
+      <tr>
+        <td>VHF</td><td>145 MHz</td><td>1.2 kbps</td><td>业余 (需执照)</td><td>业余无线电</td>
+      </tr>
+      <tr>
+        <td>S-band</td><td>2.2 GHz</td><td>Mbps 级</td><td>ITU 协调</td><td>商业 / IoT 星座</td>
+      </tr>
+      <tr>
+        <td>X-band</td><td>8.4 GHz</td><td>10+ Mbps</td><td>军事 / 商业</td><td>地球观测</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-9">⭐ 链路预算 7 步法</h3>
+  <ol style="color: var(--text-dim); padding-left: 1.5rem;">
+    <li><b>EIRP</b> = P_TX + G_antenna（卫星侧等效全向辐射功率）</li>
+    <li><b>Path Loss</b> = 32.45 + 20·log(f_MHz) + 20·log(d_km)（自由空间损耗）</li>
+    <li><b>Received Power</b> = EIRP − Path Loss + G_ground</li>
+    <li><b>C/N</b> = Received Power − kTB（载噪比）</li>
+    <li><b>Eb/N0</b> = C/N − 10·log(R)（每比特能量噪声比）</li>
+    <li><b>Margin</b> = Eb/N0 − Eb/N0_required（链路裕量）</li>
+    <li><b>判决</b>：Margin ≥ 3 dB = 可用；&lt; 3 dB = 加天线/加功率</li>
+  </ol>
+</div>
+
+<!-- TAB 5: ADCS -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-6" class="section">④ ADCS 姿态控制</h2>
+
+  <blockquote>
+    "ADCS = 决定载荷能否对准目标。地球观测相机需要 ±0.1° 精度，业余信标机只需要 ±5°。"
+  </blockquote>
+
+  <h3 id="h3-10">3 种稳定方式对比</h3>
+  <table>
+    <thead>
+      <tr><th>方式</th><th>精度</th><th>功耗</th><th>复杂度</th><th>典型任务</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>无控制 (Gravity Gradient / 自由)</td>
+        <td>±30°</td>
+        <td>0 W</td>
+        <td>极低</td>
+        <td>信标 / 实验</td>
+      </tr>
+      <tr class="highlight">
+        <td>磁控 (Magnetorquers)</td>
+        <td>±5°</td>
+        <td>&lt; 1 W</td>
+        <td>低</td>
+        <td>业余 / 学生</td>
+      </tr>
+      <tr>
+        <td>反作用轮 (Reaction Wheels)</td>
+        <td>±0.01°</td>
+        <td>2-10 W</td>
+        <td>高</td>
+        <td>地球观测 / 商业</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-11">⭐ 传感器 3 件套</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>磁强计 (Magnetometer)</h4>
+      <p>测地磁场方向</p>
+      <p>精度 ±2° / 便宜</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>太阳敏感器 (Sun Sensor)</h4>
+      <p>测太阳方向</p>
+      <p>精度 ±0.5° / 简单</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>星敏感器 (Star Tracker)</h4>
+      <p>测恒星背景</p>
+      <p>精度 ±0.001° / 昂贵</p>
+    </div>
+  </div>
+
+  <h3 id="h3-12">执行器 3 件套</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>磁力矩器</h4>
+      <p>线圈通电 → 与地磁作用 → 产生力矩</p>
+      <p>被动 / 低功耗 / 不能 3 轴独立</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>反作用轮</h4>
+      <p>高速旋转轮 → 角动量交换</p>
+      <p>高精度 / 需动量卸载</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--cyan);">
+      <h4>推力器 (Thruster)</h4>
+      <p>冷气 / 电推 / 化学</p>
+      <p>轨道机动 / 动量卸载</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 6: OBC -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-7" class="section">⑤ 板载计算机 (OBC) & 软件</h2>
+
+  <blockquote>
+    "OBC 是系统枢纽。设计 OBC = 设计其他所有子系统的接口。代码质量 = 任务成败的关键。"
+  </blockquote>
+
+  <h3 id="h3-13">OBC 选型 4 维度</h3>
+  <table>
+    <thead>
+      <tr><th>维度</th><th>选项</th><th>优</th><th>劣</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>MCU vs Linux SBC</td><td>Cortex-M4 / Raspberry Pi CM</td><td>功耗 / 算力</td><td>决定 OS 复杂度</td></tr>
+      <tr><td>抗辐射</td><td>COTS / Rad-Hard</td><td>成本 / 寿命</td><td>Rad-Hard 贵 100x</td></tr>
+      <tr><td>存储</td><td>MRAM / FRAM / NAND</td><td>抗辐射 / 容量</td><td>容量大 = 风险大</td></tr>
+      <tr class="highlight"><td>OTA 升级</td><td>必备</td><td>救命</td><td>必须签名验证</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-14">⭐ 软件开发 = 12 步流程</h3>
+  <ol style="color: var(--text-dim); padding-left: 1.5rem;">
+    <li><b>需求</b>：任务定义 → 软件需求规范 (SRS)</li>
+    <li><b>架构</b>：状态机 / 任务调度器 / 事件驱动</li>
+    <li><b>接口</b>：与 EPS / Comms / ADCS / Payload 的数据协议</li>
+    <li><b>开发</b>：C/C++ 为主，Rust 渐起</li>
+    <li><b>单元测试</b>：地面硬件在环 (HIL)</li>
+    <li><b>集成测试</b>：整星电测试 (FlatSat)</li>
+    <li><b>环境测试</b>：热真空 / 振动 / 电磁兼容</li>
+    <li><b>软件验证</b>：覆盖率 / 代码评审</li>
+    <li><b>回归测试</b>：每次代码变更全测试</li>
+    <li><b>Flight Model 冻结</b>：发射代码 100% 锁定</li>
+    <li><b>Safe Mode 验证</b>：故障时只保留最低功能</li>
+    <li><b>Watchdog 验证</b>：死机自动重启</li>
+  </ol>
+</div>
+
+<!-- TAB 7: PAYLOAD -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-8" class="section">⑥ Payload 载荷</h2>
+
+  <blockquote>
+    "Payload = 任务的真正价值。同样 1U 平台，相机和 SDR 是完全不同的工程问题。⭐ 90% 设计时间应花在 Payload。"
+  </blockquote>
+
+  <h3 id="h3-15">5 大常见载荷类型</h3>
+  <table>
+    <thead>
+      <tr><th>类型</th><th>代表任务</th><th>关键指标</th><th>数据率</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>成像 (Imaging)</td>
+        <td>Planet / Satellogic</td>
+        <td>分辨率 / 谱段</td>
+        <td>Mbps-Gbps</td>
+      </tr>
+      <tr>
+        <td>通信 (SDR/Radio)</td>
+        <td>Iridium / Starlink v2mini</td>
+        <td>带宽 / 调制</td>
+        <td>Mbps 级</td>
+      </tr>
+      <tr>
+        <td>科学仪器</td>
+        <td>空间天气 / 辐射</td>
+        <td>灵敏度 / 采样率</td>
+        <td>kbps 级</td>
+      </tr>
+      <tr>
+        <td>技术验证 (Tech Demo)</td>
+        <td>学生 / 大学</td>
+        <td>新元件 / 新算法</td>
+        <td>灵活</td>
+      </tr>
+      <tr>
+        <td>教育 / 信标</td>
+        <td>业余 / 学校</td>
+        <td>简单可重复</td>
+        <td>极低</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-16">⭐ 真实任务 = 90% 时间在 Payload</h3>
+  <div class="quote-card green">
+    <div class="who">Gopal — 工程师反模式</div>
+    <div class="text">"学生项目常见错误：花 80% 时间优化电源板 / ADCS，Payload 草草了事。<b>任务价值 = Payload 价值</b>。平台只决定任务能跑多久，Payload 决定任务值得跑多久。"</div>
+  </div>
+</div>
+
+<!-- TAB 8: STRUCTURE -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-9" class="section">⑦ 机械结构 (Structure)</h2>
+
+  <blockquote>
+    "结构 = 看起来简单但关乎成败。发射振动 / 热胀冷缩 / 真空放气 = 任何细节都可能致命。"
+  </blockquote>
+
+  <h3 id="h3-17">4 种材料对比</h3>
+  <table>
+    <thead>
+      <tr><th>材料</th><th>密度</th><th>刚度</th><th>加工</th><th>典型用途</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>铝 7075-T6</td><td>2.81 g/cm³</td><td>高</td><td>CNC 铣</td><td>CubeSat 主流</td>
+      </tr>
+      <tr>
+        <td>碳纤维 (CFRP)</td><td>1.6 g/cm³</td><td>极高</td><td>铺层 / 热压罐</td><td>高性能 / 商业</td>
+      </tr>
+      <tr>
+        <td>钛合金 Ti-6Al-4V</td><td>4.4 g/cm³</td><td>极高</td><td>难</td><td>连接件 / 推进</td>
+      </tr>
+      <tr>
+        <td>3D 打印 (AlSi10Mg)</td><td>2.67 g/cm³</td><td>中</td><td>SLM</td><td>复杂内流道 / 学生</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-18">⭐ 6U CubeSat 标准</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>1U</h4>
+      <p>10×10×10 cm</p>
+      <p>~1 kg</p>
+      <p>学生 / 教学</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>3U</h4>
+      <p>10×10×30 cm</p>
+      <p>~3-4 kg</p>
+      <p>科研主流</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>6U</h4>
+      <p>20×10×30 cm</p>
+      <p>~8-12 kg</p>
+      <p>⭐ 商业 / 地球观测</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>12U</h4>
+      <p>20×20×30 cm</p>
+      <p>~16-24 kg</p>
+      <p>深度任务 / SpaceX rideshare</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 9: THERMAL -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-10" class="section">⑧ 热控 (Thermal)</h2>
+
+  <blockquote>
+    "⭐ 真空环境 = 没有空气对流 = 唯一散热方式是辐射。热控设计错了 = 电池冬天冻死 / 夏天过热。"
+  </blockquote>
+
+  <h3 id="h3-19">4 大热控机制</h3>
+  <table>
+    <thead>
+      <tr><th>机制</th><th>原理</th><th>适用</th><th>代表</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>MLI 多层隔热</td>
+        <td>反射层 + 间隔层</td>
+        <td>被动 / 通用</td>
+        <td>所有卫星</td>
+      </tr>
+      <tr class="highlight">
+        <td>涂层 (Coating)</td>
+        <td>α/ε 比调节</td>
+        <td>被动 / 表面</td>
+        <td>白漆 / 镀金</td>
+      </tr>
+      <tr>
+        <td>加热器 (Heater)</td>
+        <td>电阻加热 + 温控开关</td>
+        <td>主动 / 关键件</td>
+        <td>电池 / 推进</td>
+      </tr>
+      <tr>
+        <td>散热器 (Radiator)</td>
+        <td>高 ε 表面 + 视角</td>
+        <td>被动 / 高功耗</td>
+        <td>相机 / OBC</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-20">⭐ 真空 = 只能辐射散热</h3>
+  <div class="quote-card red">
+    <div class="who">⭐ 关键物理约束</div>
+    <div class="text">
+      <b>Stefan-Boltzmann:</b> Q_rad = ε · σ · A · (T_h⁴ − T_c⁴)<br>
+      地面常用的风扇 / 散热片 / 强制风冷 = <b>全部失效</b><br>
+      唯一散热路径 = 通过表面辐射到深空 (3K)
+    </div>
+  </div>
+</div>
+
+<!-- TAB 10: REVERSE ENGINEERING -->
+<div class="tab-content" data-tab-content="reverse">
+  <h2 id="h2-11" class="section">⑨ 「倒着设计」5 步法</h2>
+
+  <blockquote>
+    "⭐ Gopal 的核心方法论：从任务开始 → 推导 → 设计。从硬件开始 = 100% 会重做。"
+  </blockquote>
+
+  <h3 id="h3-21">Step 1: 任务定义 (Mission Definition)</h3>
+  <div class="card">
+    <h4>问自己 4 个问题</h4>
+    <ul>
+      <li><b>WHY</b>: 为什么需要这颗卫星？商业价值？科研？教育？</li>
+      <li><b>WHAT</b>: 要观测什么 / 测量什么 / 通信什么？</li>
+      <li><b>WHO</b>: 客户 / 用户 / 利益相关方是谁？</li>
+      <li><b>WHEN/HOW MUCH</b>: 任务寿命 / 预算 / 进度约束？</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-22">Step 2: 载荷驱动 (Payload-Driven)</h3>
+  <div class="card">
+    <h4>从任务推导载荷需求</h4>
+    <ul>
+      <li>要观测城市交通 → 高分辨率相机 + 红外面阵</li>
+      <li>要测海洋盐度 → L 波段辐射计</li>
+      <li>要验证新算法 → SDR + 高性能 FPGA</li>
+      <li>要业余通联 → UHF 转发器 + 简单 FM 调制</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-23">Step 3: 子系统派生 (Subsystem Derivation)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>从载荷推 EPS</h4>
+      <p>载荷 X W + ADCS Y W + Comms Z W = 总功率</p>
+      <p>→ 太阳能板峰值 / 电池容量</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>从载荷推 Comms</h4>
+      <p>载荷数据率 M Mbps</p>
+      <p>→ 频段 / 发射功率 / 天线尺寸</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>从载荷推 ADCS</h4>
+      <p>载荷指向精度 ±0.1°</p>
+      <p>→ 反作用轮 + 星敏感器</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>从载荷推 Thermal</h4>
+      <p>载荷工作温度 -10°C ~ +40°C</p>
+      <p>→ 加热器 / 散热器 / MLI</p>
+    </div>
+  </div>
+
+  <h3 id="h3-24">Step 4: 接口冻结 (Interface Freeze)</h3>
+  <div class="card">
+    <h4>⭐ 关键里程碑</h4>
+    <ul>
+      <li>所有子系统的<b>电接口</b>（电压 / 电流 / 时序）冻结</li>
+      <li>所有子系统的<b>机械接口</b>（尺寸 / 安装孔位）冻结</li>
+      <li>所有子系统的<b>数据接口</b>（协议 / 消息格式）冻结</li>
+      <li>所有子系统的<b>热接口</b>（接触面 / 散热路径）冻结</li>
+      <li>冻结后任何变更 = 全系统重新评审 (CCB)</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-25">Step 5: 测试验证 (Test & Verification)</h3>
+  <div class="card">
+    <h4>测试金字塔（借鉴软件工程）</h4>
+    <ul>
+      <li><b>单元测试</b>：每个子系统的组件级测试</li>
+      <li><b>集成测试</b>：FlatSat 整星电测试</li>
+      <li><b>环境测试</b>：热真空 / 振动 / 冲击 / EMC</li>
+      <li><b>系统测试</b>：整星模拟在轨运行</li>
+      <li><b>验收测试</b>：发射前最终验证</li>
+    </ul>
+  </div>
+</div>
+
+<!-- TAB 11: SYSTEMS THINKING -->
+<div class="tab-content" data-tab-content="systems">
+  <h2 id="h2-12" class="section">🧠 工程师系统思维 (⭐ 17 card)</h2>
+
+  <blockquote>
+    "造卫星 = 工程系统思维。⭐ 与软件工程高度相似：分层 / 解耦 / 接口 / 权衡 / 测试金字塔。Gopal 跨域类比：软件工程师学卫星工程，比想象中容易。"
+  </blockquote>
+
+  <h3 id="h3-26">与软件工程的相似性</h3>
+  <table>
+    <thead>
+      <tr><th>卫星工程</th><th>软件工程</th><th>共同原则</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight"><td>子系统</td><td>微服务 / 模块</td><td>单一职责 / 解耦</td></tr>
+      <tr><td>接口 (ICD)</td><td>API</td><td>契约 / 版本化</td></tr>
+      <tr><td>板载计算机 (OBC)</td><td>API Gateway / Orchestrator</td><td>统一调度 / 路由</td></tr>
+      <tr><td>倒着设计</td><td>DDD / TDD</td><td>需求驱动设计</td></tr>
+      <tr><td>FlatSat 测试</td><td>集成测试</td><td>模块先测，整系统再测</td></tr>
+      <tr><td>热真空测试</td><td>压力测试</td><td>极端环境验证</td></tr>
+      <tr><td>Watchdog / Safe Mode</td><td>Circuit Breaker</td><td>故障隔离 / 降级</td></tr>
+      <tr><td>发射后升级 (OTA)</td><td>热修复</td><td>现场可修复</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-27">工程师 5 大反模式</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ 1. 从硬件开始</h4>
+      <p>"我先买块板子再说"</p>
+      <p>→ 99% 会重做</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ 2. 单点故障</h4>
+      <p>"OBC 死 = 全系统死"</p>
+      <p>→ 必须有 watchdog</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ 3. 接口不冻结</h4>
+      <p>"EPS 改一下，Comms 也改一下"</p>
+      <p>→ 接口频繁变 = 项目崩溃</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ 4. 测试不足</h4>
+      <p>"时间紧，测试从简"</p>
+      <p>→ 地面没测 = 太空翻车</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>❌ 5. 过度工程</h4>
+      <p>"加 100 个功能"</p>
+      <p>→ 复杂度爆炸 = 任务失败</p>
+    </div>
+  </div>
+
+  <h3 id="h3-28">⭐ 工程师核心 = 系统层级权衡</h3>
+  <div class="quote-grid">
+    <div class="quote-card accent">
+      <div class="who">⭐ Gopal 核心洞察</div>
+      <div class="text">"工程师 = 不是精通一个领域，而是在 <b>质量 / 功率 / 成本 / 复杂度 / 进度</b> 这 5 个维度做 trade-off。同样 1U 平台，可以做相机卫星，也可以做 IoT 转发器，关键看你怎么权衡。"</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ 工程师 vs 科学家</div>
+      <div class="text">"科学家 = 把一件事做到极致。工程师 = 在所有事情上做到 <b>够好</b>。"</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ 系统思维 5 原则</div>
+      <div class="text">① 全局观 · ② 接口思维 · ③ 量化权衡 · ④ 故障预想 · ⑤ 持续迭代</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 12: QUOTES -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-13" class="section">💬 关键金句库</h2>
+
+  <div class="quote-grid">
+    <div class="quote-card accent">
+      <div class="who">⭐ Gopal — 倒着设计</div>
+      <div class="text">"Don't start with hardware. Start with the mission. If you start with hardware, you'll redesign it 3 times. If you start with mission, you'll get it right the first time."</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Gopal — 系统思维</div>
+      <div class="text">"Engineers are not experts in one domain. Engineers make trade-offs across all domains: mass, power, cost, complexity, schedule. That's what makes an engineer."</div>
+    </div>
+    <div class="quote-card green">
+      <div class="who">⭐ Gopal — Payload 哲学</div>
+      <div class="text">"90% of your design time should be on the payload. The bus is just a delivery vehicle. Most student projects get this backwards."</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="who">⭐ Gopal — 真空环境</div>
+      <div class="text">"In space, you can't use fans. You can't use convection. The only way to get rid of heat is radiation. This single fact drives 80% of thermal design decisions."</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="who">⭐ Gopal — OBC 核心</div>
+      <div class="text">"The OBC is the system hub. Every subsystem talks to the OBC. If the OBC fails, the satellite is dead. That's why safe mode and watchdog are non-negotiable."</div>
+    </div>
+    <div class="quote-card red">
+      <div class="who">⭐ Gopal — 接口冻结</div>
+      <div class="text">"Interface freeze is the most important milestone in satellite development. After freeze, any change goes through a Change Control Board. Without freeze, projects die."</div>
+    </div>
+    <div class="quote-card cyan">
+      <div class="who">⭐ Gopal — 测试金字塔</div>
+      <div class="text">"Test like a software engineer. Unit tests on every component. Integration tests on the FlatSat. Environmental tests. The test pyramid is the same in space."</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="who">⭐ Gopal — 工程师 vs Hacker</div>
+      <div class="text">"Hackers build things that work for them. Engineers build things that work for the mission, within constraints, on schedule, and can be maintained by someone else."</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: TIMESTAMPS -->
+<div class="tab-content" data-tab-content="time">
+  <h2 id="h2-14" class="section">⏱️ 关键时间戳（精选）</h2>
+
+  <p style="color: var(--text-dim); font-size: 0.9rem;">本视频 ~20 分钟，以下为按视频结构整理的关键节点。</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">00:00 - 01:30</div>
+      <div class="what">🛰️ 引入：卫星是 7 大子系统的工程系统</div>
+      <div class="note">Gopal 开场 — 卫星 = 系统工程的典型案例</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">01:30 - 04:00</div>
+      <div class="what">⚡ EPS 电源子系统</div>
+      <div class="note">太阳能板 / 电池 / Power Budget</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">04:00 - 07:00</div>
+      <div class="what">📡 通信子系统</div>
+      <div class="note">UHF/VHF / 链路预算 / 7 步法</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">07:00 - 10:00</div>
+      <div class="what">🧭 ADCS 姿态控制</div>
+      <div class="note">3 种稳定方式 / 传感器 / 执行器</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:00 - 13:00</div>
+      <div class="what">🧠 OBC 板载计算机 + 软件</div>
+      <div class="note">选型 / 12 步开发流程 / Safe Mode</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:00 - 15:00</div>
+      <div class="what">📷 Payload 载荷</div>
+      <div class="note">5 大类型 / ⭐ 90% 时间在 Payload</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">15:00 - 17:00</div>
+      <div class="what">🔧 机械结构</div>
+      <div class="note">材料对比 / 6U CubeSat 标准</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">17:00 - 18:30</div>
+      <div class="what">🌡️ 热控</div>
+      <div class="note">⭐ 真空 = 只能辐射散热</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">18:30 - 20:00</div>
+      <div class="what">🧠 工程师系统思维总结</div>
+      <div class="note">⭐ 倒着设计 5 步 / 系统级 trade-off</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: LINKS -->
+<div class="tab-content" data-tab-content="links">
+  <h2 id="h2-15" class="section">🔗 资源 & 关联</h2>
+
+  <h3 id="h3-29">主要链接</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>📺 <a href="https://www.youtube.com/watch?v=5voQfQOTem8">How to Build a Satellite (The Efficient Engineer)</a></li>
+    <li>📺 <a href="https://www.youtube.com/@TheEfficientEngineer">The Efficient Engineer 频道 (Gopal)</a></li>
+    <li>📚 <a href="https://www.efficientengineer.com/">The Efficient Engineer 博客</a></li>
+  </ul>
+
+  <h3 id="h3-30">关键概念词</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li><b>EPS</b> — Electrical Power System（电源子系统）</li>
+    <li><b>ADCS</b> — Attitude Determination and Control System（姿态确定与控制系统）</li>
+    <li><b>OBC</b> — On-Board Computer（板载计算机）</li>
+    <li><b>ICD</b> — Interface Control Document（接口控制文件）</li>
+    <li><b>CCB</b> — Change Control Board（变更控制委员会）</li>
+    <li><b>FlatSat</b> — 桌面集成测试平台</li>
+    <li><b>HIL</b> — Hardware In the Loop（硬件在环测试）</li>
+    <li><b>MLI</b> — Multi-Layer Insulation（多层隔热材料）</li>
+    <li><b>6U CubeSat</b> — 20×10×30 cm 立方星标准</li>
+    <li><b>Link Budget</b> — 通信链路预算（数学验证可通信性）</li>
+  </ul>
+
+  <h3>Patrick 关联资源</h3>
+  <ul style="color: var(--text-dim); line-height: 2;">
+    <li>📂 <b>本 dashboard</b> — efficient-engineer-build-a-satellite-dashboard.html</li>
+    <li>🛰️ <b>用户背景</b> — ZING Aerospace / LANDSPACE 航天从业者</li>
+    <li>📑 <b>已有 satellite 资料</b> — ~/Documents/ZING Aerospace/LANDSPACE/</li>
+    <li>🔗 <b>类比</b> — 卫星工程 ≈ 软件工程的系统思维（详见 systems tab）</li>
+    <li>📚 <b>同系列视频</b> — How to Design Systems（系统设计方法论）</li>
+  </ul>
+</div>
+
+<footer>
+  <p>📂 文件位置</p>
+  <p>Source: <code>~/patricks-reports/daily-reports/efficient-engineer-build-a-satellite-dashboard.html</code></p>
+  <p style="margin-top:1rem;">视频来源: <a href="https://www.youtube.com/watch?v=5voQfQOTem8">https://www.youtube.com/watch?v=5voQfQOTem8</a></p>
+  <p>频道: <a href="https://www.youtube.com/@TheEfficientEngineer">The Efficient Engineer</a></p>
+  <p style="margin-top:1rem; font-size: 0.8rem; color: var(--text-mute);">Round 10 模板 · v1.4.2 TOC（hover-expand 折叠侧边栏）· 🛰️ Aerospace / System Engineering</p>
+</footer>
+
+<script>
+  // Tab switching
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+    });
+  });
+</script>
+
+
+<script>
+(function() {
+  const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+  if (!tocLinks.length) return;
+
+  // Click handler: activate tab + scroll
+  tocLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      const id = this.getAttribute('data-toc-target');
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+
+      // Pattern A: hidden .page ancestor (multi-page)
+      const hiddenPage = target.closest('.page');
+      if (hiddenPage) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        hiddenPage.classList.add('active');
+        const pageId = hiddenPage.id.replace('page-', '');
+        document.querySelectorAll('.nav button').forEach(b => {
+          const onclick = b.getAttribute('onclick') || '';
+          if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+      }
+
+      // Pattern B: tab-content ancestor
+      const tabContent = target.closest('.tab-content');
+      if (tabContent) {
+        if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+          tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+        }
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        tabContent.classList.add('active');
+        let tabId = tabContent.getAttribute('data-tab-content');
+        if (!tabId && tabContent.id.startsWith('tab-')) {
+          tabId = tabContent.id.replace('tab-', '');
+        }
+        const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+        const allBtns = document.querySelectorAll(btnSelector);
+        if (tabId) {
+          allBtns.forEach(b => {
+            if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+            else b.classList.remove('active');
+          });
+        } else {
+          const allContents = document.querySelectorAll('.tab-content');
+          const idx = Array.from(allContents).indexOf(tabContent);
+          allBtns.forEach(b => b.classList.remove('active'));
+          if (idx >= 0 && idx < allBtns.length) {
+            allBtns[idx].classList.add('active');
+          }
+        }
+      }
+
+      setTimeout(() => {
+        const rect = target.getBoundingClientRect();
+        const offset = window.scrollY + rect.top - 80;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+        history.replaceState(null, '', '#' + id);
+      }, 50);
+    });
+  });
+
+  // IntersectionObserver: active highlight
+  const sections = Array.from(tocLinks).map(a => {
+    const id = a.getAttribute('data-toc-target');
+    return document.getElementById(id);
+  }).filter(Boolean);
+  if (!sections.length) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        tocLinks.forEach(a => a.classList.remove('active'));
+        const id = entry.target.id;
+        const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+})();
+
+// v1.4.4 TOC collapsible — toggle button + localStorage persistence (06-29 user requirement)
+(function() {
+  const KEY = 'efficient-engineer-build-a-satellite-toc-collapsed';
+  const toggleBtn = document.querySelector('.toc-toggle');
+  if (!toggleBtn) return;
+  // Restore state
+  try {
+    if (localStorage.getItem(KEY) === '1') {
+      document.body.classList.add('toc-collapsed');
+    }
+  } catch (e) { /* localStorage may be blocked — silent fallback */ }
+  // Toggle on click
+  toggleBtn.addEventListener('click', function() {
+    const isCollapsed = document.body.classList.toggle('toc-collapsed');
+    try { localStorage.setItem(KEY, isCollapsed ? '1' : '0'); } catch (e) {}
+  });
+  // Keyboard shortcut: '[' to toggle
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '[' && !e.target.matches('input, textarea')) {
+      const isCollapsed = document.body.classList.toggle('toc-collapsed');
+      try { localStorage.setItem(KEY, isCollapsed ? '1' : '0'); } catch (e) {}
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

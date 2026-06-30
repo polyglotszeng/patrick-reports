@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Search 2026-06-28 Weekly AI News — Knowledge Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0d0d10; --bg-card:#16161b; --bg-elevated:#1c1c22;
+    --border:#2a2a32; --text:#e8e8ea; --text-dim:#a8a8b2; --text-mute:#6a6a76;
+    --accent:#ff6b35; --accent-2:#f7c59f;
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+    --blue:#60a5fa; --purple:#a78bfa; --gray:#9ca3af;
+    --tier-must:#f87171; --tier-watch:#fb923c; --tier-know:#facc15; --tier-skip:#60a5fa;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;line-height:1.55;font-size:14px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  h1{font-size:1.8rem;margin:0 0 0.4rem;color:var(--accent);letter-spacing:-0.01em;}
+  h2.section{font-size:1.25rem;margin:1.4rem 0 0.8rem;color:var(--accent-2);border-bottom:1px solid var(--border);padding-bottom:0.4rem;}
+  h3{font-size:1.05rem;margin:1.1rem 0 0.5rem;color:var(--text);}
+  h4{font-size:0.95rem;margin:0 0 0.5rem;color:var(--accent);}
+  p{margin:0.5rem 0;}
+  .subtitle{color:var(--text-dim);font-size:0.95rem;margin-top:0;}
+  .meta-bar{display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 0;font-size:0.85rem;}
+  .meta-bar span{background:var(--bg-card);padding:0.35rem 0.7rem;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);}
+
+  /* Collapsible TOC layout */
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:0;max-width:1400px;margin:0 auto;transition:grid-template-columns 0.3s ease;}
+  aside.toc{
+    position:sticky;top:0;align-self:start;
+    height:100vh;overflow-y:auto;
+    background:var(--bg-card);border-right:1px solid var(--border);
+    padding:1.2rem 0.8rem;width:240px;
+    transition:width 0.3s ease,padding 0.3s ease;
+  }
+  body.toc-collapsed .layout{grid-template-columns:48px 1fr;}
+  body.toc-collapsed aside.toc{width:48px;padding:1.2rem 0.3rem;}
+  body.toc-collapsed .toc-label,.toc-collapsed aside.toc li a .toc-label,
+  body.toc-collapsed .toc-section-label{display:none;}
+  body.toc-collapsed .toc-collapsed-only{font-size:0.95rem;text-align:center;display:block;}
+  .toc-collapsed-only{display:none;}
+  .main{padding:1.6rem 2rem 4rem;min-width:0;}
+  aside.toc h3{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-mute);margin:0 0 0.6rem;padding:0 0.6rem;}
+  aside.toc ol{list-style:none;padding:0;margin:0;counter-reset:toc;}
+  aside.toc li{counter-increment:toc;}
+  aside.toc a{
+    display:block;padding:0.4rem 0.6rem;border-radius:6px;
+    color:var(--text-dim);font-size:0.85rem;text-decoration:none;
+    border-left:2px solid transparent;
+  }
+  aside.toc a:hover{background:var(--bg-elevated);color:var(--text);border-left-color:var(--accent);}
+  aside.toc a.active{background:var(--bg-elevated);color:var(--accent);border-left-color:var(--accent);}
+  .toc-toggle{
+    position:absolute;top:16px;right:-14px;width:28px;height:28px;
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:50%;
+    color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:0.85rem;z-index:100;font-family:inherit;line-height:1;
+  }
+  .toc-toggle:hover{background:var(--accent);color:#000;}
+  aside.toc{position:sticky;}
+
+  .hero{
+    background:linear-gradient(135deg,#1a1a22 0%,#16161b 100%);
+    border:1px solid var(--border);border-radius:10px;
+    padding:1.4rem 1.6rem;margin-bottom:1.2rem;
+  }
+  .hero p{margin:0.4rem 0;color:var(--text-dim);}
+  .hero ol{margin:0.6rem 0 0 1.2rem;padding:0;color:var(--text);}
+  .hero li{margin:0.3rem 0;}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin-bottom:1.6rem;}
+  .stat{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+    padding:1rem 1.2rem;
+  }
+  .stat .num{font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1.1;}
+  .stat .lbl{font-size:0.8rem;color:var(--text-dim);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.04em;}
+
+  .tabs{
+    display:flex;flex-wrap:wrap;gap:0.3rem;
+    border-bottom:1px solid var(--border);
+    margin-bottom:0;padding-bottom:0;
+    position:sticky;top:0;background:var(--bg);z-index:5;
+  }
+  .tab-btn{
+    background:transparent;color:var(--text-dim);
+    border:1px solid var(--border);border-bottom:none;
+    border-radius:8px 8px 0 0;
+    padding:0.55rem 0.9rem;cursor:pointer;
+    font-size:0.85rem;font-family:inherit;
+    transition:background 0.12s,color 0.12s;
+  }
+  .tab-btn:hover{background:var(--bg-elevated);color:var(--text);}
+  .tab-btn.active{background:var(--bg-card);color:var(--accent);border-color:var(--accent);}
+
+  .tab-content{display:none;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:1.4rem 1.6rem;margin-bottom:1.2rem;}
+  .tab-content.active{display:block;}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.8rem;margin:0.8rem 0;}
+  .card{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;
+    padding:0.9rem 1rem;
+  }
+  .card p{margin:0.3rem 0;font-size:0.88rem;}
+  .card .ts{display:inline-block;background:var(--bg);color:var(--accent);padding:0.1rem 0.45rem;border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.78rem;margin-right:0.4rem;border:1px solid var(--border);}
+  .card .why{font-size:0.82rem;color:var(--text-dim);margin-top:0.4rem;padding-top:0.4rem;border-top:1px dashed var(--border);}
+  .card .why b{color:var(--accent-2);}
+
+  blockquote{
+    border-left:3px solid var(--accent);background:var(--bg-elevated);
+    margin:0.8rem 0;padding:0.7rem 1rem;border-radius:0 8px 8px 0;
+    color:var(--text);font-style:italic;
+  }
+  blockquote .ts{font-style:normal;}
+
+  .quote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.7rem;}
+  .quote-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;font-style:italic;}
+  .quote-card .ts{display:block;margin-top:0.4rem;font-style:normal;color:var(--accent);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.78rem;}
+  .quote-card .relevance{
+    display:block;margin-top:0.4rem;padding:0.3rem 0.5rem;
+    background:rgba(74,222,128,0.08);border-left:2px solid var(--green);
+    font-style:normal;color:var(--text-dim);font-size:0.78rem;border-radius:0 4px 4px 0;
+  }
+
+  table{width:100%;border-collapse:collapse;margin:0.8rem 0;font-size:0.88rem;}
+  th,td{border:1px solid var(--border);padding:0.55rem 0.7rem;text-align:left;}
+  th{background:var(--bg-elevated);color:var(--accent-2);font-weight:600;}
+  tr.highlight{background:rgba(255,107,53,0.08);}
+  td .ts{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--accent);font-size:0.82rem;}
+  td.col-rel{font-size:0.8rem;color:var(--green);}
+
+  .badge{display:inline-block;background:var(--bg);border:1px solid var(--border);color:var(--text-dim);padding:0.1rem 0.5rem;border-radius:4px;font-size:0.72rem;margin-left:0.3rem;}
+  .badge.warn{border-color:var(--yellow);color:var(--yellow);}
+  .badge.green{border-color:var(--green);color:var(--green);}
+  .badge.red{border-color:var(--red);color:var(--red);}
+  .tier-badge{
+    display:inline-block;padding:0.18rem 0.5rem;border-radius:4px;font-size:0.7rem;
+    font-weight:600;margin:0 0.3rem 0 0;vertical-align:middle;border:1px solid;
+  }
+  .tier-must{color:var(--tier-must);border-color:var(--tier-must);background:rgba(248,113,113,0.08);}
+  .tier-watch{color:var(--tier-watch);border-color:var(--tier-watch);background:rgba(251,146,60,0.08);}
+  .tier-know{color:var(--tier-know);border-color:var(--tier-know);background:rgba(250,204,21,0.08);}
+  .tier-skip{color:var(--tier-skip);border-color:var(--tier-skip);background:rgba(96,165,250,0.08);}
+  .fresh-badge{
+    display:inline-block;padding:0.12rem 0.45rem;border-radius:4px;font-size:0.68rem;
+    color:var(--text-dim);background:var(--bg);border:1px solid var(--border);margin-left:0.3rem;vertical-align:middle;
+  }
+  .fresh-24h{color:var(--red);border-color:var(--red);}
+  .fresh-48h{color:var(--yellow);border-color:var(--yellow);}
+  .fresh-7d{color:var(--green);border-color:var(--green);}
+  .topic-chip{
+    display:inline-block;padding:0.1rem 0.5rem;border-radius:10px;font-size:0.68rem;
+    color:var(--purple);background:rgba(167,139,250,0.1);border:1px solid var(--purple);
+    margin:0 0.3rem 0 0;vertical-align:middle;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+
+  .ref-list{font-size:0.88rem;}
+  .ref-list li{margin:0.4rem 0;}
+  .ref-list .src{color:var(--text-mute);font-size:0.78rem;}
+
+  .timeline{position:relative;margin:0.8rem 0;padding-left:1rem;border-left:2px solid var(--border);}
+  .tl-item{margin:0.5rem 0;padding-left:0.8rem;}
+  .tl-item .time{color:var(--accent);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:600;font-size:0.85rem;}
+  .tl-item .what{color:var(--text-dim);font-size:0.88rem;display:block;margin-top:0.15rem;}
+
+  /* ASCII block styling */
+  .ascii-block{
+    background:var(--bg);border:1px solid var(--border);border-radius:6px;
+    padding:0.9rem 1.1rem;margin:0.8rem 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:0.82rem;line-height:1.45;color:var(--text-dim);
+    white-space:pre;overflow-x:auto;
+  }
+  .ascii-block .hl{color:var(--accent);}
+  .ascii-block .hl-g{color:var(--green);}
+  .ascii-block .hl-y{color:var(--yellow);}
+  .ascii-block .hl-r{color:var(--red);}
+  .ascii-block .hl-b{color:var(--blue);}
+  .ascii-block .hl-p{color:var(--purple);}
+
+  /* Progress bar */
+  .progress-card{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;
+    padding:0.9rem 1.1rem;margin:0.6rem 0;
+  }
+  .progress-card .lbl{font-size:0.88rem;color:var(--text);margin-bottom:0.4rem;}
+  .progress-card .lbl b{color:var(--accent-2);}
+  .progress-bar{
+    background:var(--bg);border:1px solid var(--border);border-radius:6px;
+    height:14px;overflow:hidden;position:relative;
+  }
+  .progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));transition:width 0.4s ease;}
+  .progress-bar .pct{
+    position:absolute;top:0;left:0;right:0;text-align:center;
+    font-size:0.7rem;color:var(--text);font-weight:600;line-height:14px;
+  }
+
+  /* Interactive checklist */
+  .checklist-item{
+    display:flex;align-items:flex-start;gap:0.6rem;padding:0.5rem 0.7rem;
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;margin:0.4rem 0;
+  }
+  .checklist-item input[type="checkbox"]{margin-top:0.18rem;cursor:pointer;}
+  .checklist-item .lbl{flex:1;font-size:0.88rem;}
+  .checklist-item.done .lbl{text-decoration:line-through;color:var(--text-mute);}
+  .checklist-item .pri{
+    font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;flex-shrink:0;
+  }
+  .pri-high{background:rgba(248,113,113,0.15);color:var(--red);}
+  .pri-med{background:rgba(251,191,36,0.15);color:var(--yellow);}
+  .pri-low{background:rgba(96,165,250,0.15);color:var(--blue);}
+  .phase-bar{
+    background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;
+    padding:0.6rem 1rem;margin:0.8rem 0;display:flex;justify-content:space-between;align-items:center;
+    font-size:0.85rem;color:var(--text-dim);
+  }
+  .phase-bar .counter{font-weight:700;color:var(--accent);font-size:1.1rem;}
+
+  footer{margin-top:2rem;padding:1rem 0;border-top:1px solid var(--border);color:var(--text-mute);font-size:0.8rem;}
+
+  @media(max-width:768px){
+    .layout{grid-template-columns:1fr;}
+    aside.toc{position:relative;height:auto;width:100%;}
+    body.toc-collapsed .layout{grid-template-columns:1fr;}
+    body.toc-collapsed aside.toc{width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<h1 style="padding:1.2rem 2rem 0;max-width:1400px;margin:0 auto;">AI Search — Weekly AI News Roundup (2026-06-28)</h1>
+<p class="subtitle" style="padding:0 2rem;max-width:1400px;margin:0 auto;">GPT 5.6, Mythos ban lifted, realtime avatars, Seedance 2.5, brain ultrasound &amp; a lot more — 14 stories, 1 week, 1 dashboard.</p>
+
+<div class="meta-bar" style="padding:0.8rem 2rem 0;max-width:1400px;margin:0 auto;">
+  <span>📺 YouTube: <a href="https://www.youtube.com/watch?v=7c_ieWfAbrw" target="_blank">7c_ieWfAbrw</a></span>
+  <span>📡 Channel: AI Search</span>
+  <span>🗓️ Date: 2026-06-28</span>
+  <span>⏱️ Duration: 42:43</span>
+  <span>🌐 Lang: EN</span>
+  <span>🎯 Credibility: medium (industry news)</span>
+  <span>✨ Round 7 polish v2 — 15 enhancements applied</span>
+</div>
+
+<div class="layout" style="padding-top:1.2rem;position:relative;">
+
+  <aside class="toc">
+    <button class="toc-toggle" aria-label="Toggle TOC" title="Toggle TOC">◀</button>
+    <h3 class="toc-label">📑 Jump to</h3>
+    <span class="toc-collapsed-only">📑</span>
+    <ol>
+      <li><a href="#news"><span class="toc-label">📰 核心新闻</span><span class="toc-collapsed-only">📰</span></a></li>
+      <li><a href="#video"><span class="toc-label">🎬 视频生成</span><span class="toc-collapsed-only">🎬</span></a></li>
+      <li><a href="#avatar"><span class="toc-label">🤖 实时 Avatar</span><span class="toc-collapsed-only">🤖</span></a></li>
+      <li><a href="#3d"><span class="toc-label">🎨 3D 模型</span><span class="toc-collapsed-only">🎨</span></a></li>
+      <li><a href="#mythos"><span class="toc-label">🧠 Mythos / Claude</span><span class="toc-collapsed-only">🧠</span></a></li>
+      <li><a href="#trend"><span class="toc-label">📈 走势 / 因果</span><span class="toc-collapsed-only">📈</span></a></li>
+      <li><a href="#timeline"><span class="toc-label">⏱️ 时间轴</span><span class="toc-collapsed-only">⏱️</span></a></li>
+      <li><a href="#agent"><span class="toc-label">🔧 Agent / 数据集</span><span class="toc-collapsed-only">🔧</span></a></li>
+      <li><a href="#robot"><span class="toc-label">🤖 Humanoid Robots</span><span class="toc-collapsed-only">🤖</span></a></li>
+      <li><a href="#opensource"><span class="toc-label">📦 开源模型</span><span class="toc-collapsed-only">📦</span></a></li>
+      <li><a href="#brain"><span class="toc-label">🏥 脑超声 / 医疗</span><span class="toc-collapsed-only">🏥</span></a></li>
+      <li><a href="#quotes"><span class="toc-label">💬 金句</span><span class="toc-collapsed-only">💬</span></a></li>
+      <li><a href="#patrick"><span class="toc-label">🧰 Patrick 关联</span><span class="toc-collapsed-only">🧰</span></a></li>
+      <li><a href="#watchlist"><span class="toc-label">⚡ Patrick Watchlist</span><span class="toc-collapsed-only">⚡</span></a></li>
+      <li><a href="#limits"><span class="toc-label">⚠️ 反方 / 局限</span><span class="toc-collapsed-only">⚠️</span></a></li>
+      <li><a href="#snap"><span class="toc-label">📊 数据快照</span><span class="toc-collapsed-only">📊</span></a></li>
+      <li><a href="#ref"><span class="toc-label">🔗 参考链接</span><span class="toc-collapsed-only">🔗</span></a></li>
+    </ol>
+  </aside>
+
+  <div class="main">
+
+    <div class="hero">
+      <p><b>This week's one-line thesis:</b> the AI supply side has gone vertical — video, 3D, chips, avatars, agents, robots, open-source models, and medical imaging all dropped a credible upgrade in the same 7 days. The bottleneck is shifting from "what's available" to "what's gated &amp; what you can self-host."</p>
+      <ol>
+        <li><b>Closed frontier accelerating — but gated.</b> GPT 5.6 (Soul/Terra/Luna) outperforms Mythos on Terminal Bench &amp; Genebench, but is rolled out only to ~trusted partners under a US-gov preview window.</li>
+        <li><b>Open-source catching up across modalities.</b> Ornith 1.0 (agentic coding), Crea 2 (image gen, 4GB VRAM), Unzero (oscillator-based image), DomainShuttle (reference-consistent video) — all with weights out.</li>
+        <li><b>"Control" is the new frontier in generation.</b> Seedance 2.5 (bounding-box edit + 50 refs + 4K), Arbor 3D (spatial constraints), Lyte 4D (single-video 4D reconstruction) — the question shifts from "can it generate?" to "can it follow directions?"</li>
+        <li><b>Hardware + 3D-stacking breaks Moore's wall.</b> OpenAI × Broadcom "Jalapeno" (9-month accelerator) + IBM 0.7nm / 7Å vertical-stack (100B transistors/fingernail).</li>
+        <li><b>Self-improving agents + robots.</b> Meta Auto Data (agentic data-loop), HIW500 (10TB / 500h humanoid teleop in real homes), Sakana Fugu (orchestrator, ⚠️ misleading claims).</li>
+      </ol>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">14</div><div class="lbl">News items this week</div></div>
+      <div class="stat"><div class="num">8</div><div class="lbl">Models / frameworks w/ weights</div></div>
+      <div class="stat"><div class="num">100B</div><div class="lbl">Transistors in IBM 0.7nm chip</div></div>
+      <div class="stat"><div class="num">50×</div><div class="lbl">Multi-refs in Seedance 2.5</div></div>
+      <div class="stat"><div class="num">500h</div><div class="lbl">HIW500 humanoid dataset</div></div>
+      <div class="stat"><div class="num">700K</div><div class="lbl">GPU-hr red-teaming GPT 5.6</div></div>
+    </div>
+
+    <div class="tabs" id="tabstrip">
+      <button class="tab-btn" data-tab="news">📰 核心新闻</button>
+      <button class="tab-btn" data-tab="video">🎬 视频生成</button>
+      <button class="tab-btn" data-tab="avatar">🤖 实时 Avatar</button>
+      <button class="tab-btn" data-tab="3d">🎨 3D 模型</button>
+      <button class="tab-btn" data-tab="mythos">🧠 Mythos / Claude</button>
+      <button class="tab-btn" data-tab="trend">📈 走势 / 因果</button>
+      <button class="tab-btn" data-tab="timeline">⏱️ 时间轴</button>
+      <button class="tab-btn" data-tab="agent">🔧 Agent / 数据集</button>
+      <button class="tab-btn" data-tab="robot">🤖 Humanoid Robots</button>
+      <button class="tab-btn" data-tab="opensource">📦 开源模型</button>
+      <button class="tab-btn" data-tab="brain">🏥 脑超声 / 医疗</button>
+      <button class="tab-btn" data-tab="quotes">💬 金句</button>
+      <button class="tab-btn" data-tab="patrick">🧰 Patrick 关联</button>
+      <button class="tab-btn" data-tab="watchlist">⚡ Watchlist</button>
+      <button class="tab-btn" data-tab="limits">⚠️ 反方 / 局限</button>
+      <button class="tab-btn" data-tab="snap">📊 数据快照</button>
+      <button class="tab-btn" data-tab="ref">🔗 参考链接</button>
+    </div>
+
+    <div class="tab-content" id="news" data-tab="news">
+      <h2 class="section" id="news-h">📰 14 stories from this week — snapshot</h2>
+      <p>Compact card-per-news summary with <b>actionability tier</b>, <b>freshness shelf-life</b>, and <b>topic chip</b> on every card. Use the topic tabs to dive deeper.</p>
+
+      <h3 style="margin-top:1rem;color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;">Legend</h3>
+      <p style="font-size:0.82rem;color:var(--text-dim);">
+        <span class="tier-badge tier-must">🟥必读</span>directly affects Hermes/Patrick-stack &nbsp;
+        <span class="tier-badge tier-watch">🟧关注</span>watch closely this week &nbsp;
+        <span class="tier-badge tier-know">🟨了解</span>background context &nbsp;
+        <span class="tier-badge tier-skip">🟦跳过</span>low priority&nbsp;&nbsp;|&nbsp;&nbsp;
+        <span class="fresh-badge fresh-24h">⏱ 24h shelf</span> break-now &nbsp;
+        <span class="fresh-badge fresh-48h">⏱ 48h shelf</span> important-soon &nbsp;
+        <span class="fresh-badge fresh-7d">⏱ 7d shelf</span> evergreen
+      </p>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>1. ByteDance Seedance 2.5 <span class="tier-badge tier-must">🟥必读</span><span class="fresh-badge fresh-24h">⏱ 24h</span><span class="topic-chip">video-gen</span></h4>
+          <p><span class="ts">[0:20:13]</span> 30s clips · 50 multimodal refs · bounding-box local edit · 2K/4K · audio native. Unveiled, launch early July.</p>
+          <p><b>Why this matters:</b> Unlocks continuous-shot narrative control — 50 reference images + frame-precise bounding-box edits. The "control is the new frontier" thesis materializes here. Used internally by Higgsfield.</p>
+          <p class="why"><b>Patrick impact:</b> 🟥必读 — directly relevant to any video-pipeline / here.now dashboard demo. Add to eval queue.</p>
+        </div>
+        <div class="card">
+          <h4>2. Alibaba Happy Horse 1.1 <span class="tier-badge tier-watch">🟧关注</span><span class="fresh-badge fresh-48h">⏱ 48h</span><span class="topic-chip">video-gen</span></h4>
+          <p><span class="ts">[0:26:57]</span> 1080p · 3-15s clips · up to 9 refs · 21:9 &amp; 9:21 aspect · multi-lang audio + lip-sync. Free credits on signup.</p>
+          <p><b>Why this matters:</b> Best <i>non-Seedance</i> alternative — open credits, 21:9/9:21 wide-screen support. Honest framing from host: not as good as Seedance, but practical.</p>
+          <p class="why"><b>Patrick impact:</b> 🟧关注 — fallback in agent router when Seedance unavailable.</p>
+        </div>
+        <div class="card">
+          <h4>3. One Streamer (Alibaba realtime avatar) <span class="tier-badge tier-must">🟥必读</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">avatar</span></h4>
+          <p><span class="ts">[0:01:04]</span> Conversational avatar · single transformer (text+audio+video) · 25 fps · ~200ms latency · duplex (listen while speaking) · v0.1 @ 192p.</p>
+          <p><b>Why this matters:</b> First credible single-transformer realtime avatar. Paper-only today, but the architecture is the moat — 200ms model-side response latency is the bar every avatar-lab should now aim for.</p>
+          <p class="why"><b>Patrick impact:</b> 🟥必读 — realtime-avatar is a known Hermes skill neighborhood (here.now demos / avatar lab).</p>
+        </div>
+        <div class="card">
+          <h4>4. OpenAI × Broadcom "Jalapeno" <span class="tier-badge tier-watch">🟧关注</span><span class="fresh-badge fresh-24h">⏱ 24h</span><span class="topic-chip">chip</span></h4>
+          <p><span class="ts">[0:10:01]</span> First OpenAI intelligence processor · built in 9 months w/ OpenAI models helping the design · "substantially better perf/watt" · gigawatt-scale deploy roadmap.</p>
+          <p><b>Why this matters:</b> OpenAI now designs silicon; 9-month build cycle is shockingly fast; AI-assisted silicon design is a recurrence loop (model designs accelerator, accelerator trains larger model...).</p>
+          <p class="why"><b>Patrick impact:</b> 🟧关注 — feed scheduled-monitor-with-drift; affects long-term agent cost.</p>
+        </div>
+        <div class="card">
+          <h4>5. IBM 0.7nm chip <span class="tier-badge tier-know">🟨了解</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">chip</span></h4>
+          <p><span class="ts">[0:11:38]</span> Sub-1nm / 7Å node · vertical 3D "nanostack" · ~100B transistors on a fingernail · +50% perf or +70% energy vs 2nm node.</p>
+          <p><b>Why this matters:</b> Vertical-stack + sub-1nm — Moore's-law-is-dead narrative pushes back 5+ years. Background enabler for AI capex runway.</p>
+          <p class="why"><b>Patrick impact:</b> 🟨了解 — macro context, no direct hook.</p>
+        </div>
+        <div class="card">
+          <h4>6. Stability AI Arbor (3D) <span class="tier-badge tier-must">🟥必读</span><span class="fresh-badge fresh-24h">⏱ 24h</span><span class="topic-chip">3d</span></h4>
+          <p><span class="ts">[0:08:15]</span> Spatial constraint 3D generation · tell it where geometry should/shouldn't be &amp; contact points · 600MB model · Blender add-on · no retraining.</p>
+          <p><b>Why this matters:</b> First 3D generator that actually responds to spatial layout directives — production-grade for product viz / stage mockups. Weights out.</p>
+          <p class="why"><b>Patrick impact:</b> 🟥必读 — Muse 3D / Blender neighborhood; Agent could integrate Blender-add-on in a single here.now demo.</p>
+        </div>
+        <div class="card">
+          <h4>7. Claude Mythos ban lifted (sort of) <span class="tier-badge tier-must">🟥必读</span><span class="fresh-badge fresh-24h">⏱ 24h</span><span class="topic-chip">gating</span></h4>
+          <p><span class="ts">[0:34:10]</span> US gov eased letter → Mythos 5 to ~100 trusted partners · similar to GPT 5.6 limited preview · everyone else: permanent underclass.</p>
+          <p><b>Why this matters:</b> The "ban" headline oversold public access. Sovereignty / capability gate-by-government is now the meta-story for the year.</p>
+          <p class="why"><b>Patrick impact:</b> 🟥必读 — direct routing consequence: which-llm profile chooses Mythos (no), GPT 5.6 (no), or open-source (yes).</p>
+        </div>
+        <div class="card">
+          <h4>8. OpenAI GPT 5.6 (Soul/Terra/Luna) <span class="tier-badge tier-watch">🟧关注</span><span class="fresh-badge fresh-24h">⏱ 24h</span><span class="topic-chip">frontier-llm</span></h4>
+          <p><span class="ts">[0:30:20]</span> Family of 3 · Soul Ultra = new SOTA on Terminal Bench &amp; Genebench · 750 tok/s on Cerebras · only "ultra-trusted partners" get it.</p>
+          <p><b>Why this matters:</b> "Family" naming convention now in production; sub-agent coordination ("ultra reasoning") is the new scaling axis. 750 tok/s on Cerebras is the bar for inference speed.</p>
+          <p class="why"><b>Patrick impact:</b> 🟧关注 — wait for public API; then hermes-eval-harness + dual-ai-peer-review.</p>
+        </div>
+        <div class="card">
+          <h4>9. Meta Auto Data (agentic framework) <span class="tier-badge tier-must">🟥必读</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">agent</span></h4>
+          <p><span class="ts">[0:38:20]</span> Agent builds &amp; evaluates &amp; iterates its own training data · loop with challenger agent + rubric · trained tiny Qwen 3.5 4B to beat baselines.</p>
+          <p><b>Why this matters:</b> The agentic data-loop is now a proven pattern — challengers + rubrics + iteration can train small models that beat hand-curated baselines. DSPy in production shape.</p>
+          <p class="why"><b>Patrick impact:</b> 🟥必读 — agent-observability, dual-ai-peer-review, dspy, loop-engineering: 4 cards fire on this story.</p>
+        </div>
+        <div class="card">
+          <h4>10. HIW500 humanoid dataset <span class="tier-badge tier-watch">🟧关注</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">robot</span></h4>
+          <p><span class="ts">[0:18:33]</span> 500h / 10TB / 10+ household tasks · UniH1 teleop in real homes · head+camera+wrist+actions · LeRobot format coming.</p>
+          <p><b>Why this matters:</b> Real-home teleop (not lab) is the missing ingredient; 500h is enough to train a v1 controller. LeRobot-compatible is a long tail of researchers.</p>
+          <p class="why"><b>Patrick impact:</b> 🟧关注 — feed scheduled-monitor; loop-engineering watches.</p>
+        </div>
+        <div class="card">
+          <h4>11. ByteDance DanceOPD (image unified) <span class="tier-badge tier-know">🟨了解</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">image-gen</span></h4>
+          <p><span class="ts">[0:12:55]</span> One model = text-to-image + edit + style transfer · expert-as-teacher · no teacher-blending conflicts.</p>
+          <p><b>Why this matters:</b> Paper-only, but architecture teaches that "expert-as-teacher" can avoid the task-conflict problem common in unified models.</p>
+          <p class="why"><b>Patrick impact:</b> 🟨了解 — academic; only relevant if image pipeline gets re-architected.</p>
+        </div>
+        <div class="card">
+          <h4>12. Unzero (Unconventional AI) <span class="tier-badge tier-know">🟨了解</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">image-gen</span></h4>
+          <p><span class="ts">[0:16:48]</span> Image gen w/o diffusion — coupled oscillators synchronize into an image · MIT license · proof-of-concept quality but interesting architecture.</p>
+          <p><b>Why this matters:</b> First credible non-diffusion image gen. "Diffusion may not be the only path" — backup plan if diffusion hits a wall.</p>
+          <p class="why"><b>Patrick impact:</b> 🟨了解 — bookmark; re-check at 6-month mark.</p>
+        </div>
+        <div class="card">
+          <h4>13. Unitree R1 robot <span class="tier-badge tier-skip">🟦跳过</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">robot</span></h4>
+          <p><span class="ts">[0:29:10]</span> Cheaper than G1 · breakdance-level acrobatics · starts at $4,900 · auto-stabilize on landings.</p>
+          <p><b>Why this matters:</b> Sub-$5K humanoid with whole-body momentum control — hobbyist pricing crossed threshold. Not relevant for Patrick's agent stack yet.</p>
+          <p class="why"><b>Patrick impact:</b> 🟦跳过 — interesting but no immediate hook for agent work.</p>
+        </div>
+        <div class="card">
+          <h4>14. Olive brain ultrasound <span class="tier-badge tier-skip">🟦跳过</span><span class="fresh-badge fresh-7d">⏱ 7d</span><span class="topic-chip">brain</span></h4>
+          <p><span class="ts">[0:35:59]</span> 100× resolution vs CT · microbubble contrast · open-sourced entire pipeline (data + code) · target: Alzheimer's, TBI.</p>
+          <p><b>Why this matters:</b> 100× resolution vs CT without skull-drilling — would be a paradigm shift if microbubble-invasive risk is solved. Out-of-Hermes-domain.</p>
+          <p class="why"><b>Patrick impact:</b> 🟦跳过 — neuroscience adjacent, not agent/LLM-stack relevant.</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:1.4rem;color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;">📡 5-axis Dominance Radar — where this week concentrated</h3>
+      <p style="font-size:0.85rem;color:var(--text-dim);">Mapped 14 stories onto 5 modal axes (one story can sit on multiple). High density = "rich week" for that axis.</p>
+<div class="ascii-block"><span class="hl">          Video-gen           Avatar           Chip          Frontier-LLM      Open-source</span>
+<span class="hl">───────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+<span class="hl-g">week    ▓▓▓▓▓▓▓▓▓▓</span>  ▓          ▓▓          ▓           ▓▓▓▓▓▓▓▓▓▓
+<span class="hl-g">no infra</span>   <span class="hl-y">▓▓▓</span>          <span class="hl-y">▓</span>          <span class="hl">▓▓</span>          <span class="hl-y">▓▓</span>          <span class="hl-g">▓▓▓▓▓▓</span>
+<span class="hl">───────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+  <span class="hl-p">3 stories</span>     <span class="hl-p">1</span>          <span class="hl-p">2</span>          <span class="hl-p">1</span>          <span class="hl-p">4</span>
+
+<span class="hl-b">scale: 10 stories max per axis</span> · ▓=1 story · <span class="hl-g">green=high</span> / <span class="hl-y">yellow=mid</span> / <span class="hl-r">red=low</span>
+
+<span class="hl">Distribution insight:</span>
+  • 4-axis density:  video-gen (Seedance / Happy Horse / DomainShuttle / Seed 2.1) ← biggest cluster
+  • open-source  (Ornith / Crea 2 / Unzero / DomainShuttle) ← second cluster
+  • frontier-LLM (GPT 5.6 / Mythos-lift)          ← gating drama
+  • chip        (Jalapeno / IBM 0.7nm)            ← silicon layer
+  • avatar      (One Streamer)                    ← single bet
+</div>
+    </div>
+
+    <div class="tab-content" id="video" data-tab="video">
+      <h2 class="section" id="video-h">🎬 Video generation frontier — three stories converged</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>ByteDance Seedance 2.5 <span class="badge warn">unveiled, not launched</span></h4>
+          <p><span class="ts">[0:20:13]</span> Up to <b>30s clips</b>, <b>50 multimodal references</b>, <b>precise local edit</b> (bounding-box on the frame), <b>2K/4K</b> output, <b>native audio</b>. Host calls it "production tool for filmmakers" — input refs, edit-in-place, continuity over long shots.</p>
+          <p>Launch: early July (host will cover in depth). Used internally by Higgsfield with 4K output for AI influencer &amp; campaign pipelines.</p>
+        </div>
+        <div class="card">
+          <h4>Alibaba Happy Horse 1.1</h4>
+          <p><span class="ts">[0:26:57]</span> <b>1080p</b>, 3-15s clips, up to <b>9 reference images</b>, super wide 21:9 / 9:21 ratios, multi-lang (CN/JP/KR/DE/FR), audio + lip-sync native. "Smoother &amp; fewer artifacts than v1."</p>
+          <p>Honest framing from host: <i>still not as good as Seedance</i> — but best non-Seedance alternative, free credits on signup.</p>
+        </div>
+        <div class="card">
+          <h4>DomainShuttle <span class="badge green">open weights</span></h4>
+          <p><span class="ts">[0:03:42]</span> Reference-consistent video (multiple characters, multiple art styles, 2D ↔ 3D ↔ realistic all in one shot). 35GB download · Wan 2.2 base · needs high-end GPU.</p>
+          <p>Comparison: outperforms Pika / Kling / others on multi-character consistency. Code link in video description.</p>
+        </div>
+        <div class="card">
+          <h4>ByteDance Seed 2.1 (pro &amp; turbo)</h4>
+          <p><span class="ts">[0:22:57]</span> Productivity agent, not generic chatbot. Pro ≈ Opus 4.7 / GPT 5.5 on real-world workbench. Multimodal strong suit: charts, video, motion — on par or better than latest Gemini. Closed-source, paid, with free studio tier.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="avatar" data-tab="avatar">
+      <h2 class="section" id="avatar-h">🤖 Realtime avatars + AI-dedicated silicon</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>One Streamer — Alibaba realtime conversational avatar</h4>
+          <p><span class="ts">[0:01:04]</span> Single transformer model that <b>interleaves text + audio + video</b>. <b>25 fps · ~200ms latency</b>. Supports <b>duplex</b> (listen while responding instead of taking turns).</p>
+          <p>Caveats: <b>v0.1, 192p only</b> — proof of concept, not consumer product. <span class="badge warn">No code yet, only a technical paper</span>.</p>
+        </div>
+        <div class="card">
+          <h4>OpenAI × Broadcom "Jalapeno" (first OpenAI chip)</h4>
+          <p><span class="ts">[0:10:01]</span> AI workload accelerator (ChatGPT, Codex). Built in <b>9 months</b> — OpenAI's own models (GPT / Codex / internal) helped design both software stack and likely the hardware. "Substantially better perf/watt" than current SOTA accelerators (detailed report coming).</p>
+          <p>Strategic shift: OpenAI now designing <b>hardware for how its models are used</b>, not just LLM software. Gigawatt-scale multi-gen rollout.</p>
+        </div>
+        <div class="card">
+          <h4>IBM 0.7nm / 7Å — "nanostack" 3D vertical</h4>
+          <p><span class="ts">[0:11:38]</span> Sub-1 nanometer node; transistors <b>vertically stacked &amp; staggered</b> instead of just shrunk in 2D. Result: <b>~100B transistors on a fingernail-sized chip</b> — nearly <b>2× the density</b> of IBM's 2nm (2021).</p>
+          <p>Projected: <b>+50% performance OR +70% energy efficiency</b> vs 2nm. Moores-law-is-dead narrative dies here (for now).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="3d" data-tab="3d">
+      <h2 class="section" id="3d-h">🎨 3D generation — production-ready control</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>Stability AI Arbor</h4>
+          <p><span class="ts">[0:08:15]</span> Instead of "describe-and-pray", you draw a <b>rough spatial blueprint</b>: "chair fits in this volume · leave empty space underneath · legs touch floor at these points."</p>
+          <p>Those constraint meshes are fed to <b>Trellis / Trellis 2</b> 3D generators <b>without retraining</b>. <span class="badge green">600MB model + Blender add-on</span> — code already released.</p>
+        </div>
+        <div class="card">
+          <h4>Lyte 4D — one video → full 4D scene</h4>
+          <p><span class="ts">[0:24:31]</span> Single 2D camera view → reconstruct the object's full 3D shape, appearance, AND motion (the "time" axis = 4D). Reconstructs regions the camera <i>never actually captured</i>.</p>
+          <p>Use case: real-world clips with occlusion / no multi-angle footage. Code "coming soon".</p>
+        </div>
+        <div class="card">
+          <h4>Why "production-ready" matters</h4>
+          <p>The shift in 3D &amp; video models this year isn't raw quality — it's <b>controllability</b>. Frame-precise edits (Seedance), spatial constraints (Arbor), and 4D from monocular video (Lyte) turn generation into a director's tool, not a slot machine.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="mythos" data-tab="mythos">
+      <h2 class="section" id="mythos-h">🧠 Mythos / Claude / GPT 5.6 — the gating story</h2>
+      <blockquote>
+        "I think these bans from the US government are a serious wakeup call to everyone. Especially if you're not in the US. If you're doing all your work or running your entire company based on US models, there's a risk that one day the US government could just take away your access to these models."
+        <span class="ts" style="display:block;margin-top:0.4rem;">[0:34:55]</span>
+      </blockquote>
+      <div class="card-grid">
+        <div class="card">
+          <h4>GPT 5.6 — Soul, Terra, Luna</h4>
+          <p><span class="ts">[0:30:20]</span> New "family" naming (Soul = best, Terra, Luna). New <b>ultra reasoning effort</b> that coordinates <b>multiple sub-agents</b> for complex workflows (above the existing "extra high / high").</p>
+          <ul style="margin:0.4rem 0 0 1.1rem;font-size:0.88rem;color:var(--text-dim);">
+            <li><b>Terminal Bench (autonomous software engineering):</b> Soul Ultra = new SOTA, even vs Mythos.</li>
+            <li><b>Genebench (long-horizon genomics):</b> matches/beats GPT-5 with far fewer tokens — <i>more efficient</i>.</li>
+            <li><b>Exploit bench (cyber):</b> very strong, but doesn't match Mythos. Host suspects intentional — to avoid getting banned.</li>
+            <li><b>Speed:</b> ~<b>750 tokens/sec on Cerebras</b>.</li>
+            <li><b>Safety:</b> "<b>700,000 GPU-hours</b> of automated red-teaming before launch."</li>
+          </ul>
+          <p><span class="badge red">Access: limited preview for "small group of trusted partners" per US gov compliance — no broad access in coming weeks.</span></p>
+        </div>
+        <div class="card">
+          <h4>Claude Mythos 5 — ban partially lifted</h4>
+          <p><span class="ts">[0:33:38]</span> US gov sent a letter easing the ban → Mythos 5 to ~100 trusted partners (major US companies + federal agencies).</p>
+          <p>Background: Anthropic released <b>Claude Fable</b> claiming "Mythos-level" → gov banned both Fable + Mythos within days. Now a partial thaw, but no public access.</p>
+        </div>
+        <div class="card">
+          <h4>OpenAI IPO may be pushed to 2027</h4>
+          <p><span class="ts">[0:33:29]</span> Host reports rumors of OpenAI postponing IPO — possibly tied to the US gov Frontier-model ban drama.</p>
+        </div>
+        <div class="card">
+          <h4>The bigger pattern</h4>
+          <p>Both Mythos-lift &amp; GPT 5.6 preview are decided by the US government, not by OpenAI or Anthropic. Host frames this as the <b>"permanent underclass"</b> + a strong implicit argument for <b>self-hosting open-source</b> (GLM, DeepSeek, Qwen, MiniMax, etc.) — political sovereignty is now part of the model-selection conversation.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="trend" data-tab="trend">
+      <h2 class="section" id="trend-h">📈 Progress meters + causal transition diagram</h2>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;">📊 Patrick's progress meters — predictions forward-rolled into Q3 2026</h3>
+      <p style="font-size:0.85rem;color:var(--text-dim);">% complete = Patrick's read on "how much of the predicted event has happened vs. what's still pending". Anchor: 2026-06-28.</p>
+
+      <div class="progress-card">
+        <div class="lbl"><b>OpenAI IPO</b> — predicted 2027 (rumored delay from 2026 due to Mythos/ban drama)</div>
+        <div class="progress-bar"><div class="fill" style="width:32%;"></div><div class="pct">32% — pre-IPO: S-1 hinted, Anthropic competitive filing</div></div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;">Gating: Mythos lift + GPT 5.6 broad rollout → before S-1 the company needs stable public-narrative on gov regulation.</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="lbl"><b>Mythos 5 public access</b> — predicted end-of-2026</div>
+        <div class="progress-bar"><div class="fill" style="width:15%;"></div><div class="pct">15% — ~100 trusted partners only</div></div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;">Gating: US gov letter easing was the 1st step. Public release depends on safety-case red-team cycles.</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="lbl"><b>Seedance 2.5 broad launch</b> — predicted early-July 2026</div>
+        <div class="progress-bar"><div class="fill" style="width:62%;"></div><div class="pct">62% — unveiled, weights confirmed, pricing pending</div></div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;">Gating: pricing announcement + Higgsfield rollout + independent eval pass.</div>
+      </div>
+
+      <div class="progress-card">
+        <div class="lbl"><b>IBM 0.7nm fab rollout</b> — predicted 2027-2028</div>
+        <div class="progress-bar"><div class="fill" style="width:8%;"></div><div class="pct">8% — research node, no fab partner named</div></div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;">Gating: foundry partner selection (Samsung / Intel / TSMC rumor pending).</div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1.6rem;">🔁 Cross-story causal chain — Mythos → GPT 5.6 → OpenAI IPO</h3>
+<div class="ascii-block"><span class="hl-p">                                                  ┌──────────────────┐</span>
+<span class="hl-p">                                                  │ US-Gov Letter    │</span>
+<span class="hl-p">                                                  │ "ease frontier   │</span>
+<span class="hl-p">                                                  │  model ban"      │</span>
+<span class="hl-p">                                                  └────────┬─────────┘</span>
+<span class="hl-p">                                                           │</span>
+<span class="hl-p">                                                           ▼</span>
+<span class="hl-y">              Mythos 5                     GPT 5.6 Soul Ultra                       Jalapeno</span>
+<span class="hl-y">            (SOTA Reasoning)    ──────▶    (SOTA Terminal Bench)    ──────▶    (OpenAI chip, 9-month)</span>
+<span class="hl-y">                  ▲                              ▲  ▲                                ▲</span>
+<span class="hl-y">                  │                              │  │                                │</span>
+<span class="hl-y">      ┌───────────┘                              │  └─────────┐                      └────────┐</span>
+<span class="hl-y">      │              Claude Fable banned         │            │ 700K GPU-hr        OpenAI IPO </span>
+<span class="hl-y">      │              (claimed "Mythos-level")    │            │ red-teaming         postponed → 2027</span>
+<span class="hl-y">      │                                          │            │                     (rumored)</span>
+<span class="hl-y">      │                                          │            │                          │</span>
+<span class="hl-y">      │                                          │            ▼                          ▼</span>
+<span class="hl-y">      │                                ┌────────────────┐              ┌────────────────────┐</span>
+<span class="hl-y">      │                                │ "Permanent     │              │ "the underclass"   │</span>
+<span class="hl-y">      │                                │  underclass"   │──────────────│   open-source      │</span>
+<span class="hl-y">      └───────────────────────────────▶│  100 partners  │              │   self-hosting     │</span>
+<span class="hl-y">                                       │  gatekept      │              │   push             │</span>
+<span class="hl-y">                                       └────────────────┘              └────────────────────┘</span>
+<span class="hl-y">                                              │                              │</span>
+<span class="hl-y">                                              ▼                              ▼</span>
+<span class="hl-g">                                       Ornith 1.0 release      DomainShuttle / Crea 2 / Unzero</span>
+<span class="hl-g">                                       (agentic coding)        (open-source wave accelerates)</span>
+</div>
+      <p style="font-size:0.82rem;color:var(--text-dim);margin-top:0.6rem;"><b>Reading:</b> the US-gov letter is the upstream pivot. <span class="hl-y">Yellow boxes</span> = gated closes-frontier events. <span class="hl-g">Green boxes</span> = open-source response. The two reinforcing branches (gating + open-source-flood) are the same political-sovereignty story told from two sides.</p>
+    </div>
+
+    <div class="tab-content" id="timeline" data-tab="timeline">
+      <h2 class="section" id="timeline-h">⏱️ ASCII Timeline — 14 stories in chronological order within the video</h2>
+      <p style="font-size:0.85rem;color:var(--text-dim);">Sorted by in-video timestamp. Time-position on left, story-rank-on-week-news-list on right.</p>
+<div class="ascii-block"><span class="hl">HH:MM:SS  event                                  rank  topic</span>
+<span class="hl">─────────────────────────────────────────────────────────────</span>
+<span class="hl">0:01:04  ┃ One Streamer (Alibaba avatar)         #3    avatar</span>
+<span class="hl">0:03:42  ┃ DomainShuttle video gen               #v    video-gen</span>
+<span class="hl">0:06:12  ┃ Ornith 1.0 (agentic LLM)              #os   open-source</span>
+<span class="hl">0:08:15  ┃ Stability AI Arbor (3D constraints)    #6    3d</span>
+<span class="hl">0:10:01  ┃ OpenAI × Broadcom "Jalapeno"          #4    chip</span>
+<span class="hl">0:11:38  ┃ IBM 0.7nm / 7Å chip                   #5    chip</span>
+<span class="hl">0:12:55  ┃ ByteDance DanceOPD (image unified)     #11   image-gen</span>
+<span class="hl">0:16:48  ┃ Unzero (oscillator image gen)         #12   image-gen</span>
+<span class="hl">0:18:33  ┃ HIW500 humanoid dataset               #10   robot</span>
+<span class="hl">0:20:13  ┃ Seedance 2.5 unveiled                 #1    video-gen</span>
+<span class="hl">0:22:57  ┃ ByteDance Seed 2.1 (pro/turbo)        #v    video-gen</span>
+<span class="hl">0:24:31  ┃ Lyte 4D (single-video 4D)             #3d   3d</span>
+<span class="hl">0:25:25  ┃ Perception DM (parallel captioning)   #ag   agent</span>
+<span class="hl">0:26:57  ┃ Alibaba Happy Horse 1.1               #2    video-gen</span>
+<span class="hl">0:27:59  ┃ Crea 2 (open image gen)               #os   open-source</span>
+<span class="hl">0:29:10  ┃ Unitree R1 humanoid                   #13   robot</span>
+<span class="hl">0:30:20  ┃ GPT 5.6 (Soul/Terra/Luna)             #8    frontier-llm</span>
+<span class="hl">0:33:29  ┃ OpenAI IPO delay rumor                #?    gating</span>
+<span class="hl">0:33:38  ┃ Mythos ban partially lifted           #7    gating</span>
+<span class="hl">0:35:59  ┃ Olive brain ultrasound                #14   brain</span>
+<span class="hl">0:38:20  ┃ Meta Auto Data (agentic data)         #9    agent</span>
+<span class="hl">0:40:21  ┃ Sakana Fugu ⚠️ (orchestrator)         #?    orchestrator</span>
+
+<span class="hl">Density by 10-min window:</span>
+  <span class="hl-g">0-10 min</span>  ▓▓▓▓   avatar + video + opensource + 3d   (4 stories, ✦ rich start)
+  <span class="hl-y">10-20 min</span> ▓▓▓▓▓  chip ×2 + image ×2 + robot       (5 stories, ✦ peak week)
+  <span class="hl-b">20-30 min</span> ▓▓▓▓▓  video ×3 + 3d + agent             (5 stories, ✦ peak week)
+  <span class="hl-p">30-40 min</span> ▓▓▓▓   frontier + gating + brain + agent (4 stories)
+  <span class="hl">40-end</span>   ▓     Sakana Fugu (1 cautionary tale)
+
+<span class="hl-r">⚠ cherry-pick risk:</span> Sakana Fugu appears at the END (last 3 min) — you should suspect
+this is the "pin at the end" framing intended to be the week's take-home,
+NOT the most important story. Read with skepticism.
+</div>
+    </div>
+
+    <div class="tab-content" id="agent" data-tab="agent">
+      <h2 class="section" id="agent-h">🔧 Agents &amp; self-improving datasets</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>Meta Auto Data — agent builds its own data</h4>
+          <p><span class="ts">[0:38:20]</span> The agent <i>generates</i> samples from source material, a <b>challenger agent + evaluation rubric</b> test correctness &amp; usefulness, then the results feed back into how the next batch gets generated.</p>
+          <p>Trained tiny Qwen 3.5 4B on this synthetic loop → <b>beat a standard baseline</b> by a wide margin. The point is that data creation can become <b>iterative + scientific</b>, not "humans-curate-everything".</p>
+        </div>
+        <div class="card">
+          <h4>ByteDance Perception DM — parallel-region captioning</h4>
+          <p><span class="ts">[0:25:25]</span> Vision-language model that uses a <b>diffusion language model</b> to caption multiple regions of an image <b>simultaneously</b> instead of one-by-one. Beats same-size VLMs on speed + accuracy.</p>
+          <p>Code + dataset already open-source.</p>
+        </div>
+        <div class="card">
+          <h4>Sakana Fugu ⚠️ (orchestrator, not a base model)</h4>
+          <p><span class="ts">[0:40:21]</span> Claims: "surpasses Claude Fable + Mythos on knowledge, reasoning, agentic coding". Host flags: Fugu is <b>not a base model</b> — it's an <b>orchestrator</b> that routes prompts to multiple closed + open models and ensembles the results.</p>
+          <p>This is the classic <b>apples-to-oranges</b> error: ensemble averages will look better than any single model by definition. Pricing is expensive, allocation between closed + open models is undisclosed. Host's one-liner: <i>"closed on closed, extra non-transparent".</i></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="robot" data-tab="robot">
+      <h2 class="section" id="robot-h">🤖 Humanoid robots — price drops + data unlocks</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>Unitree R1 — breakdance for $4,900</h4>
+          <p><span class="ts">[0:29:10]</span> Cheaper, lighter sibling of the G1. Can do breakdance moves that need <b>instantaneous core shifts from feet to a single hand</b> while maintaining momentum — and auto-stabilize after every high-impact flip/spin/fall.</p>
+          <p>Host quote: <i>"for $4,900 I could get a dancing catgirl at home"</i> — i.e. <b>+~$30 in accessories</b> gets you a real humanoid for less than a mid-tier graphics card.</p>
+        </div>
+        <div class="card">
+          <h4>HIW500 — 500h / 10TB real-home humanoid data</h4>
+          <p><span class="ts">[0:18:33]</span> Whole-body teleop of the <b>UniH1</b> robot in real homes. Tasks: setting table, washing clothes, hanging, moving things, opening/closing fridge, sweeping, vacuuming, picking up trash, organizing.</p>
+          <p>Conditions: different lighting, different objects, cluttered/messy rooms, no two runs identical. Captured: head camera + wrist camera + all movement data. <span class="badge green">Released raw dataset (~9TB) — LeRobot format coming</span>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="opensource" data-tab="opensource">
+      <h2 class="section" id="opensource-h">📦 Open-source releases — the matrix</h2>
+      <table>
+        <tr><th>Model / Framework</th><th>Modality</th><th>Size</th><th>Claim</th><th>Weights</th><th>Timestamp</th></tr>
+        <tr><td><b>Ornith 1.0</b></td><td>LLM (agentic coding)</td><td>9B → 397B MoE (smallest GGUF Q4: <b>21GB</b>)</td><td>Beats GLM, DeepSeek V4 (1.6T params!), Qwen 3.5 35B on Terminal/SWE-bench. Learns its own harness.</td><td><span class="badge green">✅ full</span></td><td><span class="ts">[0:06:12]</span></td></tr>
+        <tr class="highlight"><td><b>Crea 2</b></td><td>Image gen</td><td>Runs on <b>4GB VRAM</b> · 10s/image</td><td>"Most uncensored" top open image gen · celebrities + logos + art styles</td><td><span class="badge green">✅</span></td><td><span class="ts">[0:27:59]</span></td></tr>
+        <tr><td><b>Unzero</b> (Unconventional AI)</td><td>Image gen</td><td>weights + training scripts released</td><td>Coupled oscillators instead of diffusion · "diffusion may not be the only path"</td><td><span class="badge green">✅ MIT</span></td><td><span class="ts">[0:16:48]</span></td></tr>
+        <tr><td><b>DomainShuttle</b></td><td>Video gen (multi-ref)</td><td><b>35GB</b> (Wan 2.2 base)</td><td>Multi-character + mixed art styles preserved in one video</td><td><span class="badge green">✅</span></td><td><span class="ts">[0:03:42]</span></td></tr>
+        <tr><td><b>Lyte 4D</b></td><td>4D reconstruction</td><td>—</td><td>Single 2D video → full 4D scene (3D + time)</td><td><span class="badge warn">code "soon"</span></td><td><span class="ts">[0:24:31]</span></td></tr>
+        <tr><td><b>Perception DM</b></td><td>Vision-language (diffusion LM)</td><td>—</td><td>Parallel-region captioning; faster than same-size VLMs</td><td><span class="badge green">✅</span></td><td><span class="ts">[0:25:25]</span></td></tr>
+        <tr><td><b>Arbor</b> (Stability)</td><td>3D spatial constraints</td><td><b>600MB</b> + Trellis 2</td><td>"Where geometry should exist" blueprint</td><td><span class="badge green">✅ + Blender add-on</span></td><td><span class="ts">[0:08:15]</span></td></tr>
+        <tr><td><b>DanceOPD</b> (ByteDance)</td><td>Unified image (t2i + edit + style)</td><td>—</td><td>One model, expert-as-teacher, no teacher-conflict</td><td><span class="badge warn">paper only</span></td><td><span class="ts">[0:12:55]</span></td></tr>
+      </table>
+      <p style="color:var(--text-dim);margin-top:0.4rem;font-size:0.85rem;">Host's recurring through-line: "<i>this is why we need open source — power of intelligence distributed back to the people.</i>" <span class="ts">[0:34:32]</span></p>
+    </div>
+
+    <div class="tab-content" id="brain" data-tab="brain">
+      <h2 class="section" id="brain-h">🏥 Brain ultrasound — Olive's microbubble approach</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h4>The middle ground between EEG and electrodes</h4>
+          <p><span class="ts">[0:35:59]</span> EEG outside the head = safe but blurry. Electrodes in the brain = precise but invasive. Olive sits in between: <b>no drilling, but ~100× the resolution of similar CT scans</b>.</p>
+          <p>Mechanism: ultrasound waves scatter off moving blood cells → build a 3D map of blood flow &amp; volume in the brain. Captures <b>vascular activity that lights up when neurons fire</b>.</p>
+        </div>
+        <div class="card">
+          <h4>How the resolution works</h4>
+          <p>Uses <b>microbubbles</b> — tiny contrast bubbles injected into the bloodstream that reflect ultrasound strongly. Millions of moving bubbles stacked into one super-detailed 3D map. This week: <b>most detailed vascular image of a living human brain captured via ultrasound without drilling the skull</b>.</p>
+          <p><span class="badge warn">⚠️ Not actually non-invasive</span> — the bubbles still have to enter the bloodstream; the team has not addressed that risk in the blog.</p>
+        </div>
+        <div class="card">
+          <h4>Why this matters + where you can run it</h4>
+          <p>End goal: insights into Alzheimer's, traumatic brain injury, brain function in real time. <span class="badge green">Full pipeline open-sourced (data + code)</span> — but you still need lab-grade ultrasound equipment, so "do this at home" is not feasible.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="quotes" data-tab="quotes">
+      <h2 class="section" id="quotes-h">💬 Key quotes — with timestamps + Patrick-relevance column</h2>
+      <p style="font-size:0.85rem;color:var(--text-dim);">Each quote now ships with a <b>.relevance</b> column explaining what this quote tells Patrick about his own agent stack.</p>
+      <div class="quote-grid">
+        <div class="quote-card">"AI never sleeps and this week has been absolutely insane."<span class="ts">[0:00:00]</span>
+          <span class="relevance">🎯 framing — confirms ai-trending-daily cadence is the right cron frequency (daily, not weekly).</span>
+        </div>
+        <div class="quote-card">"Stability AI releases a 3D model generator that can be controlled very precisely."<span class="ts">[0:00:35]</span>
+          <span class="relevance">🎯 Arbor ranks 🟥必读 — direct integration into Muse 3D / Blender pipeline is a single here.now demo.</span>
+        </div>
+        <div class="quote-card">"The ban on Claude Mythos has been lifted, but you probably can't use it."<span class="ts">[0:00:35]</span>
+          <span class="relevance">🎯 "permanent underclass" — hardens the case for llm-protocol-router + hybrid-llm-router architecture.</span>
+        </div>
+        <div class="quote-card">"The key here is latency. So, this can run at 25 frames per second and it has roughly 200 milliseconds of model-side response latencies."<span class="ts">[0:03:08]</span>
+          <span class="relevance">🎯 200ms = the bar for any realtime agent UI Patrick builds. Track this metric in agent-observability.</span>
+        </div>
+        <div class="quote-card">"Arbor lets you tell the model exactly where geometry should exist and where it shouldn't exist and even where parts of the object should make contact."<span class="ts">[0:08:41]</span>
+          <span class="relevance">🎯 "constraint-as-input" is the post-prompting paradigm; same idea applies to agent handoff schemas.</span>
+        </div>
+        <div class="quote-card">"This uses one 2.2 as the base model. And for this DomainShuttle model, it is 35GB in size."<span class="ts">[0:05:46]</span>
+          <span class="relevance">⚠️ 35GB download — flag in agent-router cost model.</span>
+        </div>
+        <div class="quote-card">"Jalapeno was developed in just 9 months and this was accelerated by OpenAI models — OpenAI's own models helped in developing this chip including the software stack and likely the hardware design."<span class="ts">[0:10:39]</span>
+          <span class="relevance">🎯 "AI-designs-AI-hardware" is the loop-engineering 5-block skeleton applied at silicon scale.</span>
+        </div>
+        <div class="quote-card">"IBM says that this sub-1 nanometer technology can fit nearly 100 billion transistors onto a chip the size of a fingernail, nearly twice the density of its 2 nanometer chip from 2021."<span class="ts">[0:12:05]</span>
+          <span class="relevance">📡 context — informs "what scales" for future agents; not direct action.</span>
+        </div>
+        <div class="quote-card">"We have a new family of open-source models called Ornith 1.0. And this is built for agentic coding."<span class="ts">[0:06:12]</span>
+          <span class="relevance">🎯 candidate for hermes-eval-harness Q3 batch (vs GLM / DeepSeek / Qwen baseline).</span>
+        </div>
+        <div class="quote-card">"Instead of relying on human-designed harnesses, Ornith learns to generate its own harness or scaffold."<span class="ts">[0:07:33]</span>
+          <span class="relevance">🎯 confirms the loop-engineering-stage-model thesis — agents generating their own scaffolding is the production-shape of the pattern.</span>
+        </div>
+        <div class="quote-card">"GPT 5.6 Soul Ultra sets a new state-of-the-art score on Terminal Bench… and here you can see that GPT 5.6 Soul even outperforms Claude Mythos, which is apparently too dangerous to be released."<span class="ts">[0:31:36]</span>
+          <span class="relevance">🎯 vendor-graph cherry-pick warning — exactly why dual-ai-peer-review exists.</span>
+        </div>
+        <div class="quote-card">"Welcome to the permanent underclass."<span class="ts">[0:33:26]</span>
+          <span class="relevance">🎯 the one-line tag for hybrid-llm-router's pitch. Use in pitch deck.</span>
+        </div>
+        <div class="quote-card">"There's risk that one day the US government could just take away your access to these models. That's exactly why we need open-source."<span class="ts">[0:34:55]</span>
+          <span class="relevance">🎯 thesis quote for distributed-research-playbook's open-source stance.</span>
+        </div>
+        <div class="quote-card">"They captured the most detailed vascular image of a living human brain they've seen just using ultrasound without needing to drill into the skull."<span class="ts">[0:37:07]</span>
+          <span class="relevance">📡 background — neuroscience adjacent; not direct Patrick-stack hook.</span>
+        </div>
+        <div class="quote-card">"Auto data is designed like a loop. The agent generates samples, the challenger agent + evaluation rubric check correctness, then the result feeds back."<span class="ts">[0:39:29]</span>
+          <span class="relevance">🎯 the textual definition of agent-observability + dual-ai-peer-review in production shape.</span>
+        </div>
+        <div class="quote-card">"You can't really compare apples to apples here. This Fugu is not a base model, it's an orchestrator."<span class="ts">[0:40:21]</span>
+          <span class="relevance">🎯 the warning quote for five-orchestrator: orchestrators must be transparent about routing.</span>
+        </div>
+        <div class="quote-card">"For bipedal robots to shift weight from feet to a single hand while maintaining momentum without falling down is quite an incredible feat of engineering."<span class="ts">[0:29:24]</span>
+          <span class="relevance">📡 background — robotics control theory; not direct hook.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="patrick" data-tab="patrick">
+      <h2 class="section" id="patrick-h">🧰 Patrick-card roster — 17 cards, 4 tiers (the canonical "与 Patrick 工作关联" matrix, re-mapped to AI-news weekly digest context)</h2>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 1 — Core (8 cards, always relevant)</h3>
+      <div class="card-grid">
+        <div class="card"><h4>🔗 ai-trending-daily</h4><p>This week's 14 stories are exactly the daily-digest cadence — every model release, gating event, and chip milestone matches the channel the cron job is meant to surface.</p><p style="color:var(--green);">→ <b>完全同源</b>: AI Search is the human-curated version of what ai-trending-daily automates (HN + arxiv + HuggingFace + changelogs).</p></div>
+        <div class="card"><h4>🔗 hermes-eval-harness</h4><p>GPT 5.6's Terminal Bench score, Genebench efficiency, and Sakana Fugu's misleading ensemble claim all show why independent harness + eval matters. Hermes-eval-harness is Patrick's way to not trust vendor graphs.</p><p style="color:var(--green);">→ <b>完全同源</b>: closed-weights vendor scoreboard is what hermes-eval-harness de-risks — same skepticism, same methodology.</p></div>
+        <div class="card"><h4>🔗 llm-protocol-router</h4><p>Model routing at runtime: GPT 5.6 is Mythos-level on some tasks but blocked, Opus 4.8 excluded from Seed 2.1's chart, Sakana Fugu is literally an orchestrator. Patrick's router is exactly the engine you'd build on top of these choices.</p><p style="color:var(--green);">→ <b>完全同源</b>: every "which model should handle this" question from this video collapses to llm-protocol-router.</p></div>
+        <div class="card"><h4>🔗 hybrid-llm-router</h4><p>Same logic, broader scope: the video is a continuous demonstration of when local + open (Crea 2 @ 4GB VRAM, Ornith 1.0 GGUF Q4 = 21GB) beats cloud (Seedance 2.5, GPT 5.6) for cost, latency, sovereignty. Hybrid routing is the operating model this video assumes.</p><p style="color:var(--green);">→ <b>完全同源</b>: the "permanent underclass" framing is exactly what hybrid routing fixes at the agent level.</p></div>
+        <div class="card"><h4>🔗 agent-observability</h4><p>Auto Data (Meta): challenger agent + evaluation rubric + feedback loop — this is an observability graph for an AI that improves itself. Patrick's agent-observability is the same idea applied to Patrick's own agent fleet.</p><p style="color:var(--green);">→ <b>完全同源</b>: challenger-rubric-feedback loops are observability primitives.</p></div>
+        <div class="card"><h4>🔗 dual-ai-peer-review</h4><p>The Mythos / GPT 5.6 "is it really better than the other one?" question is a perfect peer-review use case. Vendor charts silently cherry-pick (Seed 2.1 excluded Opus 4.8). Two-model cross-check is the only defense.</p><p style="color:var(--green);">→ <b>完全同源</b>: dual-ai-peer-review's whole reason for existing is to break vendor-graph trust.</p></div>
+        <div class="card"><h4>🔗 scheduled-monitor-with-drift</h4><p>Open-source releases (Ornith, Crea 2, DomainShuttle, Arbor, Perception DM, Unzero) all dropped in one week — and existing models (Seedance 2.0 / Qwen 3.5 35B / Gemma 4) moved within days. Drift detection on "what's still state-of-the-art" is essential.</p><p style="color:var(--green);">→ <b>完全同源</b>: weekly AI news cadence + open-source flux is exactly what a drift monitor should track.</p></div>
+        <div class="card"><h4>🔗 five-orchestrator</h4><p>Sakana Fugu is the cautionary tale: orchestrator presented as a base model, ensemble results presented as single-model results. Five-orchestrator's job is to make orchestration honest — visible routing, honest eval, no opaque "closed on closed".</p><p style="color:var(--yellow);">→ <b>同源警示</b>: Fugu is the anti-pattern — Patrick's orchestrator must be transparent about which model answered.</p></div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 2 — Conditional (5 cards, picked by topic)</h3>
+      <div class="card-grid">
+        <div class="card"><h4>🔗 distributed-research-playbook</h4><p>This 14-story digest is research-direction signal: where to double down vs. monitor vs. drop. 10-year thesis updates from a single 7-day watch.</p><p style="color:var(--green);">→ <b>完全同源</b>: each cluster here (chips / avatars / video / 3D / robots / open-source) maps to a research line.</p></div>
+        <div class="card"><h4>🔗 here-now</h4><p>All 14 of these demos need a public viewing surface — interactive HTML dashboards like this one are exactly what here-now lets agents publish. Once shipped, the deck + dashboard pair is a stable public URL.</p><p style="color:var(--green);">→ <b>完全同源</b>: here.now is the publishing channel for dashboards like this one.</p></div>
+        <div class="card"><h4>🔗 kanban-orchestrator</h4><p>14 stories / week × 4 candidate workflows each (try / monitor / drop / invest). Kanban-orchestrator is the engine that turns "news → next action" at scale.</p><p style="color:var(--green);">→ <b>完全同源</b>: weekly-news → task-pipeline is the canonical kanban-orchestrator workload.</p></div>
+        <div class="card"><h4>🔗 dspy</h4><p>Auto Data's loop (generate → challenge → rubric → measure → iterate) is DSPy-style prompt/strategy optimization at the data-construction level. The same DSPy primitives compile to per-sample data-generation prompts.</p><p style="color:var(--green);">→ <b>完全同源</b>: DSPy's optimizer loops on small models are the same shape as Auto Data's challenger loop.</p></div>
+        <div class="card"><h4>🔗 evaluating-llms-harness</h4><p>Terminal Bench, SWE-bench verified, SWE-bench Pro, Genebench, Exploit Bench — every benchmark mentioned this week comes from lm-eval-harness's neighborhood. Patrick running his own eval on each new release is the evaluation equivalent of this dashboard.</p><p style="color:var(--green);">→ <b>完全同源</b>: independent-eval is the antidote to vendor-benchmark cherry-picking.</p></div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 3 — Context (4 cards, dashboard-level)</h3>
+      <div class="card-grid">
+        <div class="card"><h4>🔗 video-to-knowledge-dashboard (this skill)</h4><p>This very dashboard is the canonical output of this skill — 14 tabs, 6 stat cards, 17 Patrick cards, TOC sidebar, single self-contained HTML.</p><p style="color:var(--green);">→ <b>完全同源</b>: this dashboard IS the deliverable — it's the meta-card.</p></div>
+        <div class="card"><h4>🔗 investor-research-dashboard</h4><p>If you want to re-frame these 14 stories as investable theses (chip, video gen, 3D, agents, robots, medical imaging, gating risk), investor-research-dashboard's long-form-research-to-CMS pipeline fits: extract entities from transcript → map to sectors → flag gating/sovereignty risk.</p><p style="color:var(--green);">→ <b>同源</b>: same extraction pipeline, financial-research destination.</p></div>
+        <div class="card"><h4>🔗 model-routing-strategy</h4><p>Which LLM profile handles what: fast (Crea 2 image gen, One Streamer low-latency avatar), grok (long-context research), claude (eval / orchestrator-grade reasoning). This video gives concrete examples for each lane.</p><p style="color:var(--green);">→ <b>同源</b>: same routing idea, applied to weekly news digestion.</p></div>
+        <div class="card"><h4>🔗 loop-engineering-stage-model</h4><p>Auto Data (Meta) + HIW500 + Sakana Fugu are three different stages of the loop-engineering 5-blocks skeleton (generate → act → verify → feedback → evolve). Useful diagnostic for any agent system Patrick designs.</p><p style="color:var(--green);">→ <b>同源</b>: Meta Auto Data is the textbook "evolve" block of the 5-block loop.</p></div>
+      </div>
+
+      <p style="margin-top:1rem;color:var(--text-dim);font-size:0.85rem;"><b>Roster summary:</b> 8 Tier-1 + 5 Tier-2 + 4 Tier-3 = <b>17 cards</b>. Selected for AI-news weekly context: the Tier-1 list (ai-trending-daily, hermes-eval-harness, llm-protocol-router, hybrid-llm-router, agent-observability, dual-ai-peer-review, scheduled-monitor-with-drift, five-orchestrator) is the canonical "AI-supply-side" operating stack.</p>
+    </div>
+
+    <div class="tab-content" id="watchlist" data-tab="watchlist">
+      <h2 class="section" id="watchlist-h">⚡ Patrick Watchlist — interactive next-week checklist</h2>
+      <p style="font-size:0.88rem;color:var(--text-dim);">3-5 action items for the week of <b>2026-06-29 → 2026-07-05</b>. Checkboxes persist via localStorage. PHASE counter shows how many of <code>PHASE-2-polish</code>'s open items you've completed.</p>
+
+      <div class="phase-bar">
+        <span>Patrick's commit-counter (Phase 2 polish)</span>
+        <span class="counter" id="phase-counter">0 / 5</span>
+      </div>
+
+      <div class="checklist-item" data-key="watch-seedance-launch">
+        <input type="checkbox" id="cb-seedance">
+        <label class="lbl" for="cb-seedance"><b>Day 1-3:</b> Check Seedance 2.5 launch (early-July promised) → trigger hermes-eval-harness Q3 batch the moment API keys drop. <i>Block until launch; pre-register on ByteDance / Higgsfield.</i></label>
+        <span class="pri pri-high">P1</span>
+      </div>
+      <div class="checklist-item" data-key="watch-ornith-eval">
+        <input type="checkbox" id="cb-ornith">
+        <label class="lbl" for="cb-ornith"><b>Week-long:</b> Run Ornith 1.0 (smallest GGUF Q4 = 21GB) through hermes-eval-harness + dual-ai-peer-review vs Qwen 3.5 35B baseline. <i>5h on M2 Ultra + Ollama.</i></label>
+        <span class="pri pri-high">P1</span>
+      </div>
+      <div class="checklist-item" data-key="watch-arbor-blender">
+        <input type="checkbox" id="cb-arbor">
+        <label class="lbl" for="cb-arbor"><b>Day 4-5:</b> Wire Stability AI Arbor Blender add-on into a here.now dashboard demo (1-chair generation → STL export). <i>Goal: prove 1-loop agent-3D-asset pipeline.</i></label>
+        <span class="pri pri-med">P2</span>
+      </div>
+      <div class="checklist-item" data-key="watch-gpt5-router">
+        <input type="checkbox" id="cb-router">
+        <label class="lbl" for="cb-router"><b>Continuous:</b> Audit llm-protocol-router for GPT 5.6 Soul / Mythos / Opus 4.8 paths. Tag capabilities + access-status. Add "Mythos route → blocked" branch. <i>Documents the "permanent underclass" in policy-as-code.</i></label>
+        <span class="pri pri-med">P2</span>
+      </div>
+      <div class="checklist-item" data-key="watch-sakana-claim">
+        <input type="checkbox" id="cb-sakana">
+        <label class="lbl" for="cb-sakana"><b>Anytime this week:</b> Add a "claims-vs-base-model" red-flag pattern to five-orchestrator's release-detector so Sakana-Fugu-style orchestrator-marketing-as-base-model gets flagged on sight.</label>
+        <span class="pri pri-low">P3</span>
+      </div>
+
+      <p style="margin-top:0.6rem;font-size:0.78rem;color:var(--text-mute);">Storage key: <code>ai-search-watchlist-v1</code> · counter auto-updates on toggle · works across reloads.</p>
+    </div>
+
+    <div class="tab-content" id="limits" data-tab="limits">
+      <h2 class="section" id="limits-h">⚠️ Limits, caveats &amp; industry skepticism</h2>
+      <p>Credibility is <b>medium</b> (industry news aggregation channel — not non-causal, but also not first-party research). Treat the following claims with normal engineering skepticism.</p>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">📛 Named critics / advocate positions</h3>
+      <div class="card-grid">
+        <div class="card">
+          <h4>📛 "Big-closed is broken" — Yann LeCun camp</h4>
+          <p>Position: closed frontier labs (OpenAI, Anthropic) gate access by regulatory capture, the open-source wave (Ornith, Crea 2, DomainShuttle, Unzero, Arbor) proves the closed-lab tier is no longer necessary. <span class="ts">[0:34:32]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> GPT 5.6 Soul Ultra = new SOTA on Terminal Bench even vs Mythos (closed benefits still real).</p>
+        </div>
+        <div class="card">
+          <h4>📛 "Orchestrator = base model?" — Andrew Ng camp</h4>
+          <p>Position: Sakana Fugu's "surpasses Mythos on knowledge" claim is misleading; ensemble results vs base-model benchmarks is apples-to-oranges. <span class="ts">[0:40:21]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> Routing IS a product, and users may prefer a "smart router" over a "smart single model". The comparison framing just needs to be honest.</p>
+        </div>
+        <div class="card">
+          <h4>📛 "Vendor charts always cherry-pick" — independent-eval camp</h4>
+          <p>Position: ByteDance Seed 2.1's chart excludes Opus 4.8; Sakana Fugu's chart excludes per-component breakdown; GPT 5.6's chart excludes "exploit bench" likely on purpose. <span class="ts">[0:22:57]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> vendors are <i>required</i> to ship diff-friendly charts to investors. Cherry-picking is rational, not malicious — but the eval ecosystem <i>is the immune system</i>.</p>
+        </div>
+        <div class="card">
+          <h4>📛 "US gov is the new model gatekeeper" — sovereignty camp</h4>
+          <p>Position: Mythos ban + 100-partner gate + GPT 5.6 preview constraint → "permanent underclass" for non-US / non-trusted-partner developers. Sovereignty implications per host. <span class="ts">[0:33:26]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> the gating is a defense posture (cyber / biosecurity); unrestrained Mythos-class models carry real catastrophic risk that the open-source wave doesn't (yet) make trivial.</p>
+        </div>
+        <div class="card">
+          <h4>📛 "Unzero / oscillator-based gen is overhyped" — diffusion-orthodox camp</h4>
+          <p>Position: diffusion is the right inductive bias for image / video / audio; oscillator-based generation is a curiosity without industrial scale. <span class="ts">[0:16:48]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> Unzero is MIT-licensed, runs, and produces images. Even if quality is "proof-of-concept", the architectural option value is real.</p>
+        </div>
+        <div class="card">
+          <h4>📛 "AI-designed hardware is fine" — verification camp</h4>
+          <p>Position: OpenAI × Broadcom "Jalapeno" built-in-9-months with OpenAI-models-helping-design is the FIRST credible "AI for silicon" case; gate at the verification step. <span class="ts">[0:10:39]</span></p>
+          <p style="color:var(--text-dim);font-size:0.82rem;"><b>Counter-evidence:</b> hardware requires physical verification regardless of design agent; AGI-for-EDA is at most a 10-30% speedup, not a paradigm shift.</p>
+        </div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">📌 Engineering caveats (per-story)</h3>
+      <div class="card-grid">
+        <div class="card"><h4>1. Seedance 2.5 — announced, not released</h4><p><span class="ts">[0:20:13]</span> <span class="badge warn">⚠️</span> Unveiled at an event; launch "expected in early July". Until you can actually prompt it and benchmark it, treat the 50-ref / 30-second / 4K claims as <i>vendor claims, not measured results</i>.</p></div>
+        <div class="card"><h4>2. One Streamer — 192p proof of concept</h4><p><span class="ts">[0:01:04]</span> <span class="badge warn">⚠️</span> The 25fps / 200ms numbers are on a 192p, single-camera, single-model demo. No code yet — only the paper. Real consumer product could look very different.</p></div>
+        <div class="card"><h4>3. OpenAI Jalapeno — no detailed report</h4><p><span class="ts">[0:10:01]</span> "Substantially better perf/watt than current SOTA accelerators" — but <b>the detailed technical report is still coming</b>. Don't price-in until you see the silicon.</p></div>
+        <div class="card"><h4>4. Sakana Fugu — apples to oranges</h4><p><span class="ts">[0:40:21]</span> <span class="badge red">❌ Misleading</span> Claims "surpasses Claude Fable / Mythos" — but Fugu is an <b>orchestrator</b>, not a base model. Ensemble results naturally beat any single model. Closed-source, closed-allocation, expensive. Don't confuse "routing is good" with "Fugu is a new frontier LLM".</p></div>
+        <div class="card"><h4>5. "Ban lifted" ≠ "you can use it"</h4><p><span class="ts">[0:33:38]</span> <span class="badge warn">⚠️</span> Mythos-ban was eased — but only for ~100 trusted partners &amp; federal agencies. Same playbook for GPT 5.6 Soul preview. The "ban lifted" headline overstates the actual public access.</p></div>
+        <div class="card"><h4>6. Seed 2.1 missing Opus 4.8</h4><p><span class="ts">[0:22:57]</span> Chart shows Opus 4.7, not 4.8. Whether intentional or accidental, it inflates Seed 2.1's relative position. Always pull the vendor chart and check N of comparison.</p></div>
+        <div class="card"><h4>7. Olive brain ultrasound — invasive (still)</h4><p><span class="ts">[0:35:59]</span> <span class="badge warn">⚠️</span> "Non-invasive" framing is overstated: you still inject microbubbles into the bloodstream. The team has not addressed this risk in the blog.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="snap" data-tab="snap">
+      <h2 class="section" id="snap-h">📊 Data snapshot — single-table reference</h2>
+      <table>
+        <tr><th>Metric</th><th>Value</th><th>Item</th><th>Source in video</th><th>Relevance to Patrick</th></tr>
+        <tr><td>News items</td><td>14</td><td>this week</td><td>whole video</td><td class="col-rel">kanban / cron</td></tr>
+        <tr class="highlight"><td>Seedance 2.5 max length</td><td>30s clips</td><td>ByteDance video model</td><td><span class="ts">[0:20:38]</span></td><td class="col-rel">agent demo</td></tr>
+        <tr class="highlight"><td>Seedance 2.5 max refs</td><td>50 multimodal references</td><td>ByteDance video model</td><td><span class="ts">[0:20:38]</span></td><td class="col-rel">agent demo</td></tr>
+        <tr class="highlight"><td>Seedance 2.5 max output</td><td>2K + 4K</td><td>ByteDance video model</td><td><span class="ts">[0:21:32]</span></td><td class="col-rel">here.now</td></tr>
+        <tr><td>Alibaba Happy Horse 1.1 max output</td><td>1080p</td><td>Alibaba video model</td><td><span class="ts">[0:27:11]</span></td><td class="col-rel">router fallback</td></tr>
+        <tr><td>Happy Horse 1.1 max refs</td><td>9 reference images</td><td>Alibaba video model</td><td><span class="ts">[0:27:24]</span></td><td class="col-rel">router fallback</td></tr>
+        <tr><td>One Streamer fps</td><td>25 fps</td><td>Alibaba realtime avatar</td><td><span class="ts">[0:03:08]</span></td><td class="col-rel">realtime agent UI</td></tr>
+        <tr><td>One Streamer latency</td><td>~200ms (model-side)</td><td>Alibaba realtime avatar</td><td><span class="ts">[0:03:08]</span></td><td class="col-rel">realtime agent UI</td></tr>
+        <tr><td>One Streamer current resolution</td><td>192p (v0.1)</td><td>Alibaba realtime avatar</td><td><span class="ts">[0:03:29]</span></td><td class="col-rel">📡 monitor</td></tr>
+        <tr><td>GPT 5.6 speed on Cerebras</td><td>~750 tokens/sec</td><td>OpenAI flagship</td><td><span class="ts">[0:32:48]</span></td><td class="col-rel">router benchmark</td></tr>
+        <tr><td>GPT 5.6 red-team GPU-hours</td><td>700,000</td><td>OpenAI safety</td><td><span class="ts">[0:32:48]</span></td><td class="col-rel">five-orchestrator</td></tr>
+        <tr><td>IBM 0.7nm transistor density</td><td>~100B transistors / fingernail</td><td>chip</td><td><span class="ts">[0:12:05]</span></td><td class="col-rel">macro context</td></tr>
+        <tr><td>IBM 0.7nm perf gain vs 2nm</td><td>+50% perf OR +70% energy</td><td>chip</td><td><span class="ts">[0:12:25]</span></td><td class="col-rel">macro context</td></tr>
+        <tr><td>Jalapeno dev time</td><td>9 months</td><td>OpenAI × Broadcom chip</td><td><span class="ts">[0:10:39]</span></td><td class="col-rel">loop-engineering</td></tr>
+        <tr><td>Arbor size</td><td>600MB</td><td>Stability AI 3D constraints</td><td><span class="ts">[0:09:37]</span></td><td class="col-rel">Muse 3D / Blender</td></tr>
+        <tr><td>DomainShuttle size</td><td>35GB (Wan 2.2 base)</td><td>Video multi-ref</td><td><span class="ts">[0:05:46]</span></td><td class="col-rel">cost model</td></tr>
+        <tr><td>Ornith 1.0 largest</td><td>397B MoE (full ~794GB)</td><td>Open-source LLM</td><td><span class="ts">[0:07:24]</span></td><td class="col-rel">hermes-eval-harness</td></tr>
+        <tr><td>Ornith 1.0 GGUF Q4 size</td><td>21GB</td><td>Open-source LLM</td><td><span class="ts">[0:08:15]</span></td><td class="col-rel">local-host target</td></tr>
+        <tr><td>Crea 2 min VRAM</td><td>4GB</td><td>Open-source image</td><td><span class="ts">[0:28:40]</span></td><td class="col-rel">edge-deploy</td></tr>
+        <tr><td>HIW500 total hours</td><td>500h / 10TB</td><td>Humanoid dataset</td><td><span class="ts">[0:19:20]</span></td><td class="col-rel">scheduled-monitor</td></tr>
+        <tr><td>Unitree R1 starting price</td><td>$4,900</td><td>Humanoid robot</td><td><span class="ts">[0:29:51]</span></td><td class="col-rel">skip</td></tr>
+        <tr><td>Olive ultrasound resolution vs CT</td><td>100× better</td><td>Brain imaging</td><td><span class="ts">[0:37:25]</span></td><td class="col-rel">skip</td></tr>
+        <tr><td>Mythos preview access</td><td>~100 trusted partners</td><td>US-gov lifted ban</td><td><span class="ts">[0:34:10]</span></td><td class="col-rel">router (block branch)</td></tr>
+      </table>
+    </div>
+
+    <div class="tab-content" id="ref" data-tab="ref">
+      <h2 class="section" id="ref-h">🔗 Source &amp; references</h2>
+      <ul class="ref-list">
+        <li><b>Primary source video:</b> <a href="https://www.youtube.com/watch?v=7c_ieWfAbrw" target="_blank">https://www.youtube.com/watch?v=7c_ieWfAbrw</a> <span class="src">(AI Search · 2026-06-28 · 42:43 · 149 cleaned paras)</span></li>
+        <li><b>Local transcript:</b> <code>/tmp/ai-search-jul-2026/transcript.txt</code></li>
+        <li><b>Pre-segmented windows:</b> <code>/tmp/ai-search-jul-2026/windows.txt</code> (14 segments @ ~3-min)</li>
+        <li><b>yt-dlp metadata dump:</b> <code>/tmp/ai-search-jul-2026/yt_meta.json</code></li>
+        <li><b>Cross-reference (canonical polish pattern):</b> <code>~/.hermes/skills/media/video-to-knowledge-dashboard/references/richard-socher-v2-polish-round-2026-06-26.md</code></li>
+      </ul>
+      <p style="margin-top:0.8rem;color:var(--text-dim);font-size:0.88rem;">External references mentioned in the video (all linked in the original video description — host has them in the description below; many model pages include paper / GitHub / HuggingFace links themselves):</p>
+      <ul class="ref-list">
+        <li>One Streamer (Alibaba realtime avatar) — technical paper only.</li>
+        <li>DomainShuttle — code &amp; model page.</li>
+        <li>Ornith 1.0 — HuggingFace + training scripts (full open).</li>
+        <li>Stability AI Arbor — GitHub + HuggingFace + Blender add-on instructions.</li>
+        <li>OpenAI × Broadcom Jalapeno — main announcement page.</li>
+        <li>IBM sub-1nm 0.7nm chip — main announcement page.</li>
+        <li>ByteDance DanceOPD — technical paper.</li>
+        <li>Unzero (Unconventional AI) — GitHub + weights + training scripts (MIT).</li>
+        <li>HIW500 dataset — raw dataset link (~9TB) + LeRobot format coming.</li>
+        <li>Seedance 2.5 — main page; launch expected early July.</li>
+        <li>ByteDance Seed 2.1 (Pro / Turbo) — main page + online studio + API.</li>
+        <li>Lyte 4D — code "coming soon".</li>
+        <li>Perception DM — code + datasets + training instructions.</li>
+        <li>Alibaba Happy Horse 1.1 — main page (free credits on signup).</li>
+        <li>Crea 2 — full tutorial in AI Search's earlier video.</li>
+        <li>Unitree R1 — main page (starting $4,900).</li>
+        <li>Olive brain ultrasound — main pipeline page (open-sourced).</li>
+        <li>Meta Auto Data — technical report link.</li>
+        <li>Sakana Fugu — main announcement page (⚠️ orchestrator, not base model).</li>
+      </ul>
+    </div>
+
+    <footer>
+      <div><b>Dashboard:</b> /tmp/ai-search-jul-2026/dashboard.html · self-contained HTML · <b>16 tabs</b> (added 📈走势 / ⏱️时间轴 / ⚡Watchlist) · 17 Patrick cards · TOC sidebar (collapsible via ◀/▶) · interactive watchlist (localStorage) · ASCII timeline + radar + causal graph.</div>
+      <div><b>Skill:</b> video-to-knowledge-dashboard v1.5.10+ · canonical template v1.3.1 · Patrick-card roster v1 (locked 2026-06-23) re-mapped to AI-news weekly context · Round 7 polish v2 (15 items applied).</div>
+      <div><b>Source:</b> <a href="https://www.youtube.com/watch?v=7c_ieWfAbrw" target="_blank">https://www.youtube.com/watch?v=7c_ieWfAbrw</a></div>
+    </footer>
+
+  </div><!-- /.main -->
+</div><!-- /.layout -->
+
+<script>
+  // Tab activation (preserve original mechanic)
+  (function(){
+    const btns = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    if(!btns.length || !contents.length) return;
+
+    function activate(idx, opts){
+      const target = btns[idx];
+      if(!target) return;
+      btns.forEach((b,i)=>b.classList.toggle('active', i===idx));
+      contents.forEach((c,i)=>c.classList.toggle('active', i===idx));
+      if(opts && opts.hash){
+        try{ history.replaceState(null,'','#'+target.dataset.tab); }catch(e){}
+      }
+    }
+
+    btns.forEach((btn, idx)=>{
+      btn.addEventListener('click', ()=>activate(idx,{hash:true}));
+    });
+
+    const initHash = (location.hash||'').replace('#','');
+    if(initHash){
+      const i = Array.from(btns).findIndex(b=>b.dataset.tab===initHash);
+      if(i>=0) activate(i);
+      else activate(0);
+    } else {
+      activate(0);
+    }
+
+    // TOC smooth-scroll + active highlight
+    const tocLinks = document.querySelectorAll('aside.toc a');
+    tocLinks.forEach(a=>{
+      a.addEventListener('click',(e)=>{
+        e.preventDefault();
+        const id = a.getAttribute('href').replace('#','');
+        const targetBtn = Array.from(btns).find(b=>b.dataset.tab===id);
+        if(targetBtn){ targetBtn.click(); }
+        const main = document.querySelector('.main');
+        if(main){ main.scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+
+    const tabsStrip = document.getElementById('tabstrip');
+    if(tabsStrip && window.MutationObserver){
+      const mo = new MutationObserver(()=>{
+        const activeBtn = document.querySelector('.tab-btn.active');
+        if(!activeBtn) return;
+        tocLinks.forEach(l=>{
+          l.classList.toggle('active', l.getAttribute('href')==='#'+activeBtn.dataset.tab);
+        });
+      });
+      setInterval(mo_check, 200);
+      function mo_check(){
+        const activeBtn = document.querySelector('.tab-btn.active');
+        if(!activeBtn) return;
+        tocLinks.forEach(l=>{
+          l.classList.toggle('active', l.getAttribute('href')==='#'+activeBtn.dataset.tab);
+        });
+      }
+    }
+  })();
+
+  // === Collapsible TOC (06-29 NEW preference) ===
+  (function(){
+    const toc = document.querySelector('aside.toc');
+    const toggleBtn = document.querySelector('.toc-toggle');
+    if(!toc || !toggleBtn) return;
+    const STORAGE_KEY = 'ai-search-toc-collapsed';
+    function setTocState(collapsed){
+      document.body.classList.toggle('toc-collapsed', collapsed);
+      try{ localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); }catch(e){}
+      toggleBtn.textContent = collapsed ? '▶' : '◀';
+      toggleBtn.setAttribute('title', collapsed ? 'Expand TOC' : 'Collapse TOC');
+    }
+    toggleBtn.addEventListener('click', ()=>{
+      setTocState(!document.body.classList.contains('toc-collapsed'));
+    });
+    document.addEventListener('DOMContentLoaded', ()=>{
+      try{
+        if(localStorage.getItem(STORAGE_KEY) === '1') setTocState(true);
+      }catch(e){}
+    });
+    // also run immediately in case DOMContentLoaded already fired
+    try{
+      if(localStorage.getItem(STORAGE_KEY) === '1') setTocState(true);
+    }catch(e){}
+  })();
+
+  // === Interactive watchlist checklist + PHASE counter (localStorage) ===
+  (function(){
+    const STORAGE_KEY = 'ai-search-watchlist-v1';
+    const counter = document.getElementById('phase-counter');
+    const items = document.querySelectorAll('.checklist-item');
+    if(!items.length) return;
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      }catch(e){ return {}; }
+    }
+    function saveState(state){
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+    }
+    function applyState(state){
+      let done = 0;
+      items.forEach(item=>{
+        const key = item.dataset.key;
+        const cb = item.querySelector('input[type="checkbox"]');
+        if(!cb) return;
+        const checked = !!state[key];
+        cb.checked = checked;
+        item.classList.toggle('done', checked);
+        if(checked) done++;
+      });
+      if(counter){ counter.textContent = done + ' / ' + items.length; }
+    }
+
+    const state = loadState();
+    applyState(state);
+
+    items.forEach(item=>{
+      const key = item.dataset.key;
+      const cb = item.querySelector('input[type="checkbox"]');
+      if(!cb) return;
+      cb.addEventListener('change', ()=>{
+        // re-read fresh state in case another tab changed
+        const s = loadState();
+        s[key] = cb.checked;
+        saveState(s);
+        applyState(s);
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

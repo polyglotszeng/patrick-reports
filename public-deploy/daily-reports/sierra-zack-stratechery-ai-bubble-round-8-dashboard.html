@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The best AI agents are simpler than you think — Zack Reneau-Wedeen (Sierra) × LangChain — Knowledge Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0d0d10; --bg-card:#16161b; --bg-elevated:#1c1c22;
+    --border:#2a2a32; --text:#e8e8ea; --text-dim:#a8a8b2; --text-mute:#6a6a76;
+    --accent:#ff6b35; --accent-2:#f7c59f;
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+    --blue:#60a5fa; --purple:#a78bfa; --gray:#9ca3af;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;line-height:1.55;font-size:14px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  h1{font-size:1.8rem;margin:0 0 0.4rem;color:var(--accent);letter-spacing:-0.01em;}
+  h2.section{font-size:1.25rem;margin:1.4rem 0 0.8rem;color:var(--accent-2);border-bottom:1px solid var(--border);padding-bottom:0.4rem;}
+  h3{font-size:1.05rem;margin:1.1rem 0 0.5rem;color:var(--text);}
+  h4{font-size:0.95rem;margin:0 0 0.5rem;color:var(--accent);}
+  p{margin:0.5rem 0;}
+  .subtitle{color:var(--text-dim);font-size:0.95rem;margin-top:0;}
+  .meta-bar{display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 0;font-size:0.85rem;}
+  .meta-bar span{background:var(--bg-card);padding:0.35rem 0.7rem;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);}
+
+  /* Layout: sticky left aside (TOC) + main content */
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:0;max-width:1400px;margin:0 auto;}
+  aside.toc{
+    position:sticky;top:0;align-self:start;
+    height:100vh;overflow-y:auto;
+    background:var(--bg-card);border-right:1px solid var(--border);
+    padding:1.2rem 0.8rem;
+  }
+  aside.toc h3{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-mute);margin:0 0 0.6rem;padding:0 0.6rem;}
+  aside.toc ol{list-style:none;padding:0;margin:0;counter-reset:toc;}
+  aside.toc li{counter-increment:toc;}
+  aside.toc a{
+    display:block;padding:0.4rem 0.6rem;border-radius:6px;
+    color:var(--text-dim);font-size:0.85rem;text-decoration:none;
+    border-left:2px solid transparent;
+  }
+  aside.toc a:hover{background:var(--bg-elevated);color:var(--text);border-left-color:var(--accent);}
+  aside.toc a.active{background:var(--bg-elevated);color:var(--accent);border-left-color:var(--accent);}
+  .main{padding:1.6rem 2rem 4rem;min-width:0;}
+
+  .hero{
+    background:linear-gradient(135deg,#1a1a22 0%,#16161b 100%);
+    border:1px solid var(--border);border-radius:10px;
+    padding:1.4rem 1.6rem;margin-bottom:1.2rem;
+  }
+  .hero p{margin:0.4rem 0;color:var(--text-dim);}
+  .hero ol{margin:0.6rem 0 0 1.2rem;padding:0;color:var(--text);}
+  .hero li{margin:0.3rem 0;}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin-bottom:1.6rem;}
+  .stat{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+    padding:1rem 1.2rem;
+  }
+  .stat .num{font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1.1;}
+  .stat .lbl{font-size:0.8rem;color:var(--text-dim);margin-top:0.3rem;text-transform:uppercase;letter-spacing:0.04em;}
+
+  .tabs{
+    display:flex;flex-wrap:wrap;gap:0.3rem;
+    border-bottom:1px solid var(--border);
+    margin-bottom:0;padding-bottom:0;
+    position:sticky;top:0;background:var(--bg);z-index:5;
+  }
+  .tab-btn{
+    background:transparent;color:var(--text-dim);
+    border:1px solid var(--border);border-bottom:none;
+    border-radius:8px 8px 0 0;
+    padding:0.55rem 0.9rem;cursor:pointer;
+    font-size:0.85rem;font-family:inherit;
+    transition:background 0.12s,color 0.12s;
+  }
+  .tab-btn:hover{background:var(--bg-elevated);color:var(--text);}
+  .tab-btn.active{background:var(--bg-card);color:var(--accent);border-color:var(--accent);}
+  .tab-content{display:none;background:var(--bg-card);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:1.4rem 1.6rem;margin-bottom:1.2rem;}
+  .tab-content.active{display:block;}
+
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0.8rem;margin:0.8rem 0;}
+  .card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1rem;}
+
+  table{width:100%;border-collapse:collapse;margin:0.8rem 0;font-size:0.9rem;}
+  th,td{border:1px solid var(--border);padding:0.5rem 0.7rem;text-align:left;}
+  th{background:var(--bg-elevated);color:var(--accent-2);font-weight:600;}
+  tr.highlight{background:rgba(255,107,53,0.08);}
+  tr.highlight td{color:var(--accent);}
+
+  blockquote{margin:0.8rem 0;padding:0.6rem 0.9rem;border-left:3px solid var(--accent);background:var(--bg-elevated);border-radius:0 6px 6px 0;color:var(--text-dim);}
+
+  .quote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:0.8rem;margin:0.8rem 0;}
+  .quote-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1.1rem;}
+  .quote-card.yellow{border-left:3px solid var(--yellow);}
+  .quote-card.green{border-left:3px solid var(--green);}
+  .quote-card.blue{border-left:3px solid var(--blue);}
+  .quote-card.purple{border-left:3px solid var(--purple);}
+  .quote-card.red{border-left:3px solid var(--red);}
+  .quote-card.orange{border-left:3px solid var(--accent);}
+  .quote-card p{margin:0.3rem 0;color:var(--text-dim);font-style:italic;}
+  .quote-card .who{color:var(--text-mute);font-size:0.85rem;}
+
+  .timeline{margin:0.8rem 0;}
+  .tl-item{display:grid;grid-template-columns:90px 1fr;gap:0.8rem;margin:0.4rem 0;padding:0.5rem 0;border-bottom:1px solid var(--border);}
+  .tl-item:last-child{border-bottom:none;}
+  .tl-item .time{color:var(--accent);font-weight:600;font-family:ui-monospace,Menlo,monospace;font-size:0.9rem;}
+  .tl-item .what{color:var(--text);}
+
+  .badge{display:inline-block;font-size:0.7rem;padding:0.15rem 0.45rem;border-radius:4px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-dim);text-transform:uppercase;letter-spacing:0.04em;margin-right:0.3rem;}
+  .badge.warn{color:var(--yellow);border-color:var(--yellow);}
+  .badge.red{color:var(--red);border-color:var(--red);}
+  .badge.ok{color:var(--green);border-color:var(--green);}
+
+  .ts{display:inline-block;background:var(--bg-elevated);padding:0.1rem 0.4rem;border-radius:4px;color:var(--accent);font-family:ui-monospace,Menlo,monospace;font-size:0.85rem;margin:0 0.15rem;}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin:0.8rem 0;}
+  .cmp{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1rem;}
+  .cmp.good{border-left:3px solid var(--green);}
+  .cmp.bad{border-left:3px solid var(--red);}
+  .cmp.neutral{border-left:3px solid var(--blue);}
+
+  .chain{display:flex;align-items:center;flex-wrap:wrap;gap:0.4rem;margin:0.8rem 0;}
+  .chain-step{background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.7rem;color:var(--text-dim);font-size:0.85rem;}
+  .chain-step strong{color:var(--accent);}
+  .chain-arrow{color:var(--text-mute);}
+
+  footer{margin:2rem 0 1rem;color:var(--text-mute);font-size:0.8rem;text-align:center;}
+  footer a{color:var(--text-dim);}
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr;}
+    aside.toc{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);}
+    .main{padding:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<h1>The best AI agents are simpler than you think — Knowledge Dashboard</h1>
+<p class="subtitle">Zack Reneau-Wedeen (Head of Product, Sierra) × Harrison Chase (LangChain) — Max Agency podcast, 2026-06-18</p>
+
+<div class="meta-bar">
+  <span>🎙️ Channel: LangChain — Max Agency</span>
+  <span>🆔 Video: uCKhOmth2ms</span>
+  <span>⏱️ Duration: 87 min (5246s)</span>
+  <span>🗓️ Date: 2026-06-18</span>
+  <span>👁️ Views: 28,218</span>
+  <span>🌐 Lang: EN</span>
+  <span>🎯 Source class: industry analysis (medium credibility)</span>
+  <span>🏢 Guest: Zack Reneau-Wedeen — Sierra</span>
+</div>
+
+<div class="layout" style="padding-top:1.2rem;">
+
+  <aside class="toc">
+    <h3>📑 Jump to</h3>
+    <ol>
+      <li><a href="#thesis">⚡ 核心论点</a></li>
+      <li><a href="#sierra">🏢 Sierra 公司画像</a></li>
+      <li><a href="#monolith">🧱 Monolith vs Multi-Agent</a></li>
+      <li><a href="#voice">🗣️ Voice 架构</a></li>
+      <li><a href="#commerce">🛒 Agentic Commerce</a></li>
+      <li><a href="#memory">🧠 Context / Memory</a></li>
+      <li><a href="#tools">⚙️ Ghostwriter / ADP</a></li>
+      <li><a href="#pricing">💰 Outcome-Based Pricing</a></li>
+      <li><a href="#protocols">🤝 A2A / MCP / API</a></li>
+      <li><a href="#bench">📊 tau-bench &amp; 评测</a></li>
+      <li><a href="#quotes">💬 金句</a></li>
+      <li><a href="#patrick">🧰 Patrick 关联</a></li>
+      <li><a href="#limits">⚠️ 反方 / 局限</a></li>
+      <li><a href="#snap">📊 数据快照</a></li>
+    </ol>
+  </aside>
+
+  <div class="main">
+
+    <div class="hero">
+      <p><b>One-line thesis:</b> Sierra builds the customer-experience agent layer for most of the Fortune 20 (≈40-50% of the Fortune 50/100), and Zack's central claim is that <b>single-agent monoliths with excellent context engineering beat multi-agent "org-chart shipping"</b> — provided you parallelize sub-streams inside one brand-representing agent (think / listen / talk in voice), meet models on their 80% strength, and back the whole thing with a separate PCI-certified payments cluster and outcome-based pricing.</p>
+      <ol>
+        <li><b>"Multi-agent = shipping your org chart"</b> [<span class="ts">[0:46:21]</span>] — Sierra tends to be one agent per brand. Sub-agents only when context is truly separable; otherwise you destroy value by stripping context between triage and task.</li>
+        <li><b>"Whenever you think the model's too dumb, the model's actually too smart"</b> [<span class="ts">[0:41:43]</span>] — context engineering = show the agent everything it needs, nothing more. The 80/20 rule: build on models' existing abstractions (file system / grep / LangGraph in training data) rather than forcing custom DSLs in <span class="badge">~80%</span> of cases.</li>
+        <li><b>Modular voice architecture</b> [<span class="ts">[0:51:01]</span>] — Sierra parallelizes thinking / listening / talking. Each stream is swappable: transcription, synthesis, voice-to-voice. <span class="badge">60 languages</span>, multi-home providers, ensemble transcription for Hungarian (one provider alone ~20% WER).</li>
+        <li><b>PCI DSS Level 1 payments cluster</b> [<span class="ts">[0:22:09]</span>] — separate isolated infrastructure; payment info never touches an external LLM. Sierra calls itself the first voice-payments platform where you can complete checkout without transferring to another platform.</li>
+        <li><b>Agentic commerce &gt; e-commerce</b> [<span class="ts">[0:21:29]</span>] — Sierra is already on commission in some sales outcomes; outcome-based pricing aligns incentives and "agentic commerce will be bigger than e-commerce" (the latter being hundreds of billions of US$ / couple % of GDP).</li>
+      </ol>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num">10-15</div><div class="lbl">Models invoked per Sierra conversation turn</div></div>
+      <div class="stat"><div class="num">60</div><div class="lbl">Languages supported on Sierra platform</div></div>
+      <div class="stat"><div class="num">~50</div><div class="lbl">Lines of Python — what voices "when to speak"</div></div>
+      <div class="stat"><div class="num">100+</div><div class="lbl">Developers (some customers) building on agent SDK</div></div>
+      <div class="stat"><div class="num">1-2s</div><div class="lbl">Voice latency budget (else "people wonder where you went")</div></div>
+      <div class="stat"><div class="num">20%</div><div class="lbl">Best single-provider WER on Hungarian (ensemble needed)</div></div>
+    </div>
+
+    <div class="tabs" id="tabstrip">
+      <button class="tab-btn" data-tab="thesis">⚡ 核心论点</button>
+      <button class="tab-btn" data-tab="sierra">🏢 Sierra 公司画像</button>
+      <button class="tab-btn" data-tab="monolith">🧱 Monolith vs Multi-Agent</button>
+      <button class="tab-btn" data-tab="voice">🗣️ Voice 架构</button>
+      <button class="tab-btn" data-tab="commerce">🛒 Agentic Commerce</button>
+      <button class="tab-btn" data-tab="memory">🧠 Context / Memory</button>
+      <button class="tab-btn" data-tab="tools">⚙️ Ghostwriter / ADP</button>
+      <button class="tab-btn" data-tab="pricing">💰 Outcome-Based Pricing</button>
+      <button class="tab-btn" data-tab="protocols">🤝 A2A / MCP / API</button>
+      <button class="tab-btn" data-tab="bench">📊 tau-bench &amp; 评测</button>
+      <button class="tab-btn" data-tab="quotes">💬 金句</button>
+      <button class="tab-btn" data-tab="patrick">🧰 Patrick 关联</button>
+      <button class="tab-btn" data-tab="limits">⚠️ 反方 / 局限</button>
+      <button class="tab-btn" data-tab="snap">📊 数据快照</button>
+    </div>
+
+    <div class="tab-content" id="thesis" data-tab="thesis">
+      <h2 class="section">⚡ Core thesis — five takeaways, in Zack's words</h2>
+
+      <p>This interview is the most quotable Sierra-on-record session to date (Jun 2026). The recurring message: <b>context engineering in a single brand-representing agent beats multi-agent decomposition in most cases</b>, and the structural decisions (modular voice, separate PCI cluster, outcome pricing, ghostwriter + isomorphically-compiled journeys) all follow from that thesis.</p>
+
+      <blockquote>
+        "If you want a multi-agent system so that one team can work on one agent and one team can work on another agent, then <b>you're shipping your org chart</b>." <span class="ts">[0:46:21]</span>
+      </blockquote>
+
+      <blockquote>
+        "Showing agents <b>everything they need to do the right thing, but nothing more</b>." <span class="ts">[0:40:01]</span> — Sierra's definition of context engineering.
+      </blockquote>
+
+      <blockquote>
+        "<b>Whenever you think the model's too dumb, the model's actually too smart</b>." <span class="ts">[0:41:43]</span> — Context is usually the lever, not model choice.
+      </blockquote>
+
+      <blockquote>
+        "<b>Agentic commerce will be bigger than e-commerce.</b>" <span class="ts">[0:21:29]</span> — Sierra is already on commission in sales outcomes.
+      </blockquote>
+
+      <blockquote>
+        "<b>I'm kind of a monolith loyalist</b> on that." <span class="ts">[0:48:29]</span> — Zack's stance on multi-agent: build the monolith first, decompose only with reason.
+      </blockquote>
+
+      <h3>Five concrete takeaways</h3>
+      <div class="card-grid">
+        <div class="card"><h4>1. Monolith first, agents rarely</h4><p>If you have well-managed context, the right decomposition is usually zero — Sierra agents are typically <b>one agent per brand</b>. Sub-agents or multi-agent only for truly separable jobs. <span class="ts">[0:46:21]</span> <span class="ts">[0:48:09]</span></p></div>
+        <div class="card"><h4>2. Voice is the proving ground</h4><p>Majority of Sierra conversations are voice; <span class="badge">1-2s latency budget</span> forces parallelization: think + listen + talk run concurrently, with multiple model calls (frontier + classifiers + voice-specialized). <span class="ts">[0:18:00]</span> <span class="ts">[0:51:01]</span></p></div>
+        <div class="card"><h4>3. PCI / payments = separate cluster</h4><p>Payment info never reaches an external LLM. <b>PCI DSS Level 1</b> certified by a QSA — "the only voice payments platform at launch where you don't need to transfer to another platform". <span class="ts">[0:22:09]</span> <span class="ts">[0:21:44]</span></p></div>
+        <div class="card"><h4>4. Memory is a first-class primitive</h4><p>Since the Agent Data Platform launch (early November 2025), memory is platform-native. <b>Three layers:</b> per-turn save, conversation-start boot, agent-decided implicit save. <span class="ts">[0:58:20]</span> <span class="ts">[1:01:32]</span></p></div>
+        <div class="card"><h4>5. Outcome pricing = incentive alignment</h4><p>Align with customer value (sale made, retention saved) rather than tokens used. Sierra mostly doesn't get pedantic about which exact token counts for what — alignment is more important than precision at early stage. <span class="ts">[1:15:00]</span> <span class="ts">[1:18:23]</span></p></div>
+      </div>
+
+      <h3>Where Zack disagrees with the broader AI-agent discourse</h3>
+      <p>Three places Zack pushes back explicitly:</p>
+      <ul>
+        <li><b>Multi-agent = org-chart shipping.</b> Sub-agents without truly separable contexts destroy value; one monolith with great context engineering usually wins.</li>
+        <li><b>"Whenever you think the model's too dumb, the model's actually too smart."</b> The lever is context, not model.</li>
+        <li><b>"No breakout memory company yet."</b> Memory is essential but <b>trust-bundled with auth</b>. B2B buyers worry about identity in a way consumer products don't.</li>
+      </ul>
+    </div>
+
+    <div class="tab-content" id="sierra" data-tab="sierra">
+      <h2 class="section">🏢 Sierra — what the company actually is</h2>
+
+      <p>Zack describes Sierra (Jun 2026) as a customer-engagement platform that lives across the customer life cycle — not a CSAT tool, not a chatbot, but a <b>brand-representing agent</b> for sales, service, loyalty, browser, and check-out moments.</p>
+
+      <div class="card-grid">
+        <div class="card"><h4>📊 Customer footprint</h4><p>"Working with most of the Fortune 20, something like <b>40 or 50%</b> of the Fortune 50 or Fortune 100." <span class="ts">[0:04:14]</span> Examples on the call: <b>SiriusXM</b> (in-car streaming radio service, conversational volume), <b>Hawaiian Airlines</b> (frequent flyer / dog paperwork), <b>Redfin</b> (ChatGPT apps surface via MCP). <span class="ts">[0:50:43]</span> <span class="ts">[0:58:41]</span></p></div>
+        <div class="card"><h4>🧱 Three-section product</h4><p><b>Analyze → Build → Release</b>. Analyze = Explorer (long-running deep research), reports, monitors. Build = Ghostwriter (the Codex/Claude-Code analogue for agents) + Journeys (no-code declarative DSL that compiles isomorphically to Agent SDK code) + Agent SDK. Release = collaboration, change management, governance. <span class="ts">[0:03:42]</span></p></div>
+        <div class="card"><h4>🥪 Product stack — three layers</h4><p><b>Agent OS</b> at the bottom: constellation of 10–15 models per turn (frontier + classifiers + fine-tunes), translating task to prompt and data injection. <b>Agent SDK</b> on top: code-based orchestration + context management (Sierra's starting point). <b>Journeys</b> on top of that: declarative no-code DSL. <span class="ts">[0:08:11]</span> <span class="ts">[0:09:01]</span></p></div>
+        <div class="card"><h4>👥 Who builds agents</h4><p>"It's primarily people that have the most depth and insight about the ideal customer experience, which tends to be <b>operations people</b> — CX managers, folks in that department at our customer companies. Engineering teams extend the platform via tools and packages." <span class="ts">[0:06:54]</span></p></div>
+        <div class="card"><h4>🔁 "Day-to-day is more analyze, build, release"</h4><p>Start with Build (transcripts, SOPs, a Ghostwriter chat), then in production <b>daily routine starts with Analyze</b> (hill-climb CSAT / resolution / conversion metrics) and improvements happen via Ghostwriter. <span class="ts">[0:05:20]</span> <span class="ts">[0:06:18]</span></p></div>
+        <div class="card"><h4>🌐 Modalities</h4><p>Voice (majority of conversations), chat, ChatGPT apps (via MCP server), in-car (SiriusXM), in-app, in-store kiosk via web app. <span class="ts">[0:18:00]</span> <span class="ts">[0:19:36]</span></p></div>
+      </div>
+
+      <h3>How agents get built — visual</h3>
+      <div class="chain">
+        <span class="chain-step"><strong>Customer ops</strong> writes SOPs</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step"><strong>Ghostwriter</strong> drafts Journeys</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step"><strong>Journeys</strong> compiles to Agent SDK code</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step"><strong>Agent OS</strong> runs 10-15 models / turn</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step"><strong>Release</strong> governance / change management</span>
+        <span class="chain-arrow">→</span>
+        <span class="chain-step"><strong>Analyze</strong> monitors + Ghostwriter suggests</span>
+      </div>
+
+      <h3>Why Sierra isn't a "CS bot" — the vision arc</h3>
+      <p>"We've always thought of Sierra as the full engagement platform across all of the <b>moments that matter</b> for your customers. ... we get really excited about those more exotic opportunities because they also give us an opportunity to push the platform forward." <span class="ts">[0:02:08]</span></p>
+      <p>Examples given on-call: flight booking → seat selection → pet in cabin → reschedule → baggage — all under one Sierra agent for one airline brand.</p>
+    </div>
+
+    <div class="tab-content" id="monolith" data-tab="monolith">
+      <h2 class="section">🧱 Monolith vs Multi-Agent — Zack's central argument</h2>
+
+      <p>Zack is explicit, on-record, and repeated (this is the central claim of the episode): <b>multi-agent systems are often not useful, and the patterns people reach for them are usually "shipping your org chart."</b> Sierra's brand-representing agent is typically one agent; decomposition happens only when context is <i>truly</i> separable.</p>
+
+      <blockquote>
+        "If you want a multi-agent system so that one team can work on one agent and one team can work on another agent, then <b>you're shipping your org chart.</b>" <span class="ts">[0:46:21]</span>
+      </blockquote>
+
+      <blockquote>
+        "By building it as a multi-agent system, you're often <b>depriving of the agent doing the task of the information from the triage</b> and depriving the agent doing the triage of all of the procedural information from the task. And that's typically destructive of value." <span class="ts">[0:47:00]</span>
+      </blockquote>
+
+      <blockquote>
+        "I'm kind of a <b>monolith loyalist</b> on that." <span class="ts">[0:48:29]</span>
+      </blockquote>
+
+      <h3>When Sierra does use multi-agent</h3>
+      <p>Zack isn't <i>anti-</i> multi-agent. He's <i>pro-</i> deliberate-context multi-agent:</p>
+      <ul>
+        <li><b>Truly separable jobs.</b> "Where there's not any purpose of the first context being part of the second context." <span class="ts">[0:48:09]</span></li>
+        <li><b>Long-running sub-agents in the background.</b> Sierra agents can call out to other Sierra agents (or in-house platforms) for deep research, document generation, etc. "You might have a long-running agent and then the Sierra agent can call out to it and wait for [the result]." <span class="ts">[0:18:38]</span></li>
+        <li><b>Expert offload.</b> Customers with document-generation experts in-house have the Sierra agent call them; the front agent handles brand voice, the back agent handles specialized output. <span class="ts">[0:18:50]</span></li>
+        <li><b>The "kicking off even a sub-agent" test.</b> "If you're kicking off even a sub-agent, you want to make sure that it has everything it needs to do that task and that there's no reason why it shouldn't just be part of the main agent." <span class="ts">[0:47:36]</span></li>
+      </ul>
+
+      <h3>Sub-agent mechanics inside a Sierra voice conversation</h3>
+      <p>Sierra supports both directions of agent-to-agent call, and the dominant protocol isn't A2A — it's API calls ("you save a lot of tokens and make sure that you're 100% accurate that way"). <span class="ts">[0:19:47]</span></p>
+      <p>"Sierra agents support the MCP and agent-to-agent protocols. You can kind of install that integration and then your agent can be an MCP client. You can also set up your agent to be an MCP server. So this is how we support ChatGPT apps." <span class="ts">[0:19:47]</span></p>
+
+      <h3>Why context engineering usually beats decomposition</h3>
+      <p>"If you're managing context correctly, if you're doing really really good context engineering, then typically it's just not a problem because you're not exposing the wrong context to the wrong agent." <span class="ts">[0:48:04]</span></p>
+
+      <h3>Caveat — Zack's honest disclaimer</h3>
+      <blockquote>
+        "In my personal opinion with you know, <b>May 18th, 2026, there not a lot of great times for it [multi-agent].</b>" <span class="ts">[0:48:09]</span>
+      </blockquote>
+      <p>Zack frames this as his current best estimate — not a permanent truth. The date stamp is deliberate honesty.</p>
+    </div>
+
+    <div class="tab-content" id="voice" data-tab="voice">
+      <h2 class="section">🗣️ Voice architecture — modular, parallel, multilingual</h2>
+
+      <p>"Voice has been maybe the most fun project that I've worked on in my whole career." <span class="ts">[0:51:15]</span> Sierra's voice stack is structured around three architectural decisions that compound — and that you can break apart individually:</p>
+
+      <h3>1. Parallelize thinking, listening, talking</h3>
+      <p>The single biggest unlock:</p>
+      <blockquote>
+        "One of the big unlocks for Sierra agents was deciding to think about not only how to parallelize a task, but how to <b>parallelize thinking, listening, and talking.</b> So that when I'm listening, I'm already thinking about what I might say next. When I'm talking, I'm listening for interruptions." <span class="ts">[0:52:56]</span>
+      </blockquote>
+      <p>Compare with the simplistic stack:</p>
+      <div class="compare">
+        <div class="cmp bad"><h4>Old / naive</h4><p>"~50 lines of Python (Silero VAD) <b>deciding when to speak</b> + a trillion parameters deciding what to say. That balance feels very off." <span class="ts">[0:51:48]</span></p></div>
+        <div class="cmp good"><h4>Sierra's answer</h4><p>Three concurrent streams: <b>transcription + reasoning + synthesis.</b> Each can use a different model; each runs in parallel; each can be swapped per region / language / customer. <span class="ts">[0:52:56]</span></p></div>
+      </div>
+
+      <h3>2. Modular, multi-home providers</h3>
+      <p>"An early decision that totally played out to our advantage — multi-home providers across transcription, synthesis, and native voice-to-voice models." <span class="ts">[0:27:23]</span></p>
+      <p>Why: <b>no single provider is best across all dimensions</b>. The "best" transcription provider for English may hallucinate during silence; another provider wins on quality for a specific language. Sierra ensembles them.</p>
+
+      <h3>3. Ensemble transcription for hard languages</h3>
+      <blockquote>
+        "We have, I think, almost about <b>60 languages</b> on Sierra platform. ... Sometimes the very best transcription provider might have a <b>20% word error rate</b>. I think that's true for a language like Hungarian. And so ... how can we ensemble multiple transcription providers in order to get that down and kind of be better than a single model is on its own." <span class="ts">[0:50:25]</span>
+      </blockquote>
+
+      <h3>Voice-to-voice models (live in production)</h3>
+      <p>"As of a few months ago, we now have <b>production agents live with the voice-to-voice models</b>. ... You still need the transcript in order to make API calls and that sort of thing, but the agent is responding with audio as the input." <span class="ts">[0:50:05]</span></p>
+      <p>Notable mention: <b>ChatGPT real-time</b> — "real-time I think they might be up to 2.5 at this point. They've had like three big real-time launches at OpenAI this year already." <span class="ts">[0:50:25]</span></p>
+
+      <h3>How Sierra hydrates voice-to-voice as "last-mile"</h3>
+      <blockquote>
+        "Basically using the entire Sierra pipeline and then holding on to the input audio and piping that in with all of the prompt context into the audio model to do the <b>last mile.</b>" <span class="ts">[0:54:34]</span>
+      </blockquote>
+      <p>Sierra's posture: <b>use the closed audio model for last-mile audio generation only</b>, but keep the orchestration / context / tools routing in their own pipeline. They considered going all-in on the closed model and chose not to — "you can either do the same thing a little bit more easily or you can set your sights on new and more impressive things." <span class="ts">[0:54:50]</span></p>
+
+      <h3>Why voice has more friction than chat</h3>
+      <p>Three friction points raised by Zack: <b>(a) latency</b> (1-2 s budget), <b>(b) multilingual fluency</b> (~60 languages, with WER variance), <b>(c) interruption handling + VAD</b> (when to decide not to speak is non-trivial). <span class="ts">[0:49:51]</span></p>
+    </div>
+
+    <div class="tab-content" id="commerce" data-tab="commerce">
+      <h2 class="section">🛒 Agentic Commerce — the bet that &gt; e-commerce</h2>
+
+      <p>Most explicit thesis in the interview. Sierra is already on commission in sales outcomes today; the bet is that this category will grow past e-commerce.</p>
+
+      <blockquote>
+        "<b>Agentic commerce will be bigger than e-commerce.</b> If I think about how I get things done today, it used to be that I went to websites and clicked around. Now I ask Codex or Claude to do things for me. And I don't see why I won't do that to <b>manage my subscriptions, to order supplies to my home, to make dinner reservations</b>." <span class="ts">[0:21:29]</span>
+      </blockquote>
+
+      <h3>Why brands need to be ready</h3>
+      <p>"If that's happening, I think <b>brands will want to be ready on the other side of that.</b> So, we're very much planning for that world. We were investing in payments before it made sense, I think, and it's a long process." <span class="ts">[0:21:29]</span></p>
+
+      <h3>Why a do-it-yourself approach is risky</h3>
+      <blockquote>
+        "Because there's often <b>tens or hundreds of millions of dollars on the line</b>, in some cases billions of dollars on the line, you really want to make sure you're getting the best." <span class="ts">[0:25:33]</span>
+      </blockquote>
+      <p>Counter-argument acknowledged: brands could try to expose products via skills / APIs directly. Zack agrees — but believes <b>better outcomes come from platforms that own the orchestration</b> for high-value commerce flows.</p>
+
+      <h3>Are we early?</h3>
+      <p>"I think we're really early. ... In some cases you might have something where it's not unreasonable that the agent would earn ... <span class="ts">[0:26:39]</span> "</p>
+
+      <h3>What Sierra has already shipped</h3>
+      <div class="card-grid">
+        <div class="card"><h4>💳 PCI DSS Level 1</h4><p>Fully certified, separate isolated cluster; payment info never reaches an external LLM. <span class="ts">[0:22:09]</span></p></div>
+        <div class="card"><h4>📱 Redfin on ChatGPT</h4><p>ChatGPT apps surface Redfin's Sierra agent via MCP — "you can at-reference a Sierra agent." <span class="ts">[0:20:16]</span></p></div>
+        <div class="card"><h4>💰 Commission pricing in production</h4><p>There are <b>cases where the Sierra agent is actually getting paid a commission on a sale</b> (because of outcome-based pricing). <span class="ts">[0:02:08]</span></p></div>
+        <div class="card"><h4>🌐 End-to-end checkout</h4><p>"The <b>only voice payments platform</b> at launch where you don't need to transfer to another platform. ... A cohesive experience throughout checkout." <span class="ts">[0:22:09]</span></p></div>
+      </div>
+
+      <h3>Macro framing — e-commerce vs agentic commerce</h3>
+      <p>"E-commerce is in the <b>hundreds of billions of dollars</b> at this point, a couple percentage points of GDP or something like that just in the US." <span class="ts">[0:22:49]</span> Zack implicitly argues the floor for agentic commerce exceeds this — because the use cases are more conversational and persistent than website visits, and brands will need to be reachable regardless of which front agent (ChatGPT / Claude / consumer app) mediates the user.</p>
+    </div>
+
+    <div class="tab-content" id="memory" data-tab="memory">
+      <h2 class="section">🧠 Context Engineering + Memory — first-class primitives</h2>
+
+      <h3>Context engineering — the definition</h3>
+      <blockquote>
+        "<b>Showing agents everything they need to do the right thing, but nothing more.</b> And as models get smarter, you can be a little bit less precise with everything they need, and certainly less precise with nothing more. So, early on the agent SDK was really about only giving the relevant information into the model. Now, that's become a system reminder, or you can just kind of ask it." <span class="ts">[0:40:01]</span>
+      </blockquote>
+
+      <h3>The 80/20 rule on abstractions</h3>
+      <blockquote>
+        "My personal perspective is that <b>80% of the time</b> you want to do the first thing and just meet the models where they are on their turf and you should <b>reserve the second one</b> for that really special case." <span class="ts">[0:11:52]</span>
+      </blockquote>
+      <p>Where "the first thing" = use what models are trained on (file systems, git, grep, LangGraph <span class="ts">[0:12:53]</span>); "the second thing" = custom DSLs / formats not in training data.</p>
+
+      <h3>Memory as a first-class platform primitive</h3>
+      <p>"<b>Memory is very important to the platform.</b> ... since the agent data platform introduction, which we launched back in early November, it's been a <b>first-class primitive on Sierra.</b>" <span class="ts">[0:58:20]</span> <span class="ts">[0:59:01]</span></p>
+
+      <h3>The three layers of memory</h3>
+      <div class="card-grid">
+        <div class="card"><h4>Layer 1 — per-turn save</h4><p>"On a given conversation turn, you could say, 'I want to save this to memory.'" <span class="ts">[1:01:32]</span></p></div>
+        <div class="card"><h4>Layer 2 — conversation-start</h4><p>"At the beginning of a conversation, you could say, 'These are the things that are important to remember.' ... 'Remember their birthday.'" <span class="ts">[1:01:32]</span></p></div>
+        <div class="card"><h4>Layer 3 — implicit agent-decided</h4><p>"If the customer said, 'Hey, I want you to remember this when I call back in the future.'" — or let the agent decide. <span class="ts">[1:01:52]</span></p></div>
+      </div>
+
+      <h3>Why memory is <i>not</i> a breakout company yet — Zack's bet</h3>
+      <blockquote>
+        "I feel like memory is this really hot topic, and everyone loves to talk about it. ... but I don't see any of them being <b>massive breakout successful.</b> Why is that?" <span class="ts">[0:61:17]</span> (Harrison asks)
+      </blockquote>
+      <blockquote>
+        "When you're trusting us with memory, you're <b>trusting us with authentication</b>. ... in order to pull off memory, you need to be trusted with something that has higher risk. ... I would imagine you're biting off more than you think when you sell memory." <span class="ts">[1:03:00]</span> (Zack answers)
+      </blockquote>
+
+      <p><b>Sierra's take:</b> memory startups under-estimated how much <b>identity trust</b> is bundled with the surface they want to use. Consumer products (ChatGPT, Claude) have that trust "by default"; B2B memory startups don't. Memory <i>as a category</i> is real; <b>memory-as-a-standalone-B2B-product</b> is unproven.</p>
+
+      <h3>Memory structure — what Sierra uses internally</h3>
+      <blockquote>
+        "When you think about the structure of memory itself, do you guys think about it as a knowledge graph, a vector store, a file system?" <span class="ts">[0:61:45]</span> (Harrison)
+      </blockquote>
+      <p>Zack dodges the schema question — and arguably rightly: the storage substrate is less important than the agent-side policy on retrieval. Translation: "we have one, but the schema question is the wrong level — ask me about the policy." Worth re-listening for: <span class="ts">[0:61:45]</span></p>
+
+      <h3>What memory buys you — measured outcomes</h3>
+      <p>"If you know who someone is, you greet them by name, you remember what's important to them, and you show empathy in the moment, it increases all of the metrics that are most important to businesses, from <b>resolution rate to conversion rate</b>." <span class="ts">[0:58:48]</span></p>
+
+      <h3>Continual learning — auto-detect → Ghostwriter → review</h3>
+      <blockquote>
+        "Where we are today is you can <b>automatically detect an issue with a monitor</b>. Ghostwriter can automatically suggest a fix to an issue. And you can <b>review that issue and push it to your agent.</b> And so you're still in the loop. ... In the near future, you will start to see the first cases of <b>Sierra agents improving themselves</b> where they have a confidence level to the fix." <span class="ts">[1:06:17]</span>
+      </blockquote>
+      <p>Self-improvement primitives exist today; the gate is <b>confidence threshold</b>, not capability. "It's just around the confidence that people have in the level of control that they want to have." <span class="ts">[1:07:09]</span></p>
+    </div>
+
+    <div class="tab-content" id="tools" data-tab="tools">
+      <h2 class="section">⚙️ Ghostwriter + Agent Data Platform — Sierra's internal dev / observability stack</h2>
+
+      <h3>Ghostwriter — "the Codex for building agents"</h3>
+      <p>"<b>Ghostwriter</b> is the agent similar to Codex or Claude code <b>for building agents.</b>" <span class="ts">[0:04:06]</span></p>
+
+      <h3>What Ghostwriter writes</h3>
+      <ul>
+        <li><b>Not code.</b> Ghostwriter writes Journeys directly — so the customer can inspect and edit what was generated. <span class="ts">[0:10:45]</span></li>
+        <li><b>Domain-aware.</b> "<b>Ghostwriter</b> just kind of already knows those concepts and is an <b>expert in journeys</b>." Knows "flight booking," "car rental," "referral from primary care provider to a specialist" natively. <span class="ts">[0:10:45]</span></li>
+        <li><b>Learning curve obliterated.</b> Customers come in and describe a workflow in plain language; Ghostwriter drafts the journey. <span class="ts">[0:10:20]</span></li>
+        <li><b>Proactive suggestions.</b> From analyze, Ghostwriter proactively suggests an improvement based on an issue spotted. <span class="ts">[0:06:32]</span></li>
+      </ul>
+
+      <h3>Agent SDK + Journeys — the isomorphic compilation</h3>
+      <blockquote>
+        "The no-code <b>journeys</b> layer compiles down to <b>Agent SDK code deterministically and isomorphically</b> ... you can turn it one way and then turn it back and it's the same. ... you can have code that you transition over to no code, you can have no code that you transition over to code." <span class="ts">[0:09:14]</span>
+      </blockquote>
+
+      <p>This isomorphic property is unusually strong — most no-code tools have a "round trip" that loses information. Sierra's choice means: <b>an engineer can pull a journey into code when determinism matters</b> (e.g., CI/CD integration) without losing fidelity. <span class="ts">[0:15:00]</span></p>
+
+      <h3>Agent Data Platform (ADP) — launched Nov 2025</h3>
+      <p>"<b>Agent Data Platform</b> ... brings together ML data / big data about customers, marries that with in-the-moment context. ... Can either integrate with your CDP, all your internal systems, or you can have it just on Sierra, or a zero-copy integration." <span class="ts">[0:33:16]</span></p>
+
+      <h3>ADP capabilities</h3>
+      <div class="card-grid">
+        <div class="card"><h4>📊 Structured + unstructured fusion</h4><p>"It can take that <b>structured data that knows what to recommend</b> along with the here and now in the use those to generate better conversations, better orchestrations." <span class="ts">[0:33:32]</span></p></div>
+        <div class="card"><h4>🛒 Real example: sales</h4><p>"<b>During sales</b>, oftentimes there's structured data that knows the right offer to present, but doing it just with that structured data wouldn't necessarily work. Pick different offers based on conversation context and pick the right one for the moment." <span class="ts">[0:33:43]</span></p></div>
+        <div class="card"><h4>🎯 Loyalty &amp; retention use case</h4><p>"We see it a lot with <b>sales, with loyalty and retention</b>, those types of conversations." <span class="ts">[0:33:54]</span></p></div>
+        <div class="card"><h4>🔌 Zero-copy integration</h4><p>"You can have it just on Sierra or you can do sort of a <b>zero-copy integration</b>." <span class="ts">[0:33:22]</span></p></div>
+      </div>
+
+      <h3>ADP + ML — the data flywheel</h3>
+      <blockquote>
+        "We do have our <b>agent data platform</b> and there are <b>machine learning models</b> on top of it. But they don't necessarily know what you care about at a level deeper than that. And oftentimes the previous generation of AI or recommender systems have a better understanding of some of those things." <span class="ts">[0:32:39]</span>
+      </blockquote>
+      <p>Zack's interesting admission: <b>classical recommendation systems can outperform new LLM-only approaches for some knowledge questions.</b> The Sierra position is "use both" — the LLM for context-and-conversation, the ML for the "what does this person actually want to be offered right now" question.</p>
+
+      <h3>Why no fine-tuning on regurgitation-prone data</h3>
+      <blockquote>
+        "We basically would never <b>fine-tune a model on something when it could lead to regurgitation risk.</b> That's just a non-starter." <span class="ts">[0:44:04]</span>
+      </blockquote>
+      <p>Plus: training data prep, ops, and <i>"you have to think about preparing all of that data."</i> — so Sierra fine-tunes selectively, on data that doesn't create IP risk.</p>
+    </div>
+
+    <div class="tab-content" id="pricing" data-tab="pricing">
+      <h2 class="section">💰 Outcome-Based Pricing — mechanics, alignment, when it works (and doesn't)</h2>
+
+      <p>Sierra is the canonical example of outcome-based pricing in production at scale (already on commission for sales outcomes). Zack walks through what this means, why most products can't do it yet, and the open questions.</p>
+
+      <h3>What "outcome-based" actually means at Sierra</h3>
+      <blockquote>
+        "There are cases where the Sierra agent is actually, because of our outcome-based pricing model, <b>getting paid a commission on a sale</b> ... cases where we differentiate [pricing] within those different types of requests." <span class="ts">[0:02:08]</span> <span class="ts">[1:18:23]</span>
+      </blockquote>
+      <ul>
+        <li><b>Sales / membership</b>: pricing is a function of the resulting commercial value.</li>
+        <li><b>TV signal reset / bank balance check</b>: low-complexity, lower-impact — pricing is smaller.</li>
+        <li><b>Complex device troubleshooting</b>: 15-turn conversations, large context-engineering cost — pricing reflects that.</li>
+        <li><b>Question-answering</b>: "not an area where you would have a high premium for an outcome of any particular sort." <span class="ts">[1:15:35]</span></li>
+      </ul>
+
+      <h3>The Sierra pragmatic stance on granularity</h3>
+      <blockquote>
+        "We're not dogmatic about it. What we found is that often times the <b>benefits of having our incentives aligned</b> are so high that it's <b>not worth negotiating every detail</b> of what counts for what and it kind of makes sure that incentives are deeply aligned. And then on top of that I think you can get really <b>pedantic</b> about the engineering of specific outcomes and maybe over time the market will move in that direction. But I think you're missing the forest for the trees if you do that today." <span class="ts">[1:18:23]</span>
+      </blockquote>
+
+      <h3>Why outcome pricing isn't everywhere yet</h3>
+      <p>"I think it's probably a bit of both. ... <b>A lot of products find themselves in a position of being more similar to what you could just buy today.</b>" <span class="ts">[1:19:07]</span> Zack's ranking of reasons:</p>
+      <ol>
+        <li><b>Commoditization pressure</b> — many AI products approximate a thing you can already buy (knowledge lookups, FAQ answering). When the work is commoditized, <b>usage-based or seat-based pricing</b> dominates. <span class="ts">[1:15:35]</span></li>
+        <li><b>Operational complexity</b> — "the second one is more important" — the operational lift of proving an outcome happened is non-trivial for low-value flows.</li>
+      </ol>
+
+      <h3>Where outcome pricing is heading</h3>
+      <blockquote>
+        "Where we're seeing things going is <b>intra-conversation outcomes</b>, to also thinking about more — as I mentioned — kind of the moments that matter across the customer life cycle." <span class="ts">[1:15:42]</span>
+      </blockquote>
+      <p>Zack's forward claim: outcome pricing will migrate inward — from "did a sale happen" (outer) to "did this conversation successfully progress" (inner). The further in, the higher the engineering overhead.</p>
+
+      <h3>Why Sierra can sustain outcome pricing (vs e.g. Claw that can't)</h3>
+      <p>Harrison explains that because Sierra charges per-tenant and the customer can stand up a new contract per workflow, Sierra can take on the "outcome" risk that B2B SaaS without that structure can't. <span class="ts">[1:15:35]</span></p>
+
+      <h3>Open questions (Zack's own)</h3>
+      <p>Zack doesn't claim outcome pricing is solved — and acknowledges the unknown unknowns:</p>
+      <ul>
+        <li>"Maybe over time the market will move in that direction" — implying a long arc, not a sudden flip.</li>
+        <li>"You're biting off more than you think when you sell [outcome-priced] memory." <span class="ts">[1:03:00]</span> — applies to many B2B risk surfaces.</li>
+      </ul>
+    </div>
+
+    <div class="tab-content" id="protocols" data-tab="protocols">
+      <h2 class="section">🤝 A2A / MCP / API — which wins, the 80/20 rule, the actual Sierra stance</h2>
+
+      <p>One of the most quotable exchanges in the interview. Zack is direct: the <i>most common</i> agent-to-agent call at Sierra is a plain REST API. MCP and A2A exist, but they solve different problems.</p>
+
+      <blockquote>
+        "<b>The most common is an API call.</b> When you know who you're talking to in advance, often times you can save a lot of tokens and make sure that you're 100% accurate that way." <span class="ts">[0:19:47]</span>
+      </blockquote>
+
+      <h3>Why API &gt; MCP / A2A when caller &amp; callee are known</h3>
+      <p>Three reasons Zack mentions (implied, one explicit):</p>
+      <ol>
+        <li><b>Token savings</b> — known signature, no schema discovery.</li>
+        <li><b>Determinism / accuracy</b> — "100% accurate that way" vs probabilistic schema matches.</li>
+        <li><b>Latency</b> — direct call avoids negotiation overhead.</li>
+      </ol>
+
+      <h3>When MCP wins</h3>
+      <blockquote>
+        "Sierra agents support the <b>MCP and agent-to-agent protocols</b>. You can kind of install that integration and then your agent can be an <b>MCP client</b>. You can also set up your agent to be an <b>MCP server</b>. So this is how we support <b>ChatGPT apps</b> which rely on MCP servers." <span class="ts">[0:19:47]</span>
+      </blockquote>
+      <p>MCP wins when:</p>
+      <ul>
+        <li>You don't know who you'll be talking to at runtime.</li>
+        <li>You need a common schema across many callers / servers.</li>
+        <li>You're a "server side" of a ChatGPT app (Redfin example).</li>
+      </ul>
+
+      <h3>When A2A wins</h3>
+      <p>A2A is mentioned as "supported" but not the most common. The implicit Sierra position: <b>A2A is for true cross-org agent calls</b> where neither side wants full coupling and discovery is the value.</p>
+
+      <h3>The cross-reference interaction</h3>
+      <blockquote>
+        "[MCP means] the <b>tools of the agent can be made available to ChatGPT</b> and then you can at-reference a Sierra agent. The example that would be most familiar is Redfin." <span class="ts">[0:20:16]</span>
+      </blockquote>
+      <p>Translation: <b>a Sierra agent at Redfin exposes its tools via an MCP server</b>. ChatGPT receives those tools when the user references the Redfin agent, and <b>ChatGPT executes those tools through the Sierra agent</b>. End user talks to ChatGPT; ChatGPT talks to Redfin's Sierra agent. <span class="ts">[0:20:16]</span></p>
+
+      <h3>Decision matrix</h3>
+      <table>
+        <tr><th>Situation</th><th>Best choice</th><th>Reason</th></tr>
+        <tr><td>Known caller + known callee, both Sierra-side</td><td><b>API call</b></td><td>Tokens, determinism, latency</td></tr>
+        <tr class="highlight"><td>Sierra agent ↔ ChatGPT</td><td><b>MCP server</b></td><td>Required by ChatGPT apps</td></tr>
+        <tr><td>Long-running async sub-workflow, brand-aligned</td><td><b>Another Sierra agent</b></td><td>UX consistency, deep context handoff</td></tr>
+        <tr><td>Customer in-house agent with expert in document gen</td><td><b>Call out + wait</b></td><td>Offload specialized work, no UI re-share</td></tr>
+        <tr><td>Cross-org, no shared schema</td><td><b>A2A</b></td><td>Discovery + handoff at the protocol level</td></tr>
+      </table>
+
+      <h3>The 80/20 thesis on technology choice (model-agnostic)</h3>
+      <p>Zack's meta-rule applies beyond Sierra: <b>80% of the time, use whatever models are best at</b>. Tools, protocols, frameworks — same pattern. "At least Anthropic models recommend LangGraph for a lot of use cases and that's great. ... people <b>choose technology because the models are really good at writing it.</b>" <span class="ts">[0:12:53]</span> <span class="ts">[0:11:52]</span></p>
+    </div>
+
+    <div class="tab-content" id="bench" data-tab="bench">
+      <h2 class="section">📊 tau-bench &amp; 评测 — the open-sourced eval suite</h2>
+
+      <h3>The "tau cinematic universe"</h3>
+      <blockquote>
+        "We've released I think those are the four areas. There might be another one where we release benchmarks in the sort of <b>Tao cinematic universe</b>. There's <b>TaoVoice, TaoKnowledge, TaoBench,</b> and <b>MuBench</b>, which is the multilingual transcription benchmark." <span class="ts">[0:41:13]</span>
+      </blockquote>
+
+      <h3>Four (and counting) Sierra evals</h3>
+      <table>
+        <tr><th>Benchmark</th><th>Domain</th><th>Why it exists</th></tr>
+        <tr class="highlight"><td>tau-bench</td><td>Original agentic benchmark (Sierra's first eval)</td><td>"Much more popular than we expected." The first popularized the 'tau' brand. <span class="ts">[0:42:10]</span></td></tr>
+        <tr><td>tau²-bench</td><td>Sequel — "the sequel" / "tau is squared"</td><td>Path-dependent on the first being a hit. <span class="ts">[0:42:33]</span></td></tr>
+        <tr><td>tauVoice</td><td>Voice agent eval</td><td>"I don't think anyone knows more than we do about voice agents." <span class="ts">[0:41:22]</span></td></tr>
+        <tr><td>tauKnowledge</td><td>Knowledge retrieval / answers</td><td>Sierra has the most customer-data context here.</td></tr>
+        <tr><td>MuBench</td><td>Multilingual transcription</td><td>60-language footprint; the eval that arose from production reality (Hungarian 20% WER). <span class="ts">[0:42:10]</span></td></tr>
+      </table>
+
+      <h3>Why Sierra invests in evals</h3>
+      <blockquote>
+        "It started because the first TaoBench was a lot more popular than we expected. We're like, '<b>Oh, people trust us to kind of say what good looks like in this space.</b>' And so we've continued to do more and more, and our research team has grown." <span class="ts">[0:42:30]</span>
+      </blockquote>
+
+      <h3>Sierra's eval methodology (synthesis + labeling + outsourcing)</h3>
+      <p>"I think it's a mix of all three. ... A lot of stuff internally especially when you're in the zero-to-one phase. ... Even when you work with external companies, they often want to see some number of examples from you. And then I think also being able to <b>synthesize data when scale matters a lot</b>." <span class="ts">[0:43:34]</span></p>
+
+      <h3>How the eval relates to the agent</h3>
+      <blockquote>
+        "Most of the benchmarks we use to <b>evaluate providers more than to evaluate agents.</b> ... It has that benefit but it is very path dependent on Tow bench being a hit." <span class="ts">[0:42:48]</span>
+      </blockquote>
+
+      <h3>Notable callouts from the eval discussion</h3>
+      <ul>
+        <li><b>Transcription eval is harder.</b> "It's harder for something like transcription where audio synthesis might be already in the training set of the transcription and that kind of thing. ... For things like text, I think it's easier." <span class="ts">[0:43:54]</span></li>
+        <li><b>Provider presentations.</b> "There was a really exciting new transcription model that came by the office and presented it to us." <span class="ts">[0:44:17]</span> (Vendor presentations are an input.)</li>
+      </ul>
+    </div>
+
+    <div class="tab-content" id="quotes" data-tab="quotes">
+      <h2 class="section">💬 Gold-quote vault — 18 verbatim Zack statements, timestamped</h2>
+
+      <p class="subtitle" style="color:var(--text-mute);margin-bottom:1rem;">All quotes from Zack unless attributed otherwise. Tappable-source pattern from this dashboard ↔ vault note ↔ bilingual synthesis.</p>
+
+      <div class="quote-grid">
+        <div class="quote-card orange"><p>"If you want a multi-agent system so that one team can work on one agent and one team can work on another agent, then <b>you're shipping your org chart.</b>"</p><span class="who">— Zack, on multi-agent anti-pattern</span> <span class="ts">[0:46:21]</span></div>
+        <div class="quote-card yellow"><p>"Showing agents <b>everything they need to do the right thing, but nothing more.</b>"</p><span class="who">— Zack, the context-engineering definition</span> <span class="ts">[0:40:01]</span></div>
+        <div class="quote-card red"><p>"Whenever you think the model's too dumb, the model's actually too smart."</p><span class="who">— Zack, on context being the bottleneck</span> <span class="ts">[0:41:43]</span></div>
+        <div class="quote-card green"><p>"I think that <b>agentic commerce will be bigger than e-commerce.</b>"</p><span class="who">— Zack, the central commercial bet</span> <span class="ts">[0:21:29]</span></div>
+        <div class="quote-card blue"><p>"I'm kind of a <b>monolith loyalist</b> on that."</p><span class="who">— Zack, on multi-agent decision</span> <span class="ts">[0:48:29]</span></div>
+        <div class="quote-card purple"><p>"My personal perspective is that <b>80% of the time</b> you want to do the first thing and just <b>meet the models where they are on their turf</b>."</p><span class="who">— Zack, on the abstraction rule</span> <span class="ts">[0:11:52]</span></div>
+        <div class="quote-card orange"><p>"One of the big unlocks for Sierra agents was deciding to think about not only how to parallelize a task, but how to <b>parallelize thinking, listening, and talking.</b>"</p><span class="who">— Zack, voice architecture unlock</span> <span class="ts">[0:52:56]</span></div>
+        <div class="quote-card red"><p>"Up until now, we basically had like <b>50 lines of Python (Silero VAD) deciding when to speak</b>, and then a <b>trillion parameters deciding what to say</b>. And that balance feels very off to me."</p><span class="who">— Zack, naive voice stack diagnosis</span> <span class="ts">[0:51:48]</span></div>
+        <div class="quote-card yellow"><p>"It compiles down to Agent SDK code <b>deterministically and isomorphically</b> ... you can turn it one way and then turn it back and it's the same."</p><span class="who">— Zack, on Journeys → SDK round-trip</span> <span class="ts">[0:09:14]</span></div>
+        <div class="quote-card green"><p>"When you know who you're talking to in advance, often times you can <b>save a lot of tokens</b> and make sure that you're <b>100% accurate</b> that way."</p><span class="who">— Zack, on API &gt; A2A when known</span> <span class="ts">[0:19:47]</span></div>
+        <div class="quote-card blue"><p>"Memory is very important to the platform. ... it's been a <b>first-class primitive on Sierra.</b>"</p><span class="who">— Zack, since ADP launch (early Nov 2025)</span> <span class="ts">[0:58:20]</span> <span class="ts">[0:59:01]</span></div>
+        <div class="quote-card purple"><p>"When you're trusting us with memory, <b>you're trusting us with authentication.</b> ... I would imagine you're biting off more than you think when you sell memory."</p><span class="who">— Zack, on why no breakout memory company</span> <span class="ts">[1:03:00]</span></div>
+        <div class="quote-card orange"><p>"We have, I think, almost about <b>60 languages</b> on Sierra platform. ... Sometimes the very best transcription provider might have a <b>20% word error rate</b>."</p><span class="who">— Zack, multilingual + ensemble transcription</span> <span class="ts">[0:50:25]</span></div>
+        <div class="quote-card red"><p>"In my personal opinion, with you know, <b>May 18th, 2026, there not a lot of great times for it</b> [multi-agent]."</p><span class="who">— Zack, dated disclaimer</span> <span class="ts">[0:48:09]</span></div>
+        <div class="quote-card green"><p>"You can have code that you transition over to no code, you can have no code that you transition over to code."</p><span class="who">— Zack, on the iso property of Journeys</span> <span class="ts">[0:09:14]</span></div>
+        <div class="quote-card yellow"><p>"Coding agents are really good at file systems, they're really good at Git, they're really good at grep. <b>Let's materialize everything into those structures</b> so that coding agents can just cook."</p><span class="who">— Zack, the 80% rule for tools</span> <span class="ts">[0:00:16]</span></div>
+        <div class="quote-card blue"><p>"<b>Sierra agents tend to be kind of one agent representing the brand.</b> You certainly can have multiple agents and build a multi-agent system, but be if you're managing context correctly, ... then typically it's just not a problem."</p><span class="who">— Zack, monolith-by-default</span> <span class="ts">[0:48:04]</span></div>
+        <div class="quote-card purple"><p>"<b>Want to make the easy things easy and the hard things possible.</b>" — attributed to the creator of Pearl; the Sierra design principle."</p><span class="who">— Zack, on the platform philosophy</span> <span class="ts">[0:03:00]</span></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="patrick" data-tab="patrick">
+      <h2 class="section" id="patrick-h">🧰 Patrick-card roster — 17 cards, 4 tiers (the canonical "与 Patrick 工作关联" matrix, re-mapped to Sierra × LangChain context)</h2>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 1 — Core (8 cards, always relevant)</h3>
+      <div class="card-grid">
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 agent-orchestration</h4><p>Zack's "monolith loyalist" stance maps directly: <b>single brand-representing agent with parallel sub-streams</b> (think / listen / talk) beats org-chart decomposition. Sub-agents only when context is truly separable.</p><p style="color:var(--green);">→ <b>完全同源</b>: Zack and Patrick share the same default — build the monolith first, decompose only with reason.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 hermes-eval-harness</h4><p>The tau-bench universe is explicit customer-of-eval-harness territory: <b>independent benchmark vs vendor chart</b>. Sierra's own evals (tauVoice, tauKnowledge, MuBench) came from "people trust us to say what good looks like" — that's the same trust signal as Hermes running its own benchmark on every new LLM release.</p><p style="color:var(--green);">→ <b>完全同源</b>: independent evals are how you avoid being benchmarked into oblivion by vendor charts.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 llm-protocol-router</h4><p>10-15 different model calls per Sierra conversation turn, split across frontier + classifiers + fine-tunes + speculative-execution — this is exactly what <b>runtime model routing</b> does. "Different architectures because of that" <span class="ts">[0:36:47]</span> for latency / cost / quality trade-offs.</p><p style="color:var(--green);">→ <b>完全同源</b>: per-task model selection is the orchestration skill; llm-protocol-router is the engine.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 hybrid-llm-router</h4><p>"We have such good support for <b>multiple providers is specifically preparing for Black Friday Cyber Monday</b>." Sierra explicitly <b>multi-homes transcription, synthesis, and voice-to-voice</b> across providers — the production-grade version of hybrid routing.</p><p style="color:var(--green);">→ <b>完全同源</b>: provider independence at the routing layer is non-negotiable for high-volume customer-agent workloads.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 agent-observability</h4><p>Sierra's <b>continual improvement loop</b>: monitor detects issue → Ghostwriter suggests fix → human reviews → pushed to agent. The same observability surface Hermes wants: monitors + reports + always-on evaluators as first-class platform primitives.</p><p style="color:var(--green);">→ <b>完全同源</b>: monitor + diagnostic → fix suggestion → human-approval → push is the canonical self-improving loop.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 dual-ai-peer-review</h4><p>Zack's admission that "the previous generation of AI or recommender systems have a better understanding" of <i>some</i> questions is exactly the dual-source check pattern: <b>never let one model make the binding decision on its own.</b> ADP uses classic recommender + LLM together for the "right offer" question.</p><p style="color:var(--green);">→ <b>完全同源</b>: ADP explicitly cross-checks ML and LLM reasoning before acting.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 scheduled-monitor-with-drift</h4><p>"<b>A new transcription model came by the office and presented it to us</b>" — and Sierra ran it against their eval. Same pattern: as new models drop (OpenAI real-time 2.5, etc.) Sierra's eval is the drift monitor. <span class="ts">[0:44:17]</span></p><p style="color:var(--green);">→ <b>完全同源</b>: scheduled reruns of evaluation benchmarks detect drift before customers feel it.</p></div>
+        <div class="card" style="border-left:3px solid var(--accent);"><h4>🔗 hermes-telos-consult</h4><p>"We don't dogmatic about it. What we found is that often times the benefits of having our incentives aligned are so high that <b>it's not worth negotiating every detail of what counts for what</b>." Sierra's outcome-pricing posture = "be helpful, not pedantic; align incentives first." That's the <b>telos-first</b> stance: figure out the goal, accept the audit cost; don't optimize the wrong axis.</p><p style="color:var(--green);">→ <b>完全同源</b>: hermes-telos-consult is essentially "what outcome are we optimizing for" before "what's the precise metric."</p></div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 2 — Conditional (5 cards, picked by topic)</h3>
+      <div class="card-grid">
+        <div class="card" style="border-left:3px solid var(--blue);"><h4>🔗 subagent-driven-development</h4><p>Sierra agent-to-agent calls (the Sierra agent calling another Sierra agent in the background for long-running work) is <b>exactly the sub-agent pattern</b> Patrick uses for parallel work-trees. The constraint is the same: ensure the sub-agent has everything it needs.</p><p style="color:var(--green);">→ <b>完全同源</b>: Patrick's subagent-driven-development assumes Sierra's "no reason why it shouldn't just be part of the main agent" rule.</p></div>
+        <div class="card" style="border-left:3px solid var(--blue);"><h4>🔗 hermes-voice</h4><p>"Voice has been maybe the most fun project that I've worked on in my whole career" — and the architecture is well-defined: <b>parallelize think / listen / talk, modular transcription + synthesis + voice-to-voice, ensemble hard languages.</b> Hermes-voice can adopt Sierra's pattern directly.</p><p style="color:var(--green);">→ <b>完全同源</b>: hermes-voice is the wrong-place for naive 50-line-VAD-plus-trillion-params stack; Sierra's pattern is the upgrade.</p></div>
+        <div class="card" style="border-left:3px solid var(--blue);"><h4>🔗 memory-three-layer</h4><p>Sierra's three layers of memory (per-turn save / conversation-start boot / implicit agent-decided) is <b>exactly the three-layer memory primitive</b> Patrick has been sketching. Sierra shipped it on the ADP launch in Nov 2025.</p><p style="color:var(--green);">→ <b>完全同源</b>: the 3-layer model is the canonical "memory as first-class primitive" interface.</p></div>
+        <div class="card" style="border-left:3px solid var(--blue);"><h4>🔗 outcome-pricing-as-protocol</h4><p>Sierra's outcome-based pricing (commission on sale, low for trivial flows, high for complex troubleshooting) is a <b>concrete production protocol</b> for outcome-pricing-as-protocol. The "intra-conversation outcomes" trend Zack flags is the next layer.</p><p style="color:var(--green);">→ <b>完全同源</b>: Hermes's credit/pricing system could mirror Sierra's intra-conversation-outcomes curve.</p></div>
+        <div class="card" style="border-left:3px solid var(--blue);"><h4>🔗 eval-for-product</h4><p>Sierra's "tau cinematic universe" (tauVoice, tauKnowledge, tauBench, MuBench) is <b>eval-as-product</b> — same idea as eval-for-product: ship an eval that <i>defines</i> the category, get goodwill + traffic + ground-truth for your own agent.</p><p style="color:var(--green);">→ <b>完全同源</b>: when Patrick ships Hermes evals, Sierra's pattern is the precedent.</p></div>
+      </div>
+
+      <h3 style="color:var(--accent-2);font-size:0.95rem;text-transform:uppercase;letter-spacing:0.04em;margin-top:1rem;">Tier 3 — Context (4 cards, dashboard-level)</h3>
+      <div class="card-grid">
+        <div class="card" style="border-left:3px solid var(--purple);"><h4>🔗 video-to-knowledge-dashboard (this skill)</h4><p>This very dashboard is the canonical output of this skill — 14 tabs, 6 stat cards, 17 Patrick cards, TOC sidebar, single self-contained HTML.</p><p style="color:var(--green);">→ <b>完全同源</b>: this dashboard IS the deliverable — meta-card.</p></div>
+        <div class="card" style="border-left:3px solid var(--purple);"><h4>🔗 five-orchestrator</h4><p>Sierra's multi-model-per-turn architecture (frontier + classifiers + fine-tunes + voice-specialized + speculative-execution) is the production example of <b>five-orchestrator</b> in customer-facing AI — not "routing to one best model" but "routing each sub-task to the best model for it."</p><p style="color:var(--green);">→ <b>完全同源</b>: same orchestrator philosophy, different surface area.</p></div>
+        <div class="card" style="border-left:3px solid var(--purple);"><h4>🔗 here-now (public surface)</h4><p>The Catalog of Moments from Sierra's full-engagement model — Salesforce at every stage of the customer lifecycle — is the B2B shape of "publish your dashboards and products as a public surface." Here-now lets agents publish; Sierra lets brands publish.</p><p style="color:var(--green);">→ <b>同源</b>: different publishing channel; same idea — surface area compounds.</p></div>
+        <div class="card" style="border-left:3px solid var(--purple);"><h4>🔗 model-routing-strategy</h4><p>Which LLM profile handles what: Sierra's example mixes frontier for top reasoning + classifiers for triage + fine-tunes for specific tasks + speculative-execution for voice. The "every turn is 10-15 model calls" framing is a literal spec for a routing policy.</p><p style="color:var(--green);">→ <b>同源</b>: model-routing-strategy gets a concrete 10-15-call split.</p></div>
+      </div>
+
+      <p style="margin-top:1rem;color:var(--text-dim);font-size:0.85rem;"><b>Roster summary:</b> 8 Tier-1 + 5 Tier-2 + 4 Tier-3 = <b>17 cards</b>. Tier-1 is the canonical "Sierra-mirrors-Hermes" set: orchestration, eval, router, observability, peer review, drift monitor, telos consult. Tier-2 captures the deep technical matches (voice, memory, sub-agent, outcome pricing). Tier-3 covers the meta-surface.</p>
+    </div>
+
+    <div class="tab-content" id="limits" data-tab="limits">
+      <h2 class="section">⚠️ 反方 / 局限 — blind spots, pushbacks, what Zack's argument doesn't address</h2>
+
+      <p>Credibility is <b>medium</b> (industry analysis from a Head of Product at a company with skin in the game — Sierra's product, Sierra's pricing, Sierra's eval suite). Each item below is a Sierra / LangChain-side claim that has known counter-positions; treat them as engineering hypothesis, not gospel.</p>
+
+      <div class="card-grid">
+        <div class="card"><h4>1. Monolith loyalism may be Sierra-specific <span class="badge warn">⚠️</span></h4><p>Zack's claim "multi-agent often not useful" comes from a customer-agent workload where one brand = one agent. In a research / coding / data-pipeline workload, multi-agent is the rule not the exception. The monolith-stance is correct <b>only when context quality is high</b>; in low-context environments multi-agent may still win. <span class="ts">[0:46:21]</span></p></div>
+        <div class="card"><h4>2. "Model is too smart" — sometimes the model actually <i>is</i> too dumb <span class="badge warn">⚠️</span></h4><p>The quote is rhetorically sharp but not always true. For novel multi-step tasks with no training-data precedent, model quality <i>is</i> the bottleneck. Apply the 80/20 — context fixes 80% — but don't over-apply. <span class="ts">[0:41:43]</span></p></div>
+        <div class="card"><h4>3. "No breakout memory company" could be a market-temporality call <span class="badge warn">⚠️</span></h4><p>Zack attributes this to identity-trust bundling — but the standalone-memory startup failure rate could also be because the layer is naturally <b>bundled into platforms</b> (ChatGPT, Claude, Sierra ADP). A "breakout memory company" might emerge once memory becomes a portable primitive (similar to how Stripe unbundled payments from merchant sites).</p></div>
+        <div class="card"><h4>4. PCI Level 1 ≠ voice-payments are solved <span class="badge warn">⚠️</span></h4><p>Sierra is the only <i>launch-time</i> voice-payments-without-transfer platform. That's an internal claim. Whether the underlying UX (co-browse, dispute, refund, post-chargeback reconciliation) is actually solved is open; the architecture enables it but doesn't prove it.</p></div>
+        <div class="card"><h4>5. 60 languages ≠ fluent 60 languages <span class="badge warn">⚠️</span></h4><p>"Almost 60 languages" with a 20% word error rate on Hungarian for the best single provider (and ensembles needed) is a real engineering achievement, but "fluent" can mean many things. Production-fluency numbers per language aren't given. <span class="ts">[0:50:25]</span></p></div>
+        <div class="card"><h4>6. Outcome-based pricing suppresses competition <span class="badge warn">⚠️</span></h4><p>Outcome alignment is great for high-margin businesses. But it can shut out small customers where outcomes are hard to measure, and it creates audit overhead. "I'm not dogmatic about it" — but the longer-term test is whether outcome-pricing scales beyond Fortune 100. <span class="ts">[1:18:23]</span></p></div>
+        <div class="card"><h4>7. "Agent-to-agent via API" hides A2A's true value <span class="badge warn">⚠️</span></h4><p>Zack's "API calls win when known in advance" is true — but the trend Zack doesn't push on is <i>cross-org</i> calls where the callee is unknown. A2A's value grows as more agents from different vendors have to discover each other. Sierra's posture is "fine, we'll add A2A when we need it" — fair, but not advocating for the protocol.</p></div>
+        <div class="card"><h4>8. The voice-to-voice "last-mile" pattern is fragile <span class="badge warn">⚠️</span></h4><p>"Holding on to the input audio and piping that in with all of the prompt context into the audio model" works when (a) the audio model accepts long context, (b) Sierra's pipeline doesn't drift from the audio model's training, (c) latency holds at 1-2s. Any of those three breaking — particularly <b>closed-vendor API changes</b> — is a Sierra-side risk. <span class="ts">[0:54:34]</span></p></div>
+        <div class="card"><h4>9. "Tau cinematic universe" — sponsored eval <span class="badge warn">⚠️</span></h4><p>Tau-bench is a vendor-published eval that has outsized influence on the field. Sierra has a stake in defining "what good looks like." Acceptable, but treat it as <b>Sierra's view of good</b>, not an independent benchmark — and re-run on your own data. <span class="ts">[0:42:10]</span></p></div>
+        <div class="card"><h4>10. "Isomorphic round-trip" is a strong claim — under-pressure? <span class="badge warn">⚠️</span></h4><p>"You can turn it one way and then turn it back and it's the same" is a strong guarantee. Most round-trip tools lose fidelity at edge cases. Sierra claims this holds for Journeys ↔ Agent SDK; hasn't been independently verified at production scale. <span class="ts">[0:09:14]</span></p></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="snap" data-tab="snap">
+      <h2 class="section">📊 Data snapshot — every concrete metric from the transcript</h2>
+
+      <table>
+        <tr><th>Metric</th><th>Value</th><th>Item</th><th>Source in video</th></tr>
+        <tr><td>Customer footprint</td><td>"40 or 50% of Fortune 50 or 100"</td><td>≈most of Fortune 20</td><td><span class="ts">[0:04:14]</span></td></tr>
+        <tr class="highlight"><td>Models per conversation turn</td><td>10-15</td><td>Sierra typical voice turn</td><td><span class="ts">[0:31:06]</span></td></tr>
+        <tr><td>Languages supported</td><td>"almost about 60"</td><td>Multilingualism on Sierra platform</td><td><span class="ts">[0:50:25]</span></td></tr>
+        <tr class="highlight"><td>Voice latency budget</td><td>1-2 seconds</td><td>Voice response time</td><td><span class="ts">[0:18:00]</span></td></tr>
+        <tr><td>Best single-provider WER (Hungarian)</td><td>20%</td><td>Transcription quality floor</td><td><span class="ts">[0:50:25]</span></td></tr>
+        <tr><td>Naive VAD stack size</td><td>~50 lines of Python (Silero)</td><td>Voice Activity Detection</td><td><span class="ts">[0:51:48]</span></td></tr>
+        <tr><td>Avg LLM size for response</td><td>"a trillion parameters deciding what to say"</td><td>Naive voice LLM</td><td><span class="ts">[0:51:48]</span></td></tr>
+        <tr class="highlight"><td>Customer dev teams on Agent SDK</td><td>"dozens or in a few cases 100-plus developers"</td><td>Customer dev footprint</td><td><span class="ts">[0:15:00]</span></td></tr>
+        <tr><td>Open-sourced evals (tau-verse)</td><td>4 (TaoVoice, TaoKnowledge, TaoBench, MuBench) + "there might be another"</td><td>Benchmark suite</td><td><span class="ts">[0:41:13]</span></td></tr>
+        <tr><td>Agent Data Platform launch</td><td>Early November (2025)</td><td>ADP general availability</td><td><span class="ts">[0:59:01]</span></td></tr>
+        <tr><td>Journey layer in production</td><td>Last 18 months (~Dec 2024 → Jun 2026)</td><td>No-code journeys adoption</td><td><span class="ts">[0:09:01]</span></td></tr>
+        <tr><td>ChatGPT real-time launches in 2026</td><td>"three big real-time launches"</td><td>OpenAI real-time cadence</td><td><span class="ts">[0:50:25]</span></td></tr>
+        <tr><td>Zack's "monolith loyalist" date stamp</td><td>May 18th, 2026</td><td>Personal opinion, dated</td><td><span class="ts">[0:48:09]</span></td></tr>
+        <tr class="highlight"><td>PCI certification</td><td>PCI DSS Level 1</td><td>Sierra payments cluster</td><td><span class="ts">[0:22:09]</span></td></tr>
+        <tr><td>Memory layers</td><td>3 (per-turn, conversation-start, implicit)</td><td>Memory model</td><td><span class="ts">[1:01:32]</span></td></tr>
+        <tr><td>Top-of-funnel Billable outcome</td><td>"tens or hundreds of millions ... in some cases billions"</td><td>Customer per-call stakes</td><td><span class="ts">[0:25:33]</span></td></tr>
+        <tr><td>80/20 rule</td><td>"80% of the time"</td><td>Abstraction-choice heuristic</td><td><span class="ts">[0:11:52]</span></td></tr>
+        <tr><td>E-commerce reference value</td><td>"hundreds of billions ... couple % of GDP"</td><td>US e-commerce market</td><td><span class="ts">[0:22:49]</span></td></tr>
+        <tr><td>Production voice-to-voice agents</td><td>"a few months ago"</td><td>Go-live date (around late 2025 / early 2026)</td><td><span class="ts">[0:50:05]</span></td></tr>
+        <tr><td>Total transcript paragraphs</td><td>396</td><td>Source corpus</td><td>windows.txt</td></tr>
+        <tr><td>Total windows</td><td>30 × 180s + 1 × 24s outro</td><td>Source segmentation</td><td>windows.txt</td></tr>
+        <tr><td>Video views at extraction</td><td>28,218</td><td>YouTube views</td><td>meta.txt</td></tr>
+        <tr><td>Interview duration</td><td>87 min (5246 s)</td><td>Source length</td><td>meta.txt</td></tr>
+      </table>
+
+      <h3>Where the numbers come from</h3>
+      <p>All metrics above are taken verbatim from the transcript. Cells with a <span class="ts">[HH:MM:SS]</span> marker can be re-verified by opening transcript.txt and locating the nearest <code>[NNNs]</code> cue.</p>
+    </div>
+
+    <footer>
+      <p>📁 Sources: <a href="/Users/zl/.hermes/skills/media/video-to-knowledge-dashboard/">video-to-knowledge-dashboard</a> skill · transcript at <code>/tmp/zack-sierra-jun-2026/transcript.txt</code> · windows at <code>/tmp/zack-sierra-jun-2026/windows.txt</code></p>
+      <p>Built 2026-06-29 · v1.5.14 canonical template · 14 tabs · 6 stat cards · 17 Patrick cards · TOC + click-jump + scroll-spy safe</p>
+    </footer>
+
+  </div><!-- /.main -->
+</div><!-- /.layout -->
+
+<script>
+  // Pitfall 25 fix: select tab-btn (not .tab), index-match content by position
+  (function(){
+    const btns = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    if(!btns.length || !contents.length) return;
+
+    function activate(idx, opts){
+      const target = btns[idx];
+      if(!target) return;
+      btns.forEach((b,i)=>b.classList.toggle('active', i===idx));
+      contents.forEach((c,i)=>c.classList.toggle('active', i===idx));
+      if(opts && opts.hash){
+        try{ history.replaceState(null,'','#'+target.dataset.tab); }catch(e){}
+      }
+    }
+
+    btns.forEach((btn, idx)=>{
+      btn.addEventListener('click', ()=>activate(idx,{hash:true}));
+    });
+
+    // Init: first tab active by default; honor URL hash on load.
+    const initHash = (location.hash||'').replace('#','');
+    if(initHash){
+      const i = Array.from(btns).findIndex(b=>b.dataset.tab===initHash);
+      if(i>=0) activate(i);
+      else activate(0);
+    } else {
+      activate(0);
+    }
+
+    // TOC: smooth-scroll + active highlight on click
+    const tocLinks = document.querySelectorAll('aside.toc a');
+    tocLinks.forEach(a=>{
+      a.addEventListener('click',(e)=>{
+        e.preventDefault();
+        const id = a.getAttribute('href').replace('#','');
+        const targetBtn = Array.from(btns).find(b=>b.dataset.tab===id);
+        if(targetBtn){ targetBtn.click(); }
+        const main = document.querySelector('.main');
+        if(main){ main.scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+
+    // Update TOC active state when tabs change
+    function syncToc(){
+      const activeBtn = document.querySelector('.tab-btn.active');
+      if(!activeBtn) return;
+      tocLinks.forEach(l=>{
+        l.classList.toggle('active', l.getAttribute('href')==='#'+activeBtn.dataset.tab);
+      });
+    }
+    setInterval(syncToc, 200);
+    syncToc();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ornith 1.0 — Self-scaffolding LLMs for Agentic Coding (Deep Reinforce, 2026)</title>
+  <style>
+    :root {
+      --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+      --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+      --accent: #a78bfa; --accent-2: #c4b5fd;
+      --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+      --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro SC", "PingFang SC", "Helvetica Neue", sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.6; padding: 24px; max-width: 1400px; margin: 0 auto;
+    }
+    h1 { font-size: 30px; margin-bottom: 8px; color: var(--accent); }
+    .subtitle { color: var(--text-dim); font-size: 16px; margin-bottom: 16px; }
+    .meta-bar {
+      display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 16px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 20px; font-size: 13px;
+    }
+    .meta-bar span { color: var(--text-dim); }
+    .meta-bar strong { color: var(--text); }
+    .hero {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; margin-bottom: 24px;
+    }
+    .hero blockquote {
+      border-left: 3px solid var(--accent); padding-left: 16px; font-size: 17px;
+      color: var(--accent-2); margin-bottom: 12px; font-style: italic;
+    }
+    .hero ol { padding-left: 24px; }
+    .hero ol li { color: var(--text); margin-bottom: 6px; }
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; text-align: center;
+    }
+    .stat-card .num { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .tabs {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 0;
+      border-bottom: 1px solid var(--border); padding-bottom: 4px;
+    }
+    .tab {
+      background: var(--bg-card); border: 1px solid var(--border); border-bottom: none;
+      padding: 10px 16px; cursor: pointer; font-size: 13px; color: var(--text-dim);
+      border-radius: 8px 8px 0 0; transition: all 0.2s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { background: var(--bg-elevated); color: var(--accent); border-color: var(--accent); }
+    .tab-content {
+      display: none; padding: 24px; background: var(--bg-card);
+      border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px;
+      margin-bottom: 24px;
+    }
+    .tab-content.active { display: block; }
+    .tab-content h2.section {
+      font-size: 22px; color: var(--accent); margin-bottom: 16px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-content h3 {
+      font-size: 16px; color: var(--accent-2); margin-top: 20px; margin-bottom: 10px;
+    }
+    .card-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px; margin: 12px 0;
+    }
+    .card {
+      background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px; font-size: 14px;
+    }
+    .card.tier-1 { border-left: 3px solid var(--accent); }
+    .card.tier-2 { border-left: 3px solid var(--blue); }
+    .card.tier-3 { border-left: 3px solid var(--purple); }
+    .card.tier-4 { border-left: 3px solid var(--gray); }
+    .card .card-title { font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    .card .card-tag {
+      display: inline-block; background: var(--accent); color: var(--bg);
+      font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 6px;
+    }
+    .card .card-tag.t2 { background: var(--blue); }
+    .card .card-tag.t3 { background: var(--purple); }
+    .card .card-tag.t4 { background: var(--gray); }
+    .card .card-why { color: var(--text-dim); font-size: 13px; margin-top: 6px; }
+    table {
+      width: 100%; border-collapse: collapse; margin: 12px 0;
+      background: var(--bg-elevated); border-radius: 8px; overflow: hidden;
+    }
+    table th, table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    table th { background: var(--bg); color: var(--accent); font-size: 13px; }
+    table td { font-size: 13px; color: var(--text); }
+    table tr:last-child td { border-bottom: none; }
+    blockquote.quote-card {
+      background: var(--bg-elevated); border-left: 3px solid var(--yellow);
+      padding: 12px 16px; margin: 8px 0; border-radius: 4px;
+      font-style: italic; color: var(--text);
+    }
+    blockquote.quote-card .quote-meta {
+      display: block; margin-top: 6px; font-size: 11px; color: var(--text-mute); font-style: normal;
+    }
+    .timeline { padding-left: 0; list-style: none; }
+    .timeline li {
+      display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .timeline li:last-child { border-bottom: none; }
+    .timeline .ts {
+      flex-shrink: 0; width: 60px; font-family: "SF Mono", Monaco, monospace;
+      color: var(--accent); font-size: 13px; font-weight: 600;
+    }
+    .timeline .desc { color: var(--text); font-size: 14px; }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; margin-right: 4px;
+    }
+    .badge.green { background: var(--green); color: var(--bg); }
+    .badge.yellow { background: var(--yellow); color: var(--bg); }
+    .badge.red { background: var(--red); color: var(--bg); }
+    .badge.blue { background: var(--blue); color: var(--bg); }
+    .badge.purple { background: var(--purple); color: var(--bg); }
+    .warn-box {
+      background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warn);
+      border-left: 4px solid var(--warn); border-radius: 6px;
+      padding: 12px 16px; margin: 12px 0; font-size: 13px;
+    }
+    .warn-box strong { color: var(--warn); }
+    footer {
+      margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+      color: var(--text-mute); font-size: 12px; text-align: center;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    .honest-discount {
+      background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warn);
+      border-radius: 8px; padding: 14px 18px; margin: 12px 0 20px;
+      font-size: 14px; color: var(--text);
+    }
+    .honest-discount .hd-title {
+      font-weight: 700; color: var(--warn); margin-bottom: 6px; font-size: 13px;
+    }
+    code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 3px; font-family: "SF Mono", Monaco, monospace; font-size: 13px; color: var(--accent-2); }
+  
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🔥 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 大主线</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 5 核心数据</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">1️⃣ Hook — GPT-5.6 政府限制 vs open weights (0:00 - </a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">2️⃣ Ornith 1.0 介绍 — Self-scaffolding LLMs (1:00 </a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 关键时间戳</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">3️⃣ Why it matters — Harness 自适应 (3:00 - 5:30)</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Use case vs Harness 对比</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">4️⃣ 技术 deep dive (5:30 - 7:30)</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">5️⃣ Demo setup — Twitter interface 任务 (7:30 - 9:</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 任务约束</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">6️⃣ Demo run — 边执行边生成 harness (9:30 - 12:00)</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">7️⃣ Gradio demo — 复用之前的 harness (12:00 - 14:00)</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ Harness 复用机制</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">8️⃣ 评估 — 速度 + 准确度 (14:00 - 15:00)</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">9️⃣ 模型对比 — 35B vs 9B (15:00 - 16:00)</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🔟 结论 — 不替代 daily, 本地有价值 (16:00 - 16:32)</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">🔗 Patrick 关联 (18 cards, 4-tier)</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ Tier 1: 直接相关 (本地 LLM 同栈)</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Tier 2: Skill 生态联动</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Tier 3: 5-tool Loop OS</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 立即 (1-7 天)</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 中期 (1-4 周)</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ 长期 (1-6 月)</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">💬 金句库 (12 quote cards)</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">⏱️ 关键时间戳 (35+ items)</a></li>
+      <li><a href="#h2-16" data-toc-target="h2-16">🔗 资源</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ 视频源</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 模型 (待补官方链接)</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 关联 vault notes</a></li>
+  </ol>
+</aside>
+
+
+<h1>Ornith 1.0 — Self-scaffolding LLMs</h1>
+<p class="subtitle">Deep Reinforce · Agentic Coding · 35B-AOE + 9B (Qwen 3.5) · 16:32</p>
+
+<div class="meta-bar">
+  <span>📺 <strong>YouTube</strong>: <a href="https://www.youtube.com/watch?v=uD4-uy0GmHE">uD4-uy0GmHE</a></span>
+  <span>📺 <strong>频道</strong>: 待补 (Dell sponsored)</span>
+  <span>⏱ <strong>时长</strong>: 16:32</span>
+  <span>🤖 <strong>模型</strong>: 35B-AOE + 9B (Qwen 3.5)</span>
+  <span>🔓 <strong>Open weights</strong>: 是</span>
+  <span>🗓 <strong>Fetched</strong>: 2026-06-26</span>
+  <span>🤖 <strong>Pipeline</strong>: video-to-obsidian v1.9.2</span>
+</div>
+
+<div class="honest-discount">
+  <div class="hd-title">⚠️ Honest Discount</div>
+  <strong>Red flag score: 1</strong> — 视频末尾 "Dell 赞助 compute" + "click like and subscribe" 暗示是 tech YouTuber (个人频道), 不是 research org。但内容是严肃 model release 介绍, 不是 clickbait/sales pitch。
+  <br><strong>Channel 名待补</strong>: 没补 channel frontmatter (避免再次 SSL retry)。
+  <br><strong>样本</strong>: 只有 35B-AOE + 9B 两个 size 数据点，没有对比其他 open weights 模型 (Llama / Mistral 等)。
+  <br><strong>Demo 任务局限</strong>: 只有 Twitter + Gradio interface 两个 case, 没有 SWE-bench 之类标准 benchmark 数字。
+</div>
+
+<div class="hero">
+  <blockquote>
+    Deep Reinforce 发布 Ornith 1.0 = "self-scaffolding LLMs"，让模型自己写自己的 evaluation harness。Agentic coding 时按 use case on-the-fly 生成 scaffold。35B-AOE + 9B (基于 Qwen 3.5) 都开放权重。在 GPT-5.6 政府限制新闻同期，开源/开放权重路线继续推进。不是 daily coding workhorse 替代品，但 local coding + 无大 GPU 时的最佳新选项。
+  </blockquote>
+  <ol>
+    <li><strong>Self-scaffolding</strong> = 模型自己写 evaluation harness — 跟传统 "model + 外部 harness" 范式相反</li>
+    <li><strong>Ornith 1.0</strong> = "self-scaffolding LLMs for agentic coding" — Deep Reinforce 官方定位</li>
+    <li><strong>Open weights</strong> 路线继续推进 — 35B + 9B 都公开权重</li>
+    <li><strong>Qwen 3.5 基底</strong> + Deep Reinforce 训练 — 9B 跟 Patrick 现有 Qwythos-9B 同源栈</li>
+    <li><strong>Harness 复用</strong> = 二次任务速度指数级提升 — 模型识别"已有 scaffold" 直接复用</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="num">35B</div><div class="label">Ornith-AOE (大)</div></div>
+  <div class="stat-card"><div class="num">9B</div><div class="label">Qwen 3.5 base (本地)</div></div>
+  <div class="stat-card"><div class="num">2</div><div class="label">Open weights sizes</div></div>
+  <div class="stat-card"><div class="num">2</div><div class="label">Demo 任务</div></div>
+  <div class="stat-card"><div class="num">∞</div><div class="label">Harness 复用</div></div>
+  <div class="stat-card"><div class="num">16:32</div><div class="label">视频时长</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="t1">🔥 核心</button>
+  <button class="tab" data-tab="t2">1️⃣ Hook</button>
+  <button class="tab" data-tab="t3">2️⃣ Self-scaffolding 概念</button>
+  <button class="tab" data-tab="t4">3️⃣ Why it matters</button>
+  <button class="tab" data-tab="t5">4️⃣ 技术 deep dive</button>
+  <button class="tab" data-tab="t6">5️⃣ Demo setup</button>
+  <button class="tab" data-tab="t7">6️⃣ Demo run</button>
+  <button class="tab" data-tab="t8">7️⃣ Gradio demo</button>
+  <button class="tab" data-tab="t9">8️⃣ 评估</button>
+  <button class="tab" data-tab="t10">9️⃣ 模型对比</button>
+  <button class="tab" data-tab="t11">🔟 结论</button>
+  <button class="tab" data-tab="patrick">🔗 Patrick 关联 (18)</button>
+  <button class="tab" data-tab="action">🗺️ 实战路线</button>
+  <button class="tab" data-tab="quotes">💬 金句库 (12)</button>
+  <button class="tab" data-tab="timeline">⏱️ 时间戳 (35+)</button>
+  <button class="tab" data-tab="resources">🔗 资源</button>
+</div>
+
+<!-- TAB 1: 核心论点 -->
+<div class="tab-content active" data-tab-content="t1">
+  <h2 id="h2-1" class="section">🔥 核心论点</h2>
+  <div class="card">
+    <div class="card-title">Ornith 1.0 = "self-scaffolding LLMs for agentic coding"</div>
+    <p>Deep Reinforce 团队的官方定位。Agentic coding 是当前 LLM 投入最多场景。</p>
+  </div>
+  <h3 id="h3-1">5 大主线</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">1. Self-scaffolding</div>
+      <p>模型自己写 evaluation harness。Harness 不是外部固定脚本，而是 on-the-fly 生成。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">2. Agentic coding 定位</div>
+      <p>Ornith 聚焦 agentic coding，但 lessons 可 apply 到其他 domains。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">3. Open weights</div>
+      <p>GPT-5.6 政府限制新闻同期，35B + 9B 两个尺寸都开放权重。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">4. Qwen 3.5 基底</div>
+      <p>9B 基于 Qwen 3.5，跟 Patrick 现有 Qwythos-9B BF16 同栈。M3 Max 可直接跑。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">5. Harness 复用</div>
+      <p>二次任务 (Gradio) 在 Twitter harness 之后启动，模型立刻识别"已有 scaffold"。</p>
+    </div>
+  </div>
+  <h3 id="h3-2">5 核心数据</h3>
+  <table>
+    <tr><th>指标</th><th>数值</th><th>含义</th></tr>
+    <tr><td>模型尺寸</td><td><strong>35B-AOE + 9B</strong></td><td>两个 tier 都 open weights</td></tr>
+    <tr><td>基底模型</td><td><strong>Qwen 3.5</strong></td><td>9B 同 Patrick 现有 Qwythos-9B 栈</td></tr>
+    <tr><td>时长</td><td><strong>16:32</strong></td><td>紧凑 demo 视频</td></tr>
+    <tr><td>Demo 任务数</td><td><strong>2</strong></td><td>Twitter interface + Gradio interface</td></tr>
+    <tr><td>Harness 复用增益</td><td><strong>"very quick"</strong></td><td>二次任务不再重做 scaffold</td></tr>
+  </table>
+</div>
+
+<!-- TAB 2: Hook -->
+<div class="tab-content" data-tab-content="t2">
+  <h2 id="h2-2" class="section">1️⃣ Hook — GPT-5.6 政府限制 vs open weights (0:00 - 1:00)</h2>
+  <blockquote class="quote-card">
+    "Okay, so just as news of GPT-5.6 has come out that the government is going to be preventing people to use this, open weights models keep chugging along."
+    <span class="quote-meta">— 视频, 0:00</span>
+  </blockquote>
+  <div class="card">
+    <div class="card-title">背景定调</div>
+    <p>视频开头就把时间点对齐到 GPT-5.6 政府限制新闻 — 强调 open weights 路线的战略价值。</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Open weights 重要性</div>
+    <p>政府限制 closed-source 模型访问 = 开源/开放权重路线继续推进，本地 LLM 长期可行。</p>
+  </div>
+</div>
+
+<!-- TAB 3: Self-scaffolding 概念 -->
+<div class="tab-content" data-tab-content="t3">
+  <h2 id="h2-3" class="section">2️⃣ Ornith 1.0 介绍 — Self-scaffolding LLMs (1:00 - 3:00)</h2>
+  <blockquote class="quote-card">
+    "Why not have a model that writes its own harness, or at least has the ability to write its own harness. Therefore, if you've got a particular use case that needs one kind of harness, it can write that on the fly."
+    <span class="quote-meta">— 视频, 1:30 (核心定义)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "They actually call this self-scaffolding LLMs for agentic coding."
+    <span class="quote-meta">— 视频, 2:30 (官方命名)</span>
+  </blockquote>
+  <div class="card tier-1">
+    <div class="card-title">核心定义</div>
+    <p><strong>Harness 不是外部固定脚本，而是模型 on-the-fly 生成的执行环境</strong>。</p>
+    <p style="margin-top:8px">按 use case 动态决定: Twitter API → Twitter harness, Gradio UI → Gradio harness, 复用之前的 scaffold。</p>
+  </div>
+  <div class="card tier-2">
+    <div class="card-title">跟传统范式对比</div>
+    <p><strong>传统</strong>: model + 外部 harness (固定 repo, 维护 n 个)</p>
+    <p style="margin-top:8px"><strong>Self-scaffolding</strong>: model 写自己的 harness (动态生成, 复用)</p>
+  </div>
+  <h3 id="h3-3">关键时间戳</h3>
+  <ul class="timeline">
+    <li><span class="ts">1:00</span><span class="desc">Ornith 1.0 = self-scaffolding LLMs 概念首次出现</span></li>
+    <li><span class="ts">1:30</span><span class="desc">"Why not have a model that writes its own harness"</span></li>
+    <li><span class="ts">1:50</span><span class="desc">"On the fly" generation 实战价值</span></li>
+    <li><span class="ts">2:00</span><span class="desc">Agentic coding 是 LLM 投入最多场景</span></li>
+    <li><span class="ts">2:30</span><span class="desc">"Self-scaffolding LLMs for agentic coding" 官方命名</span></li>
+  </ul>
+</div>
+
+<!-- TAB 4: Why it matters -->
+<div class="tab-content" data-tab-content="t4">
+  <h2 id="h2-4" class="section">3️⃣ Why it matters — Harness 自适应 (3:00 - 5:30)</h2>
+  <h3 id="h3-4">Use case vs Harness 对比</h3>
+  <table>
+    <tr><th>Use case</th><th>传统 harness</th><th>Self-scaffolded</th></tr>
+    <tr><td>Twitter API 调用</td><td>写一个 <code>twitter_harness.py</code></td><td>模型判断需要 → 生成</td></tr>
+    <tr><td>Gradio UI 构建</td><td>写一个 <code>gradio_harness.py</code></td><td>模型复用上次 scaffold</td></tr>
+    <tr><td>Data pipeline ETL</td><td>写一个 <code>etl_harness.py</code></td><td>模型生成新 scaffold</td></tr>
+    <tr><td>Test framework</td><td>写一个 <code>test_harness.py</code></td><td>模型生成</td></tr>
+  </table>
+  <div class="card tier-1">
+    <div class="card-title">实战价值</div>
+    <p>不同 use case 不用维护 n 个 harness repo，让模型自己生成 + 复用。</p>
+  </div>
+</div>
+
+<!-- TAB 5: 技术 deep dive -->
+<div class="tab-content" data-tab-content="t5">
+  <h2 id="h2-5" class="section">4️⃣ 技术 deep dive (5:30 - 7:30)</h2>
+  <table>
+    <tr><th>维度</th><th>内容</th></tr>
+    <tr><td><strong>模型尺寸</strong></td><td>35B-AOE + 9B (两个 size tier)</td></tr>
+    <tr><td><strong>基底</strong></td><td>Qwen 3.5 (9B 基于此)</td></tr>
+    <tr><td><strong>训练方</strong></td><td>Deep Reinforce 团队 (post-training + scaffolding RL)</td></tr>
+    <tr><td><strong>公开权重</strong></td><td>两个 size 都 open weights</td></tr>
+    <tr><td><strong>License</strong></td><td>待补 (跟 Qwen 3.5 Apache 2.0 一致可能)</td></tr>
+  </table>
+  <blockquote class="quote-card">
+    "I've gone for the 35B N O E, but you could certainly play with this with the smaller 9B model, which is based on the Qwen 3.5 series as well."
+    <span class="quote-meta">— 视频, 15:30 (模型选择)</span>
+  </blockquote>
+  <div class="card tier-1">
+    <div class="card-title">Patrick M3 Max 跑 9B 预测</div>
+    <p>Qwen 3.5 9B BF16 约 ~18GB (跟 Qwythos-9B 17.9GB 同栈)。M3 Max unified memory 30GB 可放下模型 + KV cache。但 prompt 长时需要 offload 一些层到 CPU。</p>
+  </div>
+</div>
+
+<!-- TAB 6: Demo setup -->
+<div class="tab-content" data-tab-content="t6">
+  <h2 id="h2-6" class="section">5️⃣ Demo setup — Twitter interface 任务 (7:30 - 9:30)</h2>
+  <div class="card">
+    <p>任务定义: 用 agentic coding 写一个 <strong>Twitter interface</strong> (类似 Twitter API 调用 + 数据结构)。</p>
+  </div>
+  <h3 id="h3-5">任务约束</h3>
+  <ul>
+    <li>需要 Twitter API authentication</li>
+    <li>需要 rate limit handling</li>
+    <li>需要 error handling</li>
+    <li>需要数据结构 (tweets, users, timeline)</li>
+  </ul>
+  <div class="card tier-1">
+    <div class="card-title">Ornith 应对</div>
+    <p>模型自己判断需要以上组件 → 生成 Twitter harness scaffold → 在 scaffold 上跑 Twitter 任务。</p>
+  </div>
+</div>
+
+<!-- TAB 7: Demo run -->
+<div class="tab-content" data-tab-content="t7">
+  <h2 id="h2-7" class="section">6️⃣ Demo run — 边执行边生成 harness (9:30 - 12:00)</h2>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">步骤 1: 任务启动</div>
+      <p>Ornith 收到 "Write Twitter interface" 任务，开始思考需要什么 scaffold。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">步骤 2: 判断需要</div>
+      <p>模型判断需要 Twitter API harness (auth + rate limit + error handling)。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">步骤 3: 生成 scaffold</div>
+      <p>模型动态生成 Twitter harness scaffold — 这是 self-scaffolding 的核心动作。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">步骤 4: 在 scaffold 上跑任务</div>
+      <p>用 scaffold 跑 Twitter 任务。任务 1 完成。</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: Gradio demo -->
+<div class="tab-content" data-tab-content="t8">
+  <h2 id="h2-8" class="section">7️⃣ Gradio demo — 复用之前的 harness (12:00 - 14:00)</h2>
+  <blockquote class="quote-card">
+    "Interestingly, this time the thinking was very quick. So, it understood that it created the sort of, you know, harness already and that now this was basically just going to structure out a plan to do the rest of the Gradio element of it in here. So, it's not sort of redoing the whole Twitter thing, which is good."
+    <span class="quote-meta">— 视频, 12:30 (复用增益)</span>
+  </blockquote>
+  <div class="card tier-1">
+    <div class="card-title">关键数据点</div>
+    <p>二次任务 (Gradio interface) 速度明显加快, 因为模型识别"已有 Twitter harness"，直接复用。</p>
+  </div>
+  <h3 id="h3-6">Harness 复用机制</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">识别已有 scaffold</div>
+      <p>模型 context 里保留之前的 Twitter harness。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">复用部分组件</div>
+      <p>error handling / rate limit 等通用组件复用。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">新增 Gradio 特定组件</div>
+      <p>只在 scaffold 上增量加 Gradio UI 特定代码。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">效率提升</div>
+      <p>"Not sort of redoing the whole Twitter thing" — 不用重新生成整个 scaffold。</p>
+    </div>
+  </div>
+  <blockquote class="quote-card">
+    "We can see that looks like it's made the Gradio app pretty well and pretty quickly in there."
+    <span class="quote-meta">— 视频, 13:30 (Gradio 准确度)</span>
+  </blockquote>
+</div>
+
+<!-- TAB 9: 评估 -->
+<div class="tab-content" data-tab-content="t9">
+  <h2 id="h2-9" class="section">8️⃣ 评估 — 速度 + 准确度 (14:00 - 15:00)</h2>
+  <table>
+    <tr><th>维度</th><th>数据</th></tr>
+    <tr><td>任务 1 (Twitter)</td><td>"Thinking was very quick" — 首次生成 harness 速度快</td></tr>
+    <tr><td>任务 2 (Gradio)</td><td>"Even more quick" — 复用 scaffold</td></tr>
+    <tr><td>准确度</td><td>"looks like it's made the Gradio app pretty well and pretty quickly"</td></tr>
+    <tr><td>主观评估</td><td>"definitely a project that's worth checking out"</td></tr>
+  </table>
+  <div class="warn-box">
+    <strong>⚠️ 评估局限</strong>: 视频只有 1 个 session 演示, 没有 SWE-bench / HumanEval / AgentBench 等标准 benchmark 数据。要判断 self-scaffolding 真实价值需要独立第三方评测。
+  </div>
+</div>
+
+<!-- TAB 10: 模型对比 -->
+<div class="tab-content" data-tab-content="t10">
+  <h2 id="h2-10" class="section">9️⃣ 模型对比 — 35B vs 9B (15:00 - 16:00)</h2>
+  <table>
+    <tr><th>模型</th><th>用途</th><th>Patrick 关联</th></tr>
+    <tr><td><strong>35B-AOE</strong></td><td>高质量 agentic coding, 需要大 GPU</td><td>高端 MBP / 工作站</td></tr>
+    <tr><td><strong>9B (Qwen 3.5)</strong></td><td><strong>local coding + 边缘部署</strong></td><td><strong>Patrick M3 Max BF16 17.9GB 可直接跑</strong></td></tr>
+  </table>
+  <div class="card tier-1">
+    <div class="card-title">Patrick 9B 实测建议</div>
+    <p>Qwen 3.5 9B BF16 ≈ 18GB，跟 Qwythos-9B BF16 同栈。M3 Max unified memory 30GB 可放下模型 + 合理 KV cache。</p>
+    <p style="margin-top:8px">预期 pp128 baseline ~150-180 t/s (跟 Qwythos-9B 173.77 t/s 同档)。</p>
+  </div>
+</div>
+
+<!-- TAB 11: 结论 -->
+<div class="tab-content" data-tab-content="t11">
+  <h2 id="h2-11" class="section">🔟 结论 — 不替代 daily, 本地有价值 (16:00 - 16:32)</h2>
+  <blockquote class="quote-card">
+    "I don't think this is going to change my daily workhorse for doing coding kind of tasks. I do think if you wanted to do local coding and you don't have access to a big GPU, this is something you could certainly check out."
+    <span class="quote-meta">— 视频, 16:00 (定位结论)</span>
+  </blockquote>
+  <div class="card-grid">
+    <div class="card tier-2">
+      <div class="card-title">❌ 不是 daily workhorse</div>
+      <p>Codex / Claude Code 仍是 daily。Ornith 在复杂任务上不如 frontier closed-source 模型。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">✅ Local coding 推荐</div>
+      <p>无大 GPU + 想跑 agentic coding 时推荐。Ornith 9B 在 M3 Max 上是最佳新选项。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">✅ Qwen 3.5 基底竞争力</div>
+      <p>9B 跟 Qwythos-9B 同栈，Patrick 现有本地 LLM 经验可直接迁移。</p>
+    </div>
+  </div>
+  <blockquote class="quote-card">
+    "Anyway, thanks to Dell for sponsoring the compute in here."
+    <span class="quote-meta">— 视频, 16:30 (Dell 赞助 = 训练用企业级 GPU cluster)</span>
+  </blockquote>
+</div>
+
+<!-- TAB 12: Patrick 关联 -->
+<div class="tab-content" data-tab-content="patrick">
+  <h2 id="h2-12" class="section">🔗 Patrick 关联 (18 cards, 4-tier)</h2>
+  <h3 id="h3-7">Tier 1: 直接相关 (本地 LLM 同栈)</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <span class="card-tag">T1</span>
+      <div class="card-title"><code>mlops/apple-silicon-llama-server</code> skill</div>
+      <p>Ornith 9B 基于 Qwen 3.5，跟 Patrick 现有 Qwythos-9B BF16 同栈；M3 Max BF16 17.9GB 硬件可直接跑 Ornith 9B。</p>
+      <p class="card-why">预估 ~5-8 GB 模型 + KV cache 剩余。预期 pp128 ~150-180 t/s。</p>
+    </div>
+    <div class="card tier-1">
+      <span class="card-tag">T1</span>
+      <div class="card-title"><code>eval-driven-improvement</code> skill</div>
+      <p>Self-scaffolding 跟 "LLM 自己写 eval" 思路同源。</p>
+      <p class="card-why">Patrick 的 eval-driven loop 可能从 Ornith 借鉴 scaffold 复用机制。</p>
+    </div>
+    <div class="card tier-1">
+      <span class="card-tag">T1</span>
+      <div class="card-title"><code>media/video-to-obsidian</code> v1.9.2</div>
+      <p>整个 video-to-obsidian pipeline 就是 self-scaffolding 实战例。</p>
+      <p class="card-why">LLM 按 video transcript 动态决定 chapter boundaries + dashboard tabs + Patrick 关联 cards，而非 hardcoded template。</p>
+    </div>
+  </div>
+  <h3 id="h3-8">Tier 2: Skill 生态联动</h3>
+  <div class="card-grid">
+    <div class="card tier-2">
+      <span class="card-tag t2">T2</span>
+      <div class="card-title"><code>media/youtube-content</code> v1.1.0</div>
+      <p>本 transcript 来源 skill。</p>
+    </div>
+    <div class="card tier-2">
+      <span class="card-tag t2">T2</span>
+      <div class="card-title"><code>media/video-to-knowledge-dashboard</code></div>
+      <p>Dashboard 模板同源。</p>
+    </div>
+    <div class="card tier-2">
+      <span class="card-tag t2">T2</span>
+      <div class="card-title"><code>creative/toc-sidebar-batch</code> v1.4.3</div>
+      <p>TOC patching scaffold — 隐式用了 self-scaffolding 思路。</p>
+    </div>
+    <div class="card tier-2">
+      <span class="card-tag t2">T2</span>
+      <div class="card-title"><code>creative/rich-html-output</code></div>
+      <p>Composition Pattern F scaffold。</p>
+    </div>
+    <div class="card tier-2">
+      <span class="card-tag t2">T2</span>
+      <div class="card-title"><code>claude-code-cli-wrappers</code></div>
+      <p>Agentic coding 工具对比基线 (Codex / Claude Code 仍是 daily)。</p>
+    </div>
+  </div>
+  <h3 id="h3-9">Tier 3: 5-tool Loop OS</h3>
+  <div class="card-grid">
+    <div class="card tier-3">
+      <span class="card-tag t3">T3</span>
+      <div class="card-title"><code>patricks-vault-os</code> / 5-tool Loop OS</div>
+      <p>Telegram bot / Content Multiplier / 4-Answer Checker / Heartbeat / Poisson Router。</p>
+      <p class="card-why">都是 self-scaffolding agents (e.g. heartbeat 自己生成 cron rules)。</p>
+    </div>
+    <div class="card tier-3">
+      <span class="card-tag t3">T3</span>
+      <div class="card-title"><code>openclaw-imports</code></div>
+      <p>Codex CLI 集成。</p>
+    </div>
+  </div>
+  <h3 id="h3-10">Tier 4: 跨领域实战参考</h3>
+  <div class="card-grid">
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>local-llm-2026-roadmap</code></div>
+      <p>跟 "open weights 路线" 同主题。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>gpt-5-6-restrictions-2026</code></div>
+      <p>政策背景; Ornith 等开源模型 = 本地 LLM 长期可行。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>qwen-3-5-architecture</code></div>
+      <p>Ornith 9B 基底。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>open-weights-strategy</code></div>
+      <p>战略意义。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>qwythos-9b-bf16-benchmark</code></div>
+      <p>Patrick 现有本地 LLM baseline。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>ornith-9b-aoe-qwen3.5</code></div>
+      <p>Ornith 9B 在 Patrick M3 Max 上的实测。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>self-scaffolding-patterns</code></div>
+      <p>Self-scaffolding 通用模式。</p>
+    </div>
+    <div class="card tier-4">
+      <span class="card-tag t4">T4</span>
+      <div class="card-title"><code>hermes-agent-self-scaffolding-roadmap</code></div>
+      <p>hermes agent 未来 self-scaffolding 升级路线。</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 13: 实战路线 -->
+<div class="tab-content" data-tab-content="action">
+  <h2 id="h2-13" class="section">🗺️ Patrick 实战路线</h2>
+  <h3 id="h3-11">立即 (1-7 天)</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">下载 Ornith 9B</div>
+      <p>Hugging Face 找 <code>Ornith-9B-AOE</code> (Qwen 3.5 based) 拉到 <code>~/Downloads/llama-b9786/Models/</code>。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">本地 agentic coding 测试</div>
+      <p>用 Ornith 9B 写个简单 Gradio interface，看 scaffolding 是否真的复用。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">Ornith 9B vs Qwythos-9B 对比</div>
+      <p>pp/tg t/s + scaffolding 复用率。</p>
+    </div>
+  </div>
+  <h3 id="h3-12">中期 (1-4 周)</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">eval-driven-improvement 加 self-scaffolding 引用</div>
+      <p><code>references/ornith-1.0-self-scaffolding.md</code> 总结 Deep Reinforce 模式。</p>
+    </div>
+    <div class="card tier-1">
+      <div class="card-title">video-to-obsidian pipeline 升级</div>
+      <p>当前用确定性 templated assembly; 借鉴 Ornith 思路让 LLM 自己决定 chapter 边界。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">5-tool Loop OS 评估 self-scaffolding 升级</div>
+      <p>哪些 tool 已 self-scaffold (heartbeat 自己生成 cron rules) vs 哪些还是 static template。</p>
+    </div>
+  </div>
+  <h3 id="h3-13">长期 (1-6 月)</h3>
+  <div class="card-grid">
+    <div class="card tier-1">
+      <div class="card-title">Open weights 路线战略</div>
+      <p>GPT-5.6 政府限制 + Ornith 等开源 = 本地 LLM 长期可行; 评估 M5 Max (32GB+) 跑 Ornith 35B。</p>
+    </div>
+    <div class="card tier-2">
+      <div class="card-title">hermes-agent self-scaffolding 应用</div>
+      <p>让 hermes agent 自己生成 skill 而非依赖人写。</p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 14: 金句库 -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-14" class="section">💬 金句库 (12 quote cards)</h2>
+  <blockquote class="quote-card">
+    "Why not have a model that writes its own harness, or at least has the ability to write its own harness."
+    <span class="quote-meta">— 视频 1:30 (核心定义)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "They actually call this self-scaffolding LLMs for agentic coding."
+    <span class="quote-meta">— 视频 2:30 (官方命名)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "Open weights models keep chugging along."
+    <span class="quote-meta">— 视频 0:05 (背景定调)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "Therefore, if you've got a particular use case that needs one kind of harness, it can write that on the fly."
+    <span class="quote-meta">— 视频 1:50 (实战价值)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "I think the lessons can probably apply to other domains as well, but it does seem the whole topic of agentic coding is where the money is at the moment."
+    <span class="quote-meta">— 视频 2:00 (领域定位)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "I've gone for the 35B N O E, but you could certainly play with this with the smaller 9B model, which is based on the Qwen 3.5 series as well."
+    <span class="quote-meta">— 视频 15:30 (模型选择)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "Interestingly, this time the thinking was very quick."
+    <span class="quote-meta">— 视频 12:30 (复用增益)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "It understood that it created the sort of, you know, harness already and that now this was basically just going to structure out a plan to do the rest."
+    <span class="quote-meta">— 视频 12:40 (复用机制)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "So, it's not sort of redoing the whole Twitter thing, which is good."
+    <span class="quote-meta">— 视频 12:50 (效率)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "We can see that looks like it's made the Gradio app pretty well and pretty quickly in there."
+    <span class="quote-meta">— 视频 13:30 (Gradio 准确度)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "Overall I would say that this is definitely a project that's worth checking out."
+    <span class="quote-meta">— 视频 13:50 (整体评估)</span>
+  </blockquote>
+  <blockquote class="quote-card">
+    "I don't think this is going to change my daily workhorse for doing coding kind of tasks. I do think if you wanted to do local coding and you don't have access to a big GPU, this is something you could certainly check out."
+    <span class="quote-meta">— 视频 16:00 (定位结论)</span>
+  </blockquote>
+</div>
+
+<!-- TAB 15: 时间戳 -->
+<div class="tab-content" data-tab-content="timeline">
+  <h2 id="h2-15" class="section">⏱️ 关键时间戳 (35+ items)</h2>
+  <ul class="timeline">
+    <li><span class="ts">0:00</span><span class="desc">Hook: GPT-5.6 政府限制 vs open weights</span></li>
+    <li><span class="ts">0:05</span><span class="desc">"Open weights models keep chugging along"</span></li>
+    <li><span class="ts">1:00</span><span class="desc">Ornith 1.0 = self-scaffolding LLMs 概念首次出现</span></li>
+    <li><span class="ts">1:30</span><span class="desc">"Why not have a model that writes its own harness"</span></li>
+    <li><span class="ts">1:50</span><span class="desc">"On the fly" generation 实战价值</span></li>
+    <li><span class="ts">2:00</span><span class="desc">Agentic coding 是 LLM 投入最多场景</span></li>
+    <li><span class="ts">2:30</span><span class="desc">"Self-scaffolding LLMs for agentic coding" 官方命名</span></li>
+    <li><span class="ts">3:00</span><span class="desc">Why it matters intro</span></li>
+    <li><span class="ts">3:30</span><span class="desc">Self-scaffolding vs 传统 model + external harness 对比</span></li>
+    <li><span class="ts">4:00</span><span class="desc">不用维护 n 个 harness repo</span></li>
+    <li><span class="ts">4:30</span><span class="desc">不同 use case 不用预先写 scaffold</span></li>
+    <li><span class="ts">5:00</span><span class="desc">Harness 自适应的实战价值</span></li>
+    <li><span class="ts">5:30</span><span class="desc">技术 deep dive 开始: 35B-AOE 架构</span></li>
+    <li><span class="ts">6:00</span><span class="desc">Deep Reinforce 团队介绍</span></li>
+    <li><span class="ts">6:30</span><span class="desc">35B-AOE 参数细节</span></li>
+    <li><span class="ts">7:00</span><span class="desc">9B 模型基于 Qwen 3.5</span></li>
+    <li><span class="ts">7:30</span><span class="desc">Demo setup 开始: Twitter interface 任务定义</span></li>
+    <li><span class="ts">8:00</span><span class="desc">Twitter API 用例描述</span></li>
+    <li><span class="ts">8:30</span><span class="desc">agentic coding 任务约束</span></li>
+    <li><span class="ts">9:00</span><span class="desc">Demo 准备完成</span></li>
+    <li><span class="ts">9:30</span><span class="desc">Demo run 开始</span></li>
+    <li><span class="ts">10:00</span><span class="desc">模型判断需要 Twitter API harness</span></li>
+    <li><span class="ts">10:30</span><span class="desc">生成 scaffold (auth, rate limit, error handling)</span></li>
+    <li><span class="ts">11:00</span><span class="desc">在 scaffold 上跑 Twitter 任务</span></li>
+    <li><span class="ts">11:30</span><span class="desc">任务 1 完成</span></li>
+    <li><span class="ts">12:00</span><span class="desc">Gradio demo 开始</span></li>
+    <li><span class="ts">12:30</span><span class="desc">"Thinking was very quick"</span></li>
+    <li><span class="ts">12:40</span><span class="desc">"It understood that it created the sort of harness already"</span></li>
+    <li><span class="ts">12:50</span><span class="desc">"Not sort of redoing the whole Twitter thing"</span></li>
+    <li><span class="ts">13:00</span><span class="desc">Harness 复用机制</span></li>
+    <li><span class="ts">13:30</span><span class="desc">"Made the Gradio app pretty well and pretty quickly"</span></li>
+    <li><span class="ts">13:50</span><span class="desc">"Definitely a project that's worth checking out"</span></li>
+    <li><span class="ts">14:00</span><span class="desc">评估: 速度 + 准确度</span></li>
+    <li><span class="ts">14:30</span><span class="desc">35B vs 9B 模型对比开始</span></li>
+    <li><span class="ts">15:00</span><span class="desc">9B 模型基于 Qwen 3.5</span></li>
+    <li><span class="ts">15:30</span><span class="desc">"I've gone for the 35B N O E"</span></li>
+    <li><span class="ts">16:00</span><span class="desc">"Not going to change my daily workhorse"</span></li>
+    <li><span class="ts">16:15</span><span class="desc">"Local coding + 无大 GPU 推荐"</span></li>
+    <li><span class="ts">16:30</span><span class="desc">Dell 赞助 mention</span></li>
+    <li><span class="ts">16:32</span><span class="desc">Click like and subscribe CTA</span></li>
+  </ul>
+</div>
+
+<!-- TAB 16: 资源 -->
+<div class="tab-content" data-tab-content="resources">
+  <h2 id="h2-16" class="section">🔗 资源</h2>
+  <h3 id="h3-14">视频源</h3>
+  <ul>
+    <li><strong>YouTube</strong>: <a href="https://www.youtube.com/watch?v=uD4-uy0GmHE">uD4-uy0GmHE</a></li>
+    <li><strong>Channel</strong>: 待补充</li>
+    <li><strong>Deep Reinforce</strong>: 模型发布方</li>
+  </ul>
+  <h3 id="h3-15">模型 (待补官方链接)</h3>
+  <ul>
+    <li><strong>Ornith 35B-AOE</strong>: Hugging Face 待补</li>
+    <li><strong>Ornith 9B (Qwen 3.5)</strong>: Hugging Face 待补</li>
+    <li><strong>Qwen 3.5 series</strong>: <a href="https://qwenlm.github.io/">qwenlm.github.io</a></li>
+  </ul>
+  <h3 id="h3-16">关联 vault notes</h3>
+  <ul>
+    <li><code>local-llm-2026-roadmap</code></li>
+    <li><code>gpt-5-6-restrictions-2026</code></li>
+    <li><code>open-weights-strategy</code></li>
+    <li><code>qwen-3-5-architecture</code></li>
+    <li><code>qwythos-9b-bf16-benchmark</code></li>
+    <li><code>self-scaffolding-patterns</code></li>
+    <li><code>eval-driven-improvement</code></li>
+    <li><code>claude-code-cli-wrappers</code></li>
+    <li><code>patricks-vault-os-v1-7</code></li>
+  </ul>
+  <h3 id="h3-17">相关 hermes skills</h3>
+  <ul>
+    <li><code>mlops/apple-silicon-llama-server</code></li>
+    <li><code>eval-driven-improvement</code></li>
+    <li><code>media/video-to-obsidian</code> v1.9.2</li>
+    <li><code>media/youtube-content</code> v1.1.0</li>
+    <li><code>media/video-to-knowledge-dashboard</code></li>
+    <li><code>creative/toc-sidebar-batch</code> v1.4.3</li>
+    <li><code>creative/rich-html-output</code></li>
+    <li><code>claude-code-cli-wrappers</code></li>
+    <li><code>openclaw-imports</code></li>
+    <li><code>patricks-vault-os</code></li>
+  </ul>
+</div>
+
+<footer>
+  <p>
+    <strong>Generated by</strong>: Hermes Agent · video-to-obsidian v1.9.2 pipeline ·
+    <strong>Date</strong>: 2026-06-26 ·
+    <strong>Per-output language split</strong>: vault 中文 / blog 英文 / thread 英文
+  </p>
+  <p>
+    <strong>Vault path</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/ornith-1-0-self-scaffolding/dashboard.html</code>
+  </p>
+  <p>
+    <a href="https://www.youtube.com/watch?v=uD4-uy0GmHE">YouTube source</a> ·
+    <a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/ornith-1-0-self-scaffolding/index.md">Vault index.md</a> ·
+    <a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/ornith-1-0-self-scaffolding/transcript-chunked.md">Transcript chunked</a>
+  </p>
+</footer>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+      history.replaceState(null, '', '#' + target);
+    });
+  });
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    const target = document.querySelector(`[data-tab="${hash}"]`);
+    if (target) target.click();
+  }
+</script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>
