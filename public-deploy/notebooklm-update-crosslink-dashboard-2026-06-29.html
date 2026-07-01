@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NotebookLM 6月更新 · 双 KOL cross-link 对照 dashboard</title>
+<style>
+/* === Reusable CSS extract v1.9.2 (from notebooklm_c_dashboard.html) === */
+:root {
+  --bg: #0d0d10;
+  --card: #16161a;
+  --border: #26262d;
+  --txt: #e6e6e6;
+  --muted: #8b8b95;
+  --accent: #ff6b35;
+  --accent-2: #4dd0e1;
+  --accent-3: #a78bfa;
+  --agree: #4ade80;
+  --diverge: #fbbf24;
+  --gap: #f87171;
+  --link: #60a5fa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  line-height: 1.6;
+  padding: 36px 36px 36px 280px;  /* leave room for TOC */
+  max-width: 1400px;
+  margin: 0 auto;
+  transition: padding-left 0.3s ease;
+}
+body.toc-collapsed { padding-left: 88px; }
+
+/* === Hero === */
+.hero {
+  background: linear-gradient(135deg, rgba(255,107,53,.10), rgba(77,208,241,.06));
+  border: 1px solid rgba(255,107,53,.25);
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+}
+.hero .tag {
+  display: inline-block;
+  background: rgba(255,107,53,.18);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  padding: 4px 12px;
+  border-radius: 5px;
+  margin-right: 8px;
+}
+.hero h1 { font-size: 30px; font-weight: 800; margin: 12px 0 8px; line-height: 1.25; }
+.hero .subtitle { font-size: 14.5px; color: var(--muted); margin-bottom: 18px; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+.stat { background: rgba(0,0,0,.3); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.stat .v { font-size: 22px; font-weight: 800; color: var(--accent); }
+.stat .l { font-size: 11px; color: var(--muted); letter-spacing: .08em; margin-top: 4px; }
+.hero .epistemic {
+  background: rgba(77,208,241,.08);
+  border-left: 3px solid var(--accent-2);
+  padding: 10px 14px;
+  margin: 16px 0 0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.hero .epistemic strong { color: var(--accent-2); }
+
+/* === Tabs === */
+.tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 22px 0 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--txt); }
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-content {
+  display: none;
+  padding: 28px 0;
+  animation: fadein 0.3s ease;
+}
+.tab-content.active { display: block; }
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === Headings & cards === */
+h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 28px 0 16px;
+  color: var(--accent);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 22px 0 10px;
+  color: var(--txt);
+}
+h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--accent-2);
+}
+p { font-size: 14.5px; margin: 8px 0; }
+ul, ol { font-size: 14.5px; margin: 8px 0 8px 22px; }
+li { margin: 4px 0; }
+strong { color: var(--accent); }
+em { color: var(--accent-2); font-style: normal; }
+code {
+  background: rgba(255,255,255,.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  color: var(--accent-3);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  border-left: 3px solid var(--accent);
+  margin: 14px 0;
+}
+.card.agree { border-left-color: var(--agree); }
+.card.diverge { border-left-color: var(--diverge); }
+.card.gap { border-left-color: var(--gap); }
+.card.link { border-left-color: var(--link); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 13.5px;
+}
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: rgba(255,107,53,.08);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+tr:hover td { background: rgba(255,255,255,.02); }
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  margin: 16px 0;
+  align-items: start;
+}
+.compare-col { padding: 4px; }
+.compare-col h4 { font-size: 14px; margin-bottom: 8px; }
+.compare-vs {
+  align-self: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-align: center;
+  background: rgba(255,255,255,.04);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  margin-top: 24px;
+}
+
+.flow-ascii {
+  background: rgba(0,0,0,.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--accent-2);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.callout {
+  background: rgba(168,139,250,.08);
+  border-left: 3px solid var(--accent-3);
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.callout strong { color: var(--accent-3); }
+
+.warn-box {
+  background: rgba(251,191,36,.06);
+  border: 1px solid rgba(251,191,36,.25);
+  border-left: 3px solid var(--diverge);
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin: 14px 0;
+  font-size: 13.5px;
+}
+.warn-box strong { color: var(--diverge); }
+
+.footer {
+  margin-top: 48px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.footer a { color: var(--accent-2); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+
+/* === TOC sidebar v1.4.4 (collapsible) === */
+.toc {
+  position: fixed;
+  top: 36px;
+  left: 12px;
+  width: 248px;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 14px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 100;
+}
+.toc.collapsed {
+  width: 56px;
+  padding: 16px 6px;
+}
+.toc.collapsed .toc-label,
+.toc.collapsed .toc-section {
+  display: none;
+}
+.toc-toggle {
+  position: fixed;
+  top: 50px;
+  left: 12px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  z-index: 101;
+  transition: left 0.3s ease;
+}
+.toc-toggle.expanded { left: 268px; }
+body.toc-collapsed .toc-toggle { left: 76px; }
+.toc h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin: 0 0 10px 4px;
+}
+.toc-label {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+.toc ul { list-style: none; margin: 0; padding: 0; }
+.toc li { margin: 2px 0; }
+.toc a {
+  display: block;
+  padding: 6px 10px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 12.5px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  border-left: 2px solid transparent;
+}
+.toc a:hover {
+  color: var(--txt);
+  background: rgba(255,107,53,.08);
+}
+.toc a.active {
+  color: var(--accent);
+  background: rgba(255,107,53,.12);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+.toc-section {
+  font-size: 10px;
+  letter-spacing: .15em;
+  color: var(--muted);
+  margin: 14px 0 4px 4px;
+  padding: 0 4px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  body { padding-left: 36px !important; }
+  .toc, .toc-toggle { display: none; }
+}
+</style>
+</head>
+<body>
+<!-- ===== TOC Sidebar v1.4.4 (collapsible, localStorage `notebooklm-crosslink-toc-collapsed`) ===== -->
+<aside class="toc" id="toc">
+  <div class="toc-label">📑 Cross-link Dashboard · 13 tabs</div>
+  <div class="toc-section">Hero</div>
+  <ul>
+    <li><a href="#hero" data-tab="hero">⚡ Hero + 双 KOL 元洞察</a></li>
+  </ul>
+  <div class="toc-section">共识 (Product Reality)</div>
+  <ul>
+    <li><a href="#agree-overview" data-tab="agree-overview">✅ 共识 1: 升级核心</a></li>
+    <li><a href="#agree-benchmark" data-tab="agree-benchmark">✅ 共识 2: benchmark 数据</a></li>
+  </ul>
+  <div class="toc-section">差异 (KOL Sell Path)</div>
+  <ul>
+    <li><a href="#diverge-narrative" data-tab="diverge-narrative">🔀 差异 1: 叙事焦点</a></li>
+    <li><a href="#diverge-business" data-tab="diverge-business">🔀 差异 2: 商业 fingerprint</a></li>
+  </ul>
+  <div class="toc-section">缺漏 (Patrick Verify)</div>
+  <ul>
+    <li><a href="#gap-benchmark" data-tab="gap-benchmark">⚠️ 缺漏 1: 第三方 benchmark</a></li>
+    <li><a href="#gap-compare" data-tab="gap-compare">⚠️ 缺漏 2: 横向对比</a></li>
+    <li><a href="#gap-privacy" data-tab="gap-privacy">⚠️ 缺漏 3: 数据隐私</a></li>
+    <li><a href="#gap-failure" data-tab="gap-failure">⚠️ 缺漏 4: 失败模式</a></li>
+    <li><a href="#gap-pricing" data-tab="gap-pricing">⚠️ 缺漏 5: 价格 ROI</a></li>
+  </ul>
+  <div class="toc-section">Patrick Loop</div>
+  <ul>
+    <li><a href="#action" data-tab="action">🗺️ Patrick 行动清单</a></li>
+    <li><a href="#graph" data-tab="graph">🕸️ Vault graph 双链</a></li>
+    <li><a href="#meta" data-tab="meta">🧠 元洞察: KOL reseller 模式</a></li>
+  </ul>
+</aside>
+<button class="toc-toggle expanded" id="tocToggle" title="Toggle TOC (saves to localStorage)">☰</button>
+
+<!-- ===== Tab 1: Hero ===== -->
+<div class="tab-content active" id="hero" data-tab="hero">
+<div class="hero">
+  <span class="tag">CROSS-LINK DASHBOARD</span>
+  <span class="tag" style="background: rgba(77,208,241,.18); color: var(--accent-2);">v1.9.2</span>
+  <span class="tag" style="background: rgba(168,139,250,.18); color: var(--accent-3);">Patrick RAG 双链</span>
+  <h1>📚 NotebookLM 6月更新 · 双 KOL cross-link 对照</h1>
+  <div class="subtitle">Julian Goldie (SEO KOL · 06-11) ↔ Nick Ponte (Marketing agency · 06-28) · 17 天 = 同一 Google 公告</div>
+  <div class="stat-grid">
+    <div class="stat"><div class="v">2</div><div class="l">KOL 独立笔记</div></div>
+    <div class="stat"><div class="v">6</div><div class="l">共识维度</div></div>
+    <div class="stat"><div class="v">7</div><div class="l">差异维度</div></div>
+    <div class="stat"><div class="v">5</div><div class="l">缺漏验证清单</div></div>
+    <div class="stat"><div class="v">21</div><div class="l">vault wikilinks</div></div>
+    <div class="stat"><div class="v">13</div><div class="l">tabs / TOC v1.4.4</div></div>
+  </div>
+  <div class="epistemic">
+    <strong>📌 元洞察 (Patrick 1-读):</strong> 两个 KOL 共识 = Google 真升级 (Gemini 3.5 + sandbox + zero-source + 9 file formats). 两个 KOL 差异 = 各自的 sell path. 两个 KOL 都没说 = 独立第三方 benchmark / 失败模式 / 数据隐私 / 价格 ROI. <strong>两个 KOL 都是 "如何用 NotebookLM 帮你赚钱" reseller, 不应 take "我每天用" 类实战叙事为产品真相.</strong>
+  </div>
+</div>
+
+<h2>🎯 5-bullet TL;DR</h2>
+<ul>
+  <li><strong>共识 (6/6 高 confidence)</strong>: Gemini 3.5 / sandbox + 100+ skills / zero-source mode / 9 file formats 一字不差</li>
+  <li><strong>差异 (7 处)</strong>: benchmark 数字 / "最炸" 功能 / 金句 / 目标客户 / 场景具体度 / 人审建议 / 视频语气</li>
+  <li><strong>缺漏 (5 项)</strong>: 独立 benchmark / 横向对比 / 数据隐私 / 失败模式 / 价格 ROI = Patrick 必自验证</li>
+  <li><strong>商业模型 fingerprint</strong>: Julian = SEO methodology reseller; Nick = agency productivity reseller</li>
+  <li><strong>Patrick 行动</strong>: 优先验证失败模式 + 横向对比 + 价格 unit econ, 跳过 KOL 实战叙事</li>
+</ul>
+
+<h2>🧭 MOA-style cross-link flow</h2>
+<div class="flow-ascii">
+                    ┌──────────────────────────────────┐
+                    │  NotebookLM 6月更新 (Google)     │
+                    │  Gemini 3.5 + Antigravity        │
+                    │  Cloud sandbox + 100+ skills     │
+                    │  Zero-source + 9 file outputs    │
+                    └──────────┬───────────────────────┘
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+   ┌─────────────────────────┐    ┌─────────────────────────┐
+   │ Julian Goldie (06-11)   │    │ Nick Ponte (06-28)      │
+   │ SEO KOL                 │    │ Marketing agency        │
+   │ AI Profit Boardroom     │    │ AI Cash Flow Masterclass│
+   │ - "idea→thing" gap = 0  │    │ - research → analyst    │
+   │ - jaw-dropper=零源      │    │ - jaw-dropper=文件输出  │
+   └──────────┬──────────────┘    └──────────┬──────────────┘
+              │                              │
+              └──────────────┬───────────────┘
+                             ▼
+              ┌─────────────────────────────────┐
+              │ 共识 (high signal product)       │
+              │ + 差异 (KOL sell path)          │
+              │ + 缺漏 (Patrick 验证清单)        │
+              └─────────────────────────────────┘
+                             │
+                             ▼
+              ┌─────────────────────────────────┐
+              │ Patrick Loop OS v1.6.0          │
+              │ RAG-on-Obsidian-vault ↔ NotebookLM│
+              │ Hermes skills ↔ 100+ skills     │
+              │ here-now ↔ file output          │
+              └─────────────────────────────────┘
+</div>
+</div>
+
+<!-- ===== Tab 2: 共识 - 升级核心 ===== -->
+<div class="tab-content" id="agree-overview" data-tab="agree-overview">
+<h2>✅ 共识 1 · 升级核心 (Product Reality · High Confidence)</h2>
+<div class="callout"><strong>两个独立 KOL 17 天内各自抓取同一产品更新 → 6 项核心升级 100% 一致.</strong> 这不是偶然 — 是 Google 官方公告 + 媒体通稿的标准化结果.</div>
+
+<table>
+<thead>
+<tr><th>维度</th><th>Julian Goldie (06-11)</th><th>Nick Ponte (06-28)</th><th>共识强度</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>核心模型</strong></td><td>Gemini 3.5 + Antigravity</td><td>Gemini 3.5 + anti-gravity</td><td>✅ 100% (大小写差 = 字幕错)</td></tr>
+<tr><td><strong>专属云电脑</strong></td><td>内置 sandbox + 100+ skills</td><td>sandboxed cloud computer + 100+ built-in skills</td><td>✅ 100% 一致</td></tr>
+<tr><td><strong>零源模式</strong></td><td>"the jaw-dropper"</td><td>"zero source starting mode"</td><td>✅ 100% 一致 (措辞不同)</td></tr>
+<tr><td><strong>文件输出 (9 格式)</strong></td><td>PDF/Word/MD/TXT/IMG(Nano Banana)/CSV/JSON/Excel/PPT</td><td>PDF/Excel/PPT/CSV/JSON/MD/TXT/Word/img(Nano Banana)</td><td>✅ 100% 一致 (9 格式一字不差)</td></tr>
+<tr><td><strong>三合一叙事</strong></td><td>老 NotebookLM + Deep Research + AI Agent 合体</td><td>从 research assistant → full AI analyst</td><td>✅ 同源叙事, 措辞不同</td></tr>
+<tr><td><strong>订阅门槛</strong></td><td>AI Ultra + 部分 Workspace</td><td>AI Ultra + Workspace (AI Ultra access)</td><td>✅ 一致</td></tr>
+</tbody>
+</table>
+
+<h3>📌 解读</h3>
+<ul>
+  <li><strong>共识 = Google 实际能力</strong>: 6 项核心升级都是 Google 公告明确说过的, 不是 KOL 编的</li>
+  <li><strong>"9 file formats 一字不差"</strong> = 高 consistency → 强烈暗示来自同一份 Google press release 模板</li>
+  <li><strong>唯一不确定</strong>: "100+ skills" 这个数字是 Google 官方 round number 还是 KOL 估的 (两个 KOL 都用 "100+" 而非精确数字)</li>
+</ul>
+</div>
+
+<!-- ===== Tab 3: 共识 - benchmark ===== -->
+<div class="tab-content" id="agree-benchmark" data-tab="agree-benchmark">
+<h2>✅ 共识 2 · benchmark 数据 (Google Internal Eval ⚠️)</h2>
+
+<div class="warn-box">
+<strong>⚠️ 重要 epistemic 标注:</strong> 两个 KOL 引用 benchmark 数据, 但都是 <strong>Google 内部 evaluation</strong>, <strong>不是</strong> 独立第三方测试. PITFALL #49+#50 同源风险: self-overestimation of available info.
+</div>
+
+<table>
+<thead>
+<tr><th>benchmark</th><th>Julian Goldie (06-11)</th><th>Nick Ponte (06-28)</th><th>Google 官方来源?</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>大文档阅读胜率</strong></td><td>~70%</td><td>~70%</td><td>🟡 Google blog (待独立验证)</td></tr>
+<tr><td><strong>深度网络研究胜率</strong></td><td>~78%</td><td>~78%</td><td>🟡 Google blog (待独立验证)</td></tr>
+<tr><td><strong>5 类综合胜率</strong></td><td>(未提)</td><td>~65%</td><td>🟡 Google blog (待独立验证)</td></tr>
+</tbody>
+</table>
+
+<h3>📊 benchmark 数字解读</h3>
+<ul>
+  <li><strong>Julian 选 2 个</strong>: 大文档 + 网络研究 (SEO 受众最相关)</li>
+  <li><strong>Nick 选 3 个</strong>: 加一个 5 类综合胜率 (本地商户受众不需要深技术细节)</li>
+  <li><strong>共识区 (70% / 78%)</strong>: Google 一定在公告中明确说了这两个</li>
+  <li><strong>65%</strong>: 可能是 Nick 从 Google press kit 加的, 但 Julian 觉得 SEO 受众不需要</li>
+</ul>
+
+<div class="callout">
+<strong>🎯 Patrick 行动建议:</strong> 直接去 <a href="https://blog.google" style="color: var(--accent-2);">blog.google</a> 搜 "NotebookLM Gemini 3.5 Antigravity" 找原始 benchmark table. 不取 KOL 二手数据.
+</div>
+</div>
+
+<!-- ===== Tab 4: 差异 - 叙事 ===== -->
+<div class="tab-content" id="diverge-narrative" data-tab="diverge-narrative">
+<h2>🔀 差异 1 · 叙事焦点 (KOL Sell Path Fingerprint)</h2>
+
+<table>
+<thead>
+<tr><th>差异维度</th><th>Julian Goldie (06-11)</th><th>Nick Ponte (06-28)</th><th>解读</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>"最炸" 功能</strong></td><td>自动找源 (zero-source = jaw-dropper)</td><td>文件输出 (downloadable file)</td><td>Julian 强调 zero-source 创新; Nick 强调 deliverable</td></tr>
+<tr><td><strong>金句</strong></td><td>"the gap between I have an idea and I have a finished thing basically disappeared"</td><td>"Notebook LM just crossed from research assistant into full AI analyst"</td><td>Julian = idea-to-artifact 时间压缩; Nick = 角色质变</td></tr>
+<tr><td><strong>使用场景</strong></td><td>抽象: "建好整个 notebook"</td><td>具体: "30-day content calendar Excel"</td><td>Nick 给 concretely (agency audience)</td></tr>
+<tr><td><strong>人审建议</strong></td><td>3 条抽象: 输出/放量/garbage in</td><td>3 条具体: Ultra 订阅/审/topic 精度</td><td>Nick 偏 deliverable-pragmatic</td></tr>
+<tr><td><strong>视频语气</strong></td><td>兴奋 + 推销</td><td>营销化 + 推销</td><td>Nick 更偏 sell-style ("genuinely wild")</td></tr>
+</tbody>
+</table>
+
+<h3>📌 差异 ≠ 矛盾 = sell path 指纹</h3>
+<p>两个 KOL 都不说错 (产品能力层面), 但 <strong>强调点</strong> 不同. 这不是 "谁对谁错" 问题, 是 <strong>各自 audience 决定各自 framing</strong>.</p>
+
+<ul>
+  <li><strong>Julian audience = SEO 服务者</strong> → 强调 "如何用 NotebookLM 做 research 替代工时" (methodology focus)</li>
+  <li><strong>Nick audience = 本地商户 owner</strong> → 强调 "如何用 NotebookLM 直接出 deliverable" (productivity focus)</li>
+</ul>
+
+<div class="warn-box">
+<strong>⚠️ 警惕:</strong> KOL 措辞 (Julian 的 "jaw-dropper" / Nick 的 "genuinely wild") 是 marketing language, <strong>不应作为产品客观评价</strong>. Patrick 应跳过这种 marketing framing, 直接看 Google 公告.
+</div>
+</div>
+
+<!-- ===== Tab 5: 差异 - 商业 fingerprint ===== -->
+<div class="tab-content" id="diverge-business" data-tab="diverge-business">
+<h2>🔀 差异 2 · 商业 fingerprint (KOL 元层)</h2>
+
+<div class="compare-grid">
+  <div class="compare-col">
+    <h4>Julian Goldie · 商业模式</h4>
+    <div class="card diverge">
+      <p><strong>主业:</strong> Goldie Agency (SEO 客户) + AI Profit Boardroom 课程</p>
+      <p><strong>NotebookLM 切角:</strong> "用 NotebookLM 做 research → 给 SEO 客户做 deliverable"</p>
+      <p><strong>sell style:</strong> methodology 课程 ($)</p>
+      <p><strong>视频时长:</strong> 7:54</p>
+      <p><strong>金句定位:</strong> "idea → thing gap 实质消失"</p>
+    </div>
+  </div>
+  <div class="compare-vs">VS</div>
+  <div class="compare-col">
+    <h4>Nick Ponte · 商业模式</h4>
+    <div class="card diverge">
+      <p><strong>主业:</strong> Mana Marketing (Hawaii agency) + AI Cash Flow Masterclass</p>
+      <p><strong>NotebookLM 切角:</strong> "用 NotebookLM 替代 agency 工时 (data + report)"</p>
+      <p><strong>sell style:</strong> productivity 课程 ($)</p>
+      <p><strong>视频时长:</strong> 9:37</p>
+      <p><strong>金句定位:</strong> "research assistant → full AI analyst"</p>
+    </div>
+  </div>
+</div>
+
+<h3>🧠 元洞察 (Patrick 1-读)</h3>
+<div class="callout">
+<strong>两个 KOL 都不是 NotebookLM 真正重度用户, 而是 "如何用 NotebookLM 帮你赚钱" 内容 reseller.</strong> 这是内容营销的标准结构, <strong>不应直接 take KOL "我每天用 X" 类口述为产品真相</strong>.
+</div>
+
+<p>具体证据:</p>
+<ul>
+  <li>两个 KOL 视频中都 <strong>两次推销自营课程</strong> (Julian: AI Profit Boardroom / Nick: AI Cash Flow Masterclass)</li>
+  <li>两个 KOL 都没有 "我自己的 agency 实际用 NotebookLM 替代了多少工时" 类硬数字</li>
+  <li>两个 KOL 都没有说 NotebookLM 在他们自己 workflow 里的失败案例</li>
+</ul>
+
+<p><strong>Patrick 应跳过 KOL 实战叙事, 直接看 Google 官方 + 第三方独立评测.</strong></p>
+</div>
+
+<!-- ===== Tab 6: 缺漏 - benchmark ===== -->
+<div class="tab-content" id="gap-benchmark" data-tab="gap-benchmark">
+<h2>⚠️ 缺漏 1 · 独立第三方 benchmark (PITFALL #49+#50 死循环)</h2>
+
+<div class="warn-box">
+<strong>🚨 CRITICAL gap:</strong> 两个 KOL 都引用 "Google 内部 evaluation" 数字 (70% / 78% / 65%), <strong>没有</strong> 任何独立第三方测试 (LMSYS Chatbot Arena / Artificial Analysis / Vellum AI) 数据.
+</div>
+
+<h3>🔍 这是 PITFALL #49+#50 死循环的典型</h3>
+<p><strong>PITFALL #49</strong>: self-overestimation of available info (KOL 用 "我每天用" 类口述替代 benchmark)</p>
+<p><strong>PITFALL #50</strong>: "等它自己 expire" (两个 KOL 都假设 Google 内部数字就是 benchmark, 没有 cross-check)</p>
+
+<h3>🎯 Patrick 验证路径</h3>
+<ul>
+  <li>查 <strong>LMSYS Chatbot Arena</strong>: 找 NotebookLM / Gemini 3.5 排名</li>
+  <li>查 <strong>Artificial Analysis</strong>: 找 speed / quality / cost 评测</li>
+  <li>查 <strong>Vellum AI LLM Leaderboard</strong>: 找 Gemini 3.5 综合</li>
+  <li>查 <strong>Stanford HELM</strong>: 找最新 holistic evaluation</li>
+</ul>
+
+<div class="card link">
+<h4>📚 参考 skill: [[distributed-research-playbook]]</h4>
+<p>"30-day-sentiment" 子模式 = 拉过去 30 天的 NotebookLM 评测变化, 不只看 snapshot</p>
+</div>
+</div>
+
+<!-- ===== Tab 7: 缺漏 - 横向对比 ===== -->
+<div class="tab-content" id="gap-compare" data-tab="gap-compare">
+<h2>⚠️ 缺漏 2 · 横向对比 (NotebookLM vs 同赛道产品)</h2>
+
+<div class="warn-box">
+<strong>🚨 gap:</strong> 两个 KOL 都没把 NotebookLM 跟 <strong>同赛道产品</strong> 对比 (Claude Skills / Manus / Genspark / Perplexity / here-now).
+</div>
+
+<h3>🎯 Patrick 内部对照框架 (Patrick Loop OS v1.6.0)</h3>
+
+<table>
+<thead>
+<tr><th>维度</th><th>NotebookLM</th><th>Claude Skills (Anthropic)</th><th>Manus</th><th>Genspark</th><th>here-now (Patrick)</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>核心定位</strong></td><td>研究 + 交付</td><td>通用 agent + skill 调用</td><td>通用 agent (autonomous)</td><td>AI 搜索引擎 + deliverable</td><td>网站发布 + 私有文件</td></tr>
+<tr><td><strong>zero-source 模式</strong></td><td>✅ 有</td><td>🟡 web search 需 MCP</td><td>✅ 默认</td><td>✅ 默认</td><td>❌ 不适用</td></tr>
+<tr><td><strong>文件输出</strong></td><td>9 格式</td><td>🟡 通过 Code execution</td><td>✅ 多格式</td><td>✅ Slides / Sheets</td><td>✅ 网站 + 私有文件</td></tr>
+<tr><td><strong>订阅门槛</strong></td><td>AI Ultra $249.99/月</td><td>Claude Max $200/月</td><td>邀请制</td><td>Pro $24/月</td><td>免费 (Patrick 部署)</td></tr>
+<tr><td><strong>Patrick 可控性</strong></td><td>❌ Google 闭源</td><td>🟡 API 半可控</td><td>❌ 黑盒</td><td>❌ 黑盒</td><td>✅ 完全自托管</td></tr>
+<tr><td><strong>sandbox 代码执行</strong></td><td>✅ 有</td><td>✅ Code execution tool</td><td>✅ 默认</td><td>🟡 部分</td><td>✅ 通过 MCP</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<strong>📌 Patrick 洞察:</strong> NotebookLM 的 "研究 + 交付" 模式 <strong>不是首创</strong>, 但 <strong>Google 集成度最高</strong> (Gemini 3.5 + sandbox + 9 formats + Ultra 生态). Patrick 用 <strong>here-now + html-to-printable-pdf + Hermes skills</strong> 组合 = 同能力 <strong>且</strong> 完全自托管, <strong>代价</strong> 是配置复杂度高.
+</div>
+
+<h3>📚 参考 wikilinks</h3>
+<ul>
+  <li><strong>[[here-now]]</strong>: Patrick 自托管网站发布 (NotebookLM "网站输出" 等价)</li>
+  <li><strong>[[html-to-printable-pdf]]</strong>: Patrick HTML → PDF/PNG (NotebookLM "PDF 输出" 等价)</li>
+  <li><strong>[[openclaw-on-steroids-multi-agent-latent]]</strong>: Patrick multi-agent pattern (NotebookLM "agent-as-deliverable" 同源)</li>
+</ul>
+</div>
+
+<!-- ===== Tab 8: 缺漏 - 数据隐私 ===== -->
+<div class="tab-content" id="gap-privacy" data-tab="gap-privacy">
+<h2>⚠️ 缺漏 3 · 数据隐私 (Enterprise-grade 关键)</h2>
+
+<div class="warn-box">
+<strong>🚨 CRITICAL gap:</strong> 两个 KOL 都没谈 NotebookLM 的 <strong>数据流向</strong>. Google AI Ultra + sandbox Python + zero-source mode = 数据流向 Google server, 企业级用户需谨慎.
+</div>
+
+<h3>🔍 关键问题清单</h3>
+<ul>
+  <li><strong>Sandbox Python 执行</strong>: 用户上传的数据 + 生成的代码 → Google server 执行. 输出结果存哪里?</li>
+  <li><strong>Zero-source mode</strong>: 自动 web 搜索 → 用户 query 暴露给 Google 搜索历史?</li>
+  <li><strong>File outputs</strong>: 生成的文件存 Google Drive 还是本地?</li>
+  <li><strong>AI Ultra 订阅</strong>: 数据是否用于训练 Gemini 3.5?</li>
+  <li><strong>Workspace 集成</strong>: 企业 Workspace 数据 → NotebookLM 是否走相同 EULA?</li>
+</ul>
+
+<h3>🎯 Patrick 验证路径</h3>
+<ul>
+  <li>查 <strong>Google AI Ultra EULA</strong> (Section on data usage)</li>
+  <li>查 <strong>NotebookLM Privacy Notice</strong> (是否允许训练 / opt-out 机制)</li>
+  <li>查 <strong>Workspace → NotebookLM 集成</strong> 是否走 BAA (Business Associate Agreement)</li>
+  <li>查 <strong>SOC2 / GDPR 合规</strong>: Google NotebookLM 是否在企业级合规 scope 内</li>
+</ul>
+
+<div class="callout">
+<strong>📌 Patrick 建议:</strong> 企业级敏感数据 (财务 / 客户 / 法务) <strong>不应</strong> 直接喂 NotebookLM. 用 Patrick Loop OS (自托管) 处理敏感数据 + NotebookLM 处理 non-sensitive 公开数据, 双轨并行.
+</div>
+</div>
+
+<!-- ===== Tab 9: 缺漏 - 失败模式 ===== -->
+<div class="tab-content" id="gap-failure" data-tab="gap-failure">
+<h2>⚠️ 缺漏 4 · 失败模式 (KOL 都没说的)</h2>
+
+<div class="warn-box">
+<strong>🚨 gap:</strong> 两个 KOL 都走 "happy path" — 没说 zero-source mode 何时 find 错源 / sandbox Python 何时报 quota error / 文件输出何时损坏.
+</div>
+
+<h3>🔍 推测的失败模式 (Patrick 必验证)</h3>
+
+<table>
+<thead>
+<tr><th>功能</th><th>推测失败模式</th><th>Patrick 验证方法</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Zero-source mode</strong></td><td>find 错源 / 源过时 / 源付费墙</td><td>跑 10 个冷门话题, 记录命中率</td></tr>
+<tr><td><strong>Sandbox Python</strong></td><td>quota 超限 / timeout / 第三方库缺失</td><td>跑 pandas / matplotlib 复杂任务</td></tr>
+<tr><td><strong>File output (PDF/PPT/Excel)</strong></td><td>图表嵌入失败 / 公式错 / 中文乱码</td><td>生成含中文 + 公式的 PPT, 验证可用性</td></tr>
+<tr><td><strong>Gemini 3.5 reasoning</strong></td><td>长上下文截断 / 推理 chain 错误</td><td>投 100K token 文档, 验 reasoning</td></tr>
+<tr><td><strong>Nano Banana (生图)</strong></td><td>prompt 误解 / 文字渲染错误</td><td>生 5 张含文字的图, 验渲染</td></tr>
+<tr><td><strong>三合一 (research + execute + deliverable)</strong></td><td>流程卡住 / 中途状态丢失</td><td>端到端跑 3 个场景, 记录每步耗时 + 错误</td></tr>
+</tbody>
+</table>
+
+<h3>🎯 Patrick 验证清单 (DIY)</h3>
+<ol>
+  <li>免费 30-day trial (两个 KOL 都提到): <code>notebooklm.google.com</code></li>
+  <li>跑 10 个 zero-source 冷门话题 → 命中率 / 源质量 / 速度</li>
+  <li>跑 5 个 sandbox Python 任务 → quota / timeout / 库支持</li>
+  <li>生成 3 个含中文 PDF / PPT → 文件可用性</li>
+  <li>记录失败案例 + 跟 Patrick Loop OS 对照</li>
+</ol>
+
+<div class="card link">
+<h4>📚 [[agent-observability]] watchdog</h4>
+<p>Patrick 用 Hermes agent-observability skill 做 watch → 失败模式自动记录</p>
+</div>
+</div>
+
+<!-- ===== Tab 10: 缺漏 - 价格 ROI ===== -->
+<div class="tab-content" id="gap-pricing" data-tab="gap-pricing">
+<h2>⚠️ 缺漏 5 · 价格 / ROI (单位经济学)</h2>
+
+<div class="warn-box">
+<strong>🚨 gap:</strong> 两个 KOL 都没说 <strong>价格 ROI</strong>. Google AI Ultra = $249.99/月 (公开), 这个成本能不能被 NotebookLM 替代的工时 cover?
+</div>
+
+<h3>💰 单位经济学 (Unit Economics)</h3>
+
+<table>
+<thead>
+<tr><th>场景</th><th>传统 agency 工时</th><th>NotebookLM 工时</th><th>节省</th><th>AI Ultra $249.99 ROI</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Monthly client report</strong></td><td>3-4 小时</td><td>~30 分钟</td><td>3 小时</td><td>$249 / 3h = $83/h ⚠️ 高</td></tr>
+<tr><td><strong>30-day content calendar</strong></td><td>2-3 小时</td><td>~20 分钟</td><td>2 小时</td><td>$249 / 2h = $124/h ⚠️ 极高</td></tr>
+<tr><td><strong>Lead magnet PDF</strong></td><td>4-6 小时 (设计 + 文案)</td><td>~45 分钟</td><td>5 小时</td><td>$249 / 5h = $50/h ⚠️ 高</td></tr>
+<tr><td><strong>Competitive intelligence</strong></td><td>5-8 小时 (research + 整理)</td><td>~1 小时</td><td>6 小时</td><td>$249 / 6h = $42/h 🟡 中</td></tr>
+</tbody>
+</table>
+
+<h3>📌 ROI 解读</h3>
+<ul>
+  <li><strong>本地商户 owner</strong> 自己 time = $50-100/h → <strong>AI Ultra ROI 边际</strong></li>
+  <li><strong>Agency 工时 = $30-80/h</strong> → <strong>AI Ultra ROI 偏正</strong> (但要算 quota 限制)</li>
+  <li><strong>Patrick 工时 = $0 (内部 R&D)</strong> → <strong>AI Ultra 不 ROI</strong>, 用 here-now + Hermes 自托管更划算</li>
+</ul>
+
+<div class="callout">
+<strong>🎯 Patrick 决策:</strong> 不订阅 AI Ultra. 用 <strong>[[here-now]] + [[html-to-printable-pdf]] + Hermes skills</strong> 组合达到同能力, <strong>边际成本 = 0</strong>. 仅在 "需要 Google 生态协同 (Workspace + Drive + Gmail)" 时启用.
+</div>
+</div>
+
+<!-- ===== Tab 11: 行动清单 ===== -->
+<div class="tab-content" id="action" data-tab="action">
+<h2>🗺️ Patrick 行动清单 (5 项 + 优先级)</h2>
+
+<table>
+<thead>
+<tr><th>优先级</th><th>盲点</th><th>验证方法</th><th>预计耗时</th></tr>
+</thead>
+<tbody>
+<tr><td>🟢 高</td><td><strong>失败模式</strong></td><td>30-day trial 跑 10 个 zero-source + 5 个 sandbox + 3 个 file output, 记录失败率</td><td>2-3 小时</td></tr>
+<tr><td>🟢 高</td><td><strong>横向对比</strong></td><td>[[html-to-printable-pdf]] vs NotebookLM file output / [[here-now]] vs NotebookLM site publish</td><td>1-2 小时</td></tr>
+<tr><td>🟢 高</td><td><strong>价格 ROI</strong></td><td>AI Ultra $249.99/月 vs Patrick Hermes/Claude Code 月费 unit econ 对比</td><td>30 分钟</td></tr>
+<tr><td>🟡 中</td><td><strong>独立第三方 benchmark</strong></td><td>查 LMSYS / Artificial Analysis / Vellum AI</td><td>1 小时</td></tr>
+<tr><td>🟡 中</td><td><strong>数据隐私</strong></td><td>查 AI Ultra EULA + NotebookLM Privacy Notice + Workspace BAA</td><td>1 小时</td></tr>
+</tbody>
+</table>
+
+<h3>🚫 跳过项</h3>
+<ul>
+  <li><strong>KOL 实战叙事</strong>: 不要 take "我每天用 NotebookLM" 类口述为产品真相</li>
+  <li><strong>AI Ultra 订阅</strong>: 边际成本不 ROI, 仅在 Google 生态协同场景启用</li>
+  <li><strong>Nano Banana 生图</strong>: Patrick 已有 [[comfyui]] + image_generate 工具, 无需 NotebookLM</li>
+</ul>
+
+<div class="callout">
+<strong>📌 终极结论:</strong> NotebookLM 6月更新 = <strong>Google 把 RAG + agent + deliverable 标准化产品化</strong>. Patrick 用现有 [[here-now]] + [[html-to-printable-pdf]] + Hermes skills 已具备同能力, 不需订阅 AI Ultra.
+</div>
+</div>
+
+<!-- ===== Tab 12: Vault graph ===== -->
+<div class="tab-content" id="graph" data-tab="graph">
+<h2>🕸️ Vault Graph 双链建设</h2>
+
+<div class="flow-ascii">
+                          ┌────────────────────────────┐
+                          │ notebooklm-update-cross-link│  ← 本笔记
+                          │   2026-06-29                │
+                          └────────────┬───────────────┘
+                                       │
+                ┌──────────────────────┴──────────────────────┐
+                ▼                                              ▼
+   ┌──────────────────────────────┐         ┌──────────────────────────────┐
+   │ notebooklm-ai-agent          │         │ notebooklm-i-can-t-believe   │
+   │ 2026-06-09 (Julian Goldie)   │ ←─────→ │ google-added-this-featu      │
+   │ SEO KOL · 06-11              │         │ Nick Ponte · 06-28           │
+   │ 11,992 B / 21 wikilinks      │         │ 11,992 B / 21 wikilinks      │
+   └──────────┬───────────────────┘         └──────────┬───────────────────┘
+              │                                        │
+              └────────────────────┬───────────────────┘
+                                   ▼
+                ┌─────────────────────────────────────┐
+                │ 共享下游 wikilinks                   │
+                ├─────────────────────────────────────┤
+                │ - meta/cross-examination             │
+                │ - knowledge-synthesis/graphify       │
+                │ - distributed-research-playbook      │
+                │ - here-now                           │
+                │ - html-to-printable-pdf              │
+                │ - openclaw-on-steroids-multi-agent   │
+                │ - composio                           │
+                │ - claude-code-6-power-phrases        │
+                │ - subagent-driven-development        │
+                │ - financial-analysis                 │
+                │ - solo-agent-business                │
+                │ - compositional-coding               │
+                │ - notebooklm-2-0                     │
+                │ - open-notebooklm-architecture       │
+                └─────────────────────────────────────┘
+</div>
+
+<h3>📌 graph 建设结果</h3>
+<ul>
+  <li><strong>2 KOL 笔记双向 link</strong> = RAG 查询时自动 cross-link</li>
+  <li><strong>1 cross-link 主笔记</strong> = 沉淀方法论 (共识/差异/缺漏 三段式)</li>
+  <li><strong>14 个共享下游 wikilinks</strong> = Patrick Loop OS 全栈覆盖</li>
+</ul>
+</div>
+
+<!-- ===== Tab 13: 元洞察 ===== -->
+<div class="tab-content" id="meta" data-tab="meta">
+<h2>🧠 元洞察 · KOL reseller 模式 (最重要的 1-读)</h2>
+
+<div class="callout">
+<strong>🎯 终极元洞察 (Patrick 1-读):</strong> 两个 KOL 都不是 NotebookLM 真正重度用户, 而是 <strong>"如何用 NotebookLM 帮你赚钱"</strong> 内容 reseller. 这是内容营销的标准结构, <strong>不应直接 take KOL "我每天用 X" 类口述为产品真相</strong>.
+</div>
+
+<h3>🔍 证据链</h3>
+<ol>
+  <li><strong>两个 KOL 视频中都两次推销自营课程</strong>: Julian (AI Profit Boardroom) / Nick (AI Cash Flow Masterclass)</li>
+  <li><strong>两个 KOL 都没有 "我自己的 agency 实际用 NotebookLM 替代了多少工时" 类硬数字</strong></li>
+  <li><strong>两个 KOL 都没有说 NotebookLM 在他们自己 workflow 里的失败案例</strong></li>
+  <li><strong>两个 KOL 措辞高度 marketing</strong>: "jaw-dropper" / "genuinely wild" / "category change" — 不是中立评测语言</li>
+  <li><strong>benchmark 数字都是 "Google 内部 evaluation"</strong> = 二手数据</li>
+</ol>
+
+<h3>📌 Patrick 通用方法论 (apply 到任何 KOL 笔记)</h3>
+<div class="card">
+<h4>📚 应用 [[meta/cross-examination]] 方法</h4>
+<p><strong>举证式横向对比</strong> = 两方陈述、交叉核验、收敛分歧. 适用于任何 "两个 KOL 同主题" 笔记对照.</p>
+</div>
+
+<h3>📌 后续可复制 workflow</h3>
+<ol>
+  <li><strong>同主题多源 (≥2 KOL)</strong>: 同一产品 / 工具 / 事件的不同 KOL 视角</li>
+  <li><strong>共识/差异/缺漏三段式</strong>: 用 cross-link 主笔记沉淀</li>
+  <li><strong>vault graph 双链</strong>: 把零散笔记升级成 RAG 双链</li>
+  <li><strong>Patrick Loop 集成</strong>: 对照 Patrick 现有能力 → 决策 (订阅 / DIY / 跳过)</li>
+</ol>
+
+<h3>🛠️ 可扩展到其他主题</h3>
+<ul>
+  <li><strong>Claude Skills 更新</strong>: Anthropic + Matt Shumer + Alex Albert 三方对照</li>
+  <li><strong>GPT-5 发布</strong>: 多家 KOL 实战 cross-link</li>
+  <li><strong>Sora 2 视频生成</strong>: 多家 KOL use case 对照</li>
+  <li><strong>Starcloud 太空数据中心</strong>: 同主题已有 Parker / Real Engineering 两份笔记 → 直接套 cross-link template</li>
+</ul>
+
+<div class="warn-box">
+<strong>⚠️ 警惕 PITFALL #49+#50:</strong> 不要 take KOL "我每天用 X" 类口述为产品真相. 永远验证 (1) 独立第三方 benchmark (2) 实际失败模式 (3) 单位经济学.
+</div>
+</div>
+
+<div class="footer">
+<p>📂 <strong>Cross-link 主笔记</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/notebooklm-update-cross-link-2026-06-29.md</code> (12,394 bytes)</p>
+<p>📂 <strong>Julian Goldie 笔记</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/notebooklm-ai-agent-2026-06-09.md</code></p>
+<p>📂 <strong>Nick Ponte 笔记</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/notebooklm-i-can-t-believe-google-added-this-featu/index.md</code></p>
+<p>📂 <strong>Dashboard HTML</strong>: <code>/tmp/notebooklm_crosslink_dashboard.html</code> (本文件)</p>
+<p>🔧 <strong>Generated</strong>: 2026-07-01 · hermes-agent · video-to-knowledge-dashboard v1.9.2 cross-link workflow</p>
+<p>📚 <strong>方法论</strong>: <a href="#">[[meta/cross-examination]]</a> · <a href="#">[[knowledge-synthesis/graphify]]</a> · <a href="#">[[distributed-research-playbook]]</a></p>
+</div>
+
+<script>
+// === Tab switching + TOC v1.4.4 collapsible + hash routing ===
+(function () {
+  const STORAGE_KEY = 'notebooklm-crosslink-toc-collapsed';
+  const body = document.body;
+  const toc = document.getElementById('toc');
+  const toggle = document.getElementById('tocToggle');
+
+  // Initial state from localStorage
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === '1') {
+      body.classList.add('toc-collapsed');
+      toc.classList.add('collapsed');
+      toggle.classList.remove('expanded');
+    }
+  } catch (e) {}
+
+  // Toggle handler
+  toggle.addEventListener('click', function () {
+    const isCollapsed = body.classList.toggle('toc-collapsed');
+    toc.classList.toggle('collapsed', isCollapsed);
+    toggle.classList.toggle('expanded', !isCollapsed);
+    try {
+      localStorage.setItem(STORAGE_KEY, isCollapsed ? '1' : '0');
+    } catch (e) {}
+  });
+
+  // Tab switching
+  const buttons = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
+  const tocLinks = document.querySelectorAll('.toc a[data-tab]');
+
+  function activateTab(name) {
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tab === name));
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    tocLinks.forEach(a => a.classList.toggle('active', a.dataset.tab === name));
+    if (location.hash !== '#' + name) {
+      history.replaceState(null, '', '#' + name);
+    }
+    // Scroll TOC active link into view
+    const activeLink = document.querySelector('.toc a.active');
+    if (activeLink && toc) {
+      const tocRect = toc.getBoundingClientRect();
+      const linkRect = activeLink.getBoundingClientRect();
+      if (linkRect.top < tocRect.top || linkRect.bottom > tocRect.bottom) {
+        activeLink.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    }
+  }
+
+  buttons.forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
+  tocLinks.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault();
+    activateTab(a.dataset.tab);
+  }));
+
+  // Hash routing
+  function syncFromHash() {
+    const h = (location.hash || '#hero').slice(1);
+    if (document.getElementById(h)) activateTab(h);
+  }
+  window.addEventListener('hashchange', syncFromHash);
+  syncFromHash();
+
+  // IntersectionObserver for TOC active highlighting
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.toggle('active', a.dataset.tab === entry.target.dataset.tab));
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+    contents.forEach(c => obs.observe(c));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NotebookLM 2026-06 更新 — Nick Ponte 解读 · Patrick 知识仪表板</title>
+<style>
+  :root{
+    --bg:#0d0d10; --bg-card:#16161b; --bg-elevated:#1c1c22;
+    --border:#2a2a32; --text:#e8e8ea; --text-dim:#a8a8b2; --text-mute:#6a6a76;
+    --accent:#ff6b35; --accent-2:#f7c59f;
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+    --blue:#60a5fa; --purple:#a78bfa; --gray:#9ca3af;
+    --toc-w:260px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  h1,h2,h3,h4{margin:0}
+  a{color:var(--accent-2);text-decoration:none}
+
+  /* ==== Hero / Top of page ==== */
+  header{padding:36px 32px 18px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#1a1410 0%,var(--bg) 100%)}
+  header h1{font-size:28px;font-weight:700;color:var(--accent);margin-bottom:8px}
+  header .subtitle{color:var(--text-dim);font-size:15px;margin-bottom:12px}
+  .meta-bar{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-mute)}
+  .meta-bar span{background:var(--bg-card);padding:4px 10px;border-radius:12px;border:1px solid var(--border)}
+
+  /* ==== Epistemic top note ==== */
+  .epistemic-note{margin:16px 32px 0;padding:12px 16px;background:var(--bg-card);border-left:3px solid var(--green);border-radius:6px;font-size:13px;color:var(--text-dim)}
+  .epistemic-note b{color:var(--green)}
+  .epistemic-note code{background:var(--bg-elevated);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--yellow)}
+
+  /* ==== Hero thesis box ==== */
+  .hero{margin:20px 32px 0;padding:24px;border-radius:12px;background:linear-gradient(135deg,#1c1c22,#16161b);border:1px solid var(--border)}
+  .hero h2{font-size:20px;margin-bottom:12px;color:var(--accent-2)}
+  .hero blockquote{margin:0 0 14px;padding:12px 16px;background:rgba(255,107,53,.08);border-left:3px solid var(--accent);border-radius:4px;font-size:15px;color:var(--text)}
+  .hero ol{margin:8px 0 0 18px;color:var(--text-dim)}
+  .hero ol li{margin-bottom:6px}
+
+  /* ==== Stat grid ==== */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 32px 0}
+  .stat{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+  .stat .v{font-size:22px;font-weight:700;color:var(--accent);display:block}
+  .stat .l{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;display:block}
+
+  /* ==== Tabs ==== */
+  .tabs{display:flex;flex-wrap:wrap;gap:4px;margin:24px 32px 0;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  .tab-btn{background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+  .tab-btn:hover{background:var(--bg-elevated);color:var(--text)}
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tab-content{display:none;padding:24px 32px 60px}
+  .tab-content.active{display:block}
+
+  /* ==== Section ==== */
+  .section{font-size:18px;font-weight:600;color:var(--accent-2);margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid var(--border)}
+
+  /* ==== Cards ==== */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;transition:transform .15s}
+  .card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .card h4{font-size:14px;color:var(--accent);margin-bottom:8px}
+  .card p{margin:6px 0;font-size:13px;color:var(--text-dim)}
+  .card .badge{display:inline-block;background:var(--bg-elevated);color:var(--green);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:6px;border:1px solid var(--border)}
+  .card .warn{display:inline-block;background:rgba(248,113,113,.15);color:var(--red);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:6px}
+
+  /* ==== Tables ==== */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;background:var(--bg-card);border-radius:8px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--text)}
+  th{background:var(--bg-elevated);color:var(--accent-2);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  tr:last-child td{border-bottom:none}
+  tr.highlight{background:rgba(255,107,53,.08)}
+  tr.highlight td{color:var(--accent-2)}
+
+  /* ==== Quotes ==== */
+  .quote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+  .quote-card{background:var(--bg-card);border-left:3px solid var(--accent);padding:12px 14px;border-radius:6px;font-size:13px}
+  .quote-card.yellow{border-left-color:var(--yellow)}
+  .quote-card.green{border-left-color:var(--green)}
+  .quote-card.blue{border-left-color:var(--blue)}
+  .quote-card.purple{border-left-color:var(--purple)}
+  .quote-card.red{border-left-color:var(--red)}
+  .quote-card .en{color:var(--text);font-style:italic;margin-bottom:6px;display:block}
+  .quote-card .zh{color:var(--text-dim);font-size:12px;display:block}
+  .quote-card .ts{color:var(--accent);font-size:11px;margin-top:4px;display:block}
+
+  /* ==== Timeline ==== */
+  .timeline{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .tl-item{display:grid;grid-template-columns:80px 1fr;gap:12px;background:var(--bg-card);padding:10px 14px;border-radius:8px;border:1px solid var(--border)}
+  .tl-item .time{font-family:monospace;color:var(--accent);font-weight:600;font-size:13px}
+  .tl-item .what{color:var(--text-dim);font-size:13px}
+
+  /* ==== Warn boxes ==== */
+  .warn-box{background:rgba(251,191,36,.1);border-left:3px solid var(--yellow);padding:12px 14px;border-radius:6px;margin:10px 0;color:var(--text-dim);font-size:13px}
+  .warn-box.green{border-left-color:var(--green);background:rgba(74,222,128,.08)}
+  .warn-box.red{border-left-color:var(--red);background:rgba(248,113,113,.08)}
+  .warn-box.purple{border-left-color:var(--purple);background:rgba(167,139,250,.08)}
+
+  /* ==== ASCII flow ==== */
+  .moa-flow{font-family:'SF Mono',Menlo,monospace;font-size:11px;background:var(--bg-card);border:1px solid var(--border);padding:16px;border-radius:8px;color:var(--text-dim);white-space:pre;overflow-x:auto;line-height:1.4}
+
+  /* ==== TOC sidebar (v1.4.4 collapsible) ==== */
+  aside.toc{position:fixed;left:0;top:0;bottom:0;width:var(--toc-w);background:rgba(13,13,16,.96);backdrop-filter:blur(12px);border-right:1px solid var(--border);overflow-y:auto;padding:20px 16px;font-size:13px;transform:translateX(0);transition:transform .25s;z-index:50}
+  aside.toc.collapsed{transform:translateX(-100%)}
+  aside.toc h3{color:var(--accent);font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:0 0 12px}
+  aside.toc .toc-list{list-style:none;padding:0;margin:0 0 16px}
+  aside.toc .toc-list li{margin-bottom:2px}
+  aside.toc .toc-list a{color:var(--text-dim);text-decoration:none;padding:6px 10px;display:block;border-radius:6px;transition:background .15s;font-size:13px;line-height:1.3}
+  aside.toc .toc-list a:hover{background:var(--bg-card);color:var(--text)}
+  aside.toc .toc-list a.sub{font-size:11px;padding-left:22px;color:var(--text-mute)}
+  .toc-toggle{position:fixed;left:var(--toc-w);top:60px;background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:0 8px 8px 0;cursor:pointer;font-size:12px;font-weight:600;transition:left .25s;z-index:51}
+  aside.toc.collapsed ~ .toc-toggle{left:0}
+  body{padding-left:var(--toc-w)}
+  @media (max-width:900px){
+    aside.toc{transform:translateX(-100%)}
+    aside.toc.open-mobile{transform:translateX(0)}
+    .toc-toggle{left:0}
+    body{padding-left:0}
+  }
+
+  /* ==== Footer ==== */
+  footer{margin:40px 0 30px;padding:20px 32px;border-top:1px solid var(--border);color:var(--text-mute);font-size:12px;background:var(--bg-card)}
+  footer p{margin:4px 0}
+  footer code{background:var(--bg-elevated);padding:2px 6px;border-radius:4px;color:var(--accent-2)}
+
+  /* ==== Misc ==== */
+  .muted{color:var(--text-mute);font-size:12px}
+  code{font-family:'SF Mono',Menlo,monospace;background:var(--bg-elevated);padding:2px 6px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- ============ TOC SIDEBAR v1.4.4 ============ -->
+<aside class="toc" id="toc">
+  <h3>📚 目录 · TOC</h3>
+  <ul class="toc-list">
+    <li><a href="#hero" data-toc-link="hero">⚡ Hero / 核心论点</a></li>
+    <li><a href="#upgrade1" data-toc-link="upgrade1">🚀 升级 1: Gemini 3.5</a></li>
+    <li><a href="#upgrade2" data-toc-link="upgrade2">☁️ 升级 2: 云电脑</a></li>
+    <li><a href="#upgrade3" data-toc-link="upgrade3">📦 升级 3: 零源模式</a></li>
+    <li><a href="#upgrade4" data-toc-link="upgrade4">📄 升级 4: 交付物</a></li>
+    <li><a href="#host-frame" data-toc-link="host-frame">🎯 Nick Ponte 框架</a></li>
+    <li><a href="#scenarios" data-toc-link="scenarios">🔄 3 真实场景</a></li>
+    <li><a href="#limits" data-toc-link="limits">⚖️ 适用条件 + 局限</a></li>
+    <li><a href="#quotes" data-toc-link="quotes">💬 金句库</a></li>
+    <li><a href="#timeline" data-toc-link="timeline">⏱️ 时间轴</a></li>
+    <li><a href="#patrick" data-toc-link="patrick">🧰 Patrick 关联</a></li>
+    <li><a href="#action" data-toc-link="action">🗺️ 行动 / 监控</a></li>
+    <li><a href="#pitfalls" data-toc-link="pitfalls">⚠️ 本笔记局限</a></li>
+  </ul>
+  <div class="muted" style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border)">
+    <p>red_flag_score: <b style="color:var(--green)">0</b></p>
+    <p>source class: AI tutorial</p>
+    <p>use_as: product-overview</p>
+  </div>
+</aside>
+<button class="toc-toggle" id="tocToggle">☰ TOC</button>
+
+<header>
+  <h1>NotebookLM — I Can't Believe Google Added This Feature (HUGE UPDATE)</h1>
+  <p class="subtitle">Nick Ponte 频道 · AI 数字人 avatar · 9:37 · 2026-06-28 · z=zh-CN</p>
+  <div class="meta-bar">
+    <span>📺 YouTube · mV8OkHbaeYc</span>
+    <span>👤 Nick Ponte (AI avatar)</span>
+    <span>🌐 en-US</span>
+    <span>📊 12,891 views</span>
+    <span>❤️ 433 likes</span>
+    <span>📅 2026-06-28</span>
+  </div>
+</header>
+
+<div class="epistemic-note">
+  <b>认识论</b>: red_flag_score = <code>0</code> (产品教程, main-stream) · framing = <code>tutorial</code> · use_as = <code>product-update-overview</code>.
+  <br>
+  ⚠️ 本视频 = AI 数字人 avatar 主持, 主播本人是 AI Cash Flow Masterclass 卖家. <b>65%/70%/78% benchmark 是 [Google internal eval]</b>, 不是第三方独立测试. 主播「genuinely wild」「category change」属 marketing 包装, 不应作为中立评测.
+</div>
+
+<!-- ======================== TAB 1: HERO ======================== -->
+<div class="tab-content active" data-tab-content="t-hero" id="hero">
+<h2 id="h-hero" class="section" style="margin-top:0">⚡ 核心论点 (Hero)</h2>
+<section class="hero" style="margin:0">
+  <blockquote>
+    <b>2026-06 NotebookLM 从「读你给的资料 → 给你答案」的 RAG 工具</b>, 升级成 <b>自己上网找源 + 跑代码 + 给你下载交付物 (PDF / PPT / Excel...)</b> 的<b>研究型 AI 分析师</b>. 换装 Gemini 3.5 + Antigravity, 配专属 sandboxed 云电脑 + 100+ skills. 仅 <b>Google AI Ultra 订阅用户</b>可得.
+  </blockquote>
+  <h3 style="color:var(--accent);font-size:14px;margin-bottom:6px">5-bullet TL;DR</h3>
+  <ol>
+    <li>底层换 Gemini 3.5 + Antigravity (Google internal eval 65 / 70 / 78%).</li>
+    <li>每 notebook 一台 sandboxed 云电脑, 内置 100+ skills, 开箱即用.</li>
+    <li>零源起始 (zero source) — 输入问题, 系统自动找源, approve / skip 后建 notebook.</li>
+    <li>直接产生 9 种可下载交付物 (PDF, PPT, Excel, Word, CSV, JSON, Markdown, TXT, 图片).</li>
+    <li>仅 Google AI Ultra 订阅者 + Workspace Ultra 用户先得, 输出仍需人审.</li>
+  </ol>
+
+  <h3 style="color:var(--accent);font-size:14px;margin-top:18px;margin-bottom:6px">MOA-style 流向 (NotebookLM 2026-06)</h3>
+<pre class="moa-flow">
+┌──────────────────────────────────────────────────────────┐
+│   用户输入 prompt (问题 / 主题 / 任务)                    │
+└────────────────────────┬─────────────────────────────────┘
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│  ZERO SOURCE MODE → 自动找网源 (候选 → approve/skip)      │
+└────────────────────────┬─────────────────────────────────┘
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│  GEMINI 3.5 + ANTIGRAVITY (可见 reasoning)               │
+│  + 沙箱云电脑 (Python 执行) + 100+ 内置 skills            │
+└────────────────────────┬─────────────────────────────────┘
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│  FILE BUILDER: PDF · PPT · Excel · Word · CSV · JSON ... │
+│  (图片用 Nano Banana 模型)                                │
+└────────────────────────┬─────────────────────────────────┘
+                         ▼
+┌──────────────────────────────────────────────────────────┐
+│  USER (人审 + 整合 + 发布)   ← 责任仍在人                │
+└──────────────────────────────────────────────────────────┘
+</pre>
+</section>
+</div>
+
+<!-- ======================== STAT GRID ======================== -->
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="t-hero">⚡ Hero</button>
+  <button class="tab-btn" data-tab="t-upgrade1">🚀 升级 1</button>
+  <button class="tab-btn" data-tab="t-upgrade2">☁️ 升级 2</button>
+  <button class="tab-btn" data-tab="t-upgrade3">📦 升级 3</button>
+  <button class="tab-btn" data-tab="t-upgrade4">📄 升级 4</button>
+  <button class="tab-btn" data-tab="t-host">🎯 Host 框架</button>
+  <button class="tab-btn" data-tab="t-scenarios">🔄 真实场景</button>
+  <button class="tab-btn" data-tab="t-limits">⚖️ 局限</button>
+  <button class="tab-btn" data-tab="t-quotes">💬 金句</button>
+  <button class="tab-btn" data-tab="t-timeline">⏱️ 时间轴</button>
+  <button class="tab-btn" data-tab="t-patrick">🧰 Patrick</button>
+  <button class="tab-btn" data-tab="t-action">🗺️ 行动</button>
+  <button class="tab-btn" data-tab="t-pitfalls">⚠️ 本笔记局限</button>
+</nav>
+
+<!-- ======================== STAT GRID (positioned after tabs) ======================== -->
+<section class="stats">
+  <div class="stat"><span class="v">9:37</span><span class="l">video 长度</span></div>
+  <div class="stat"><span class="v">12,891</span><span class="l">views</span></div>
+  <div class="stat"><span class="v">4 大升级</span><span class="l">核心内容</span></div>
+  <div class="stat"><span class="v">Gemini 3.5</span><span class="l">底层模型</span></div>
+  <div class="stat"><span class="v">13 cards</span><span class="l">Patrick 关联</span></div>
+  <div class="stat"><span class="v">AI tutorial</span><span class="l">red_flag = 0</span></div>
+</section>
+
+<!-- ======================== TAB 2: UPGRADE 1 ======================== -->
+<div class="tab-content active" data-tab-content="t-upgrade1" id="upgrade1">
+  <h2 id="h-upgrade1" class="section">🚀 升级 1: Gemini 3.5 + Antigravity (Google internal eval)</h2>
+  <div class="warn-box green">
+    <b>[01:11]</b> NotebookLM 底层模型换装 <b>Gemini 3.5</b> + Google 自研 <b>Antigravity</b> 系统. 主播自言 [01:11]「Notebook LM just got a full model swap. It's now running on Gemini 3.5 plus Google's anti-gravity technology.」
+  </div>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">📊 可见 reasoning (Antigravity 核心)</h3>
+  <table>
+    <thead><tr><th>能力</th><th>说明</th><th>主播原话 / 时段</th></tr></thead>
+    <tbody>
+      <tr><td>step-by-step reasoning</td><td>用户能看到它怎么走到结论</td><td>[01:11]</td></tr>
+      <tr><td>drift 抓取</td><td>产出前可观察是否跑偏</td><td>[01:11]</td></tr>
+      <tr><td>大文档分析</td><td>胜出率 [Google internal eval] ~70%</td><td>[01:44]</td></tr>
+      <tr><td>深度网研</td><td>胜出率 [Google internal eval] ~78%</td><td>[01:44]</td></tr>
+      <tr class="highlight"><td>综合胜出</td><td>~65% (5 类评估项)</td><td>[01:44]</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <b>⚠️ 数据源标注</b>: 65% / 70% / 78% 来自 <b>Google 官方公告</b>, 由 Nick Ponte 单源转述, 不是 LMSys / 第三方基准. 引用时应注明 <code>[Google internal eval]</code>.
+  </div>
+</div>
+
+<!-- ======================== TAB 3: UPGRADE 2 ======================== -->
+<div class="tab-content" data-tab-content="t-upgrade2" id="upgrade2">
+  <h2 id="h-upgrade2" class="section">☁️ 升级 2: 专属沙箱云电脑 + 100+ skills</h2>
+  <div class="warn-box green">
+    <b>[02:11]</b> 每个 notebook 默认自带一台 <b>sandboxed cloud computer</b>. 主播 [02:11] 原话: 「Every single notebook now comes with its own dedicated cloud computer. A real, secure, sandboxed computing environment.」
+  </div>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">🧪 与 Patrick 本地栈的对照</h3>
+  <table>
+    <thead><tr><th>维度</th><th>NotebookLM sandbox</th><th>Patrick Hermes CLI</th></tr></thead>
+    <tbody>
+      <tr><td>隔离性</td><td>沙箱 (不能访问本地文件)</td><td>本地 (无隔离)</td></tr>
+      <tr><td>网络</td><td>受控 (白名单 skills)</td><td>完全开放</td></tr>
+      <tr><td>代码执行</td><td>受限 Python (数据 / 可视化)</td><td>任意 shell</td></tr>
+      <tr><td>持久性</td><td>绑 notebook 生命周期</td><td>本地文件系统</td></tr>
+      <tr class="highlight"><td>上手成本</td><td><b>0 setup</b> (开箱即用)</td><td>需熟悉 CLI</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">📦 100+ 内置 skills 类别</h3>
+  <div class="card-grid">
+    <div class="card"><h4>📊 数据可视化</h4><p>生成图表 + 数据摘要, 嵌入 PDF.</p></div>
+    <div class="card"><h4>📈 统计分析</h4><p>数学 + 趋势识别 (做真数学, 不靠猜).</p></div>
+    <div class="card"><h4>📄 文档分析</h4><p>PDF / Word / Excel 内部结构解析.</p></div>
+    <div class="card"><h4>🔄 Workflow 自动化</h4><p>跨工具步骤链.</p></div>
+  </div>
+</div>
+
+<!-- ======================== TAB 4: UPGRADE 3 ======================== -->
+<div class="tab-content" data-tab-content="t-upgrade3" id="upgrade3">
+  <h2 id="h-upgrade3" class="section">📦 升级 3: 零源起始 (zero source mode)</h2>
+  <div class="warn-box green">
+    <b>[05:42]</b> 旧模式: 必须先喂源. 新模式: 打开空 notebook, 输入问题 → 系统上网找源 → 列候选供 approve/skip → 基于批准源建完整 notebook.
+  </div>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">🔁 流程示意</h3>
+<pre class="moa-flow">
+用户输入 question (空 notebook)
+         ↓
+NotebookLM 上网检索 (相关 web sources)
+         ↓
+展示候选源列表 (含 URL + 摘要)
+         ↓
+用户 approve / skip (per-source)
+         ↓
+基于已批准源建立完整 notebook
+         ↓
+后续 RAG / 产出仍走标准 NotebookLM 流程
+</pre>
+
+  <div class="warn-box">
+    <b>概念类比</b>: 概念 ≈ Perplexity (联网 RAG) + Notion AI (产出文档) + 信任 checkpoint (approve/skip). 与 [[distributed-research-playbook]] + [[graphify]] 思路一致.
+  </div>
+
+  <div class="warn-box red">
+    <b>⚠️ 局限提示</b>: zero source 模式下, topic + goal 必须精确 ([08:49] 主播承认). 模糊 prompt = 找错源.
+  </div>
+</div>
+
+<!-- ======================== TAB 5: UPGRADE 4 ======================== -->
+<div class="tab-content" data-tab-content="t-upgrade4" id="upgrade4">
+  <h2 id="h-upgrade4" class="section">📄 升级 4: 可下载交付物 (file builder)</h2>
+  <div class="warn-box green">
+    <b>[03:21]</b> NotebookLM 现在能直接给你 <b>9 种可下载文件</b>, 不是描述, 是成品.
+  </div>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">📦 9 种输出格式</h3>
+  <table>
+    <thead><tr><th>格式</th><th>用途</th><th>特色</th></tr></thead>
+    <tbody>
+      <tr><td>PDF (含 charts)</td><td>最终报告 / 提案 deck</td><td>图表内嵌</td></tr>
+      <tr><td>PowerPoint</td><td>完整幻灯片</td><td>端到端 deck</td></tr>
+      <tr><td>Excel</td><td>30-day 内容日历 / 表格</td><td>真实 .xlsx</td></tr>
+      <tr><td>Word</td><td>文档 / 契约</td><td>.docx</td></tr>
+      <tr><td>Markdown / TXT</td><td>纯文本 / blog</td><td>轻量</td></tr>
+      <tr><td>CSV / JSON</td><td>结构化数据导出</td><td>程序可读</td></tr>
+      <tr class="highlight"><td>图片 (Nano Banana)</td><td>插图 / cover / chart 图</td><td>Google 自家模型</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <b>类比</b>: 这是「agent-as-deliverable」的实际落地, 与 [[here-now]] + Manus + Genspark 同一赛道 (内容生成 → 输出).
+  </div>
+</div>
+
+<!-- ======================== TAB 6: HOST FRAMEWORK ======================== -->
+<div class="tab-content" data-tab-content="t-host" id="host-frame">
+  <h2 id="h-host" class="section">🎯 Nick Ponte 的 host 框架 (marketing)</h2>
+  <div class="warn-box yellow">
+    <b>⚠️ 营销提示</b>: 主播本人是 <b>AI Cash Flow Masterclass</b> 卖家. 视频中至少 <b>2 次</b> 硬推课程 + 1 次推「all-in-one business platform」免费试用. 内容属 marketing 流量入口, 不中立.
+  </div>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">📣 主播内容框架</h3>
+  <div class="card-grid">
+    <div class="card"><h4>🪝 Hook</h4><p>「Google just crossed the line」+ 「fundamental shift」 — 主播标准的 AI tutorial 钩子.</p><span class="badge">[00:00]</span></div>
+    <div class="card"><h4>💰 Pain point</h4><p>「以前客户 deliverable 要 3-4 小时」 — 锚定营销人痛点.</p><span class="badge">[04:10]</span></div>
+    <div class="card"><h4>🚀 解决方案</h4><p>NotebookLM 单 prompt 解决 — 但实际还依赖 Ultra 订阅 + 人审.</p><span class="badge">[03:21]</span></div>
+    <div class="card"><h4>🎯 CTA #1</h4><p>「AI Cash Flow Masterclass 课程免费」 — 真实 Nick 业务.</p><span class="badge warn">marketing</span> <span class="badge">[00:43]</span></div>
+    <div class="card"><h4>🎯 CTA #2</h4><p>同上, 中段 + 末段重复, 强化.</p><span class="badge warn">marketing</span> <span class="badge">[05:26]</span></div>
+    <div class="card"><h4>🎁 Bonus CTA</h4><p>「30-day free trial」无信用卡, 跳到全业务平台.</p><span class="badge warn">affiliate</span> <span class="badge">[09:16]</span></div>
+  </div>
+</div>
+
+<!-- ======================== TAB 7: SCENARIOS ======================== -->
+<div class="tab-content" data-tab-content="t-scenarios" id="scenarios">
+  <h2 id="h-scenarios" class="section">🔄 真实场景 1-3 (主播放大节省时间)</h2>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">📋 场景对照表</h3>
+  <table>
+    <thead><tr><th>场景</th><th>老做法 (数小时)</th><th>新做法 (单 prompt)</th><th>时段</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. 提案 deck</b></td><td>多源采集 → 自写 → 排版 → 幻灯片</td><td>描述客户需求 + 想要的展示, 它自动出</td><td>[06:55]</td></tr>
+      <tr><td><b>2. 竞品情报</b></td><td>手搜 + 看报告 + 整理</td><td>输入请求 → 出结构化报告</td><td>[07:26]</td></tr>
+      <tr class="highlight"><td><b>3. Lead magnet PDF</b></td><td>雇设计师 / 自己花半天</td><td>几行 prompt → 直接可用的 PDF</td><td>[07:38]</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn-box">
+    <b>主播 marketing claim</b>: [07:54]「The kind of time savings that actually compounds. It's not just one afternoon you get back. It's every afternoon.」 — 应理解为 marketing 包装, 不当作严格 SROI 承诺.
+  </div>
+</div>
+
+<!-- ======================== TAB 8: LIMITS ======================== -->
+<div class="tab-content" data-tab-content="t-limits" id="limits">
+  <h2 id="h-limits" class="section">⚖️ 适用条件 + 局限</h2>
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">🟢 适用条件</h3>
+  <ul style="color:var(--text-dim);margin-left:18px">
+    <li>已订阅 Google AI Ultra (≈ $249.99/月).</li>
+    <li>或 Workspace 企业账号 + AI Ultra 附加 + AI Expanded access.</li>
+    <li>用例: 客户报告 / 提案 deck / lead magnet.</li>
+  </ul>
+
+  <h3 style="color:var(--accent-2);font-size:15px;margin-top:18px;margin-bottom:8px">🔴 局限</h3>
+  <div class="card-grid">
+    <div class="card"><h4>🔒 付费门槛</h4><p>[08:08] 仅 AI Ultra + Workspace Ultra 用户先得, 普通账号不立刻.</p><span class="badge warn">gate</span></div>
+    <div class="card"><h4>👤 仍需人审</h4><p>[08:31] 「you're still the one accountable for what goes out under your name.」</p></div>
+    <div class="card"><h4>🎯 零源精度</h4><p>[08:49] be precise → 「do a much better job finding what you actually need」.</p></div>
+    <div class="card"><h4>📢 Marketing 包装</h4><p>主播自卖课者, 别把「genuinely wild」类话当真.</p></div>
+    <div class="card"><h4>☁️ Google 生态锁定</h4><p>数据 / 源 / 产物都默认留 Google 云, 不便本地化.</p></div>
+    <div class="card"><h4>🧑‍💻 不是 coding agent</h4><p>sandbox 跑代码限于分析 / 可视化, 不写应用 / 不操作电脑.</p></div>
+  </div>
+</div>
+
+<!-- ======================== TAB 9: QUOTES ======================== -->
+<div class="tab-content" data-tab-content="t-quotes" id="quotes">
+  <h2 id="h-quotes" class="section">💬 金句库 (verbatim EN + zh-CN 译文)</h2>
+  <div class="quote-grid">
+    <div class="quote-card">
+      <span class="en">"Google just crossed the line with Notebook LM that I don't think people are fully grasping yet."</span>
+      <span class="zh">Google 把 Notebook LM 推过了一条线 — 我觉得大家还没完全理解.</span>
+      <span class="ts">[00:21]</span>
+    </div>
+    <div class="quote-card yellow">
+      <span class="en">"It used to be a research assistant. You'd feed it files, it answered questions. That was the deal."</span>
+      <span class="zh">它原本是个研究助理. 你喂文件, 它答问题. 这就是游戏规则.</span>
+      <span class="ts">[00:21]</span>
+    </div>
+    <div class="quote-card green">
+      <span class="en">"I'm Nick Pontis' AI avatar."</span>
+      <span class="zh">我是 Nick Ponte 的 AI 数字分身.</span>
+      <span class="ts">[00:43]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"Notebook LM just got a full model swap. It's now running on Gemini 3.5 plus Google's anti-gravity technology."</span>
+      <span class="zh">Notebook LM 完成了底层模型切换 — 现在跑在 Gemini 3.5 + Google 的 Antigravity 上.</span>
+      <span class="ts">[01:11]</span>
+    </div>
+    <div class="quote-card purple">
+      <span class="en">"And Google backed this up with their own internal benchmarks."</span>
+      <span class="zh">Google 用自家内部基准撑了这个数据.</span>
+      <span class="ts">[01:34]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"Every single notebook now comes with its own dedicated cloud computer."</span>
+      <span class="zh">每个 notebook 现在都自带一台专属云电脑.</span>
+      <span class="ts">[02:11]</span>
+    </div>
+    <div class="quote-card green">
+      <span class="en">"It moves NotebookLM from a tool that tells you things into a tool that does things."</span>
+      <span class="zh">这把 NotebookLM 从「告诉你答案」变成「替你动手」的工具.</span>
+      <span class="ts">[02:29]</span>
+    </div>
+    <div class="quote-card yellow">
+      <span class="en">"There's a massive difference between those two."</span>
+      <span class="zh">这两件事之间是巨大的鸿沟.</span>
+      <span class="ts">[02:35]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"No setup, no plugins. You just open it and that computing power is already there."</span>
+      <span class="zh">不需要装, 不需要配置. 你打开它, 算力已经在那里了.</span>
+      <span class="ts">[02:45]</span>
+    </div>
+    <div class="quote-card green">
+      <span class="en">"It comes loaded with over 100 built-in software skills out of the box."</span>
+      <span class="zh">开箱就有 100 多个内置软件技能.</span>
+      <span class="ts">[02:55]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"Not a description of a file, not a template you still have to go and fill in somewhere else. A finished, ready-to-use file."</span>
+      <span class="zh">不是文件描述, 不是你还要去填的模板. 是可以直接拿来用的成品.</span>
+      <span class="ts">[03:21]</span>
+    </div>
+    <div class="quote-card red">
+      <span class="en">"I want you to really sit with that for a second because this is a category change."</span>
+      <span class="zh">请你认真感受一下 — 这是品类级改变. <b>(marketing 包装)</b></span>
+      <span class="ts">[03:55]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"The entire front end of the research process is now handled automatically."</span>
+      <span class="zh">研究流程的最前段现在自动完成.</span>
+      <span class="ts">[06:32]</span>
+    </div>
+    <div class="quote-card yellow">
+      <span class="en">"The research that used to eat up the first hour of a project is now done before you finish your first cup of coffee."</span>
+      <span class="zh">原本吃掉项目第一小时的研究, 现在你还没喝完咖啡就做完了.</span>
+      <span class="ts">[06:47]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"It's not just one afternoon you get back. It's every afternoon this kind of task comes up."</span>
+      <span class="zh">不是只省回一个下午 — 是每个下午遇到这类任务都省.</span>
+      <span class="ts">[07:54]</span>
+    </div>
+    <div class="quote-card red">
+      <span class="en">"Those are currently available for Google AI Ultra subscribers and Google Workspace users with AI Ultra access and AI expanded access."</span>
+      <span class="zh">这些功能目前只有 Google AI Ultra 订阅者 + 拥有 AI Ultra + AI Expanded 权限的 Workspace 用户能拿到.</span>
+      <span class="ts">[08:08]</span>
+    </div>
+    <div class="quote-card green">
+      <span class="en">"You're still the one accountable for what goes out under your name."</span>
+      <span class="zh">挂你名字发出去的东西, 责任仍然在你.</span>
+      <span class="ts">[08:31]</span>
+    </div>
+    <div class="quote-card">
+      <span class="en">"Be precise about your topic and your goal, and it'll do a much better job finding what you actually need."</span>
+      <span class="zh">话题 + 目标要精确, 它才会更准确找到你真正需要的.</span>
+      <span class="ts">[08:49]</span>
+    </div>
+    <div class="quote-card purple">
+      <span class="en">"Notebook LM just crossed from research assistant into full AI analyst."</span>
+      <span class="zh">Notebook LM 跨越了 — 从研究助理变成完整 AI 分析师.</span>
+      <span class="ts">[08:53]</span>
+    </div>
+    <div class="quote-card red">
+      <span class="en">"The last one is genuinely wild."</span>
+      <span class="zh">最后一个是真野. <b>(主播自夸 phrase, marketing)</b></span>
+      <span class="ts">[00:33]</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 10: TIMELINE ======================== -->
+<div class="tab-content" data-tab-content="t-timeline" id="timeline">
+  <h2 id="h-timeline" class="section">⏱️ 时间轴 (32-segment 映射)</h2>
+  <div class="timeline">
+    <div class="tl-item"><div class="time">[00:00]</div><div class="what">Hook — "Google just crossed the line".</div></div>
+    <div class="tl-item"><div class="time">[00:21]</div><div class="what">RAG → agent 范式跃迁描述.</div></div>
+    <div class="tl-item"><div class="time">[00:43]</div><div class="what">AI avatar 自我介绍 + AI Cash Flow Masterclass 推销 #1.</div></div>
+    <div class="tl-item"><div class="time">[01:11]</div><div class="what">升级 1 进入: Gemini 3.5 + Antigravity.</div></div>
+    <div class="tl-item"><div class="time">[01:31]</div><div class="what">Antigravity 可见 reasoning 解释.</div></div>
+    <div class="tl-item"><div class="time">[01:44]</div><div class="what">65% / 70% / 78% 内部 benchmark.</div></div>
+    <div class="tl-item"><div class="time">[02:11]</div><div class="what">升级 2: 专属云电脑 + sandbox.</div></div>
+    <div class="tl-item"><div class="time">[02:45]</div><div class="what">100+ 内置 skills + 开箱.</div></div>
+    <div class="tl-item"><div class="time">[03:21]</div><div class="what">升级 4: 文件输出 (PDF/PPT/Excel...).</div></div>
+    <div class="tl-item"><div class="time">[03:45]</div><div class="what">列出 9 种输出格式 (含 Nano Banana 图片).</div></div>
+    <div class="tl-item"><div class="time">[04:10]</div><div class="what">"category change" marketing claim.</div></div>
+    <div class="tl-item"><div class="time">[04:30]</div><div class="what">场景 1: 提案 deck.</div></div>
+    <div class="tl-item"><div class="time">[04:42]</div><div class="what">场景 2: 30-day content calendar Excel.</div></div>
+    <div class="tl-item"><div class="time">[05:02]</div><div class="what">场景 3: lead magnet PDF.</div></div>
+    <div class="tl-item"><div class="time">[05:26]</div><div class="what">AI Cash Flow Masterclass 推销 #2.</div></div>
+    <div class="tl-item"><div class="time">[05:42]</div><div class="what">升级 3: zero source starting mode 进入.</div></div>
+    <div class="tl-item"><div class="time">[06:07]</div><div class="what">approve / skip 流程.</div></div>
+    <div class="tl-item"><div class="time">[06:32]</div><div class="what">竞品情报场景应用.</div></div>
+    <div class="tl-item"><div class="time">[06:55]</div><div class="what">3 真实场景组 (proposal / competitive / lead).</div></div>
+    <div class="tl-item"><div class="time">[07:54]</div><div class="what">"every afternoon" 时间复利 marketing.</div></div>
+    <div class="tl-item"><div class="time">[08:08]</div><div class="what">局限 1: AI Ultra 付费门槛.</div></div>
+    <div class="tl-item"><div class="time">[08:31]</div><div class="what">局限 2: 人审必要性.</div></div>
+    <div class="tl-item"><div class="time">[08:49]</div><div class="what">局限 3: zero source 精度.</div></div>
+    <div class="tl-item"><div class="time">[08:53]</div><div class="what">结论: research assistant → AI analyst.</div></div>
+  </div>
+</div>
+
+<!-- ======================== TAB 11: PATRICK ======================== -->
+<div class="tab-content" data-tab-content="t-patrick" id="patrick">
+  <h2 id="h-patrick" class="section">🧰 Patrick 关联 (10 cards — Patrick vault / skills)</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🔗 [[html-to-printable-pdf]]</h4>
+      <p>NotebookLM 文件输出包含 PDF; Patrick 已有同等技能, 区别在于 NotebookLM 联动检索, html-to-printable-pdf 联动 pipeline.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: HTML→PDF vs NotebookLM→PDF, 后者省心前者可控.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[here-now]]</h4>
+      <p>同样走向 agent-as-deliverable, here-now 走内容站发布, NotebookLM 走研究报告.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 同一赛道 (生成 → 输出).</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[understand-anything]]</h4>
+      <p>零源 + 自动找源 = 主动搭建 RAG KB, 与 understand-anything 思路一致.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: build KB from nothing.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[graphify]]</h4>
+      <p>自动构建知识图谱方向; NotebookLM 候选源 → approve 流程类似 graphify 的 manual graph build.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: graph 起点建构.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[distributed-research-playbook]]</h4>
+      <p>NotebookLM 升级是 distributed research playbook 的 NotebookLM-specific 实例化.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 研究自动化 framework 落地.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[openclaw-on-steroids-multi-agent-latent]]</h4>
+      <p>NotebookLM 在 sandbox 内执行任务, 类似 multi-agent 的受限子集.</p>
+      <p style="color:var(--yellow);margin-top:6px">→ <b>同源警示</b>: 同一方向不同垂直化版本.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[agentic-os]]</h4>
+      <p>「AI 研究员 + 执行者」一体化 OS 概念, NotebookLM 是 Google 端的实例化产品.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: OS-level 同源.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[compositional-coding]]</h4>
+      <p>Antigravity reasoning 暴露 ≈ Claude extended thinking blocks.</p>
+      <p style="color:var(--yellow);margin-top:6px">→ <b>同源警示</b>: 同思路, 不算独家.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[notebooklm-ai-agent-2026-06-09]]</h4>
+      <p>Julian Goldie SEO 同主题早期笔记, 早 17 天已铺底 — 双向补完.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>完全同源</b>: 同一产品 update 的双源对照.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[solopreneur-knowledge-monitor]]</h4>
+      <p>主播定位 (营销机构 + AI 卖课) 与 Patrick 「1 人公司」结构对照.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 商业模式 + AI 工具组合方法学.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[composio]]</h4>
+      <p>NotebookLM 100+ 内置 skills 与 Composio 100+ 第三方 API 整合服务, 都在争夺「AI 工具万能遥控器」位置.</p>
+      <p style="color:var(--yellow);margin-top:6px">→ <b>同源警示</b>: 同赛道不同栈.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[claude-code-6-power-phrases]]</h4>
+      <p>NotebookLM 4 个升级本质 = 6 类 power phrases 触发, 也可视为「prompt 重写栈」.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 写 prompt vs 调工具结果.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[subagent-driven-development]]</h4>
+      <p>NotebookLM 子任务 (research / analysis / file build) 与 subagent 派发结构同源.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 一主多子模式 + 协作单位并行.</p>
+    </div>
+    <div class="card">
+      <h4>🔗 [[financial-analysis]]</h4>
+      <p>NotebookLM 在零源 + Excel 30-day content calendar 场景里隐含 financial-analysis 思路.</p>
+      <p style="color:var(--green);margin-top:6px">→ <b>同源</b>: 财务分析 + 表格自动化生成.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 12: ACTION ======================== -->
+<div class="tab-content" data-tab-content="t-action" id="action">
+  <h2 id="h-action" class="section">🗺️ 行动 / 监控信号</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h4>1️⃣ 本周做对比测试</h4>
+      <p>同 prompt → NotebookLM Ultra vs [[html-to-printable-pdf]] + Claude, 记 (a) 速度 (b) 数字正确 (c) 视觉 → 入 vault.</p>
+      <span class="badge">本周</span>
+    </div>
+    <div class="card">
+      <h4>2️⃣ 追源头</h4>
+      <p>Google AI blog / Workspace release notes 找 65%/70%/78% 原始声明, 对比主播转述差异.</p>
+      <span class="badge">明天</span>
+    </div>
+    <div class="card">
+      <h4>3️⃣ 类别矩阵</h4>
+      <p>列出 NotebookLM / Manus / Genspark / here-now 4 家 agent-as-deliverable 特性矩阵 → vault note.</p>
+      <span class="badge">下周</span>
+    </div>
+    <div class="card">
+      <h4>4️⃣ Patrick loop 集成方案</h4>
+      <p>若进入「研究型 agent」家族, NotebookLM 现成 + Google 背书; 编程协作仍走 Hermes.</p>
+      <span class="badge">30 天</span>
+    </div>
+    <div class="card">
+      <h4>5️⃣ Marketing 防火墙</h4>
+      <p>后续产品更新频道都标注 [marketing-frame] 信任级别, 不被数字人 hitch 影响判断.</p>
+      <span class="badge warn">always</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== TAB 13: PITFALLS ======================== -->
+<div class="tab-content" data-tab-content="t-pitfalls" id="pitfalls">
+  <h2 id="h-pitfalls" class="section">⚠️ 本笔记局限 (Limitations)</h2>
+  <div class="warn-box red">
+    <b>信任框架标注</b>: 本视频 = AI 数字人 avatar 主持, 主播本人是 AI 卖课者, 不应作中立评测.
+  </div>
+  <div class="warn-box yellow">
+    <b>benchmark 数据源</b>: 65% / 70% / 78% = <b>单一来源</b> (Google 内部 + 主播转述), 待 <b>Google 官方 blog</b> 二次核实.
+  </div>
+  <div class="warn-box">
+    <b>数字人主持</b>: Nick Ponte 本人未出现在视频, 表情 / 语调都不是他, 视频本身就是内容营销, 不是第一人称 tech review.
+  </div>
+  <div class="warn-box purple">
+    <b>样本量</b>: 9:37 短视频, 实际效果待 24-72 小时第三方测试 (Julian Goldie / Matt Wolfe / Lenny's Podcast 群), 本笔记不替他们预告结论.
+  </div>
+  <div class="warn-box green">
+    <b>正信号</b>: red_flag_score = 0, 与 [[notebooklm-ai-agent-2026-06-09]] (Julian Goldie) 同主题早期笔记交叉验证关键点基本一致 → 双源对照可信.
+  </div>
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <p>📁 <b>Vault 笔记</b>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/notebooklm-i-can-t-believe-google-added-this-featu/index.md</code></p>
+  <p>📂 <b>桌面预览</b>: <code>/tmp/notebooklm_c_dashboard.html</code></p>
+  <p>📺 <b>来源</b>: <code>https://www.youtube.com/watch?v=mV8OkHbaeYc</code></p>
+  <p>🏷️ <b>Pipeline</b>: video-to-knowledge-dashboard v1.9.2 · build at 2026-07-01 · Pitfalls 26-27 verified.</p>
+</footer>
+
+<script>
+/* ===== Tab switching + hash routing ===== */
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(t => {
+  t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.toggle('active', x === t));
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === t.dataset.tab));
+    history.replaceState(null, '', '#' + t.dataset.tab.replace(/^t-/, ''));
+    // Scroll to content top
+    const target = document.querySelector('[data-tab-content="' + t.dataset.tab + '"]');
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+
+/* ===== TOC toggle (collapsible) ===== */
+const toc = document.getElementById('toc');
+const tocToggle = document.getElementById('tocToggle');
+const lsKey = 'notebooklm-toc-collapsed';
+function syncToc() {
+  const collapsed = localStorage.getItem(lsKey) === '1';
+  if (collapsed) {
+    toc.classList.add('collapsed');
+  } else {
+    toc.classList.remove('collapsed');
+  }
+}
+tocToggle.addEventListener('click', () => {
+  const newCollapsed = !toc.classList.contains('collapsed');
+  if (newCollapsed) {
+    toc.classList.add('collapsed');
+  } else {
+    toc.classList.remove('collapsed');
+  }
+  localStorage.setItem(lsKey, newCollapsed ? '1' : '0');
+});
+
+/* ===== TOC link → activate tab + scroll ===== */
+document.querySelectorAll('[data-toc-link]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    const tabKey = a.getAttribute('data-toc-link');
+    const targetTab = document.querySelector('[data-tab="t-' + tabKey + '"]');
+    if (targetTab) targetTab.click();
+  });
+});
+
+/* ===== Init from hash ===== */
+window.addEventListener('DOMContentLoaded', () => {
+  syncToc();
+  const initHash = location.hash.replace('#', '');
+  if (initHash) {
+    const targetTab = document.querySelector('[data-tab="t-' + initHash + '"]');
+    if (targetTab) targetTab.click();
+  }
+});
+</script>
+
+</body>
+</html>
