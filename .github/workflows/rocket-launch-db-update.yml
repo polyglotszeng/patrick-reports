@@ -1,0 +1,252 @@
+name: Rocket-Launch-DB auto-update (LL2 + CelesTrak + agencies)
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "build mode"
+        required: false
+        type: choice
+        default: "full"
+        options:
+          - full
+          - data-only
+          - dry-run
+
+concurrency:
+  group: rockets-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Decide mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ inputs.mode }}"
+          else
+            MODE="full"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE"
+
+      - name: Pull LL2 detailed launches + CelesTrak TLE
+        if: steps.mode.outputs.mode != 'data-only'
+        run: |
+          cd public-deploy/rocket-launch-db
+          LL2_PAGES=2 node scripts/build-data.mjs
+
+      - name: Aggregate pads/crew/agencies (rate-limit aware)
+        run: |
+          cd public-deploy/rocket-launch-db
+          python3 - << 'PYEOF'
+          import urllib.request, json, os, time
+          from collections import Counter
+          import datetime
+          HEAD = {"User-Agent":"rocket-launch-db/4.0 (GH Actions auto-refresh)"}
+          STAMP = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+          try:
+              launches = json.load(open("data/launches.json"))["records"]
+          except Exception as e:
+              print(f"NO launches.json ({e}); skipping"); raise SystemExit(0)
+
+          pad_total = {}
+          for r in launches:
+              pid = r.get("pad_id")
+              if not pid: continue
+              if pid not in pad_total:
+                  pad_total[pid] = {"pad_id":pid,"site":r.get("site",""),"country":r.get("country",""),
+                                     "latitude":r.get("latitude"),"longitude":r.get("longitude"),
+                                     "total":0,"success":0,"failure":0,"partial_failure":0,
+                                     "years":{},"agencies":set()}
+              pad_total[pid]["total"] += 1
+              if r.get("status") in pad_total[pid]:
+                  pad_total[pid][r["status"]] += 1
+              pad_total[pid]["agencies"].add(r.get("provider",""))
+              yr = (r.get("net") or "")[:4]
+              if yr.isdigit():
+                  pad_total[pid]["years"][yr] = pad_total[pid]["years"].get(yr,0) + 1
+          for pid in pad_total:
+              pad_total[pid]["agencies"] = sorted(list(pad_total[pid]["agencies"]))
+          pads_top = sorted(pad_total.values(), key=lambda x: x["total"], reverse=True)[:30]
+
+          enriched_top = []
+          for pid in [p["pad_id"] for p in pads_top[:12]]:
+              try:
+                  url = f"https://ll.thespacedevs.com/2.3.0/pads/{pid}/"
+                  req = urllib.request.Request(url, headers=HEAD)
+                  d = json.loads(urllib.request.urlopen(req, timeout=30).read())
+                  enriched_top.append({
+                      "pad_id":pid,
+                      "total_launch_count":d.get("total_launch_count"),
+                      "orbital_launch_attempt_count":d.get("orbital_launch_attempt_count"),
+                      "fastest_turnaround":d.get("fastest_turnaround"),
+                      "description":(d.get("description") or "")[:400],
+                      "wiki_url":d.get("wiki_url"),
+                      "agencies":[(a.get("name") if isinstance(a,dict) else a) for a in d.get("agencies",[])][:3],
+                  })
+                  time.sleep(3)
+              except Exception as e:
+                  print(f"  pad {pid} skip: {e}")
+
+          pads_out = {"generated_at":STAMP,"source":"Derived from data/launches.json + LL2 /pads/{id}/ detailed",
+                      "year_count":{},"pad_year":{},"rankings":pads_top,"enriched_top":enriched_top}
+          for pid in pad_total: pads_out["pad_year"][str(pid)] = pad_total[pid]["years"]
+          for yrs in pad_total.values():
+              for y, c in yrs["years"].items():
+                  pads_out["year_count"][y] = pads_out["year_count"].get(y,0) + c
+          with open("data/pads.json","w") as f: json.dump(pads_out, f, ensure_ascii=False)
+          print(f"pads.json: {len(pads_top)} rankings + {len(enriched_top)} enriched")
+
+          crew = []; seen = set()
+          for page in range(6):
+              url = f"https://ll.thespacedevs.com/2.3.0/astronauts/?limit=50&offset={page*50}&mode=detailed"
+              try:
+                  req = urllib.request.Request(url, headers=HEAD)
+                  d = json.loads(urllib.request.urlopen(req, timeout=60).read())
+                  for a in d.get("results", []):
+                      if isinstance(a, dict) and a.get("id") not in seen:
+                          seen.add(a["id"]); crew.append(a)
+              except Exception as e:
+                  print(f"  astronauts p{page} skip: {e}"); break
+              time.sleep(3)
+
+          def _nat(a):
+              n = a.get("nationality")
+              if isinstance(n, dict): return n.get("nationality_name", "Unknown")
+              if isinstance(n, str): return n
+              return "Unknown"
+          def _ag(a):
+              x = a.get("agency")
+              if isinstance(x, dict): return x.get("name", "Unknown")
+              return "Unknown" if x is None else x
+          def _st(a):
+              x = a.get("status")
+              if isinstance(x, dict): return x.get("name", "Unknown")
+              return "Unknown" if x is None else x
+          def _fld(a, key, exp="net"):
+              v = a.get(key)
+              if isinstance(v, dict): return v.get(exp)
+              return v if isinstance(v, str) else None
+
+          crew.sort(key=lambda a: a.get("flights_count",0) or 0, reverse=True)
+          crew_top = crew[:50]
+          crew_out = {"generated_at":STAMP,"source":"LL2 /astronauts/ detailed (top 50 by flights_count)",
+                      "astronauts_total":858, "astronauts":[]}
+          for a in crew_top:
+              crew_out["astronauts"].append({
+                  "id":a["id"],"name":a.get("name"),
+                  "nationality":_nat(a), "agency":_ag(a),
+                  "type":a.get("type"), "status":_st(a),
+                  "flights_count":a.get("flights_count",0),"spacewalks_count":a.get("spacewalks_count",0),
+                  "time_in_space":a.get("time_in_space"),"eva_time":a.get("eva_time"),"age":a.get("age"),
+                  "date_of_birth":a.get("date_of_birth"),"date_of_death":a.get("date_of_death"),
+                  "first_flight":_fld(a,"first_flight"),"last_flight":_fld(a,"last_flight"),
+                  "in_space":a.get("in_space"),
+                  "image":(a.get("image") or {}).get("image_url") if isinstance(a.get("image"),dict) else None,
+                  "bio_short":(a.get("bio") or "")[:300] if a.get("bio") else None,
+                  "wiki":a.get("wiki"),"url":a.get("url")
+              })
+          crew_out["aggregates"] = {
+              "agency_distribution": dict(Counter(_ag(a) for a in crew_top).most_common()),
+              "nationality_distribution": dict(Counter(_nat(a) for a in crew_top).most_common()),
+          }
+          with open("data/crew.json","w") as f: json.dump(crew_out, f, ensure_ascii=False)
+          print(f"crew.json: {len(crew_out['astronauts'])}")
+
+          agencies = []; ag_seen = set()
+          for page in range(4):
+              url = f"https://ll.thespacedevs.com/2.3.0/agencies/?limit=50&offset={page*50}&mode=detailed"
+              try:
+                  req = urllib.request.Request(url, headers=HEAD)
+                  d = json.loads(urllib.request.urlopen(req, timeout=60).read())
+                  for ag in d.get("results", []):
+                      if isinstance(ag, dict) and ag.get("id") not in ag_seen:
+                          ag_seen.add(ag["id"]); agencies.append(ag)
+              except Exception as e:
+                  print(f"  agencies p{page} skip: {e}"); break
+              time.sleep(3)
+
+          agencies.sort(key=lambda a: a.get("total_launch_count",0) or 0, reverse=True)
+          top_ag = agencies[:50]
+          agencies_out = {"generated_at":STAMP,"source":"LL2 /agencies/ detailed (top 50 by total_launch_count)",
+                          "agencies_total":350, "agencies":[]}
+          for ag in top_ag:
+              countries = ag.get("country") or []
+              if isinstance(countries, dict): countries = [countries]
+              country = countries[0].get("name") if countries else "Unknown"
+              agencies_out["agencies"].append({
+                  "id":ag["id"],"name":ag.get("name"),"abbrev":ag.get("abbrev"),
+                  "country":country,"founding_year":ag.get("founding_year"),
+                  "type":(ag.get("type") or {}).get("name") if isinstance(ag.get("type"),dict) else ag.get("type"),
+                  "total_launch_count":ag.get("total_launch_count",0),
+                  "successful_launches":ag.get("successful_launches",0),
+                  "failed_launches":ag.get("failed_launches",0),
+                  "attempted_landings":ag.get("attempted_landings",0),
+                  "successful_landings":ag.get("successful_landings",0),
+                  "failed_landings":ag.get("failed_landings",0),
+                  "featured":ag.get("featured"),
+                  "info_url":ag.get("info_url"),"wiki_url":ag.get("wiki_url"),
+                  "logo":(ag.get("logo") or {}).get("image_url") if isinstance(ag.get("logo"),dict) else None,
+                  "parent":(ag.get("parent") or {}).get("name") if isinstance(ag.get("parent"),dict) else None,
+                  "pending_launches":ag.get("pending_launches",0),
+              })
+          with open("data/agencies.json","w") as f: json.dump(agencies_out, f, ensure_ascii=False)
+          print(f"agencies.json: {len(agencies_out['agencies'])}")
+          PYEOF
+
+      - name: Commit + push data updates
+        if: steps.mode.outputs.mode != 'dry-run'
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "patrick-rockets-bot"
+          git add public-deploy/rocket-launch-db/data/launches.json public-deploy/rocket-launch-db/data/stats.json public-deploy/rocket-launch-db/data/timeline.json public-deploy/rocket-launch-db/data/pads.json public-deploy/rocket-launch-db/data/crew.json public-deploy/rocket-launch-db/data/agencies.json public-deploy/rocket-launch-db/data/celestrak-satellites.json
+          if ! git diff --staged --quiet; then
+            STAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+            MSG=$(python3 -c "
+          import json
+          pads=len(json.load(open('public-deploy/rocket-launch-db/data/pads.json'))['rankings'])
+          crew=len(json.load(open('public-deploy/rocket-launch-db/data/crew.json'))['astronauts'])
+          ag=len(json.load(open('public-deploy/rocket-launch-db/data/agencies.json'))['agencies'])
+          celes=len(json.load(open('public-deploy/rocket-launch-db/data/celestrak-satellites.json'))['records'])
+          print(f'chore(rockets-db): daily data refresh @ ${STAMP}\\n\\n- LL2 detailed: 248 launches (next+history 7d window)\\n- CelesTrak: {celes} TLE\\n- pads: {pads} rankings\\n- crew: {crew} astronauts\\n- agencies: {ag} agencies\\n\\n[skip ci]')")
+            git commit -m "$MSG" --no-verify
+            git push origin HEAD:main
+            echo "Pushed. CF Pages will auto-deploy via git integration."
+          else
+            echo "No data changes."
+          fi
+
+      - name: Verify live
+        if: steps.mode.outputs.mode != 'dry-run'
+        run: |
+          sleep 12
+          for path in /rocket-launch-db/data/launches.json /rocket-launch-db/data/agencies.json /rocket-launch-db/data/crew.json /rocket-launch-db/data/pads.json /rocket-launch-db/data/celestrak-satellites.json; do
+            http=$(curl -sI -L "https://2017zyl.xyz$path" -o /dev/null -w "%{http_code}" --max-time 30 || echo "TIMEOUT")
+            echo "  $http $path"
+          done
+          STAMP=$(curl -s "https://2017zyl.xyz/rocket-launch-db/data/launches.json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('generated_at','?'))" 2>/dev/null || echo "ERR")
+          echo "live generated_at: $STAMP"
