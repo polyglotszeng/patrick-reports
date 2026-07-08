@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球火箭发射数据库 · 原型 v1</title>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#121828; --panel2:#0f1522; --border:#1f2a44;
+    --text:#dbe4f5; --muted:#7d8bab; --accent:#4f8cff; --accent2:#39d0a4;
+    --warn:#ffb547; --bad:#ff5d6c; --chip:#1a2340;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.55}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+  header h1{font-size:1.5rem;font-weight:700}
+  .ver{color:var(--muted);font-size:.85rem}
+  .meta{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+  .meta .src-mode{margin-left:8px;padding:2px 8px;border-radius:10px;background:var(--chip);font-size:.78rem}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .card .k{color:var(--muted);font-size:.85rem;margin-bottom:6px}
+  .card .v{font-size:1.9rem;font-weight:700;font-variant-numeric:tabular-nums}
+  .card .sub{color:var(--muted);font-size:.78rem;margin-top:4px}
+
+  h2{font-size:1.05rem;margin:26px 0 12px;display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:4px;height:16px;background:var(--accent);border-radius:2px;display:inline-block}
+
+  .bars{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+  .bar-row{display:grid;grid-template-columns:120px 1fr 56px;align-items:center;gap:12px;font-size:.88rem}
+  .bar-row .name{color:var(--muted)}
+  .bar-track{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px;transition:width .5s}
+  .bar-row .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .filters input,.filters select{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:.88rem;outline:none}
+  .filters input:focus,.filters select:focus{border-color:var(--accent)}
+  .filters input{flex:1 1 220px;min-width:180px}
+  .filters button{background:var(--chip);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.88rem}
+  .filters button:hover{color:var(--text);border-color:var(--accent)}
+  .count-line{color:var(--muted);font-size:.82rem;margin-bottom:10px}
+
+  .list{display:grid;gap:10px}
+  .row{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;cursor:pointer;transition:border-color .15s}
+  .row:hover{border-color:var(--accent)}
+  .row .title{font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .row .info{color:var(--muted);font-size:.82rem;display:flex;flex-wrap:wrap;gap:4px 14px}
+  .row .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;justify-content:center}
+
+  .pill{font-size:.72rem;padding:2px 10px;border-radius:10px;white-space:nowrap}
+  .st-success{background:rgba(57,208,164,.15);color:var(--accent2)}
+  .st-upcoming{background:rgba(79,140,255,.15);color:var(--accent)}
+  .st-failure{background:rgba(255,93,108,.15);color:var(--bad)}
+  .st-partial_failure{background:rgba(255,181,71,.15);color:var(--warn)}
+  .chip{font-size:.7rem;padding:1px 7px;border-radius:8px;background:var(--chip);color:var(--muted)}
+  .conflict-flag{font-size:.72rem;color:var(--warn);border:1px solid rgba(255,181,71,.4);border-radius:8px;padding:1px 8px}
+  .empty{color:var(--muted);text-align:center;padding:40px 0;border:1px dashed var(--border);border-radius:12px}
+
+  /* drawer */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+  .overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-480px;width:min(460px,94vw);height:100vh;background:var(--panel);border-left:1px solid var(--border);z-index:10;transition:right .25s;overflow-y:auto;padding:22px}
+  .drawer.open{right:0}
+  .drawer h3{font-size:1.1rem;margin-bottom:4px;padding-right:36px}
+  .drawer .close{position:absolute;top:14px;right:14px;background:var(--chip);border:none;color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:1rem}
+  .drawer .sec{margin-top:18px}
+  .drawer .sec h4{font-size:.82rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+  .kv{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;font-size:.88rem}
+  .kv .k{color:var(--muted)}
+  .obj-item,.conf-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.84rem;margin-bottom:6px}
+  .conf-item{border-color:rgba(255,181,71,.4)}
+  .conf-item .f{color:var(--warn);font-weight:600}
+  .verif{display:flex;gap:8px;flex-wrap:wrap}
+  .verif span{font-size:.78rem;padding:3px 10px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+  .verif span.ok{color:var(--accent2);border-color:rgba(57,208,164,.4)}
+
+  .arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .arch .s{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:.84rem}
+  .arch .s b{display:block;margin-bottom:4px}
+  .arch .s .role{color:var(--muted)}
+  .arch .s .lock{color:var(--warn);font-size:.75rem;margin-top:6px;display:block}
+  .arch .s a{word-break:break-all;overflow-wrap:anywhere;font-size:.78rem}
+  .site-link{color:var(--accent);font-size:.82rem}
+  .site-link:hover{text-decoration:underline}
+  .ref-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.84rem;margin-bottom:6px}
+  .ref-item a{word-break:break-word}
+
+  footer{margin-top:36px;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🚀 全球火箭发射数据库</h1>
+    <span class="ver">原型 v1 · 静态托管</span>
+  </header>
+  <div class="meta">
+    数据更新：<span id="generatedAt">—</span>
+    <span class="src-mode" id="dataMode">加载中…</span>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="k">总发射数</div><div class="v" id="statTotal">—</div><div class="sub">LL2 + GCAT 合并去重</div></div>
+    <div class="card"><div class="k">未来 30 天</div><div class="v" id="statUpcoming">—</div><div class="sub">LL2 实时排期</div></div>
+    <div class="card"><div class="k">关联空间物体</div><div class="v" id="statObjects">—</div><div class="sub">CelesTrak SATCAT 交叉</div></div>
+    <div class="card"><div class="k">核验覆盖率</div><div class="v" id="statVerified">—</div><div class="sub">≥1 个权威目录核验</div></div>
+  </div>
+
+  <h2>数据源贡献</h2>
+  <div class="bars" id="sourceBars"></div>
+
+  <h2>发射记录</h2>
+  <div class="filters">
+    <input id="fSearch" type="search" placeholder="搜索任务 / 火箭 / 发射场…">
+    <select id="fProvider"><option value="">全部机构</option></select>
+    <select id="fCountry"><option value="">全部国家/地区</option></select>
+    <select id="fYear"><option value="">全部年份</option></select>
+    <select id="fStatus">
+      <option value="">全部状态</option>
+      <option value="upcoming">待发射</option>
+      <option value="success">成功</option>
+      <option value="partial_failure">部分失败</option>
+      <option value="failure">失败</option>
+    </select>
+    <select id="fSource"><option value="">全部来源</option></select>
+    <button id="fReset">重置</button>
+  </div>
+  <div class="count-line" id="countLine"></div>
+  <div class="list" id="launchList"></div>
+
+  <h2>数据源架构</h2>
+  <div class="arch" id="archGrid"></div>
+
+  <footer>
+    数据来源：The Space Devs Launch Library 2 · Jonathan McDowell GCAT/LVDB · CelesTrak SATCAT · Space-Track（仅后端）· UNOOSA Online Index。
+    前端不调用任何需认证接口；全部展示数据由 <code>scripts/build-data.mjs</code> 生成的静态 JSON 提供。
+  </footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <button class="close" id="drawerClose">✕</button>
+  <div id="drawerBody"></div>
+</aside>
+
+<script>
+/* ========== 内嵌种子数据（fetch 失败时兜底） ========== */
+const SEED = {
+  stats: {"generated_at":"2026-07-06T00:00:00Z","total_launches":15,"upcoming_30d":4,"linked_objects":12,"verification_coverage":0.53,"source_contributions":[{"source":"LL2","count":12},{"source":"GCAT","count":7},{"source":"CELESTRAK","count":4},{"source":"SPACETRACK","count":6},{"source":"UNOOSA","count":5}]},
+  sources: {"sources":[
+    {"id":"LL2","name":"The Space Devs Launch Library 2","role":"实时与未来发射排期、任务详情、发射状态（主源）","url":"https://ll.thespacedevs.com/2.3.0/launches/","auth_required":false},
+    {"id":"GCAT","name":"Jonathan McDowell GCAT / LVDB","role":"历史发射基线与运载火箭目录完整性","url":"https://planet4589.org/space/gcat/","auth_required":false},
+    {"id":"CELESTRAK","name":"CelesTrak SATCAT","role":"空间物体标识、国际编号、NORAD 目录号交叉核验","url":"https://celestrak.org/satcat/search.php","auth_required":false},
+    {"id":"SPACETRACK","name":"Space-Track","role":"权威轨道编目核验（仅后端、需认证，凭据严禁进入前端）","url":"https://www.space-track.org/documentation","auth_required":true},
+    {"id":"UNOOSA","name":"UNOOSA Online Index","role":"官方登记国核验","url":"https://www.unoosa.org/oosa/osoindex/search-ng.jspx","auth_required":false}
+  ]},
+  launches: {"generated_at":"2026-07-06T00:00:00Z","records":[
+    {"launch_id":"gcat:1957-001","website":"https://www.energia.ru/en/history/sputnik.html","references":[{"kind":"图解","title":"RussianSpaceWeb：R-7 火箭家族结构详解","url":"https://www.russianspaceweb.com/r7.html"},{"kind":"分析","title":"Wikipedia：R-7 Semyorka（8K71 原型）","url":"https://en.wikipedia.org/wiki/R-7_Semyorka"}],"name":"Sputnik 1","provider":"OKB-1","vehicle":"Sputnik 8K71PS","country":"苏联","site":"拜科努尔 LC-1","net":"1957-10-04T19:28:00Z","status":"success","orbit":"LEO","sources":["GCAT"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":true},"objects":["1957-001A","1957-001B"]},
+    {"launch_id":"gcat:1969-059","website":"https://www.nasa.gov/mission/apollo-11/","references":[{"kind":"图解","title":"Heroic Relics：Saturn V 官方剖面图集","url":"http://heroicrelics.org/info/saturn-v/saturn-v-general.html"},{"kind":"图解","title":"Space.com：Saturn V 结构信息图","url":"https://www.space.com/18422-apollo-saturn-v-moon-rocket-nasa-infographic.html"},{"kind":"分析","title":"New Atlas：Saturn V 登月火箭诞生记","url":"https://newatlas.com/saturn-v-birth-moon-rocket/54867/"}],"name":"Apollo 11","provider":"NASA","vehicle":"Saturn V","country":"美国","site":"肯尼迪航天中心 LC-39A","net":"1969-07-16T13:32:00Z","status":"success","orbit":"TLI","sources":["GCAT"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":true},"objects":["1969-059A"]},
+    {"launch_id":"gcat:2003-045","website":"https://www.cmse.gov.cn/","references":[{"kind":"图解","title":"中国载人航天官网：长征二号F 系统构成解析","url":"https://www.cmse.gov.cn/kpjy/htzs/ttsj/201509/t20150911_37314.html"},{"kind":"分析","title":"知乎专栏：极可靠极安全的长征二号F（含逃逸塔详解）","url":"https://zhuanlan.zhihu.com/p/2353496442"}],"name":"神舟五号","provider":"CASC","vehicle":"长征2F","country":"中国","site":"酒泉卫星发射中心 921工位","net":"2003-10-15T01:00:00Z","status":"success","orbit":"LEO","sources":["GCAT","CELESTRAK"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":true},"objects":["2003-045A"]},
+    {"launch_id":"ll2:9d1af14f-seed-0001","website":"https://www.spacex.com/vehicles/falcon-9/","references":[{"kind":"图解","title":"NASA Space Launch Report：Falcon 9 v1.2 数据表（含结构图）","url":"https://sma.nasa.gov/LaunchVehicle/assets/spacex-falcon-9-v1.2-data-sheet.pdf"},{"kind":"分析","title":"SpaceX 官方：Falcon 用户手册（PDF）","url":"https://www.spacex.com/assets/media/falcon-users-guide-2025-05-09.pdf"},{"kind":"分析","title":"Wikipedia：Falcon 9 技术演进综述","url":"https://en.wikipedia.org/wiki/Falcon_9"}],"name":"Falcon 9 Block 5 | Starlink Group 12-31","provider":"SpaceX","vehicle":"Falcon 9 Block 5","country":"美国","site":"卡纳维拉尔角 SLC-40","net":"2025-11-14T04:41:00Z","status":"success","orbit":"LEO","sources":["LL2","GCAT","CELESTRAK"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":false},"objects":["2025-233A","2025-233B","2025-233C"]},
+    {"launch_id":"ll2:9d1af14f-seed-0002","website":"http://www.spacechina.com/","references":[{"kind":"分析","title":"知乎专栏：长征五号系列研制应用分析及未来展望","url":"https://zhuanlan.zhihu.com/p/363258909"},{"kind":"分析","title":"新浪：解码长征五号B 的四大黑科技","url":"https://news.sina.cn/gov/2020-05-06/detail-iirczymk0133063.d.html"}],"name":"长征五号B | 巡天空间望远镜","provider":"CASC","vehicle":"长征5B","country":"中国","site":"文昌航天发射场 LC-101","net":"2026-02-08T09:20:00Z","status":"success","orbit":"LEO","sources":["LL2","GCAT"],"source_conflicts":[{"field":"net","values":{"LL2":"2026-02-08T09:20:00Z","GCAT":"2026-02-08T09:22:00Z"},"resolution":"采用 LL2（实时源优先）"}],"verification":{"celestrak":true,"spacetrack":false,"unoosa":true},"objects":["2026-014A"]},
+    {"launch_id":"ll2:9d1af14f-seed-0003","website":"https://global.jaxa.jp/projects/rockets/h3/","references":[{"kind":"分析","title":"Murata：H3 火箭的柔性/高可靠/低成本方法论","url":"https://article.murata.com/en-global/article/learning-from-the-h3-rocket"},{"kind":"分析","title":"三菱重工技报：H3 运载火箭技术评述（PDF）","url":"https://www.mhi.com/technology/review/sites/g/files/jwhtju2326/files/tr/pdf/e584/e584040.pdf"}],"name":"H3-24 | HTV-X2","provider":"JAXA/MHI","vehicle":"H3-24","country":"日本","site":"种子岛宇宙中心 LA-Y2","net":"2026-03-19T02:15:00Z","status":"success","orbit":"LEO","sources":["LL2","CELESTRAK"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":false},"objects":["2026-031A"]},
+    {"launch_id":"ll2:9d1af14f-seed-0004","website":"https://www.arianespace.com/ariane-6/","references":[{"kind":"图解","title":"ESA 官方：Ariane 6 蓝图（Blueprint）","url":"https://www.esa.int/ESA_Multimedia/Images/2024/08/Ariane_6_blueprint"},{"kind":"分析","title":"ESA：Ariane 6 由什么构成？","url":"https://www.esa.int/Enabling_Support/Space_Transportation/Ariane/Ariane_6_what_s_it_made_of"},{"kind":"分析","title":"Gunter's Space Page：Ariane 6 型谱与发射记录","url":"https://space.skyrocket.de/doc_lau/ariane-6.htm"}],"name":"Ariane 64 | Galileo FOC FM33-36","provider":"Arianespace","vehicle":"Ariane 64","country":"欧洲","site":"库鲁 ELA-4","net":"2026-04-22T21:05:00Z","status":"partial_failure","orbit":"MEO","sources":["LL2","GCAT"],"source_conflicts":[{"field":"status","values":{"LL2":"success","GCAT":"partial_failure"},"resolution":"采用 GCAT（历史判定优先），待 Space-Track 轨道核验"}],"verification":{"celestrak":true,"spacetrack":false,"unoosa":false},"objects":["2026-042A","2026-042B"]},
+    {"launch_id":"ll2:9d1af14f-seed-0005","website":"https://www.rocketlabusa.com/launch/electron/","references":[{"kind":"分析","title":"CompositesWorld：Electron 全复合材料箭体解析","url":"https://www.compositesworld.com/articles/rocket-lab-all-composite-electron-launch-vehicle"},{"kind":"分析","title":"Gunter's Space Page：Electron 型谱与发射记录","url":"https://space.skyrocket.de/doc_lau/electron.htm"}],"name":"Electron | Synspective StriX-9","provider":"Rocket Lab","vehicle":"Electron","country":"新西兰","site":"玛希亚 LC-1B","net":"2026-05-30T11:40:00Z","status":"failure","orbit":"SSO","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0006","website":"https://www.isro.gov.in/LVM3.html","references":[{"kind":"分析","title":"Wikipedia：LVM3 三级构型技术综述","url":"https://en.wikipedia.org/wiki/LVM3"},{"kind":"分析","title":"Gunter's Space Page：GSLV Mk.3 (LVM-3) 型谱","url":"https://space.skyrocket.de/doc_lau/gslv-mk3.htm"}],"name":"GSLV Mk III | Chandrayaan-4","provider":"ISRO","vehicle":"LVM3","country":"印度","site":"萨迪什·达万航天中心 SLP","net":"2026-06-28T05:30:00Z","status":"success","orbit":"TLI","sources":["LL2","GCAT","CELESTRAK"],"source_conflicts":[],"verification":{"celestrak":true,"spacetrack":true,"unoosa":true},"objects":["2026-061A"]},
+    {"launch_id":"ll2:9d1af14f-seed-0007","website":"https://www.spacex.com/vehicles/falcon-heavy/","references":[{"kind":"分析","title":"ElonX：Falcon Heavy 资料大全（Compendium）","url":"https://www.elonx.net/falcon-heavy-compendium/"},{"kind":"分析","title":"Wikipedia：Falcon Heavy 三芯级构型解析","url":"https://en.wikipedia.org/wiki/Falcon_Heavy"}],"name":"Falcon Heavy | Europa Lander","provider":"SpaceX","vehicle":"Falcon Heavy","country":"美国","site":"肯尼迪航天中心 LC-39A","net":"2026-07-12T14:00:00Z","status":"upcoming","orbit":"深空","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0008","website":"http://www.spacechina.com/","references":[{"kind":"分析","title":"中国数字科技馆：新一代载人登月火箭长征十号","url":"https://www.cdstm.cn/subjects/css_sieb/zrht/htsjtw/202408/t20240822_1081082.html"},{"kind":"分析","title":"国家航天局：我国载人登月初步方案解读","url":"https://www.cnsa.gov.cn/n6758823/n6758838/c10080580/content.html"},{"kind":"分析","title":"果壳：长征十号一子级海上软着陆解析","url":"https://www.guokr.com/article/468408"}],"name":"长征十号 | 载人月球任务演示","provider":"CASC","vehicle":"长征10","country":"中国","site":"文昌航天发射场","net":"2026-07-20T08:00:00Z","status":"upcoming","orbit":"TLI","sources":["LL2"],"source_conflicts":[{"field":"net","values":{"LL2":"2026-07-20T08:00:00Z","GCAT":"2026-07-下旬（待定）"},"resolution":"采用 LL2（实时源优先）"}],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0009","website":"https://www.blueorigin.com/new-glenn","references":[{"kind":"分析","title":"Wikipedia：New Glenn 7×2 / 9×4 构型综述","url":"https://en.wikipedia.org/wiki/New_Glenn"},{"kind":"分析","title":"NASASpaceflight：New Glenn Flight 3 前的升级详解","url":"https://www.nasaspaceflight.com/2025/11/blue-upgrades-new-glenn-flight-3/"}],"name":"New Glenn | Blue Moon MK2","provider":"Blue Origin","vehicle":"New Glenn","country":"美国","site":"卡纳维拉尔角 LC-36","net":"2026-07-28T16:30:00Z","status":"upcoming","orbit":"TLI","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0010","website":"https://www.spacex.com/vehicles/starship/","references":[{"kind":"图解","title":"Gunter's Space Page：Starship / Super Heavy 结构与型谱","url":"https://space.skyrocket.de/doc_lau/super-heavy-starship.htm"},{"kind":"分析","title":"Space Voyaging：Starship 完全指南","url":"https://www.spacevoyaging.com/guides/2023/04/04/starship-the-complete-guide/"},{"kind":"分析","title":"Wikipedia：Super Heavy 助推器（33 台猛禽）解析","url":"https://en.wikipedia.org/wiki/SpaceX_Super_Heavy"}],"name":"Starship | Flight 21 (IFT-21)","provider":"SpaceX","vehicle":"Starship","country":"美国","site":"星舰基地 OLP-A","net":"2026-08-02T13:00:00Z","status":"upcoming","orbit":"LEO","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0011","website":"https://www.roscosmos.ru/","references":[{"kind":"图解","title":"RussianSpaceWeb：R-7/联盟家族结构详解","url":"https://www.russianspaceweb.com/r7.html"},{"kind":"分析","title":"Wikipedia：Soyuz-2 技术升级综述","url":"https://en.wikipedia.org/wiki/Soyuz-2"},{"kind":"分析","title":"Gunter's Space Page：R-7 家族型谱","url":"https://space.skyrocket.de/doc_lau_fam/r-7.htm"}],"name":"Soyuz 2.1a | Progress MS-33","provider":"Roscosmos","vehicle":"Soyuz 2.1a","country":"俄罗斯","site":"拜科努尔 Site 31/6","net":"2026-08-15T09:50:00Z","status":"upcoming","orbit":"LEO","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]},
+    {"launch_id":"ll2:9d1af14f-seed-0012","website":"https://www.landspace.com/","references":[{"kind":"分析","title":"观察者网：朱雀三号验证的技术为商业航天探路","url":"https://www.guancha.cn/wangkefan/2025_12_03_799197.shtml"},{"kind":"分析","title":"维基百科：朱雀三号运载火箭（不锈钢+液氧甲烷）","url":"https://zh.wikipedia.org/zh-hans/%E6%9C%B1%E9%9B%80%E4%B8%89%E5%8F%B7%E8%BF%90%E8%BD%BD%E7%81%AB%E7%AE%AD"}],"name":"朱雀三号 | 可复用首飞复用验证","provider":"蓝箭航天","vehicle":"朱雀3","country":"中国","site":"酒泉卫星发射中心","net":"2026-08-25T03:30:00Z","status":"upcoming","orbit":"LEO","sources":["LL2"],"source_conflicts":[],"verification":{"celestrak":false,"spacetrack":false,"unoosa":false},"objects":[]}
+  ]},
+  objects: {"records":[
+    {"intl_designator":"1957-001A","norad_id":2,"name":"Sputnik 1","launch_id":"gcat:1957-001","type":"PAYLOAD","status":"DECAYED"},
+    {"intl_designator":"1957-001B","norad_id":1,"name":"Sputnik 8K71PS R/B","launch_id":"gcat:1957-001","type":"ROCKET BODY","status":"DECAYED"},
+    {"intl_designator":"1969-059A","norad_id":4039,"name":"Apollo 11 CSM","launch_id":"gcat:1969-059","type":"PAYLOAD","status":"RECOVERED"},
+    {"intl_designator":"2003-045A","norad_id":28043,"name":"Shenzhou 5","launch_id":"gcat:2003-045","type":"PAYLOAD","status":"RECOVERED"},
+    {"intl_designator":"2025-233A","norad_id":63001,"name":"Starlink-34012","launch_id":"ll2:9d1af14f-seed-0001","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2025-233B","norad_id":63002,"name":"Starlink-34013","launch_id":"ll2:9d1af14f-seed-0001","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2025-233C","norad_id":63003,"name":"Starlink-34014","launch_id":"ll2:9d1af14f-seed-0001","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2026-014A","norad_id":63590,"name":"Xuntian","launch_id":"ll2:9d1af14f-seed-0002","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2026-031A","norad_id":63755,"name":"HTV-X2","launch_id":"ll2:9d1af14f-seed-0003","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2026-042A","norad_id":63871,"name":"Galileo FM33","launch_id":"ll2:9d1af14f-seed-0004","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2026-042B","norad_id":63872,"name":"Galileo FM34","launch_id":"ll2:9d1af14f-seed-0004","type":"PAYLOAD","status":"IN ORBIT"},
+    {"intl_designator":"2026-061A","norad_id":64102,"name":"Chandrayaan-4","launch_id":"ll2:9d1af14f-seed-0006","type":"PAYLOAD","status":"IN ORBIT"}
+  ]}
+};
+
+/* ========== 状态 ========== */
+const STATUS_ZH = {success:"成功", failure:"失败", partial_failure:"部分失败", upcoming:"待发射"};
+let DB = {launches:[], objects:[], sources:[], stats:null, mode:"seed"};
+
+/* ========== 数据加载：fetch data/*.json，失败则内嵌种子兜底 ========== */
+async function loadJSON(path){
+  const r = await fetch(path, {cache:"no-store"});
+  if(!r.ok) throw new Error(path + " " + r.status);
+  return r.json();
+}
+async function loadData(){
+  try{
+    const [launches, objects, sources, stats] = await Promise.all([
+      loadJSON("./data/launches.json"),
+      loadJSON("./data/objects.json"),
+      loadJSON("./data/sources.json"),
+      loadJSON("./data/stats.json")
+    ]);
+    DB = {launches:launches.records||[], objects:objects.records||[], sources:sources.sources||[], stats, mode:"json"};
+  }catch(e){
+    console.warn("读取 data/*.json 失败，使用内嵌种子数据：", e.message);
+    DB = {launches:SEED.launches.records, objects:SEED.objects.records, sources:SEED.sources.sources, stats:SEED.stats, mode:"seed"};
+  }
+  render();
+}
+
+/* ========== 统计（基于当前记录实时计算，stats.json 作为兜底） ========== */
+function computeStats(){
+  const now = new Date();
+  const in30 = new Date(now.getTime() + 30*864e5);
+  const total = DB.launches.length;
+  const upcoming30 = DB.launches.filter(l=>{
+    const t = new Date(l.net);
+    return t >= now && t <= in30;
+  }).length;
+  const objects = DB.objects.length;
+  const verified = DB.launches.filter(l=>{
+    const v = l.verification||{};
+    return v.celestrak || v.spacetrack || v.unoosa;
+  }).length;
+  return {total, upcoming30, objects, coverage: total? verified/total : 0};
+}
+
+/* ========== 渲染 ========== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return iso;
+  return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0")
+    +" "+String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0")+" UTC";
+}
+
+function renderStats(){
+  const s = computeStats();
+  $("statTotal").textContent = s.total;
+  $("statUpcoming").textContent = s.upcoming30;
+  $("statObjects").textContent = s.objects;
+  $("statVerified").textContent = Math.round(s.coverage*100)+"%";
+  $("generatedAt").textContent = DB.stats?.generated_at ? fmtDate(DB.stats.generated_at) : "—";
+  const m = $("dataMode");
+  m.textContent = DB.mode==="json" ? "数据源：data/*.json" : "数据源：内嵌种子数据（兜底）";
+  m.style.color = DB.mode==="json" ? "var(--accent2)" : "var(--warn)";
+}
+
+function renderBars(){
+  const contrib = DB.stats?.source_contributions || [];
+  const max = Math.max(1, ...contrib.map(c=>c.count));
+  $("sourceBars").innerHTML = contrib.map(c=>`
+    <div class="bar-row">
+      <span class="name">${esc(c.source)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(c.count/max*100).toFixed(1)}%"></div></div>
+      <span class="num">${c.count} 次</span>
+    </div>`).join("") || '<div class="empty">暂无来源统计</div>';
+}
+
+function fillFilterOptions(){
+  const uniq = arr => [...new Set(arr)].sort();
+  const opt = v => `<option value="${esc(v)}">${esc(v)}</option>`;
+  $("fProvider").insertAdjacentHTML("beforeend", uniq(DB.launches.map(l=>l.provider)).map(opt).join(""));
+  $("fCountry").insertAdjacentHTML("beforeend", uniq(DB.launches.map(l=>l.country)).map(opt).join(""));
+  $("fYear").insertAdjacentHTML("beforeend", uniq(DB.launches.map(l=>String(new Date(l.net).getUTCFullYear()))).sort((a,b)=>b-a).map(opt).join(""));
+  $("fSource").insertAdjacentHTML("beforeend", uniq(DB.launches.flatMap(l=>l.sources||[])).map(opt).join(""));
+}
+
+function currentFilter(){
+  return {
+    q: $("fSearch").value.trim().toLowerCase(),
+    provider: $("fProvider").value,
+    country: $("fCountry").value,
+    year: $("fYear").value,
+    status: $("fStatus").value,
+    source: $("fSource").value
+  };
+}
+
+function filteredLaunches(){
+  const f = currentFilter();
+  return DB.launches.filter(l=>{
+    if(f.provider && l.provider!==f.provider) return false;
+    if(f.country && l.country!==f.country) return false;
+    if(f.year && String(new Date(l.net).getUTCFullYear())!==f.year) return false;
+    if(f.status && l.status!==f.status) return false;
+    if(f.source && !(l.sources||[]).includes(f.source)) return false;
+    if(f.q){
+      const hay = [l.name,l.provider,l.vehicle,l.site,l.country,l.launch_id].join(" ").toLowerCase();
+      if(!hay.includes(f.q)) return false;
+    }
+    return true;
+  }).sort((a,b)=> new Date(b.net) - new Date(a.net));
+}
+
+function renderList(){
+  const rows = filteredLaunches();
+  $("countLine").textContent = `共 ${rows.length} 条 / 数据库 ${DB.launches.length} 条`;
+  $("launchList").innerHTML = rows.map(l=>`
+    <div class="row" data-id="${esc(l.launch_id)}">
+      <div class="title">
+        ${esc(l.name)}
+        ${(l.source_conflicts||[]).length ? '<span class="conflict-flag">⚠ 来源冲突 '+l.source_conflicts.length+'</span>' : ''}
+      </div>
+      <div class="right">
+        <span class="pill st-${esc(l.status)}">${STATUS_ZH[l.status]||esc(l.status)}</span>
+        <span style="color:var(--muted);font-size:.78rem">${fmtDate(l.net)}</span>
+      </div>
+      <div class="info">
+        <span>${esc(l.provider)}</span><span>${esc(l.vehicle)}</span><span>${esc(l.country)}</span>
+        <span>${esc(l.site)}</span><span>轨道 ${esc(l.orbit)}</span>
+        ${l.website?'<a class="site-link" href="'+esc(l.website)+'" target="_blank" rel="noopener">火箭官网 ↗</a>':''}
+        ${(l.references||[]).length?'<span class="chip">📐 资料 '+l.references.length+'</span>':''}
+        <span>${(l.sources||[]).map(s=>'<span class="chip">'+esc(s)+'</span>').join(" ")}</span>
+      </div>
+    </div>`).join("") || '<div class="empty">没有符合筛选条件的发射记录</div>';
+}
+
+/* ========== 详情抽屉 ========== */
+function openDrawer(id){
+  const l = DB.launches.find(x=>x.launch_id===id);
+  if(!l) return;
+  const objs = DB.objects.filter(o=>o.launch_id===id);
+  const v = l.verification||{};
+  $("drawerBody").innerHTML = `
+    <h3>${esc(l.name)}</h3>
+    <span class="pill st-${esc(l.status)}">${STATUS_ZH[l.status]||esc(l.status)}</span>
+    <div class="sec"><h4>基本信息</h4>
+      <div class="kv">
+        <span class="k">发射时间</span><span>${fmtDate(l.net)}</span>
+        <span class="k">机构</span><span>${esc(l.provider)}</span>
+        <span class="k">火箭</span><span>${esc(l.vehicle)}</span>
+        <span class="k">国家/地区</span><span>${esc(l.country)}</span>
+        <span class="k">发射场</span><span>${esc(l.site)}</span>
+        <span class="k">目标轨道</span><span>${esc(l.orbit)}</span>
+        ${l.website?'<span class="k">火箭官网</span><span><a href="'+esc(l.website)+'" target="_blank" rel="noopener" style="word-break:break-all">'+esc(l.website)+'</a></span>':''}
+        <span class="k">记录 ID</span><span style="font-family:monospace;font-size:.8rem">${esc(l.launch_id)}</span>
+      </div>
+    </div>
+    <div class="sec"><h4>来源与溯源</h4>
+      <div>${(l.sources||[]).map(s=>'<span class="chip">'+esc(s)+'</span>').join(" ")}</div>
+    </div>
+    ${(l.references||[]).length ? `
+    <div class="sec"><h4>📐 结构图与技术分析</h4>
+      ${l.references.map(r=>`
+        <div class="ref-item"><span class="chip">${esc(r.kind)}</span> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>`).join("")}
+    </div>` : ''}
+    <div class="sec"><h4>权威核验</h4>
+      <div class="verif">
+        <span class="${v.celestrak?'ok':''}">${v.celestrak?'✓':'○'} CelesTrak</span>
+        <span class="${v.spacetrack?'ok':''}">${v.spacetrack?'✓':'○'} Space-Track</span>
+        <span class="${v.unoosa?'ok':''}">${v.unoosa?'✓':'○'} UNOOSA</span>
+      </div>
+    </div>
+    ${(l.source_conflicts||[]).length ? `
+    <div class="sec"><h4>⚠ 来源冲突</h4>
+      ${l.source_conflicts.map(c=>`
+        <div class="conf-item">
+          <div class="f">字段：${esc(c.field)}</div>
+          ${Object.entries(c.values||{}).map(([k,val])=>`<div>${esc(k)}：${esc(val)}</div>`).join("")}
+          ${c.resolution?'<div style="color:var(--muted);margin-top:4px">裁决：'+esc(c.resolution)+'</div>':''}
+        </div>`).join("")}
+    </div>` : ''}
+    <div class="sec"><h4>关联空间物体（${objs.length}）</h4>
+      ${objs.length ? objs.map(o=>`
+        <div class="obj-item">
+          <b>${esc(o.name)}</b> · ${esc(o.type)}<br>
+          <span style="color:var(--muted)">国际编号 ${esc(o.intl_designator)} · NORAD ${esc(o.norad_id)} · ${esc(o.status)}</span>
+        </div>`).join("") : '<div style="color:var(--muted);font-size:.84rem">暂无编目物体（待发射或未入轨）</div>'}
+    </div>`;
+  $("drawer").classList.add("open");
+  $("overlay").classList.add("open");
+}
+function closeDrawer(){
+  $("drawer").classList.remove("open");
+  $("overlay").classList.remove("open");
+}
+
+/* ========== 数据源架构 ========== */
+function renderArch(){
+  $("archGrid").innerHTML = DB.sources.map(s=>`
+    <div class="s">
+      <b>${esc(s.id)} · ${esc(s.name)}</b>
+      <span class="role">${esc(s.role)}</span>
+      ${s.auth_required ? '<span class="lock">🔒 需认证 · 仅后端使用</span>' : ''}
+      <div style="margin-top:6px"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></div>
+    </div>`).join("");
+}
+
+/* ========== 事件 ========== */
+function bindEvents(){
+  ["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=> $(id).addEventListener("change", renderList));
+  $("fSearch").addEventListener("input", renderList);
+  $("fReset").addEventListener("click", ()=>{
+    $("fSearch").value="";
+    ["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=> $(id).value="");
+    renderList();
+  });
+  $("launchList").addEventListener("click", e=>{
+    if(e.target.closest("a")) return; // 点击官网链接时不打开抽屉
+    const row = e.target.closest(".row");
+    if(row) openDrawer(row.dataset.id);
+  });
+  $("drawerClose").addEventListener("click", closeDrawer);
+  $("overlay").addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeDrawer(); });
+}
+
+function render(){
+  renderStats();
+  renderBars();
+  fillFilterOptions();
+  renderList();
+  renderArch();
+  bindEvents();
+}
+
+loadData();
+</script>
+</body>
+</html>
