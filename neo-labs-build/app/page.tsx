@@ -37,7 +37,7 @@ export default async function HomePage() {
           🔬 Neo Labs Tracker
         </h1>
         <p style={{fontSize: '16px', color: '#6e6e73'}}>
-          25 家前沿 AI 实验室 · 私募视角 · 2026 年 6 月快照
+          25 家前沿 AI 实验室 · 私募视角 · 2026-07-03 H1 中期更新 (md 研究 · 25 家全量 patch + 2 新追踪)
         </p>
       </div>
 

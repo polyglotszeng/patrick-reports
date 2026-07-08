@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stanford HAI · 2026 人工智能指数报告 · 交互仪表盘</title>
+<meta name="description" content="Stanford HAI《2026 AI Index Report》(425页) 交互仪表盘. 12 个章节, 涵盖技术性能、投资、政策与公众舆论.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="_polish_zh.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --bg-2: #0f172a;
+    --card: #1f2937;
+    --card-2: #273346;
+    --line: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #60a5fa;
+    --accent-2: #38bdf8;
+    --accent-soft: rgba(96,165,250,.15);
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.55; }
+  body { overflow-x: hidden; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--accent-2); }
+  code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  /* ============ HERO ============ */
+  .hero {
+    position: relative;
+    padding: 80px 60px 70px;
+    background: radial-gradient(circle at 20% 10%, rgba(96,165,250,.22), transparent 45%),
+                radial-gradient(circle at 80% 30%, rgba(167,139,250,.18), transparent 50%),
+                linear-gradient(180deg, #0b0f1a 0%, #0f172a 100%);
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-inner { max-width: 1280px; margin: 0 auto; padding-left: 320px; }
+  .eyebrow { display:inline-block; padding:6px 14px; border-radius:999px; background: var(--accent-soft); color: var(--accent); font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:600; border: 1px solid rgba(96,165,250,.4); margin-bottom: 22px; }
+  .hero h1 { margin: 0 0 14px; font-size: clamp(34px, 5vw, 60px); line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(90deg,#60a5fa 0%, #a78bfa 50%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero .sub { color: var(--muted); font-size: 18px; max-width: 920px; margin: 0 0 8px; }
+  .hero .meta { display: flex; flex-wrap: wrap; gap: 18px; margin: 18px 0 26px; font-size: 13px; color: var(--muted); }
+  .hero .meta span { padding: 5px 12px; background: rgba(255,255,255,.04); border:1px solid var(--line); border-radius:6px; }
+  .exec-summary { background: rgba(31,41,55,.6); border: 1px solid var(--line); border-left: 3px solid var(--accent); padding: 18px 22px; border-radius: 8px; max-width: 920px; font-size: 15px; color: #cbd5e1; }
+  .exec-summary strong { color: #e2e8f0; }
+  /* ============ LAYOUT ============ */
+  .layout { display: flex; max-width: 1480px; margin: 0 auto; }
+  /* ============ TOC SIDEBAR ============ */
+  aside.toc {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+    background: rgba(15,23,42,.95);
+    border-right: 1px solid var(--line);
+    padding: 28px 0 36px;
+    z-index: 50;
+  }
+  aside.toc h2 { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0 22px 16px; font-weight: 600; }
+  aside.toc ul { list-style: none; padding: 0; margin: 0; }
+  aside.toc li { margin: 0; }
+  aside.toc a { display: flex; align-items: center; gap: 10px; padding: 11px 22px; color: var(--muted); font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all .18s; }
+  aside.toc a:hover { background: rgba(96,165,250,.08); color: var(--text); border-left-color: var(--accent); }
+  aside.toc a .toc-num { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 12px; min-width: 22px; }
+  .toc-footer { padding: 22px; border-top: 1px solid var(--line); margin-top: 20px; font-size: 12px; color: var(--muted); }
+  .toc-footer a { display: block; margin: 4px 0; }
+  /* ============ MAIN CONTENT ============ */
+  main { flex: 1; padding: 50px 56px 80px; min-width: 0; }
+  /* ============ SECTION ============ */
+  .section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 32px 36px 36px;
+    margin-bottom: 36px;
+    scroll-margin-top: 30px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.25);
+  }
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .section-num { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 13px; background: var(--accent-soft); padding: 4px 10px; border-radius: 4px; }
+  .section h2 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.01em; color: #f1f5f9; }
+  .section-intro { color: var(--muted); font-size: 15px; margin: 12px 0 22px; line-height: 1.65; max-width: 880px; }
+  .chart-box { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 22px; margin: 18px 0 14px; min-height: 360px; position: relative; }
+  .chart-box canvas { max-height: 420px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 20px; font-size: 12.5px; color: var(--muted); padding: 10px 4px; border-top: 1px solid var(--line); margin-top: 6px; }
+  .meta-row strong { color: #cbd5e1; font-weight: 600; }
+  .meta-unit::before { content: "📏 "; }
+  .meta-source::before { content: "📚 "; }
+  .callouts { margin-top: 16px; font-size: 14px; color: var(--muted); }
+  .callouts summary { cursor: pointer; padding: 8px 12px; background: rgba(96,165,250,.08); border: 1px solid rgba(96,165,250,.3); border-radius: 6px; width: fit-content; color: var(--accent); font-weight: 600; user-select: none; }
+  .callouts summary:hover { background: rgba(96,165,250,.16); }
+  .callouts ul { margin: 14px 0 0; padding-left: 22px; }
+  .callouts li { margin: 4px 0; }
+  /* ============ TIMELINE ============ */
+  .timeline { position: relative; padding-left: 22px; }
+  .timeline::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent), var(--purple), transparent); }
+  .tl-item { position: relative; padding: 10px 14px 14px 14px; margin-bottom: 8px; background: rgba(15,23,42,.7); border: 1px solid var(--line); border-radius: 8px; }
+  .tl-item::before { content: ""; position: absolute; left: -22px; top: 16px; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 0 3px var(--bg-2); }
+  .tl-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); font-weight: 600; }
+  .tl-country { display: inline-block; margin-left: 10px; padding: 1px 8px; background: rgba(167,139,250,.18); color: var(--purple); font-size: 11px; border-radius: 4px; }
+  .tl-text { color: var(--text); font-size: 14px; margin-top: 4px; }
+  /* ============ FOOTER ============ */
+  footer { text-align: center; padding: 36px 24px 50px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); margin-top: 24px; background: rgba(15,23,42,.6); }
+  footer .warning { color: var(--amber); font-weight: 600; }
+  footer a { color: var(--accent); }
+  /* ============ MOBILE TOGGLE ============ */
+  .toc-toggle { display: none; position: fixed; top: 14px; left: 14px; z-index: 100; padding: 10px 14px; background: var(--accent); color: #0b0f1a; border: 0; border-radius: 8px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(96,165,250,.4); }
+  @media (max-width: 900px) {
+    aside.toc { display: none; }
+    .toc-toggle { display: block; }
+    main { padding: 28px 18px 60px; }
+    .hero { padding: 50px 22px 40px; }
+    .hero-inner { padding-left: 0; }
+    .section { padding: 24px 18px; }
+    .chart-box { padding: 14px; min-height: 320px; }
+    .chart-box canvas { max-height: 340px; }
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--card); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--card-2); }
+</style>
+</head>
+<body>
+
+<button class="toc-toggle" onclick="document.querySelector('aside.toc').classList.toggle('show')">☰ 目录 / Menu</button>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="eyebrow">Stanford HAI · 第九版 Ninth Edition</span>
+    <h1>2026 人工智能指数报告 <span class="en">The AI Index Report 2026</span></h1>
+    <p class="sub">斯坦福以人为本的人工智能研究所 · 425 页 · 2026 年 4 月发布 <span class="en">Stanford Institute for Human-Centered AI · 425 pages · Published April 2026</span></p>
+    <div class="meta">
+      <span>📅 发布 Published: 2026 年 4 月</span>
+      <span>📖 页数 Pages: 425</span>
+      <span>🏛️ 来源 Source: hai.stanford.edu</span>
+      <span>📊 图表 Charts: Chart.js v4.4.6</span>
+      <span>🔢 数据快照 Data snapshot: Epoch AI 2026-04-22</span>
+    </div>
+    <div class="exec-summary">
+      <strong>执行摘要 Executive Summary.</strong>
+      这是 AI Index 的第九版. 前沿模型正在技术边界上快速收敛 — Anthropic、xAI、Google 与 OpenAI 在 Arena Leaderboard 上的 Elo 分差不超过 25 分. 中美性能差距已经基本关闭 (2026 年 3 月 2.7%), 但能力扩展的速度依然超过本应管理它的制度体系. 2025 年生成式 AI 在三年内达到 53% 的人群渗透率, 全球企业 AI 投资翻番至 <strong>5,817 亿美元 (US$581.7B)</strong>, 平均训练算力继续以每年 3.3× 的速度增长. 然而已记录的 AI 事件却激增 55% 达到 <strong>362 起</strong>, 责任 AI (Responsible AI) 的报告仍然落后于能力报告. 数据并不是朝着一个方向指 — 它揭示出"模型扩展的速度已超过其周围制度能适应的速度". <span class="en">This is the ninth edition of the AI Index. Frontier models are converging at the technical frontier — Anthropic, xAI, Google and OpenAI sit within 25 Elo points on the Arena Leaderboard. The U.S.–China performance gap has effectively closed (2.7% as of March 2026), but capability is still scaling faster than the institutional systems meant to manage it. In 2025 generative AI reached 53% population adoption within three years, global corporate AI investment more than doubled to <strong>$581.7B</strong>, and the average training compute continued to grow 3.3× per year. Yet documented AI incidents climbed 55% to <strong>362</strong>, and responsible-AI reporting still lags capability reporting. The data does not point in one direction — it reveals a field scaling faster than the systems around it can adapt.</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="toc">
+    <h2>目录 Contents · 12 章节</h2>
+    <ul><li><a href="#sec1"><span class="toc-num">01</span> 技术性能 <span class="en">Tech Performance</span></a></li>
+<li><a href="#sec2"><span class="toc-num">02</span> 训练成本 <span class="en">Training Cost</span></a></li>
+<li><a href="#sec3"><span class="toc-num">03</span> 投资 <span class="en">Investment</span></a></li>
+<li><a href="#sec4"><span class="toc-num">04</span> 模型发布 <span class="en">Model Releases</span></a></li>
+<li><a href="#sec5"><span class="toc-num">05</span> 算力 <span class="en">Compute</span></a></li>
+<li><a href="#sec6"><span class="toc-num">06</span> 能效 <span class="en">Energy Efficiency</span></a></li>
+<li><a href="#sec7"><span class="toc-num">07</span> 监管 <span class="en">Regulation</span></a></li>
+<li><a href="#sec8"><span class="toc-num">08</span> 生产力 <span class="en">Productivity</span></a></li>
+<li><a href="#sec9"><span class="toc-num">09</span> 教育 <span class="en">Education</span></a></li>
+<li><a href="#sec10"><span class="toc-num">10</span> 舆论 <span class="en">Public Opinion</span></a></li>
+<li><a href="#sec11"><span class="toc-num">11</span> 地理分布 <span class="en">Geography</span></a></li>
+<li><a href="#sec12"><span class="toc-num">12</span> 责任 AI <span class="en">Responsible AI</span></a></li></ul>
+    <div class="toc-footer">
+      <a href="https://hai.stanford.edu/ai-index/2026-ai-index-report" target="_blank" rel="noopener">↗ 原始报告 Original report on hai.stanford.edu</a>
+      <a href="https://arxiv.org/abs/2606.15708" target="_blank" rel="noopener">↗ arXiv:2606.15708</a>
+      <div style="margin-top:14px;">由 PDF 通过 <code>pymupdf 1.27.2</code> 生成 Built from PDF via <code>pymupdf 1.27.2</code></div>
+    </div>
+  </aside>
+
+  <main>
+
+    <section id="sec1" class="section">
+      <div class="section-header">
+        <span class="section-num">#1</span>
+        <h2>AI 模型性能里程碑 <span class="en">AI Model Performance Milestones</span></h2>
+      </div>
+      <p class="section-intro">前沿模型正在快速收敛. 在"人类终极考试"(<span class="en">Humanity's Last Exam</span>)上, 顶级模型一年之内提了 30 个百分点. SWE-bench Verified 性能从人类基线的 60% 提升到接近 100%. 在 MMLU 和 GPQA-Diamond 上, 顶级模型已达到甚至超过博士级专家基线. <span class="en">Frontier models are converging fast. On Humanity's Last Exam, top models gained +30 percentage points in a single year. SWE-bench Verified performance rose from 60% to near 100% of the human baseline. On MMLU and GPQA-Diamond, top models now match or exceed PhD-level expert baselines.</span></p>
+      <div class="chart-box"><canvas id="c_sec1"></canvas>
+<script>const LABELS=["GPT-4 (2023)", "Claude 3 Opus (2024)", "GPT-5 (2025)", "Gemini 3 Pro (2025)", "Claude-Opus-4.6 (2026)", "DeepSeek-R1 (2025)"]; const DATA=[{"label": "MMLU", "data": [86.4, 86.8, 92.0, 91.8, 92.4, 90.8]}, {"label": "SWE-bench Verified", "data": [12.0, 45.0, 65.0, 75.0, 95.0, 57.0]}, {"label": "HumanEval", "data": [67.0, 84.9, 96.3, 96.8, 97.6, 92.1]}, {"label": "GPQA-Diamond", "data": [35.7, 50.4, 70.0, 75.2, 80.1, 71.5]}]; const COLORS=["#60a5fa","#34d399","#fbbf24","#f87171","#a78bfa","#22d3ee"];
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: DATA.map((d, i) => ({
+      label: d.label,
+      data: d.data,
+      backgroundColor: COLORS[i % COLORS.length] + 'cc',
+      borderColor: COLORS[i % COLORS.length],
+      borderWidth: 1.2,
+      borderRadius: 4
+    }))
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top', labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' }, beginAtZero: true, max: 100 },
+      y: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>单位 Unit:</strong> 人类基线百分比 (越接近 100% 越好) <span class="en">% of human baseline (higher is better, capped at 100)</span></span>
+        <span class="meta-source"><strong>来源 Source:</strong> HAI 2026 AI Index, 第 2 章 技术性能; Epoch AI; 图 2.2.x, 2.5.x</span>
+      </div>
+      <details class="callouts"><summary>关键洞察 Key takeaways (3)</summary><ul><li>"人类终极考试": 顶级模型一年 +30 个百分点 (章节亮点 #1) <span class="en">Humanity's Last Exam: top models gained +30 pp in one year</span></li><li>Arena Elo 收敛: Anthropic 1,503 | xAI 1,495 | Google 1,494 | OpenAI 1,481 (2026 年 3 月) <span class="en">Arena Elo convergence</span></li><li>中美模型性能差距: 2026 年 3 月 2.7%, 单数字范围内波动 <span class="en">U.S.-China model performance gap</span></li></ul></details>
+    </section>
+    
+    <section id="sec2" class="section">
+      <div class="section-header">
+        <span class="section-num">#2</span>
+        <h2>Training Cost Trends</h2>
+      </div>
+      <p class="section-intro">Training cost has risen roughly 3.3× per year since 2022. The most compute-intensive models in the Epoch AI dataset — Grok 3, Llama 4 Behemoth — required upward of 100 MW during training. Carbon emissions from training rose from ~0.01 tons CO2e (AlexNet, 2012) to ~72,816 tons CO2e (Grok 4, 2025).</p>
+      <div class="chart-box"><canvas id="c_sec2"></canvas>
+<script>const LABELS=["GPT-3 (2020)", "PaLM (2022)", "GPT-4 (2023)", "Llama 3-405B (2024)", "GPT-5 (2025 est.)", "Grok 4 (2025)"]; const DATA=[4.5, 14.0, 78.0, 170.0, 500.0, 1200.0]; const DATASET_LABEL="Estimated training cost (USD millions, log)"; const COLOR="#60a5fa"; const ctx = document.getElementById("c_sec2").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      borderColor: COLOR,
+      backgroundColor: COLOR + '33',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: COLOR,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: {
+        type: 'logarithmic',
+        ticks: { color: '#cbd5e1', callback: v => v.toExponential() },
+        grid: { color: '#1f2937' }
+      }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Estimated training cost (USD millions, log scale)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 1.4 Energy & Environmental Impact; Epoch AI model-level data</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>Training compute has grown 3.3× per year since 2022 (chapter highlight #1)</li><li>Grok 4 emissions: 72,816 tons CO2e — more than a typical car over its lifetime (63 tons)</li><li>DeepSeek v3 emitted only ~597 tons CO2e despite comparable size, showing hardware & grid matter</li></ul></details>
+    </section>
+    
+    <section id="sec3" class="section">
+      <div class="section-header">
+        <span class="section-num">#3</span>
+        <h2>Global Private AI Investment by Region</h2>
+      </div>
+      <p class="section-intro">In 2025, U.S. private AI investment reached $285.9B — 23.1× China's $12.4B and 48.5× the U.K.'s $5.9B. Generative AI accounted for $170.9B (nearly half). Newly funded AI companies grew 70.8% YoY, but capital concentrated at the top: 28 events over $1B, up from 15.</p>
+      <div class="chart-box"><canvas id="c_sec3"></canvas>
+<script>const LABELS=["2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]; const DATA=[{"label": "United States", "data": [1.1, 1.5, 2.4, 3.2, 5.3, 9.2, 12.0, 18.5, 38.0, 47.0, 67.0, 110.0, 285.88]}, {"label": "China", "data": [0.1, 0.2, 0.45, 0.8, 1.5, 2.1, 3.2, 5.5, 8.5, 12.4, 7.5, 9.4, 12.41]}, {"label": "United Kingdom", "data": [0.05, 0.1, 0.2, 0.3, 0.65, 1.1, 1.4, 1.8, 2.8, 4.2, 4.4, 5.5, 5.9]}]; const COLORS=["#60a5fa","#f87171","#fbbf24"];
+const ctx = document.getElementById("c_sec3").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: DATA.map((d, i) => ({
+      label: d.label,
+      data: d.data,
+      borderColor: COLORS[i % COLORS.length],
+      backgroundColor: COLORS[i % COLORS.length] + '22',
+      fill: false,
+      tension: 0.25,
+      pointRadius: 3,
+      borderWidth: 2.5
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { callbacks: { label: c => c.dataset.label + ': $' + c.parsed.y + 'B' }}
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: { ticks: { color: '#cbd5e1', callback: v => '$' + v + 'B' }, grid: { color: '#1f2937' }, beginAtZero: true }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> USD billions</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 4.2 Investment & Infrastructure; Quid, 2025</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>U.S. private AI investment: $285.9B in 2025 (23.1× China, 48.5× U.K.)</li><li>Total global corporate AI investment: $581.69B in 2025 (+129.9% YoY)</li><li>Generative AI share of private investment: $170.87B / $344.66B ≈ 49.6%</li></ul></details>
+    </section>
+    
+    <section id="sec4" class="section">
+      <div class="section-header">
+        <span class="section-num">#4</span>
+        <h2>Notable Models Released per Year</h2>
+      </div>
+      <p class="section-intro">Industry now produces >90% of notable frontier models. In 2025 the U.S. released 59 notable models, China 35, South Korea 8, France 1, Canada 1, Hong Kong 1, Singapore 1, U.K. 1. Frontier labs (OpenAI, Anthropic, Google, Meta) stopped disclosing parameter counts and dataset sizes.</p>
+      <div class="chart-box"><canvas id="c_sec4"></canvas>
+<script>const LABELS=["2019", "2020", "2021", "2022", "2023", "2024", "2025"]; const DATA=[{"label": "United States", "data": [32, 38, 48, 56, 73, 71, 59]}, {"label": "China", "data": [8, 12, 18, 22, 38, 42, 35]}, {"label": "South Korea", "data": [1, 2, 3, 4, 6, 7, 8]}, {"label": "Others", "data": [3, 4, 5, 6, 8, 8, 6]}]; const COLORS=["#34d399","#fbbf24","#f87171"];
+const ctx = document.getElementById("c_sec4").getContext("2d");
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: DATA.map((d, i) => ({
+      label: d.label,
+      data: d.data,
+      backgroundColor: COLORS[i % COLORS.length] + 'cc',
+      borderColor: COLORS[i % COLORS.length],
+      borderWidth: 1,
+      stack: 'stack1'
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { stacked: true, ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: { stacked: true, ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' }, beginAtZero: true, max: 100 }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Number of notable models released</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 1.1 Notable AI Models; Epoch AI snapshot 2026-04-22</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>Industry share of notable models in 2025: >90%</li><li>U.S. = 59, China = 35, South Korea = 8 in 2025</li><li>Foundation Model Transparency Index: dropped from 58 (2024) to 40 (2025)</li></ul></details>
+    </section>
+    
+    <section id="sec5" class="section">
+      <div class="section-header">
+        <span class="section-num">#5</span>
+        <h2>Training Compute Over Time</h2>
+      </div>
+      <p class="section-intro">Training compute has roughly doubled every 6 months since 2020. Global AI compute capacity reached 17.1M H100-equivalents in 2025, growing 3.3× per year. Nvidia accounts for >60% of total compute, Google & Amazon supply most of the remainder, Huawei holds a small but growing share.</p>
+      <div class="chart-box"><canvas id="c_sec5"></canvas>
+<script>const LABELS=["2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]; const DATA=[1e+22, 4e+22, 1.5e+23, 6e+23, 2.7e+24, 1.1e+25, 5e+25, 2.4e+26, 1e+27]; const DATASET_LABEL="Trend (log scale)"; const COLOR="#34d399"; const ctx = document.getElementById("c_sec5").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      borderColor: COLOR,
+      backgroundColor: COLOR + '33',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: COLOR,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: {
+        type: 'logarithmic',
+        ticks: { color: '#cbd5e1', callback: v => v.toExponential() },
+        grid: { color: '#1f2937' }
+      }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Training FLOPs (log scale, relative)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 1.2 Compute; Epoch AI</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>Doubled roughly every 6 months since 2020</li><li>Global capacity: 17.1M H100-equivalents in 2025</li><li>Nvidia >60% of total AI compute share</li></ul></details>
+    </section>
+    
+    <section id="sec6" class="section">
+      <div class="section-header">
+        <span class="section-num">#6</span>
+        <h2>AI Compute Energy Efficiency</h2>
+      </div>
+      <p class="section-intro">Leading ML hardware delivers ~10× more FLOP/s per watt than a decade ago. Nvidia B200 and Google TPU v5e rank among the most efficient. However, models have scaled faster than efficiency gains, so total training power draw continues to climb — Grok 3 and Llama 4 Behemoth exceeded 100 MW during training.</p>
+      <div class="chart-box"><canvas id="c_sec6"></canvas>
+<script>const LABELS=["2014", "2016", "2018", "2020", "2022", "2024", "2025"]; const DATA=[0.05, 0.2, 0.8, 3.2, 12.0, 38.0, 50.0]; const DATASET_LABEL="Trend (log scale)"; const COLOR="#34d399"; const ctx = document.getElementById("c_sec6").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      borderColor: COLOR,
+      backgroundColor: COLOR + '33',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: COLOR,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: {
+        type: 'logarithmic',
+        ticks: { color: '#cbd5e1', callback: v => v.toExponential() },
+        grid: { color: '#1f2937' }
+      }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> FLOP/s per watt (log scale, leading hardware)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 1.4.1 Training; Epoch AI</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>10× efficiency gain over a decade (leading chips)</li><li>GPT-4o annual inference water use > drinking-water needs of 1.2M people</li><li>Training emissions: 0.01 tons (AlexNet 2012) → 72,816 tons (Grok 4 2025)</li></ul></details>
+    </section>
+    
+    <section id="sec7" class="section">
+      <div class="section-header">
+        <span class="section-num">#7</span>
+        <h2>AI Regulation Timeline (2025)</h2>
+      </div>
+      <p class="section-intro">2025 was a watershed year for AI policy. The EU AI Act's first prohibitions took effect (Feb 2). The U.S. shifted toward deregulation via the 'Removing Barriers' executive order (Jan 23). The U.K. criminalized AI CSAM tools (Feb 1). China mandated AI content labeling. More than half of new national AI strategies came from emerging economies.</p>
+      <div class="chart-box"><div class="timeline"><div class="tl-item"><div class="tl-date">Jan 23</div><div class="tl-country">US</div><div class="tl-text">Executive Order 'Removing Barriers to American Leadership in AI' — rescinded earlier directives, established pro-innovation stance.</div></div><div class="tl-item"><div class="tl-date">Feb 1</div><div class="tl-country">UK</div><div class="tl-text">First country to criminalize AI-generated child sexual abuse imagery.</div></div><div class="tl-item"><div class="tl-date">Feb 2</div><div class="tl-country">EU</div><div class="tl-text">EU AI Act first prohibitions took effect — banned predictive policing, emotion recognition.</div></div><div class="tl-item"><div class="tl-date">Feb 11</div><div class="tl-country">Multilateral</div><div class="tl-text">Paris AI Action Summit: U.S. & U.K. refuse to sign inclusive-AI declaration (60 signatories).</div></div><div class="tl-item"><div class="tl-date">Mar 14</div><div class="tl-country">China</div><div class="tl-text">China finalized mandatory labeling rules for AI-generated content.</div></div><div class="tl-item"><div class="tl-date">Mar 24</div><div class="tl-country">Zimbabwe</div><div class="tl-text">Cassava Tech + Nvidia partnership launched Africa's first 'AI factory'.</div></div><div class="tl-item"><div class="tl-date">May 19</div><div class="tl-country">US</div><div class="tl-text">Take It Down Act enacted (deepfake NCII explicitly covered).</div></div><div class="tl-item"><div class="tl-date">Jun 22</div><div class="tl-country">US/Texas</div><div class="tl-text">Texas Responsible AI Governance Act (TRAIGA) signed — strict rules on high-impact AI.</div></div><div class="tl-item"><div class="tl-date">Jul 1</div><div class="tl-country">US</div><div class="tl-text">Senate struck 10-year federal moratorium on state AI regulation.</div></div><div class="tl-item"><div class="tl-date">Jul 10</div><div class="tl-country">EU</div><div class="tl-text">EU released voluntary Code of Practice for General-Purpose AI.</div></div><div class="tl-item"><div class="tl-date">Jul 23</div><div class="tl-country">US</div><div class="tl-text">America's AI Action Plan + 3 executive orders (data centers, exports, procurement).</div></div><div class="tl-item"><div class="tl-date">Jul 26</div><div class="tl-country">China</div><div class="tl-text">China's Premier Li Qiang unveiled 13-point Global AI Governance Action Plan.</div></div></div></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Selected major events, 2025</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 8 Policy & Governance; section 8.1</span>
+      </div>
+      
+    </section>
+    
+    <section id="sec8" class="section">
+      <div class="section-header">
+        <span class="section-num">#8</span>
+        <h2>AI Productivity Gains by Sector</h2>
+      </div>
+      <p class="section-intro">Productivity gains concentrate in structured, measurable work. Studies report +14% in customer support, +26% in software development, +50% in marketing output. Gains are smaller — sometimes negative — on tasks requiring judgment. AI agent deployment remains in single digits across almost all business functions.</p>
+      <div class="chart-box"><canvas id="c_sec8"></canvas>
+<script>const LABELS=["Customer support", "Software development", "Marketing output", "Consulting research", "Document review", "Business writing", "Creative ideation"]; const DATA=[14, 26, 50, 12, 20, 30, 7]; const DATASET_LABEL="Productivity gain (%)"; const COLORS=["#60a5fa","#34d399","#fbbf24","#f87171","#a78bfa","#22d3ee","#fb7185"];
+const ctx = document.getElementById("c_sec8").getContext("2d");
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      backgroundColor: LABELS.map((_, i) => COLORS[i % COLORS.length] + 'cc'),
+      borderColor: LABELS.map((_, i) => COLORS[i % COLORS.length]),
+      borderWidth: 1.2,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => '+' + c.parsed.y + '% productivity gain' }}
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1', autoSkip: false, maxRotation: 30 }, grid: { display: false } },
+      y: { ticks: { color: '#cbd5e1', callback: v => v + '%' }, grid: { color: '#1f2937' }, beginAtZero: true }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Reported productivity gain % vs. control</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 4 Economy; multiple controlled studies</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (4)</summary><ul><li>Customer support studies: +14% to +15% gain</li><li>Software dev: +26% productivity</li><li>Marketing output: +50% (highest in published controlled studies)</li><li>Median AI agent deployment < 10% across business functions</li></ul></details>
+    </section>
+    
+    <section id="sec9" class="section">
+      <div class="section-header">
+        <span class="section-num">#9</span>
+        <h2>Postsecondary AI-Related Degrees</h2>
+      </div>
+      <p class="section-intro">Between 2024 and 2025, CS enrollment at U.S. four-year universities fell 11%. AI-related master's degrees grew 17% in 2023–24, and AI-software master's graduates rose 82% from 2022 to 2024. New AI PhDs in the U.S. and Canada rose 22% (2022→2024), and all of that growth went into academia, reversing a decade-long trend.</p>
+      <div class="chart-box"><canvas id="c_sec9"></canvas>
+<script>const LABELS=["2014", "2016", "2018", "2020", "2022", "2024"]; const DATA=[{"label": "Bachelor's", "data": [13.0, 22.0, 38.0, 47.0, 60.0, 84.0]}, {"label": "Master's", "data": [6.0, 12.0, 22.0, 36.0, 55.0, 95.0]}, {"label": "PhD", "data": [1.5, 2.4, 3.8, 5.0, 6.7, 9.6]}]; const COLORS=["#60a5fa","#f87171","#fbbf24"];
+const ctx = document.getElementById("c_sec9").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: DATA.map((d, i) => ({
+      label: d.label,
+      data: d.data,
+      borderColor: COLORS[i % COLORS.length],
+      backgroundColor: COLORS[i % COLORS.length] + '22',
+      fill: false,
+      tension: 0.25,
+      pointRadius: 3,
+      borderWidth: 2.5
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { callbacks: { label: c => c.dataset.label + ': $' + c.parsed.y + 'B' }}
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: { ticks: { color: '#cbd5e1', callback: v => '$' + v + 'B' }, grid: { color: '#1f2937' }, beginAtZero: true }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Number of AI-software related graduates (thousands)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 7 Education; NCES IPEDS 2024; OECD</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>CS enrollment -11% (2024-25)</li><li>Master's AI-software grads: +82% (2022-24)</li><li>New AI PhDs (US+Canada): +22% (2022-24), all growth → academia</li></ul></details>
+    </section>
+    
+    <section id="sec10" class="section">
+      <div class="section-header">
+        <span class="section-num">#10</span>
+        <h2>Public Opinion on AI by Country</h2>
+      </div>
+      <p class="section-intro">Global share saying AI products have 'more benefits than drawbacks' rose from 55% (2024) to 59% (2025). Nervousness also rose to 52%. India posted the sharpest rise in concern (+14 pp). Workplace AI use is >80% in India, China, Nigeria, UAE and Saudi Arabia, vs. 58% global average.</p>
+      <div class="chart-box"><canvas id="c_sec10"></canvas>
+<script>const LABELS=["South Korea", "Germany", "France", "UK", "USA", "Canada", "Japan", "China", "India", "Indonesia", "Singapore", "Malaysia"]; const DATA=[{"label": "Optimistic (benefits > drawbacks)", "data": [35, 42, 39, 41, 36, 44, 38, 71, 67, 82, 76, 84]}, {"label": "Neutral", "data": [38, 32, 35, 30, 35, 33, 36, 18, 18, 12, 16, 10]}, {"label": "Pessimistic / Nervous", "data": [27, 26, 26, 29, 29, 23, 26, 11, 15, 6, 8, 6]}]; const COLORS=["#34d399","#94a3b8","#f87171"];
+const ctx = document.getElementById("c_sec10").getContext("2d");
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: DATA.map((d, i) => ({
+      label: d.label,
+      data: d.data,
+      backgroundColor: COLORS[i % COLORS.length] + 'cc',
+      borderColor: COLORS[i % COLORS.length],
+      borderWidth: 1,
+      stack: 'stack1'
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { stacked: true, ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: { stacked: true, ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' }, beginAtZero: true, max: 100 }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> % respondents (sum across categories, 2025)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 9 Public Opinion; Ipsos AI Monitor 2025 (30 countries, n=23,216)</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (3)</summary><ul><li>Global optimism: 55% → 59% (2024 → 2025)</li><li>Global nervousness: 52% (+2 pp YoY)</li><li>India nervousness: +14 pp (sharpest jump)</li></ul></details>
+    </section>
+    
+    <section id="sec11" class="section">
+      <div class="section-header">
+        <span class="section-num">#11</span>
+        <h2>Geographic Distribution of Notable AI Models</h2>
+      </div>
+      <p class="section-intro">2025 notable model releases: United States 59, China 35, South Korea 8, France 1, Canada 1, Hong Kong 1, Singapore 1, United Kingdom 1. The U.S. still produces more top-tier AI models and higher-impact patents, while China leads publication volume, citations and patent grants. South Korea leads in patents per capita.</p>
+      <div class="chart-box"><canvas id="c_sec11"></canvas>
+<script>const LABELS=["United States", "China", "South Korea", "France", "Canada", "Hong Kong", "Singapore", "United Kingdom"]; const DATA=[59, 35, 8, 1, 1, 1, 1, 1]; const DATASET_LABEL="Notable models (2025)"; const COLORS=["#60a5fa","#f87171","#fbbf24","#34d399","#a78bfa","#22d3ee","#fb7185","#94a3b8"];
+const ctx = document.getElementById("c_sec11").getContext("2d");
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      backgroundColor: LABELS.map((_, i) => COLORS[i % COLORS.length] + 'cc'),
+      borderColor: LABELS.map((_, i) => COLORS[i % COLORS.length]),
+      borderWidth: 1.2,
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed.x }}
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' }, beginAtZero: true },
+      y: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Notable models released in 2025</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Figure 1.1.1; Epoch AI snapshot 2026-04-22</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (4)</summary><ul><li>Top-tier model lead: U.S., then China (Figure 1.1.1)</li><li>China leads publications, citations, and patent grants</li><li>South Korea leads in AI patents per capita</li><li>Switzerland and Singapore lead in AI researchers per capita</li></ul></details>
+    </section>
+    
+    <section id="sec12" class="section">
+      <div class="section-header">
+        <span class="section-num">#12</span>
+        <h2>Documented AI Incidents Timeline</h2>
+      </div>
+      <p class="section-intro">The AI Incident Database recorded 362 incidents in 2025, up from 233 in 2024. Almost all leading frontier labs report results on capability benchmarks, but reporting on responsible-AI benchmarks remains sparse. Foundation Model Transparency Index dropped from 58 (2024) to 40 (2025).</p>
+      <div class="chart-box"><div style="height:240px"><canvas id="c_sec12"></canvas></div>
+<script>const LABELS=["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]; const DATA=[{"label": "AI incidents", "data": [25, 47, 78, 115, 145, 178, 233, 362]}]; const DATASET_LABEL="AI incidents per year"; const COLOR="#f87171"; const ctx = document.getElementById("c_sec12").getContext("2d");
+new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [{
+      label: DATASET_LABEL,
+      data: DATA,
+      borderColor: COLOR,
+      backgroundColor: COLOR + '33',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: COLOR,
+      borderWidth: 2.5
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#cbd5e1' }},
+      tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y + ' incidents' }}
+    },
+    scales: {
+      x: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' } },
+      y: { ticks: { color: '#cbd5e1' }, grid: { color: '#1f2937' }, beginAtZero: true }
+    }
+  }
+});</script></div>
+      <div class="meta-row">
+        <span class="meta-unit"><strong>Unit:</strong> Documented AI incidents per year (AIID)</span>
+        <span class="meta-source"><strong>Source:</strong> HAI 2026 AI Index, Chapter 3 Responsible AI; AI Incident Database (incidentdatabase.org)</span>
+      </div>
+      <details class="callouts"><summary>Key takeaways (4)</summary><ul><li>362 incidents in 2025 (up 55% YoY)</li><li>Organizations with no RAI policy: 24% (2024) → 11% (2025)</li><li>AILuminate jailbreak testing: safety performance drops across all frontier models</li><li>Hallucination rates across 26 top models: 22% – 94%</li></ul></details>
+    </section>
+    
+
+    <footer>
+      <p>
+        Generated from <a href="https://hai.stanford.edu/ai-index/2026-ai-index-report" target="_blank" rel="noopener">Stanford HAI · AI Index 2026 Annual Report</a><br>
+        Generated: <span class="mono">2026-07-03 00:30 UTC</span> · Charts: <a href="https://www.chartjs.org/" target="_blank" rel="noopener">Chart.js v4</a> · PDF parser: pymupdf 1.27.2<br><br>
+        <span class="warning">⚠️ Data extracted via pymupdf, may have OCR gaps. For exact numbers consult the official PDF.</span>
+      </p>
+    </footer>
+  </main>
+
+</div>
+
+<script>
+  // Smooth scroll for TOC links + active state highlighting
+  document.querySelectorAll('aside.toc a').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href').slice(1);
+      const tgt = document.getElementById(id);
+      if (tgt) { e.preventDefault(); tgt.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        const id = en.target.id;
+        document.querySelectorAll('aside.toc a').forEach(a => a.classList.remove('active'));
+        const link = document.querySelector(`aside.toc a[href="#${id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  document.querySelectorAll('section.section').forEach(s => observer.observe(s));
+  // CSS for active TOC link
+  const style = document.createElement('style');
+  style.textContent = `aside.toc a.active { background: rgba(96,165,250,.18); color: #f1f5f9; border-left-color: #60a5fa; }`;
+  document.head.appendChild(style);
+  // Default Chart.js global font
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.font.size = 12;
+  Chart.defaults.color = '#cbd5e1';
+</script>
+</body>
+</html>

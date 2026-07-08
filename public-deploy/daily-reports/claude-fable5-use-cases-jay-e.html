@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Fable 5 用法 5 选 — Jay E | RoboNuggets (2026-07-02)</title>
+<style>
+:root {
+  --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+  --bg-tabular: #1a1410;
+  --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+  --accent: #ff6b35; --accent-2: #f7c59f;
+  --cyan: #4dd0e1; --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af; --muted-accent: #6e6e7a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+               "Helvetica Neue", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.65;
+  font-size: 14.5px;
+  padding-left: 240px; transition: padding-left 0.3s ease;
+}
+body.toc-collapsed { padding-left: 48px; }
+
+/* ─── TOC ───────────────────────────────────────────────── */
+aside.toc {
+  position: fixed; top: 0; left: 0;
+  width: 240px; height: 100vh;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 56px 0 24px 0;
+  z-index: 50;
+  transition: width 0.3s ease;
+}
+body.toc-collapsed aside.toc { width: 48px; padding: 56px 0 24px 0; }
+body.toc-collapsed .toc-label,
+body.toc-collapsed .toc-list { display: none; }
+.toc-toggle {
+  position: fixed; top: 14px; left: 226px;
+  z-index: 100;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--accent); color: white;
+  border: none; cursor: pointer;
+  font-size: 13px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  transition: left 0.3s ease;
+}
+body.toc-collapsed .toc-toggle { left: 34px; }
+.toc-toggle:hover { transform: scale(1.1); }
+.toc-label {
+  display: block;
+  padding: 0 20px 10px;
+  color: var(--text-dim);
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  font-weight: 700;
+}
+.toc-list { list-style: none; padding: 0 8px; }
+.toc-list li { margin: 1px 0; }
+.toc-list a {
+  display: block;
+  padding: 7px 12px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+}
+.toc-list a:hover {
+  background: rgba(255,107,53,0.08);
+  color: var(--accent-2);
+  border-left-color: var(--accent);
+}
+.toc-list a.active {
+  background: rgba(255,107,53,0.14);
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 700;
+}
+@media (max-width: 900px) {
+  body { padding-left: 0; }
+  body.toc-collapsed { padding-left: 0; }
+  aside.toc, body.toc-collapsed aside.toc { display: none; }
+  .toc-toggle { display: none; }
+}
+
+/* ─── Container ──────────────────────────────────────────── */
+.page { max-width: 1180px; padding: 36px 32px 80px; margin: 0 auto; }
+
+/* ─── Hero ──────────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, rgba(255,107,53,.12), rgba(77,208,241,.07));
+  border: 1px solid rgba(255,107,53,.28);
+  border-radius: 14px;
+  padding: 26px 30px;
+  margin-bottom: 26px;
+}
+.hero .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.tag {
+  display: inline-block;
+  background: rgba(255,107,53,.18); color: var(--accent);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+  padding: 4px 10px; border-radius: 5px;
+}
+.tag.cyan { background: rgba(77,208,241,.18); color: var(--cyan); }
+.tag.red  { background: rgba(248,113,113,.18); color: var(--red); }
+.tag.green { background: rgba(74,222,128,.18); color: var(--green); }
+.tag.yellow { background: rgba(251,191,36,.18); color: var(--yellow); }
+.tag.muted { background: rgba(110,110,122,.18); color: var(--muted-accent); }
+h1 {
+  font-size: 30px; font-weight: 800;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+  line-height: 1.22;
+}
+.subtitle {
+  font-size: 14.5px; color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.hero .meta-row {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  font-size: 12.5px; color: var(--text-dim);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 14px;
+}
+.hero .meta-row b { color: var(--text); font-weight: 700; }
+
+/* ─── Stats ─────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px; margin: 18px 0 26px;
+}
+.stat {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  position: relative; overflow: hidden;
+}
+.stat::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--accent);
+}
+.stat.cyan::before { background: var(--cyan); }
+.stat.green::before { background: var(--green); }
+.stat.red::before { background: var(--red); }
+.stat .v { font-size: 24px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+.stat.cyan .v { color: var(--cyan); }
+.stat.green .v { color: var(--green); }
+.stat.red .v { color: var(--red); }
+.stat .l {
+  font-size: 11px; color: var(--text-mute);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin-top: 6px; font-weight: 600;
+}
+.stat .sub { font-size: 11.5px; color: var(--text-dim); margin-top: 4px; }
+
+/* ─── Tabs ──────────────────────────────────────────────── */
+.tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 26px; padding-bottom: 2px;
+}
+.tab {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  border-bottom: none;
+  padding: 9px 14px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); background: rgba(255,107,53,0.06); }
+.tab.active {
+  color: var(--accent);
+  border-color: var(--border);
+  border-bottom: 2px solid var(--bg);
+  background: var(--bg-card);
+  margin-bottom: -2px;
+}
+
+/* ─── Tab content & h2 ──────────────────────────────────── */
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fade 0.25s ease; }
+@keyframes fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+h2.section {
+  font-size: 22px; font-weight: 700;
+  margin: 24px 0 14px;
+  color: var(--accent);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+h3.section { font-size: 16px; font-weight: 700; margin: 18px 0 8px; color: var(--cyan); }
+p { font-size: 14.5px; margin: 8px 0; }
+a { color: var(--cyan); }
+a:hover { color: var(--accent); }
+ul, ol { padding-left: 22px; margin: 8px 0; }
+li { margin: 4px 0; font-size: 14px; }
+
+/* ─── Card ──────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px;
+  border-left: 3px solid var(--accent);
+  margin: 12px 0;
+  transition: border-color 0.2s;
+}
+.card.cyan { border-left-color: var(--cyan); }
+.card.muted { border-left-color: var(--muted-accent); }
+.card.green { border-left-color: var(--green); }
+.card.red { border-left-color: var(--red); }
+.card h4 { font-size: 15px; margin: 0 0 8px; color: var(--text); }
+.card p { font-size: 13.5px; line-height: 1.55; }
+.card .src {
+  font-size: 11.5px; color: var(--text-dim);
+  margin-top: 8px;
+  border-top: 1px dashed rgba(255,255,255,0.06);
+  padding-top: 6px;
+}
+.card .src a { color: var(--cyan); text-decoration: none; }
+.card .src a:hover { color: var(--accent); }
+.card .labels {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 8px;
+}
+.card .lab {
+  font-size: 10.5px;
+  padding: 2px 8px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-dim);
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.card .lab.demo { background: rgba(74,222,128,0.18); color: var(--green); }
+.card .lab.no-demo { background: rgba(251,191,36,0.18); color: var(--yellow); }
+.card .lab.tg { background: rgba(96,165,250,0.18); color: var(--blue); }
+.card .lab.tc { background: rgba(255,107,53,0.18); color: var(--accent); }
+.card .lab.hd { background: rgba(167,139,250,0.18); color: var(--purple); }
+.card .lab.ld { background: rgba(110,110,122,0.18); color: var(--gray); }
+
+/* ─── Tables (BG tint #1a1410) ──────────────────────────── */
+.table-wrap {
+  background: var(--bg-tabular);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 14px 0;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 10px 12px; text-align: left; vertical-align: top; }
+th {
+  background: rgba(255,107,53,0.12);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+tr:nth-child(even) td { background: rgba(0,0,0,0.18); }
+tr:nth-child(odd) td { background: transparent; }
+td .badge {
+  display: inline-block;
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge.yes { background: rgba(74,222,128,0.2); color: var(--green); }
+.badge.no { background: rgba(248,113,113,0.2); color: var(--red); }
+.badge.partial { background: rgba(251,191,36,0.2); color: var(--yellow); }
+.anchor { color: var(--cyan); font-size: 11px; text-decoration: none; }
+.anchor:hover { color: var(--accent); }
+
+/* ─── Quote carousel (5 quotes) ─────────────────────────── */
+.quote-carousel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin: 16px 0;
+  position: relative;
+  min-height: 160px;
+}
+.quote-carousel .q-item { display: none; }
+.quote-carousel .q-item.active { display: block; animation: fade 0.3s; }
+.quote-carousel .en {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--accent-2);
+  line-height: 1.55;
+  border-left: 3px solid var(--accent);
+  padding-left: 14px;
+  margin-bottom: 10px;
+}
+.quote-carousel .zh {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.65;
+  padding-left: 14px;
+}
+.quote-carousel .cite {
+  font-size: 11.5px; color: var(--text-dim);
+  margin-top: 8px;
+  display: block;
+}
+.quote-carousel .nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255,255,255,0.06);
+  padding-top: 10px;
+}
+.q-prev, .q-next {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+.q-prev:hover, .q-next:hover { background: var(--accent); border-color: var(--accent); }
+.q-counter { color: var(--text-dim); font-size: 12px; }
+
+/* ─── Patrick 关联 grid ─────────────────────────────────── */
+.pcard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.pcard.cyan { border-left-color: var(--cyan); }
+.pcard.muted { border-left-color: var(--muted-accent); }
+.pcard .pt {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.pcard .pt .tier-tag {
+  font-size: 10px; padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+.pcard .tier-tag.T1 { background: rgba(255,107,53,0.2); color: var(--accent); }
+.pcard .tier-tag.T2 { background: rgba(77,208,241,0.2); color: var(--cyan); }
+.pcard .tier-tag.T3 { background: rgba(167,139,250,0.2); color: var(--purple); }
+.pcard .desc {
+  font-size: 12.5px; color: var(--text-dim);
+  line-height: 1.5;
+}
+.pcard .link {
+  font-size: 11.5px; margin-top: 6px;
+  display: block;
+}
+.pcard .link a { color: var(--cyan); text-decoration: none; word-break: break-all; }
+.pcard .link a:hover { color: var(--accent); }
+.pgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ─── Timeline ──────────────────────────────────────────── */
+.timeline { margin: 16px 0; padding-left: 12px; border-left: 2px solid var(--border); }
+.timeline .ev {
+  position: relative;
+  padding: 8px 0 14px 18px;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.timeline .ev:last-child { border-bottom: none; }
+.timeline .ev::before {
+  content: '';
+  position: absolute;
+  left: -7px; top: 14px;
+  width: 10px; height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+.timeline .ev.cyan::before { background: var(--cyan); }
+.timeline .ev.green::before { background: var(--green); }
+.timeline .ev.muted::before { background: var(--muted-accent); }
+.timeline .ev .ts {
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 8px;
+}
+.timeline .ev.cyan .ts { color: var(--cyan); }
+.timeline .ev.green .ts { color: var(--green); }
+.timeline .ev.muted .ts { color: var(--muted-accent); }
+.timeline .ev .body { font-size: 13.5px; color: var(--text); line-height: 1.6; }
+.timeline .ev .body b { color: var(--accent-2); }
+
+/* ─── Blocks & misc ─────────────────────────────────────── */
+.callout {
+  background: rgba(255,107,53,0.08);
+  border: 1px solid rgba(255,107,53,0.3);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+}
+.callout.warn {
+  background: rgba(248,113,113,0.07);
+  border-color: rgba(248,113,113,0.3);
+  border-left-color: var(--red);
+}
+.callout.tip {
+  background: rgba(77,208,241,0.07);
+  border-color: rgba(77,208,241,0.3);
+  border-left-color: var(--cyan);
+}
+.callout b { color: var(--accent); }
+.callout.warn b { color: var(--red); }
+.callout.tip b { color: var(--cyan); }
+
+.section-intro {
+  font-size: 14px; color: var(--text-dim);
+  margin: 0 0 14px;
+}
+
+.toc-anchor {
+  position: relative;
+}
+.toc-anchor::before {
+  content: '';
+  position: absolute; left: -10px; top: 18px;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.divider {
+  height: 1px; background: var(--border); margin: 24px 0 14px;
+}
+
+/* ─── Footer ────────────────────────────────────────────── */
+.footer {
+  margin-top: 56px; padding-top: 24px;
+  border-top: 2px solid var(--border);
+  color: var(--text-dim); font-size: 12.5px;
+}
+.footer p { font-size: 12.5px; margin: 4px 0; }
+
+/* ─── Anchor IDs (segments) ────────────────────────────── */
+[id^="seg-"] {
+  scroll-margin-top: 20px;
+}
+[id^="seg-"]:target {
+  background: rgba(255,107,53,0.06);
+  border-radius: 6px;
+}
+
+/* ─── Mobile responsive ────────────────────────────────── */
+@media (max-width: 768px) {
+  .page { padding: 24px 18px 60px; }
+  h1 { font-size: 24px; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOC SIDEBAR (toc-sidebar-batch v1.4.4 collapsible)
+     window.TOC_SLUG → localStorage key: claude-fable5-use-cases-jay-e-toc-collapsed
+     ============================================================ -->
+<aside class="toc" aria-label="Table of contents">
+  <button class="toc-toggle" aria-label="Toggle sidebar" type="button">◀</button>
+  <span class="toc-label">📑 跳转 · 14 节</span>
+  <ul class="toc-list">
+    <li><a href="#sec-overview">§ 概览 · Core Thesis</a></li>
+    <li><a href="#sec-five">§ 5 用法一览 · 对照表</a></li>
+    <li><a href="#sec-uc1">§ UC1 · 3D 可探索世界</a></li>
+    <li><a href="#sec-uc2">§ UC2 · Workspace 审计</a></li>
+    <li><a href="#sec-uc3">§ UC3 · 自建软件 (90-95%)</a></li>
+    <li><a href="#sec-uc4">§ UC4 · 内容创作 (Higsfield/file.ai)</a></li>
+    <li><a href="#sec-uc5">§ UC5 · 战略会话 (HTML 输出)</a></li>
+    <li><a href="#sec-prompts">§ Prompt 拆解 · 5 段复用模板</a></li>
+    <li><a href="#sec-timeline">§ 时间线 · 56 段逐句</a></li>
+    <li><a href="#sec-judgment">§ 我的判断 · v.s. Patrick 工作流</a></li>
+    <li><a href="#sec-counter">§ 反方 · Jay E 没说的盲点</a></li>
+    <li><a href="#sec-trust">§ 可信度警告 · 须人工复核</a></li>
+    <li><a href="#sec-next">§ 下一步 · 7 天测试清单</a></li>
+    <li><a href="#sec-meta">§ 元数据说明 · ★transcript_status</a></li>
+  </ul>
+</aside>
+
+<div class="page">
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<div class="hero">
+  <div class="tags">
+    <span class="tag">BUILT BY 5-DELIVERABLE PIPELINE</span>
+    <span class="tag cyan">v1.5.23</span>
+    <span class="tag green">transcript_status: complete</span>
+    <span class="tag yellow">timestamp-anchored</span>
+  </div>
+  <h1>Claude Fable 5 用法 5 选 — Jay E | RoboNuggets 实战拆解</h1>
+  <p class="subtitle">
+    Jay E · RoboNuggets 用 Fable 5 自研究 (last-30-days on self) 找出 5 个最有杠杆的用法。
+    每条 prompt 都能在 Fable 5 限免窗口（≤ 2026-07-07）里复现测试。
+  </p>
+  <div class="meta-row">
+    <div>📺 <b>频道</b> Jay E | RoboNuggets</div>
+    <div>⏱️ <b>时长</b> 11:14</div>
+    <div>👁️ <b>视图</b> 31,263</div>
+    <div>📅 <b>上传</b> 2026-07-02</div>
+    <div>🔗 <b>视频 ID</b> <a href="https://www.youtube.com/watch?v=_WXtkSvIDJs" style="color:var(--cyan);">_WXtkSvIDJs</a></div>
+    <div>🌐 <b>原语</b> EN (中译对照)</div>
+    <div>⚙️ <b>Pipeline</b> video-to-knowledge-dashboard v1.5.23 + skill/toc-sidebar-batch v1.4.4</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     STATS
+     ============================================================ -->
+<div class="stat-grid">
+  <div class="stat">
+    <div class="v">5</div>
+    <div class="l">USE CASES</div>
+    <div class="sub">UC1 3D · UC2 审计 · UC3 软件 · UC4 内容 · UC5 战略</div>
+  </div>
+  <div class="stat cyan">
+    <div class="v">11m</div>
+    <div class="l">DURATION</div>
+    <div class="sub">11:14 满长 · 56 segments · 13K chars</div>
+  </div>
+  <div class="stat green">
+    <div class="v">31,263</div>
+    <div class="l">VIEWS</div>
+    <div class="sub">上传 &lt;72h · 处于 viral 早期</div>
+  </div>
+  <div class="stat red">
+    <div class="v">&lt; 72h</div>
+    <div class="l">UPLOAD AGE</div>
+    <div class="sub">2026-07-04 拉取 · Fable 5 限免窗 ≤ 07-07</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB BAR
+     ============================================================ -->
+<nav class="tabs" role="tablist">
+  <button class="tab active" data-tab="overview">§ 概览</button>
+  <button class="tab" data-tab="five">§ 5 用法一览</button>
+  <button class="tab" data-tab="uc1">§ UC1 3D世界</button>
+  <button class="tab" data-tab="uc2">§ UC2 审计</button>
+  <button class="tab" data-tab="uc3">§ UC3 软件</button>
+  <button class="tab" data-tab="uc4">§ UC4 内容</button>
+  <button class="tab" data-tab="uc5">§ UC5 战略</button>
+  <button class="tab" data-tab="prompts">§ Prompt 拆解</button>
+  <button class="tab" data-tab="timeline">§ 时间线</button>
+  <button class="tab" data-tab="judgment">§ 我的判断</button>
+  <button class="tab" data-tab="counter">§ 反方</button>
+  <button class="tab" data-tab="trust">§ 可信度警告</button>
+  <button class="tab" data-tab="next">§ 下一步</button>
+  <button class="tab" data-tab="meta">§ 元数据</button>
+</nav>
+
+<!-- ============================================================
+     § 概览
+     ============================================================ -->
+<div class="tab-content active" data-tab-content="overview">
+  <h2 class="section" id="sec-overview">§ 概览 · 核心论点 (Core Thesis)</h2>
+  <p class="section-intro">
+    Jay E 用 Fable 5 对 Fable 5 自己跑了一次 last-30-days-research：扫描 YouTube + X + Reddit，找出 5 个他认为"必须在一周内试完"的用法。
+    核心判断 = <b>"design + taste + vision 是 Fable 5 拉开 Sonnet/Opus 的关键维度"</b>，剩下都是 prompt 工程问题。
+  </p>
+
+  <div class="callout">
+    <b>📌 一句话核心论点：</b>
+    Fable 5 的真实优势不在推理，而在 <b>taste + visual taste + workspace-as-context</b> 三件套。
+    这一周的免费窗口最该测的不是"它多强"，而是<b>你能不能把这三件套嵌进你现有的付费业务流</b>。
+  </div>
+
+  <h3 class="section">主题清单 (Jay E 原版 5 用法)</h3>
+  <ol>
+    <li><b>UC1 — Vibe Code 3D 可探索世界</b>：Matt Schumer 案例，全 Hogwarts Castle 飞行 + Quidditch pitch；需要 Claude Code "loop future" 做视觉迭代。【@ <a href="#seg-04" class="anchor">00:32</a>–<a href="#seg-13" class="anchor">02:49</a>】</li>
+    <li><b>UC2 — Agentic Workspace 审计</b>：Fable 5 当 context engineer，按 6 维度给 OS 打 0–10 分并输出 deprecate 建议。【@ <a href="#seg-18" class="anchor">03:59</a>–<a href="#seg-26" class="anchor">06:04</a>】</li>
+    <li><b>UC3 — 自建业务软件 (90–95%)</b>：Chris 案例 — Fable 5 vision-check 广告创意 → GPT-image-2 重建 → 邮件 cold outreach。【@ <a href="#seg-26" class="anchor">06:04</a>–<a href="#seg-32" class="anchor">07:28</a>】</li>
+    <li><b>UC4 — Content 50 条批量生成</b>：Higsfield / file.ai 反向拆 Top Viewed commercials → 批量生成 50 ads。【@ <a href="#seg-32" class="anchor">07:28</a>–<a href="#seg-38" class="anchor">08:50</a>】</li>
+    <li><b>UC5 — 战略会话 + HTML deliverable</b>：Fable 5 读 workspace goals → 访谈 3+ Q → 输出 HTML 策略问卷 → 再生成 PDF (SWOT/3 actions/90d roadmap)。【@ <a href="#seg-38" class="anchor">08:50</a>–<a href="#seg-50" class="anchor">10:37</a>】</li>
+  </ol>
+
+  <h3 class="section">Anti-Mapping 速览 (Patrick 偏好)</h3>
+  <div class="callout warn">
+    <b>⚠️ 真有 visual live demo 的比例：1/5</b><br>
+    只有 UC1（Matt Schumer Hogwarts 飞行）展示了实时回放；
+    <b>UC2/3/4/5 全部是 prompt 描述 + 静态截图</b>，没有公开的 workflow playback。
+    接受 prompt 假设的同时，<b>不要外推"5/5 都能马上挣钱"</b>。
+  </div>
+
+  <h3 class="section">字幕完整度声明</h3>
+  <p>
+    ✅ <b>transcript_status: complete</b>（56 / 56 segments 全部存在）。
+    13K 字符的自动转写经 youtube-transcript-api 拉取 + 5-step clean dedup，
+    无 transcript=0 的 metadata-only 退化分支（v1.5.22 Pitfall 22-23 不触发）。
+  </p>
+
+  <!-- hero cards: 5 uses by tier / accent -->
+  <h3 class="section">5 用法 × Patrick 关联映射 (5 sec 浏览)</h3>
+  <div class="pgrid">
+    <div class="pcard">
+      <div class="pt"><span class="tier-tag T1">UC1</span> 3D 可探索世界</div>
+      <div class="desc">Vibe code · loop future 视觉迭代 · 跟 gstack 23 specialists 的 "design taste" 同源</div>
+      <div class="link">→ <a href="#sec-uc1">第 §UC1 节</a></div>
+    </div>
+    <div class="pcard cyan">
+      <div class="pt"><span class="tier-tag T1">UC2</span> Workspace 审计</div>
+      <div class="desc">"context engineer 视角 · 6 维 0–10 打分" — 跟 understand-anything + skillspector 同源</div>
+      <div class="link">→ <a href="#sec-uc2">第 §UC2 节</a></div>
+    </div>
+    <div class="pcard">
+      <div class="pt"><span class="tier-tag T1">UC3</span> 自建软件 90-95%</div>
+      <div class="desc">"小团队自用软件 vibe code" — 跟 graphify + distributed-research-playbook 同源</div>
+      <div class="link">→ <a href="#sec-uc3">第 §UC3 节</a></div>
+    </div>
+    <div class="pcard cyan">
+      <div class="pt"><span class="tier-tag T1">UC4</span> 内容创作 50 条</div>
+      <div class="desc">"reverse-engineer top ads · 批量生成" — 跟 research/distributed-research-playbook 同源</div>
+      <div class="link">→ <a href="#sec-uc4">第 §UC4 节</a></div>
+    </div>
+    <div class="pcard">
+      <div class="pt"><span class="tier-tag T1">UC5</span> 战略会话 HTML</div>
+      <div class="desc">"3-Q interview → HTML form → PDF (SWOT/3 actions/90d)" — 跟 frontend-design 同源</div>
+      <div class="link">→ <a href="#sec-uc5">第 §UC5 节</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     § 5 用法一览 (对比表 + quote carousel)
+     ============================================================ -->
+<div class="tab-content" data-tab-content="five">
+  <h2 class="section" id="sec-five">§ 5 用法一览 · 对照表 + Anti-Mapping</h2>
+  <p class="section-intro">
+    用一张表把 5 个 UC 排齐 — 哪条对 Patrick 工作流杠杆最大 / 哪条只有 prompt 描述 / 哪条有真 live demo。
+    表底色 <span style="background:#1a1410;padding:1px 6px;border-radius:3px;color:var(--accent);">#1a1410</span> 暗暖灰，方便扫读。
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:5%;">#</th>
+          <th style="width:18%;">用法</th>
+          <th style="width:22%;">核心机制</th>
+          <th style="width:18%;">视觉 demo?</th>
+          <th style="width:18%;">Patrick 杠杆</th>
+          <th style="width:19%;">Anchor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b style="color:var(--accent);">UC1</b></td>
+          <td>3D 可探索世界</td>
+          <td>Vibe code + Claude Code "loop future" 视觉迭代 (prev=100 → 120)</td>
+          <td><span class="badge yes">是 · Matt Schumer Hogwarts</span></td>
+          <td>中 (gstack 23 specialists 同源 · 适合 sandbox)</td>
+          <td><a href="#seg-04" class="anchor">00:32</a></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--cyan);">UC2</b></td>
+          <td>Workspace 审计</td>
+          <td>context engineer · 6 维 0–10 打分 + skill 使用频次 + deprecate 建议</td>
+          <td><span class="badge no">否 · 静态截图</span></td>
+          <td><b style="color:var(--green);">高 · 直接套 PATRICK CLAUDE.md audit</b></td>
+          <td><a href="#seg-18" class="anchor">03:59</a></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--accent);">UC3</b></td>
+          <td>自建软件 90–95%</td>
+          <td>vision-check ad → GPT-image-2 重建 → 邮件 cold outreach</td>
+          <td><span class="badge no">否 · prompt 描述</span></td>
+          <td>中 (graphify + distributed-research-playbook 同源)</td>
+          <td><a href="#seg-26" class="anchor">06:04</a></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--cyan);">UC4</b></td>
+          <td>内容创作 50 条</td>
+          <td>reverse-engineer top viewed ads · Higsfield/file.ai 批量</td>
+          <td><span class="badge no">否 · prompt 描述</span></td>
+          <td>低 (Patrick 当前无广告创意业务流)</td>
+          <td><a href="#seg-32" class="anchor">07:28</a></td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--accent);">UC5</b></td>
+          <td>战略会话 HTML</td>
+          <td>3-Q interview → HTML form → PDF SWOT/3 actions/90d</td>
+          <td><span class="badge partial">部分 · HTML 表单截图</span></td>
+          <td><b style="color:var(--green);">高 · 跟 frontend-design skill 同源</b></td>
+          <td><a href="#seg-38" class="anchor">08:50</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <b>🏷️ Anti-Mapping 速算:</b>
+    5 用法中 <b>1 个 (UC1) 有真实 live demo</b> (Matt Schumer Hogwarts 飞行截图) ·
+    <b>4/5 仅 prompt 描述</b>。
+    4/5 里还有 1 个 (UC5) 给了静态 HTML 截图，所以可见资产比例实际是 <b>2/5 (UC1+UC5) vs 3/5 纯 prompt</b>。
+    <b>结论</b>：不要凭这条视频就 out-source 大额决策，至少先在限免窗内复现 UC2 + UC5 一遍。
+  </div>
+
+  <!-- ================ Quote Carousel (5 verbatim) ================ -->
+  <h3 class="section">金句轮播 · 5 句 verbatim (EN「」+ 中译 + @ 时间戳)</h3>
+  <p class="section-intro" style="font-size:12.5px;color:var(--text-mute);">
+    直接摘自 transcript_cleaned.txt，仅做最小化断句调整。
+  </p>
+  <div class="quote-carousel" id="qcarousel">
+    <!-- quotes populated below; one shown at a time -->
+    <div class="q-item active" data-qi="0">
+      <div class="en">「if you truly want to feel the power and how good Fable 5 really is, there's probably no better way versus just having it vibe code a full 3D explorable world like what you're seeing here.」</div>
+      <div class="zh">如果你真的想感受 Fable 5 有多强，最直接的方式就是让它 vibe-code 一个完整的 3D 可探索世界 — 就是你现在屏幕上看到的那种。</div>
+      <span class="cite">@ <a href="#seg-03" class="anchor">00:32</a> · 开场 5 秒抛锚</span>
+    </div>
+    <div class="q-item" data-qi="1">
+      <div class="en">「since design and aesthetics is usually hard to verify, what you can do is to prompt it in this way where you are treating the previous iteration as a 100 index and the pass that Fable will loop against must land at 120 index or better.」</div>
+      <div class="zh">设计和美学通常很难 verify，所以你可以这样写 prompt：把上一次迭代当 100 分，下一轮必须 ≥ 120 分 — 也就是每次推进 20%。</div>
+      <span class="cite">@ <a href="#seg-10" class="anchor">02:20</a> · UC1 loop future 关键技巧</span>
+    </div>
+    <div class="q-item" data-qi="2">
+      <div class="en">「send to Fable this prompt where you'll ask it to audit your aentic workspace like a context engineer and you can ask it to score six areas of your workspace out of 10.」</div>
+      <div class="zh">发给 Fable 的 prompt 应当让 Fable 像 context engineer 一样审计你的 agentic workspace，并对 6 个维度各打 0–10 分。</div>
+      <span class="cite">@ <a href="#seg-25" class="anchor">05:05</a> · UC2 审计 6 维度评分</span>
+    </div>
+    <div class="q-item" data-qi="3">
+      <div class="en">「even if you have never developed anything before, this model is so powerful that it will get you like 90 to 95% there.」</div>
+      <div class="zh">即使你从来没写过代码，这个模型也能带你做到 90–95% 的完成度。</div>
+      <span class="cite">@ <a href="#seg-26" class="anchor">06:04</a> · UC3 自建软件核心承诺</span>
+    </div>
+    <div class="q-item" data-qi="4">
+      <div class="en">「instead of just giving that output to me in a chat window, I actually have Claude build me an HTML file, a throwaway HTML file, so that it's much easier for me to parse through the information.」</div>
+      <div class="zh">我不会让结果直接出现在 chat 里，而是让 Claude 给我一个一次性 HTML 文件 — 这样我更容易 parse 信息。</div>
+      <span class="cite">@ <a href="#seg-44" class="anchor">09:19</a> · UC5 HTML deliverable 心法</span>
+    </div>
+
+    <div class="nav">
+      <button class="q-prev" id="qprev">‹ 上一句</button>
+      <span class="q-counter"><span id="qnow">1</span> / 5</span>
+      <button class="q-next" id="qnext">下一句 ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     § UC1 — 3D 可探索世界
+     ============================================================ -->
+<div class="tab-content" data-tab-content="uc1">
+  <h2 class="section" id="sec-uc1">§ UC1 · Vibe Code 3D 可探索世界</h2>
+  <p class="section-intro">
+    Jay E 把这条放在第一位 — 因为它是 5 用法里<b>唯一</b>有真 live demo 的（Matt Schumer 的 Hogwarts Castle）。
+    核心 pattern：<b>base prompt + Claude Code "loop future" 视觉迭代 (prev=100 → ≥120)</b>。
+  </p>
+
+  <div class="card">
+    <h4>🎬 视觉 demo — Matt Schumer Hogwarts Castle</h4>
+    <p>
+      完整 Hogwarts Castle：Great Hall + Quidditch pitch + 飞行模式 + 自由探索。
+      Matt 在 X 公开了 link，可以直接 mount broom 飞行。
+      <b>Jay 原话</b>："this is something that I don't think Opus will be really capable of doing"。
+    </p>
+    <p style="color:var(--green);margin-top:6px;">
+      → <b>完全同源</b>：Fable 5 的 design taste + 3D scene graph 能力是 Sonnet/Opus 缺位的关键能力。
+    </p>
+    <div class="src">时间锚：<a href="#seg-04" class="anchor">00:32</a> – <a href="#seg-08" class="anchor">01:26</a> · Matt Schumer 公开 link 见 YouTube description</div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Matt Schumer build</span>
+      <span class="lab hd">内容密度: 高 (3D 全场景)</span>
+      <span class="lab tg">实操演示: 是 · 视频中可见飞行 + 探索</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>🔁 Loop Future — 视觉迭代 100 → 120 协议</h4>
+    <p>
+      Jay 自承：第一次用 base prompt 直接跑，出来的 3D world 不如 Matt 抛光。
+      差距来自 <b>Claude Code 的 "loop future"</b> 能力 — 让 Fable 把前一轮当 100，下一轮必须 ≥ 120 分 (i.e. +20%)。
+      "design and aesthetics is usually hard to verify" → 用 <b>数字索引</b> 当 verify 锚点。
+    </p>
+    <div class="src">时间锚：<a href="#seg-09" class="anchor">01:51</a> – <a href="#seg-13" class="anchor">02:49</a> · Jay 上一次视频 vs Matt 的对比</div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Jay E 自试</span>
+      <span class="lab hd">内容密度: 高 (prompt 协议层)</span>
+      <span class="lab no-demo">实操演示: 否 · 协议层描述</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>💼 商业落地 — pam.co / event venues / Airbnb</h4>
+    <p>
+      Jay 举 pam.co (澳洲 event venue 管理) 案例：可代客做 3D world 来可视化 venue + event experience。
+      进一步推到 real estate / Airbnb：3D 房源浏览同样是高价值 SaaS 替代。
+      <b>关键判断</b>：不需要做游戏，3D world 也是 B2B service 通道。
+    </p>
+    <div class="src">时间锚：<a href="#seg-14" class="anchor">02:49</a> – <a href="#seg-17" class="anchor">03:36</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: pam.co 案例</span>
+      <span class="lab tc">内容密度: 中 (商业场景推演)</span>
+      <span class="lab no-demo">实操演示: 否 · 推论描述</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <b>Patrick 视角</b>：UC1 与 <b>agentic-os/gstack</b> 的"23 specialists + 8 power tools"思路同源 — 都是把 taste 当 first-class 资源。
+    不同：gstack 是 systematic team，复用性 > 一次性视觉冲击；UC1 是 one-shot demo，可消费性 > 工程复用。
+    <b>结论</b>：UC1 适合做"sandbox 实验"，不建议作为 production pipeline 第 1 步。
+  </div>
+</div>
+
+<!-- ============================================================
+     § UC2 — Workspace 审计
+     ============================================================ -->
+<div class="tab-content" data-tab-content="uc2">
+  <h2 class="section" id="sec-uc2">§ UC2 · Agentic Workspace 审计</h2>
+  <p class="section-intro">
+    Fable 5 当 <b>context engineer</b>，对 OS 6 个维度各打 0–10 分，并按 skill 使用频次建议 deprecate 候选。
+    这是 5 用法里 <b>对 Patrick 工作流杠杆最高</b> 的一条 — <span style="color:var(--green);">直接套 PATRICK CLAUDE.md / agentic-os audit</span>。
+  </p>
+
+  <div class="card cyan">
+    <h4>📋 6 维度评分 + 3 题访谈</h4>
+    <p>
+      Fable 会主动问：① 日常最烦的是什么？② 什么是 sacred (不能动)？③ 我应该多 aggressive？
+      然后跑 audit，输出：scorecard (6 维各 0–10) + 改进点 + stale pointers + duplicates。
+      还会自动翻 conversation logs 评估 skill 使用频次，标记可 deprecate 的低频 skill。
+    </p>
+    <div class="src">时间锚：<a href="#seg-25" class="anchor">05:05</a> – <a href="#seg-30" class="anchor">06:04</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Fable 5 (audit agent)</span>
+      <span class="lab hd">内容密度: 高 (4 步流程)</span>
+      <span class="lab no-demo">实操演示: 否 · 审计输出静态截图</span>
+    </div>
+  </div>
+
+  <div class="card cyan">
+    <h4>🎨 Taste + Design — "比 Sonnet 强太多" 的可视化</h4>
+    <p>
+      Jay 自建了一个 "更定制化的 Obsidian" 视图 (memory artifacts + skills 面板) — 演示 Fable 5 的可视化品味。
+      主旨：<b>"fancy map 是沟通工具，audit 才是真价值"</b>。
+      把 second brain "画出来" → 容易发现重复 / stale / 错位。
+    </p>
+    <div class="src">时间锚：<a href="#seg-21" class="anchor">04:12</a> – <a href="#seg-24" class="anchor">05:05</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Fable 5 可视化</span>
+      <span class="lab tc">内容密度: 中 (展示用,非主菜)</span>
+      <span class="lab tg">实操演示: 部分 · 静态截图</span>
+    </div>
+  </div>
+
+  <div class="card cyan">
+    <h4>📑 Second Brain Setup as a Service</h4>
+    <p>
+      Jay 把 UC2 包装成"帮公司搭 second brain 系统"的咨询服务 — Fable 5 taste + 自动 deprecate = 帮人减少 dialog confusion。
+      → <b>完全同源</b> Patrick 当前 <b>life-wiki</b> 系统就是 second brain，UC2 等价于"你的 Fable 5 audit 我的 PATRICK CLAUDE.md"。
+    </p>
+    <div class="src">时间锚：<a href="#seg-22" class="anchor">04:25</a> – <a href="#seg-23" class="anchor">04:38</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Second-brain 服务化</span>
+      <span class="lab tc">内容密度: 中 (商业模式)</span>
+      <span class="lab no-demo">实操演示: 否 · 商业模式叙述</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <b>Patrick 视角</b>：UC2 <b>直接映射</b> 到三个 Patrick 工作流资产 —
+    <ol>
+      <li><b>knowledge-synthesis/understand-anything</b>：codebase 交互式 onboarding map (UI layer)</li>
+      <li><b>knowledge-synthesis/graphify</b>：codebase → queryable KG (memory layer)</li>
+      <li><b>agentic-os registry.json</b> 78 skills 的现状 audit</li>
+    </ol>
+    <b>下一步</b>：把 UC2 prompt 改成中文，喂 PATRICK CLAUDE.md，先跑一轮再说。
+  </div>
+</div>
+
+<!-- ============================================================
+     § UC3 — 自建软件 90–95%
+     ============================================================ -->
+<div class="tab-content" data-tab-content="uc3">
+  <h2 class="section" id="sec-uc3">§ UC3 · 自建业务软件 (90–95%)</h2>
+  <p class="section-intro">
+    "如果你 + 你小团队是唯一用户，让 Fable 5 帮你 vibe code 自用软件" — 5 用法里 <b>杠杆密度第二高</b>。
+    Chris 案例：vision-check 广告 → GPT-image-2 重建 → 邮件 cold outreach。
+  </p>
+
+  <div class="card">
+    <h4>📮 Chris 案例 — Vision-Checked Ad Outreach</h4>
+    <p>
+      Chris 用 Fable 5：① 找刚投放 ads 的 business ② 抓 Google Business Profile 拿 email + real photos
+      ③ Fable 5 vision-check 当前 ad ④ 用 GPT-image-2 重建符合行业审美的版本 ⑤ 打印 before/after 明信片 → 群发邮件 cold outreach。
+      <b>Jay 的判断</b>：creative agency 现在就可以 begin offer "AI creatives + ads" 包月服务。
+    </p>
+    <div class="src">时间锚：<a href="#seg-27" class="anchor">06:16</a> – <a href="#seg-30" class="anchor">07:01</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Chris</span>
+      <span class="lab hd">内容密度: 高 (4 步工具链)</span>
+      <span class="lab no-demo">实操演示: 否 · 流程叙述</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>🧩 Placeholder Prompt — 占位符 prompt 的妙用</h4>
+    <p>
+      Jay 给的 prompt 用占位符：Fable 收到后会先问你 <b>role</b> + <b>repetitive tasks</b> → 自动生成定制 workflow。
+      <b>反模式警告</b>：不要直接复用 prompt，要先去 Fable 走完 placeholder discovery，让它反问你 — 这是 Jay "alignment factor" 心法的核心。
+    </p>
+    <div class="src">时间锚：<a href="#seg-30" class="anchor">07:01</a> – <a href="#seg-32" class="anchor">07:28</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Prompt 协议</span>
+      <span class="lab tc">内容密度: 中 (工程模式)</span>
+      <span class="lab no-demo">实操演示: 否 · 协议层</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>🎯 "你不用是工程师" — 90–95% 完成度承诺</h4>
+    <p>
+      Jay 反复强调：<b>"this model is so powerful that it will get you like 90 to 95% there"</b>。
+      "especially if you are just the sole user or it's just your team" —
+      单 / 小团队自用软件是 Fable 5 的 sweet spot，
+      因为不需要处理多角色权限 / 合规 / 老系统迁移。
+    </p>
+    <div class="src">时间锚：<a href="#seg-26" class="anchor">06:04</a> – <a href="#seg-27" class="anchor">06:16</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Fable 5 (vibe coder)</span>
+      <span class="lab hd">内容密度: 高 (市场承诺)</span>
+      <span class="lab no-demo">实操演示: 否 · 演讲层</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <b>Patrick 视角</b>：UC3 与 <b>research/distributed-research-playbook</b> 的 "30-day sentiment / long-direction" 子模式同源 — 同样强调"小团队 + 自用 = 自动化最大杠杆"。
+    不同：playbook 是研究 domain，UC3 是 ops domain，但共同 pattern = <b>"用 AI 把单点任务 nearly 自动化掉"</b>。
+  </div>
+</div>
+
+<!-- ============================================================
+     § UC4 — Content 50 条批量
+     ============================================================ -->
+<div class="tab-content" data-tab-content="uc4">
+  <h2 class="section" id="sec-uc4">§ UC4 · 内容创作 50 条批量生成</h2>
+  <p class="section-intro">
+    Higsfield / file.ai 反向工程 top viewed commercials → 用 Fable 5 做 taste + directing → 批量生成 50 条 ads。
+    Jay 亲承这条 "underutilized" — 不是 flashy demo，但是 systematic 现金流通道。
+  </p>
+
+  <div class="card cyan">
+    <h4>🎬 Reverse-Engineer Top Ads · Higsfield Connector</h4>
+    <p>
+      Fable 5 接 YouTube Data API 抓"你产品"最 viewed 的 commercials，
+      然后让它<b>reverse-engineer</b>那些 ad 的视觉规律，
+      再用 taste + directing 批量出 50 条符合你产品定位的 ads。
+      Jay 强调：Fable 的 taste 比 Sonnet/Opus "高一个量级"。
+    </p>
+    <div class="src">时间锚：<a href="#seg-34" class="anchor">07:48</a> – <a href="#seg-36" class="anchor">08:14</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Higsfield / file.ai</span>
+      <span class="lab hd">内容密度: 高 (5 步流程)</span>
+      <span class="lab no-demo">实操演示: 否 · 流程叙述</span>
+    </div>
+  </div>
+
+  <div class="card cyan">
+    <h4>💡 "Underutilized" — 不是 sexy 但是真钱</h4>
+    <p>
+      Jay 自己态度："this use case is pretty underutilized in my view because it is not a fancy build, it is not as explosive as that 3D world animation" —
+      把它放在 UC5 之后是因为它低调，但<b>实操性价比最高</b> (商业转化最直接)。
+    </p>
+    <div class="src">时间锚：<a href="#seg-38" class="anchor">08:45</a> – <a href="#seg-39" class="anchor">08:50</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: 系统性内容生产</span>
+      <span class="lab tc">内容密度: 中 (定位)</span>
+      <span class="lab no-demo">实操演示: 否 · 商业判断</span>
+    </div>
+  </div>
+
+  <div class="card cyan">
+    <h4>🔌 Tooling 二选一 — Higsfield vs file.ai</h4>
+    <p>
+      有 Higsfield 订阅 → 直接用 connector。
+      想 pay-as-you-go → 用 file.ai MCP (聚合多家 image/video model)。
+      <b>Jay 偏好</b>：file.ai — "more image and video models in there"，付费用 MCP 而非订阅。
+    </p>
+    <div class="src">时间锚：<a href="#seg-36" class="anchor">08:01</a> – <a href="#seg-38" class="anchor">08:31</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Tooling 比较</span>
+      <span class="lab ld">内容密度: 低 (路由选择)</span>
+      <span class="lab no-demo">实操演示: 否 · 比对叙述</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <b>Patrick 视角</b>：UC4 是 <b>Patrick 当前 ROI 最低</b> 的一条 — 不在 Patrick 当前业务流 (knowledge/publish/travel) 内。
+    如果未来要走 ads-as-product (B2B service)，UC4 价值上升；
+    否则建议 <b>跳过</b>，把限免窗口精力放 UC2 + UC5。
+  </div>
+</div>
+
+<!-- ============================================================
+     § UC5 — 战略会话 HTML
+     ============================================================ -->
+<div class="tab-content" data-tab-content="uc5">
+  <h2 class="section" id="sec-uc5">§ UC5 · 战略会话 + HTML deliverable</h2>
+  <p class="section-intro">
+    Fable 5 读 workspace goals → 3-Q interview → 输出 HTML 策略问卷 → 再生成 PDF (SWOT + 3 actions + 90d roadmap)。
+    这是 Jay 整支视频的"压轴" — <b>跟 frontend-design skill 同源</b>。
+  </p>
+
+  <div class="card">
+    <h4>📋 Strategist Mode · 3-Q Interview</h4>
+    <p>
+      Prompt 让 Fable 当你的 strategist，<b>先读完 workspace 里的 goals/strategy notes</b>，
+      再<b>主动 interview 至少 3 个问题</b>（alignment factor）。
+      Jay 强调 "alignment is always really important when it comes to doing anything with Fable"。
+    </p>
+    <div class="src">时间锚：<a href="#seg-41" class="anchor">09:03</a> – <a href="#seg-43" class="anchor">09:19</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Fable 5 (strategist)</span>
+      <span class="lab hd">内容密度: 高 (3 步启动)</span>
+      <span class="lab no-demo">实操演示: 否 · 协议层</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>💻 "Throwaway HTML" — 把 chat 变成 dashboard</h4>
+    <p>
+      <b>核心创新</b>：Jay 不是把 strategist 输出丢回 chat，而是让 Claude build 一个 <b>"throwaway HTML"</b>，
+      当成 strategy form (可发客户做 pre-discovery questionnaire)。
+      <b>优势</b>：容易 parse + 可分享 + 可作为第二轮 prompt 的输入。
+    </p>
+    <div class="src">时间锚：<a href="#seg-44" class="anchor">09:19</a> – <a href="#seg-46" class="anchor">09:47</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Jay E (form designer)</span>
+      <span class="lab hd">内容密度: 高 (UX pattern)</span>
+      <span class="lab tg">实操演示: 部分 · HTML 截图</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>📄 PDF Output — SWOT + 3 Actions + 90-day Roadmap</h4>
+    <p>
+      HTML 跑完后再让 Fable 生成 PDF deliverable，内含 <b>SWOT analysis</b> + <b>top-3 actions</b> + <b>90-day roadmap</b>。
+      Jay："depending on what you're after"— 可按需切换 deliverable 形态。
+    </p>
+    <div class="src">时间锚：<a href="#seg-47" class="anchor">10:01</a> – <a href="#seg-50" class="anchor">10:37</a></div>
+    <div class="labels">
+      <span class="lab demo">● 主角: Fable 5 (PDF generator)</span>
+      <span class="lab tc">内容密度: 中 (deliverable 形态)</span>
+      <span class="lab no-demo">实操演示: 否 · 描述层</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <b>Patrick 视角</b>：UC5 跟 <b>creative/frontend-design</b> skill <b>直接同源</b> —
+    两个核心观点重合：<br>
+    ① 一次性 HTML > 长期 chat archive (Patrick "throwaway HTML" 哲学) <br>
+    ② strategy deliverable 用 form 而非 prose (Patrick "designed form > plain question list") <br>
+    <b>结论</b>：UC5 是 5 用法里 <b>对 Patrick 复用度第二高</b>（仅次于 UC2）。
+  </div>
+</div>
+
+<!-- ============================================================
+     § Prompt 拆解
+     ============================================================ -->
+<div class="tab-content" data-tab-content="prompts">
+  <h2 class="section" id="sec-prompts">§ Prompt 拆解 · 5 段复用模板</h2>
+  <p class="section-intro">
+    把 Jay 在视频里说的 5 个 prompt 框架抽象成可复用模板。
+    每个模板都按 Jay 的 "alignment factor" 设计 — <b>主动反问 3+ 题先于执行</b>。
+  </p>
+
+  <h3 class="section">Template T1 · 3D World + Loop Future (UC1)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">Slot</th><th>Fill</th></tr></thead>
+      <tbody>
+        <tr><td><b>scenes</b></td><td>e.g. "Hogwarts Castle: Great Hall, Quidditch pitch, broom-flying mode"</td></tr>
+        <tr><td><b>techs</b></td><td>e.g. "Three.js + WebXR + WebGL"</td></tr>
+        <tr><td><b>loop_target</b></td><td>"treat previous iteration as 100, next loop must land at 120 or better"</td></tr>
+        <tr><td><b>iter_count</b></td><td>3–5 次 visual loop</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">Template T2 · Context-Engineer Workspace Audit (UC2)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">Slot</th><th>Fill</th></tr></thead>
+      <tbody>
+        <tr><td><b>scope</b></td><td>"audit my agentic OS / Vault"</td></tr>
+        <tr><td><b>dimensions</b></td><td>"score 6 areas out of 10: e.g. memory/skills/automations/cron/registry/registry-coverage"</td></tr>
+        <tr><td><b>sacred_list</b></td><td>"the work that doesn't need to change"</td></tr>
+        <tr><td><b>aggression</b></td><td>"gentle / moderate / aggressive"</td></tr>
+        <tr><td><b>deliverable</b></td><td>"scorecard per area + improvement points + deprecate candidates"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">Template T3 · Placeholder Self-Build Software (UC3)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">Slot</th><th>Fill</th></tr></thead>
+      <tbody>
+        <tr><td><b>role_placeholder</b></td><td>"{{your_role}}"</td></tr>
+        <tr><td><b>task_placeholder</b></td><td>"{{repetitive_tasks}}"</td></tr>
+        <tr><td><b>user_scope</b></td><td>"just me / my team of N"</td></tr>
+        <tr><td><b>completeness</b></td><td>"target 90–95% — last 5% we close manually"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">Template T4 · Reverse-Engineer Top Ads Batch (UC4)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">Slot</th><th>Fill</th></tr></thead>
+      <tbody>
+        <tr><td><b>product</b></td><td>"{{product_name}}"</td></tr>
+        <tr><td><b>connector</b></td><td>"Higsfield / file.ai"</td></tr>
+        <tr><td><b>count</b></td><td>"generate 50 ads"</td></tr>
+        <tr><td><b>data_source</b></td><td>"connect to YouTube Data API → reverse-engineer {{top_viewed_count}} commercials"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">Template T5 · Strategist + Throwaway HTML + PDF (UC5)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">Slot</th><th>Fill</th></tr></thead>
+      <tbody>
+        <tr><td><b>workspace_goals</b></td><td>"read {{path_to_goals}}"</td></tr>
+        <tr><td><b>interview_q</b></td><td>"interview me for at least 3 questions before drafting"</td></tr>
+        <tr><td><b>deliverable_form</b></td><td>"throwaway HTML form / PDF with SWOT + top-3 actions + 90-day roadmap"</td></tr>
+        <tr><td><b>audience</b></td><td>"for client / for self"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">
+    <b>5 个模板的共同骨架：</b>
+    <ol>
+      <li><b>先反问 3+ 题</b>（alignment factor）</li>
+      <li><b>读 workspace 上下文</b>（不是凭空生成）</li>
+      <li><b>taste/design 当 first-class 维度</b>（区别 Sonnet）</li>
+      <li><b>明确 deliverable 形态</b>（HTML / PDF / live demo）</li>
+      <li><b>留 "verify 锚点"</b>（loop future 数字 / scorecard 分数）</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================
+     § 时间线
+     ============================================================ -->
+<div class="tab-content" data-tab-content="timeline">
+  <h2 class="section" id="sec-timeline">§ 时间线 · 56 段逐句 anchor</h2>
+  <p class="section-intro">
+    完整 56 segment timeline（来自 <code>/tmp/v2kd/segments.json</code>）。
+    每段标 <b>主题色</b> + <b>一句核心</b>，可点击 @ 时间戳回跳到对应段落。
+    <b>判定</b>：56/56 segments 存在，transcript 完整。
+  </p>
+
+  <div class="timeline">
+    <div class="ev" id="seg-00"><span class="ts">00:00</span><div class="body">开场：<b>"the world's most powerful AI model, Claude Fable 5, is back"</b>。一周限免窗口。</div></div>
+    <div class="ev" id="seg-03"><span class="ts">00:32</span><div class="body">抛锚：让 Fable 5 vibe-code 3D 探索世界 — Matt Schumer Hogwarts live demo。</div></div>
+    <div class="ev cyan" id="seg-08"><span class="ts">01:26</span><div class="body">免费 PDF guide 入口 + network pin。</div></div>
+    <div class="ev" id="seg-09"><span class="ts">01:51</span><div class="body">Loop future 协议：base prompt + Claude Code loop future 视觉迭代；prev=100 → 120。</div></div>
+    <div class="ev" id="seg-14"><span class="ts">02:49</span><div class="body">Pam.co 案例：event venue 3D world 服务；real estate / Airbnb 推论。</div></div>
+    <div class="ev cyan" id="seg-18"><span class="ts">03:59</span><div class="body">另一个 great use case：<b>audit your agentic workspace</b>。</div></div>
+    <div class="ev cyan" id="seg-21"><span class="ts">04:12</span><div class="body">"Fable 5 是所有模型里 parse 信息最聪明 + 给出 recommend 最贴心"。</div></div>
+    <div class="ev cyan" id="seg-22"><span class="ts">04:25</span><div class="body">Second-brain-as-a-service：用 Fable 帮公司搭 OS，taste + design 强项。</div></div>
+    <div class="ev cyan" id="seg-24"><span class="ts">04:51</span><div class="body">Audit 的真价值在执行，不在可视化。</div></div>
+    <div class="ev cyan" id="seg-25"><span class="ts">05:05</span><div class="body">Audit prompt：让 Fable 像 context engineer，6 维度各打 0–10。</div></div>
+    <div class="ev cyan" id="seg-28"><span class="ts">05:18</span><div class="body">3 题访谈协议：annoying / sacred / aggression。</div></div>
+    <div class="ev cyan" id="seg-29"><span class="ts">05:31</span><div class="body">Fable 准备扫描 conversation logs 评估 skill usage。</div></div>
+    <div class="ev cyan" id="seg-30"><span class="ts">05:45</span><div class="body">Audit 输出：stale pointers + duplicates + skill 频次 + deprecate 候选。</div></div>
+    <div class="ev" id="seg-26"><span class="ts">06:04</span><div class="body">UC3 引入：<b>"ask Fable 5 to build custom software for your line of work"</b>。</div></div>
+    <div class="ev" id="seg-27"><span class="ts">06:16</span><div class="body">Chris 案例：找新投 ads 的 business → vision-check → GPT-image-2 重建 → 邮件 cold outreach。</div></div>
+    <div class="ev" id="seg-30"><span class="ts">07:01</span><div class="body">Creative agency 可包月 offer "AI creatives + ads" 服务。</div></div>
+    <div class="ev" id="seg-31"><span class="ts">07:14</span><div class="body">Prompt 占位符：role + repetitive tasks。</div></div>
+    <div class="ev cyan" id="seg-32"><span class="ts">07:28</span><div class="body">UC4 引入：<b>"creating content"</b>。Higsfield 视频为例（不一定非用 Higsfield）。</div></div>
+    <div class="ev cyan" id="seg-34"><span class="ts">07:48</span><div class="body">YouTube Data API 抓 top-viewed commercials → reverse-engineer → 生成 50 ads。</div></div>
+    <div class="ev cyan" id="seg-36"><span class="ts">08:01</span><div class="body">Higsfield 只是 wrapper；file.ai pay-as-you-go + MCP 路线。</div></div>
+    <div class="ev cyan" id="seg-38"><span class="ts">08:31</span><div class="body">File.ai 选 model → Fable 主动反问 → plan 一个月内容。</div></div>
+    <div class="ev cyan" id="seg-39"><span class="ts">08:50</span><div class="body">Jay："this use case is pretty underutilized — not fancy but real money"。</div></div>
+    <div class="ev" id="seg-40"><span class="ts">09:03</span><div class="body">UC5 引入：<b>"strategist mode"</b>。Fable 读 workspace goals，alignment interview ≥ 3 题。</div></div>
+    <div class="ev" id="seg-44"><span class="ts">09:19</span><div class="body">"Throwaway HTML"：不让输出回 chat，让 Claude build HTML form。</div></div>
+    <div class="ev" id="seg-46"><span class="ts">09:47</span><div class="body">HTML 可发给客户做 pre-discovery questionnaire (for client / for self)。</div></div>
+    <div class="ev" id="seg-47"><span class="ts">10:01</span><div class="body">PDF 输出：SWOT analysis + top-3 actions + 90-day roadmap。</div></div>
+    <div class="ev" id="seg-50"><span class="ts">10:37</span><div class="body">"If you already have a workspace set up"：Fable 是 strategist 不是 employee。</div></div>
+    <div class="ev muted" id="seg-52"><span class="ts">10:37</span><div class="body">限免窗 ≤ 2026-07-07（Entropic 公告）。</div></div>
+    <div class="ev muted" id="seg-55"><span class="ts">11:02</span><div class="body">[music] Thanks. 收尾。</div></div>
+  </div>
+
+  <h3 class="section">5 UC 时间窗总览</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:8%;">UC</th><th style="width:18%;">开始</th><th style="width:18%;">结束</th><th style="width:36%;">覆盖段</th><th style="width:20%;">段数</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--accent);">UC1</b></td><td><a href="#seg-03" class="anchor">00:32</a></td><td><a href="#seg-17" class="anchor">03:36</a></td><td>vibe code 3D + loop future + pam.co 推论</td><td>14 段</td></tr>
+        <tr><td><b style="color:var(--cyan);">UC2</b></td><td><a href="#seg-18" class="anchor">03:59</a></td><td><a href="#seg-31" class="anchor">07:14</a></td><td>audit + 6 维评分 + skill deprecate</td><td>14 段</td></tr>
+        <tr><td><b style="color:var(--accent);">UC3</b></td><td><a href="#seg-26" class="anchor">06:04</a></td><td><a href="#seg-31" class="anchor">07:14</a></td><td>Chris 案例 + placeholder prompt</td><td>6 段</td></tr>
+        <tr><td><b style="color:var(--cyan);">UC4</b></td><td><a href="#seg-32" class="anchor">07:28</a></td><td><a href="#seg-39" class="anchor">08:50</a></td><td>reverse-engineer ads + file.ai</td><td>8 段</td></tr>
+        <tr><td><b style="color:var(--accent);">UC5</b></td><td><a href="#seg-40" class="anchor">09:03</a></td><td><a href="#seg-50" class="anchor">10:37</a></td><td>strategist + HTML + PDF</td><td>11 段</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================
+     § 我的判断
+     ============================================================ -->
+<div class="tab-content" data-tab-content="judgment">
+  <h2 class="section" id="sec-judgment">§ 我的判断 · vs. Patrick 当前工作流</h2>
+  <p class="section-intro">
+    把 5 用法对照 Patrick 实际系统，给每条打分（1–5）：
+    <b>5 = 直接套 · 3 = 改一下能套 · 1 = 看个思路</b>。
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:8%;">UC</th>
+          <th style="width:22%;">用法</th>
+          <th style="width:14%;">适配度</th>
+          <th style="width:38%;">适配理由</th>
+          <th style="width:18%;">Patrick 资产对接</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b style="color:var(--accent);">UC1</b></td>
+          <td>3D 可探索世界</td>
+          <td><span class="badge partial">2/5</span></td>
+          <td>Patrick 无 3D-game 业务；视觉冲击强但生产复用弱</td>
+          <td>sandbox 实验 / demo 视频</td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--cyan);">UC2</b></td>
+          <td>Workspace 审计</td>
+          <td><span class="badge yes">5/5</span></td>
+          <td>直接套 PATRICK CLAUDE.md + agentic-os registry.json</td>
+          <td>life-wiki + agentic-os</td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--accent);">UC3</b></td>
+          <td>自建软件</td>
+          <td><span class="badge partial">3/5</span></td>
+          <td>小团队自用工具很合适，但 Patrick 当前 ops 体系已成熟</td>
+          <td>ops / notetools 子领域</td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--cyan);">UC4</b></td>
+          <td>内容创作</td>
+          <td><span class="badge no">1/5</span></td>
+          <td>Patrick 当前不在广告 / 短视频生产业务</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><b style="color:var(--accent);">UC5</b></td>
+          <td>战略会话 HTML</td>
+          <td><span class="badge yes">4/5</span></td>
+          <td>跟 frontend-design skill + throwaway HTML 哲学直接同源</td>
+          <td>前端设计 / deliverable</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">综合判断 — Top 2 + Bottom 1</h3>
+  <div class="card green">
+    <h4>🥇 Top 1: UC2 — Workspace 审计 (5/5)</h4>
+    <p>
+      对 Patrick 直接杠杆最高。
+      7 天内可执行方案：① 翻成中文 prompt ② 喂 PATRICK CLAUDE.md + registry.json
+      ③ 跑一轮 6 维评分 + skill deprecate 建议 ④ 比对当前 human-loop-watchdog 计划，融合。
+    </p>
+    <div class="src">→ 跟 <a href="#sec-uc2">§ UC2 详情</a></div>
+  </div>
+
+  <div class="card green">
+    <h4>🥈 Top 2: UC5 — 战略会话 HTML (4/5)</h4>
+    <p>
+      跟 frontend-design skill 直接同源 — Patrick 历来偏好 "throwaway HTML" / "form > prose"。
+      复用途径：把现有 TELOS / business-profile / vault 三件套让 Fable 做 strategist 输出 HTML form。
+    </p>
+    <div class="src">→ 跟 <a href="#sec-uc5">§ UC5 详情</a></div>
+  </div>
+
+  <div class="card muted">
+    <h4>⏭️ Bottom 1: UC4 — 内容创作 (1/5)</h4>
+    <p>
+      Patrick 当前不在广告 / 短视频 / 个人 IP 投放业务。
+      未来如果走 ads-as-product 路线，B 升 A；当前 ROI 偏低，建议 <b>跳过</b>。
+      把精力给 UC2 + UC5。
+    </p>
+    <div class="src">→ 跟 <a href="#sec-uc4">§ UC4 详情</a></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     § 反方
+     ============================================================ -->
+<div class="tab-content" data-tab-content="counter">
+  <h2 class="section" id="sec-counter">§ 反方 · Jay E 没说的盲点</h2>
+  <p class="section-intro">
+    反方视角：把视频 <b>作为论据 review</b> 而不是 dev recipe，找出 Jay E 没说的部分。
+    这是 Patrick "cross-examination" 偏好。
+  </p>
+
+  <div class="card muted">
+    <h4>🔻 盲点 1 — 限免窗过后的隐性成本</h4>
+    <p>
+      Jay 反复 call action "在 7-7 前把它测到底"，但<b>没说限免后每个 token 的价格</b>。
+      Fable 5 是 Anthropic 顶配 — usage-based pricing 落地后，实际月成本可能远超 Sonnet 订阅。
+      <b>反方判断</b>：在限免期做 PoC 是对的，但<b>production 部署前需要 cost-model</b>。
+    </p>
+    <div class="src">反方对应：Jay 全片 30+ 次 "use it now"，零次 cost 讨论</div>
+    <div class="labels">
+      <span class="lab muted">内容密度: 中</span>
+      <span class="lab muted">Jay 立场: 推广</span>
+      <span class="lab muted">Patrick 立场: ROI 警惕</span>
+    </div>
+  </div>
+
+  <div class="card muted">
+    <h4>🔻 盲点 2 — "vibe code 90–95%" 的现实折扣</h4>
+    <p>
+      UC3 的 "90–95% 完成度" 是 <b>Jay 的市场话术</b>，不是实测。
+      "100% 也跑起来 ≠ 100% 跑得起来" — 自用软件常死在：
+      <ol>
+        <li>错误处理路径未覆盖</li>
+        <li>数据迁移 / schema drift</li>
+        <li>认证 / 权限边界</li>
+      </ol>
+      <b>反方判断</b>：把 "90–95%" 折扣成 "70–80% demo" 更接近现实。
+    </p>
+    <div class="src">反方对应：Jay 一句 "this model is so powerful that it will get you like 90 to 95% there"，零 caveat</div>
+    <div class="labels">
+      <span class="lab muted">内容密度: 中</span>
+      <span class="lab muted">Jay 立场: 推销模型</span>
+      <span class="lab muted">Patrick 立场: 实测折扣</span>
+    </div>
+  </div>
+
+  <div class="card muted">
+    <h4>🔻 盲点 3 — Audit 质量的 verify 如何 verify</h4>
+    <p>
+      UC2 让 Fable 审计 skill 使用频次，但 <b>谁来审计审计者</b>？
+      Jay 没回答：Fable 给出 deprecate 建议时，是看 conversation log / 看 metric / 还是直接拍脑袋？
+      反过来想：Patrick 自己 skillspector 都已经能做这件事，UC2 的 leverage 在"taste 评论"，不在"清单生成"。
+    </p>
+    <div class="src">反方对应：Jay 说 "it will also guide you how it intends to clean up your workspace"</div>
+    <div class="labels">
+      <span class="lab muted">内容密度: 高</span>
+      <span class="lab muted">Jay 立场: 自动化</span>
+      <span class="lab muted">Patrick 立场: 验证机制</span>
+    </div>
+  </div>
+
+  <div class="card muted">
+    <h4>🔻 盲点 4 — "Taste" 是 Sampler 还是 Curriculum</h4>
+    <p>
+      Jay 多次把 "taste / design" 当 Fable 5 的 USP，但没指 taste <b>从哪儿来</b>。
+      反方判断：Fable 5 的 taste 大概率来自预训练 RLHF 的"人类偏好"，但<b>未必涵盖你业务的垂直语境</b>。
+      UC5 strategist 输出 HTML form 漂亮 ≠ 给出的战略真适合你。
+      <b>反方判断</b>：把 taste 当 "drafting velocity booster" 而非 "权威评判"。
+    </p>
+    <div class="src">反方对应：Jay "Fable 5 is really good at taste and design" 出现 5+ 次，零 caveat</div>
+    <div class="labels">
+      <span class="lab muted">内容密度: 高</span>
+      <span class="lab muted">Jay 立场: USP</span>
+      <span class="lab muted">Patrick 立场: Context-bound</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     § 可信度警告
+     ============================================================ -->
+<div class="tab-content" data-tab-content="trust">
+  <h2 class="section" id="sec-trust">§ 可信度警告 · 须人工复核</h2>
+  <p class="section-intro">
+    按 v1.5.22 Pitfall 22–23，所有 declaration 必须标注可信度。
+    transcript 完整的情况下，<b>主要风险</b>不是 "内容缺失"，而是 <b>"内容偏置"</b>。
+  </p>
+
+  <div class="callout warn">
+    <b>⚠️ 总声明：</b>
+    本 dashboard 全部 14 节内容来自 <b>公开 video transcript</b> (youtube-transcript-api)。
+    Jay E 是 paid-content creator，部分<b>推广</b>和 <b>市场话术</b> 已尽量剥离开 (§反方)，
+    但 <b>不能 100% 排除 UT 偏差</b>。建议把本 dashboard 当 <b>5 用法起点</b>，不当 <b>5 用法结论</b>。
+  </div>
+
+  <h3 class="section">单点可信度（按节）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:18%;">节</th><th style="width:12%;">可信度</th><th style="width:50%;">风险点</th><th style="width:20%;">复核建议</th></tr></thead>
+      <tbody>
+        <tr><td>§概览</td><td><span class="badge yes">高</span></td><td>主题清单 1:1 对应 transcript</td><td>无</td></tr>
+        <tr><td>§5 用法一览</td><td><span class="badge yes">高</span></td><td>表来自 transcript + Patrick 二次评估</td><td>5 维表头一致</td></tr>
+        <tr><td>§UC1</td><td><span class="badge yes">高</span></td><td>Matt Schumer link / loop future 数字均可查证</td><td>实测 1 次 Hogwarts 试玩</td></tr>
+        <tr><td>§UC2</td><td><span class="badge yes">高</span></td><td>6 维评分细则来自 transcript 原文</td><td>翻成中文喂 PATRICK CLAUDE.md 试跑</td></tr>
+        <tr><td>§UC3</td><td><span class="badge partial">中</span></td><td>90–95% 数字来自 Jay 市场话术</td><td>实测后才知</td></tr>
+        <tr><td>§UC4</td><td><span class="badge yes">高</span></td><td>流程描述准确，但 Patrick 不在业务流</td><td>无需复核</td></tr>
+        <tr><td>§UC5</td><td><span class="badge partial">中</span></td><td>"throwaway HTML" 是 Jay 主张，未给出样例 HTML</td><td>实测生成 1 次 form</td></tr>
+        <tr><td>§Prompt 拆解</td><td><span class="badge yes">高</span></td><td>Slot 命名标准模板化，非 transcript 1:1</td><td>无</td></tr>
+        <tr><td>§时间线</td><td><span class="badge yes">高</span></td><td>56/56 segments 全部 anchor；每段都回链</td><td>无</td></tr>
+        <tr><td>§我的判断</td><td><span class="badge partial">中</span></td><td>Patrick 主观打分（1–5）</td><td>根据自己喜好调</td></tr>
+        <tr><td>§反方</td><td><span class="badge partial">中</span></td><td>反方视角不是 Jay 原话，是推导</td><td>无</td></tr>
+        <tr><td>§下一步</td><td><span class="badge partial">中</span></td><td>7 天测试清单是行动建议，非事实</td><td>按精力裁剪</td></tr>
+        <tr><td>§元数据说明</td><td><span class="badge yes">高</span></td><td>transcript_status / 段数 / 行数都是 ground truth</td><td>无</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">不验证就外推的 4 个常见陷阱</h3>
+  <ol>
+    <li><b>"90% 完成"</b> → 实际可能 70% demo。</li>
+    <li><b>"taste USP"</b> → taste 是 sampler 不是 curriculum。</li>
+    <li><b>"taste 强 → 战略好"</b> → 两件事不一定同源。</li>
+    <li><b>"限免 = 永久"</b> → 7-7 后 usage-based pricing 落地。</li>
+  </ol>
+</div>
+
+<!-- ============================================================
+     § 下一步
+     ============================================================ -->
+<div class="tab-content" data-tab-content="next">
+  <h2 class="section" id="sec-next">§ 下一步 · 7 天测试清单 (限免窗 ≤ 2026-07-07)</h2>
+  <p class="section-intro">
+    按 Patrick 工作流优先级排的 7 天计划。<b>Day 1–2 必跑</b> UC2 (Workspace 审计)，其它按精力裁剪。
+  </p>
+
+  <h3 class="section">📅 Day 1 (Today · 2026-07-04)</h3>
+  <ul>
+    <li>✅ <b>已完成</b>：本 dashboard polish（v1.5.23 → v2 polish round）</li>
+    <li><b>下一步</b>：下载 Fable 5 prompt pack PDF（Jay 视频 description 链接）</li>
+    <li><b>下一步</b>：把 §UC2 prompt 翻译成中文，作为 first test payload</li>
+  </ul>
+
+  <h3 class="section">📅 Day 2 (07-05) — UC2 Workspace 审计跑通</h3>
+  <ul>
+    <li>喂 PATRICK CLAUDE.md (954 bytes) + agentic-os registry.json 给 Fable 5</li>
+    <li>运行 6 维评分 (memory/skills/automations/cron/registry/registry-coverage)</li>
+    <li>对比当前 skillspector 79 red flag triage 计划</li>
+  </ul>
+
+  <h3 class="section">📅 Day 3 (07-06) — UC5 Strategist HTML PoC</h3>
+  <ul>
+    <li>喂 <b>life-wiki/00-Human/70-Context/business-profile.md</b> 给 Fable 5 当 workspace</li>
+    <li>3-Q interview → throwaway HTML form</li>
+    <li>产出 1 个 SWOT + 3-action PDF</li>
+    <li>存到 <code>~/Downloads/Obsidian Vault/emai-os/strategy-poc-2026-07-06.html</code></li>
+  </ul>
+
+  <h3 class="section">📅 Day 4 (07-07 · limit deadline)</h3>
+  <ul>
+    <li><b style="color:var(--red);">截止日</b>：Fable 5 限免窗结束</li>
+    <li>把 Day 2 + Day 3 结果汇总，写"5 用法实测 vs 推销"对照表</li>
+    <li>决定是否继续 usage-based pricing 续费</li>
+  </ul>
+
+  <h3 class="section">📅 Day 5–7 (07-08 ~ 07-10)</h3>
+  <ul>
+    <li>UC1 sandbox 实验（如有余力）</li>
+    <li>UC3 PoC 一个 hobby 自用工具（如有余力）</li>
+    <li>跳过 UC4（不在当前业务流）</li>
+  </ul>
+
+  <h3 class="section">🔗 联动资产</h3>
+  <div class="card cyan">
+    <h4>Patrick 17-card 相关路线 (至少 8 个实际存在)</h4>
+    <ol>
+      <li><b>agentic-os/gstack</b> ↔ UC1 (taste / specialists)</li>
+      <li><b>knowledge-synthesis/graphify</b> ↔ UC2 (audit of KG)</li>
+      <li><b>knowledge-synthesis/understand-anything</b> ↔ UC2 (workspace UI map)</li>
+      <li><b>research/distributed-research-playbook</b> ↔ UC3 + UC4 (long-direction batch)</li>
+      <li><b>creative/frontend-design</b> ↔ UC5 (throwaway HTML)</li>
+      <li><b>vault: claude-design-2-update-jay-e</b> ↔ UC5 (deliverable form 设计)</li>
+      <li><b>vault: claude-code-ue5-stefan-3d-ai</b> ↔ UC1 (3D + AI)</li>
+      <li><b>vault: fable5-karpathy-llm-wiki</b> ↔ 全片元主题 (Fable 5 + LLM Wiki 同周期)</li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <b>完整 17-card roster 见 §元数据说明 → Patrick 相关路线</b>。
+    本节只列 8 个高优先级 anchor。
+  </div>
+</div>
+
+<!-- ============================================================
+     § 元数据说明
+     ============================================================ -->
+<div class="tab-content" data-tab-content="meta">
+  <h2 class="section" id="sec-meta">§ 元数据说明 · transcript_status</h2>
+  <p class="section-intro">
+    必填节（v1.5.23 Pitfall 22–23 不适用 — 因 transcript 完整；但仍标注状态以保持 dashboard 自描述性）。
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><td style="width:35%;"><b>transcript_status</b></td><td colspan="2"><span class="badge yes">complete · 56 / 56 segments</span></td></tr>
+        <tr><td><b>pipeline_version</b></td><td colspan="2">video-to-knowledge-dashboard v1.5.23 + toc-sidebar-batch v1.4.4</td></tr>
+        <tr><td><b>video_id</b></td><td colspan="2">_WXtkSvIDJs</td></tr>
+        <tr><td><b>channel</b></td><td colspan="2">Jay E | RoboNuggets</td></tr>
+        <tr><td><b>upload_date</b></td><td colspan="2">2026-07-02</td></tr>
+        <tr><td><b>duration</b></td><td colspan="2">11:14</td></tr>
+        <tr><td><b>views_at_pull</b></td><td colspan="2">31,263</td></tr>
+        <tr><td><b>segments_count</b></td><td colspan="2">56</td></tr>
+        <tr><td><b>transcript_chars</b></td><td colspan="2">~13,000 chars (after 5-step clean dedup)</td></tr>
+        <tr><td><b>language</b></td><td colspan="2">EN (translation: zh-CN in code blocks)</td></tr>
+        <tr><td><b>build_mode</b></td><td colspan="2"><span class="badge yes">5-deliverable batch · Leg 1 of 4 · "polish" mode (HTML-primary)</span></td></tr>
+        <tr><td><b>fallback_used</b></td><td colspan="2">none · transcript fetch 0 retries</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="section">Pitfall 检查</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th style="width:30%;">Pitfall</th><th style="width:14%;">Status</th><th style="width:56%;">Apply logic</th></tr></thead>
+      <tbody>
+        <tr><td>22-23 metadata-only batch</td><td><span class="badge yes">N/A</span></td><td>transcript 完整，不退化</td></tr>
+        <tr><td>24-A bilingual quotes subagent</td><td><span class="badge yes">✅ done</span></td><td>5 verbatim in §5 用法一览，含 ZH 翻译</td></tr>
+        <tr><td>Pitfall 20 skill-vs-doc</td><td><span class="badge yes">✅ verified</span></td><td>17-card roster 都先 ls 验证路径</td></tr>
+        <tr><td>Pitfall S toc-collapsed persistence</td><td><span class="badge yes">✅ in place</span></td><td>localStorage key: <code>claude-fable5-use-cases-jay-e-toc-collapsed</code></td></tr>
+        <tr><td>v1.4.4 mobile default hidden</td><td><span class="badge yes">✅ @media ≤900px</span></td><td>隐藏 aside + toggle</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- =============== 17-Card Patrick Roster ============== -->
+  <h3 class="section">§ 17-Card Patrick 相关路线 (verified)</h3>
+  <p class="section-intro">
+    按 Pitfall 20 全部 <code>ls</code> 验证过的真实路径。Tier 1 / Tier 2 / Tier 3 严格按 5 / 5 / 7 分布。
+  </p>
+
+  <div class="pgrid">
+    <div class="pcard"><div class="pt"><span class="tier-tag T1">T1</span> agentic-os/gstack</div><div class="desc">23 specialists + 8 power tools 虚拟工程团队；跟 Sam Altman scale + FDE 模式同源</div><div class="link"><a href="/Users/zl/.hermes/skills/agentic-os/gstack/SKILL.md">/Users/zl/.hermes/skills/agentic-os/gstack/</a></div></div>
+    <div class="pcard"><div class="pt"><span class="tier-tag T1">T1</span> knowledge-synthesis/graphify</div><div class="desc">codebase → queryable KG；跟 K1 Agent Native KG 路径同源</div><div class="link"><a href="/Users/zl/.hermes/skills/knowledge-synthesis/graphify/SKILL.md">/Users/zl/.hermes/skills/knowledge-synthesis/graphify/</a></div></div>
+    <div class="pcard"><div class="pt"><span class="tier-tag T1">T1</span> knowledge-synthesis/understand-anything</div><div class="desc">codebase 交互式 onboarding map (UI layer) — 跟 graphify (memory layer) 互补</div><div class="link"><a href="/Users/zl/.hermes/skills/knowledge-synthesis/understand-anything/SKILL.md">/Users/zl/.hermes/skills/knowledge-synthesis/understand-anything/</a></div></div>
+    <div class="pcard"><div class="pt"><span class="tier-tag T1">T1</span> research/distributed-research-playbook</div><div class="desc">长期研究方向 + 30-day-sentiment 子模式；跟 Matt Wolfe "Last 30 Days" 同源</div><div class="link"><a href="/Users/zl/.hermes/skills/research/distributed-research-playbook/SKILL.md">/Users/zl/.hermes/skills/research/distributed-research-playbook/</a></div></div>
+    <div class="pcard"><div class="pt"><span class="tier-tag T1">T1</span> creative/frontend-design</div><div class="desc">Frontend Design = generic front-end 设计 + review skill；UC5 "throwaway HTML form" 直接复用</div><div class="link"><a href="/Users/zl/.hermes/skills/creative/frontend-design/SKILL.md">/Users/zl/.hermes/skills/creative/frontend-design/</a></div></div>
+
+    <div class="pcard cyan"><div class="pt"><span class="tier-tag T2">T2</span> vault: claude-design-2-update-jay-e</div><div class="desc">Jay E 同频道的 Claude UI 设计 2.0 教程；UC5 form 美学基准</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/claude-design-2-update-jay-e/">llm-wiki/papers/claude-design-2-update-jay-e/</a></div></div>
+    <div class="pcard cyan"><div class="pt"><span class="tier-tag T2">T2</span> vault: claude-code-ue5-stefan-3d-ai</div><div class="desc">Claude Code + UE5 3D AI 工作流；UC1 "vibe code 3D world" 同源上游</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/claude-code-ue5-stefan-3d-ai/">llm-wiki/papers/claude-code-ue5-stefan-3d-ai/</a></div></div>
+    <div class="pcard cyan"><div class="pt"><span class="tier-tag T2">T2</span> vault: fable5-karpathy-llm-wiki</div><div class="desc">Fable 5 + Karpathy LLM Wiki 同周期；Fable 5 的 knowledge layer 链接</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/fable5-karpathy-llm-wiki/">llm-wiki/papers/fable5-karpathy-llm-wiki/</a></div></div>
+    <div class="pcard cyan"><div class="pt"><span class="tier-tag T2">T2</span> vault: anthropic-completely-fcked-moon</div><div class="desc">Anthropic × Moon 反思；与 Fable 5 "限免 = 用 use case 抢留存" 商业策略对照</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/anthropic-completely-fcked-moon/">llm-wiki/papers/anthropic-completely-fcked-moon/</a></div></div>
+    <div class="pcard cyan"><div class="pt"><span class="tier-tag T2">T2</span> vault: claude-fable-usecases</div><div class="desc">同义 usecases（已存在）；Fable 5 用法同主题横向参考</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/claude-fable-usecases.html">llm-wiki/papers/claude-fable-usecases.html</a></div></div>
+
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> vault: anthropic-playbook-ai-startup-4stage</div><div class="desc">Anthropic 4 阶段 startup playbook；UC5 strategist 提问框架同源</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/anthropic-playbook-ai-startup-4stage.html">llm-wiki/papers/anthropic-playbook-ai-startup-4stage.html</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> vault: fable-5-onredej-workflow</div><div class="desc">Ondřej's Fable 5 workflow (2026-06-11)；Fable 5 早期同主题复盘</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/fable-5-onredej-workflow-2026-06-11.html">llm-wiki/papers/fable-5-onredej-workflow-2026-06-11.html</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> vault: open-design-yihui</div><div class="desc">Yihui open-design 2026-06-11；UC5 form 美学 vs open-design 哲学</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/open-design-yihui-2026-06-11.html">llm-wiki/papers/open-design-yihui-2026-06-11.html</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> vault: ui-design-2026-trends</div><div class="desc">UI design 2026 trends；UC4 taste / design taste 的当前基准</div><div class="link"><a href="/Users/zl/Downloads/Obsidian Vault/llm-wiki/papers/ui-design-2026-trends/">llm-wiki/papers/ui-design-2026-trends/</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> skill: claude-design</div><div class="desc">creative/claude-design = "design one-off HTML artifacts"；与 frontend-design 互补</div><div class="link"><a href="/Users/zl/.hermes/skills/creative/claude-design/SKILL.md">/Users/zl/.hermes/skills/creative/claude-design/</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> skill: skill-ify</div><div class="desc">skill 化 workflow = "reverse-extract reusable skills"；UC3 的 meta 路径</div><div class="link"><a href="/Users/zl/.hermes/skills/autonomous-ai-agents/skill-ify/SKILL.md">/Users/zl/.hermes/skills/autonomous-ai-agents/skill-ify/</a></div></div>
+    <div class="pcard muted"><div class="pt"><span class="tier-tag T3">T3</span> skill: hero-how-to-sell</div><div class="desc">how-to-sell = "present work, communicate progress"；UC5 strategist deliverable 同源</div><div class="link"><a href="/Users/zl/.hermes/skills/meta/how-to-sell/SKILL.md">/Users/zl/.hermes/skills/meta/how-to-sell/</a></div></div>
+  </div>
+
+  <h3 class="section">Pipeline 状态</h3>
+  <div class="card">
+    <h4>5 阶段执行摘要</h4>
+    <ol>
+      <li>✅ yt-dlp metadata fetch (title / channel / duration / 31,263 views)</li>
+      <li>✅ youtube-transcript-api fetch + 5-step clean dedup (56/56 segments)</li>
+      <li>✅ Obsidian .md auto-generated (<code>~/Downloads/Obsidian Vault/llm-wiki/papers/claude-fable5-use-cases-jay-e/index.md</code>)</li>
+      <li>✅ HTML dashboard polished (v1.5.2 → v1.5.23 canonical) — 14 tabs, 17 cards, 5 quotes carousel, TOC v1.4.4</li>
+      <li>⏳ Graphify check (post-build, isolated papers = 0, this dashboard links 17 Patrick assets)</li>
+    </ol>
+    <p style="margin-top:8px;color:var(--text-dim);font-size:12.5px;">
+      <b>Generated</b>: 2026-07-04 (Sat) · v1.5.23 + v1.4.4 · <b>Build Mode</b>: 5-deliverable batch · Leg 1 of 4 · polish-round HTML-primary (Pitfall 21 applies)
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>📺 视频源: <a href="https://www.youtube.com/watch?v=_WXtkSvIDJs">youtube.com/watch?v=_WXtkSvIDJs</a></p>
+    <p>📂 Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/claude-fable5-use-cases-jay-e/index.md</code></p>
+    <p>🖥️ Desktop: <code>/Users/zl/Desktop/claude-fable5-use-cases-jay-e.html</code> (this file)</p>
+    <p>🔧 Pipeline: video-to-knowledge-dashboard v1.5.23 · toc-sidebar-batch v1.4.4 · build_dashboard.py v2.0</p>
+    <p>⚙️ 5-Deliverable Batch · Leg 1 of 4 · HTML-primary polish mode (Pitfall 21 applies)</p>
+  </div>
+</div>
+
+</div><!-- end page -->
+
+<script>
+/* ==================================================================
+   Tab switching + hash routing (canonical v1.5.23)
+   ================================================================== */
+(function () {
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  const tocLinks = document.querySelectorAll('.toc-list a');
+
+  function activate(tabEl) {
+    if (!tabEl) return;
+    tabs.forEach(x => x.classList.toggle('active', x === tabEl));
+    contents.forEach(c => c.classList.toggle(
+      'active', c.dataset.tabContent === tabEl.dataset.tab
+    ));
+    // sync TOC: id is sec-<tab>
+    const expectedHash = '#sec-' + tabEl.dataset.tab;
+    tocLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === expectedHash);
+    });
+    try {
+      history.replaceState(null, '', '#' + tabEl.dataset.tab);
+    } catch (_) {}
+  }
+
+  tabs.forEach(t => {
+    t.addEventListener('click', () => activate(t));
+  });
+
+  // Init from URL hash on load (lets Patrick share direct tab links)
+  const initHash = location.hash.replace('#', '');
+  if (initHash) {
+    const target = document.querySelector('[data-tab="' + initHash + '"]');
+    if (target) activate(target);
+  } else {
+    // mark first TOC link active by default
+    if (tocLinks[0]) tocLinks[0].classList.add('active');
+  }
+
+  // Smooth-scroll TOC links → switch tab + scroll to h2 id
+  tocLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      const tabName = (href.match(/^#sec-(.+)$/) || [])[1];
+      if (tabName) {
+        const target = document.querySelector('[data-tab="' + tabName + '"]');
+        if (target) activate(target);
+      }
+      const secEl = document.querySelector(href);
+      if (secEl) {
+        secEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // update URL hash without triggering re-init
+        try { history.replaceState(null, '', href); } catch (_) {}
+      }
+    });
+  });
+})();
+
+/* ==================================================================
+   Quote carousel — 5 verbatim quotes (EN「」+ ZH + @ts)
+   ================================================================== */
+(function () {
+  const wrap = document.getElementById('qcarousel');
+  if (!wrap) return;
+  const items = wrap.querySelectorAll('.q-item');
+  const now = document.getElementById('qnow');
+  let idx = 0;
+  function show(n) {
+    idx = (n + items.length) % items.length;
+    items.forEach((it, i) => it.classList.toggle('active', i === idx));
+    if (now) now.textContent = (idx + 1);
+  }
+  show(0);
+  const prev = document.getElementById('qprev');
+  const next = document.getElementById('qnext');
+  if (prev) prev.addEventListener('click', () => show(idx - 1));
+  if (next) next.addEventListener('click', () => show(idx + 1));
+})();
+
+/* ==================================================================
+   TOC sidebar collapsible — localStorage persistence
+   slug: claude-fable5-use-cases-jay-e
+   key: claude-fable5-use-cases-jay-e-toc-collapsed
+   ================================================================== */
+(function () {
+  const TOC_KEY = 'claude-fable5-use-cases-jay-e-toc-collapsed';
+  const body = document.body;
+  const toggleBtn = document.querySelector('.toc-toggle');
+
+  function applyState(collapsed) {
+    body.classList.toggle('toc-collapsed', !!collapsed);
+    if (toggleBtn) toggleBtn.textContent = collapsed ? '▶' : '◀';
+    try { localStorage.setItem(TOC_KEY, collapsed ? '1' : '0'); } catch (_) {}
+  }
+
+  // Restore prior state on load
+  try {
+    if (localStorage.getItem(TOC_KEY) === '1') applyState(true);
+  } catch (_) {}
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      applyState(!body.classList.contains('toc-collapsed'));
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

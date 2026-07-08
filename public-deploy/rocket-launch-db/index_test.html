@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<title>ROCKET DB DEBUG TEST (no fetch, no JS, no SW)</title>
+<style>body{background:#0b0f1a;color:#dbe4f5;font-family:monospace;padding:20px;font-size:14px}</style>
+</head><body>
+<h1>🧪 ROCKET DB STATIC DIAGNOSTIC</h1>
+<p>If you see this page, your network + browser + CF Pages all work.</p>
+<p>Now let's see if MAIN page can do the same thing:</p>
+<pre>
+curl test results (server-side):
+- HTML 200: ✓
+- /data/launches.json 200: ✓
+- /data/stats.json 200: ✓
+- /data/agencies.json 200: ✓
+- /sw.js 200: ✓
+- Service Worker registered: 0 (after our unregister attempts)
+</pre>
+<p><strong>Verdict:</strong> All static assets load fine in your browser. The only thing that can break is JS execution in <code>index.html</code>.</p>
+<p>To confirm JS is the issue: go to MAIN page → DevTools → Console → paste:</p>
+<pre>
+fetch('./data/stats.json?cb=' + Date.now()).then(r => r.json()).then(d => alert('STATS OK: ' + JSON.stringify(d))).catch(e => alert('STATS ERR: ' + e.message));
+</pre>
+<p>If that ALERT shows 'STATS OK' → fetch works → issue is in main script's init code.</p>
+<p>If 'STATS ERR' → fetch blocked → check corporate proxy / VPN / firewall.</p>
+</body></html>

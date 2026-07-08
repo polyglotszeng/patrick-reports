@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五天破万星,一口气扫描一本书的无限OCR,为什么是新篇章 | Dashboard</title>
+<style>
+:root {
+  --bg: #0d0d10; --card: #16161a; --border: #26262d;
+  --txt: #e6e6e6; --muted: #8b8b95;
+  --accent: #ff6b35; --accent-2: #4dd0e1; --accent-3: #ffd166;
+  --warn: #ff5e5b; --good: #4ade80;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--txt); line-height: 1.7;
+  padding: 36px 36px 36px 280px; max-width: 1400px; margin: 0 auto;
+}
+h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+h2 { font-size: 21px; font-weight: 700; margin: 32px 0 14px; color: var(--accent); padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 16px; font-weight: 700; margin: 18px 0 10px; color: var(--accent-2); }
+p { font-size: 14.5px; margin: 8px 0; }
+a { color: var(--accent-2); text-decoration: none; }
+a:hover { color: var(--accent); }
+code { background: var(--card); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+/* TOC Sidebar (v1.4.2 hover-expand pattern) */
+aside.toc {
+  position: fixed; left: 12px; top: 24px; bottom: 24px;
+  width: 248px; padding: 18px 14px; overflow-y: auto;
+  background: rgba(22,22,26,0.92); border: 1px solid var(--border); border-radius: 12px;
+  font-size: 12.5px; z-index: 50; backdrop-filter: blur(8px);
+  transition: transform 0.3s ease;
+}
+aside.toc h4 {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.18em;
+  color: var(--muted); margin-bottom: 10px; text-transform: uppercase;
+}
+aside.toc ul { list-style: none; }
+aside.toc li { margin: 3px 0; }
+aside.toc a {
+  display: block; padding: 4px 8px; border-radius: 5px;
+  color: var(--muted); font-size: 12.5px; line-height: 1.4;
+  transition: all 0.15s;
+}
+aside.toc a:hover, aside.toc a.active {
+  background: rgba(255,107,53,0.12); color: var(--accent); padding-left: 12px;
+}
+aside.toc .new { color: var(--accent-3); font-size: 10px; font-weight: 700; margin-left: 4px; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, rgba(255,107,53,.10), rgba(77,208,241,.06)); border: 1px solid rgba(255,107,53,.25); border-radius: 14px; padding: 22px 26px; margin-bottom: 24px; }
+.hero .tag { display: inline-block; background: rgba(255,107,53,.18); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .18em; padding: 3px 10px; border-radius: 5px; margin-right: 6px; margin-bottom: 4px; }
+.subtitle { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+/* Stat grid */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.stat .v { font-size: 24px; font-weight: 800; color: var(--accent); }
+.stat .l { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+/* Tabs */
+.tab-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 18px 0 0; border-bottom: 1px solid var(--border); }
+.tab-btn {
+  background: transparent; border: none; padding: 10px 14px;
+  color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 600;
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--txt); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; padding: 18px 0; }
+.tab-content.active { display: block; }
+
+/* Cards */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; border-left: 3px solid var(--accent); margin: 12px 0; }
+.card.tier-1 { border-left-color: var(--accent); }
+.card.tier-2 { border-left-color: var(--accent-2); }
+.card.tier-3 { border-left-color: var(--accent-3); }
+.card h4 { margin: 0 0 6px; font-size: 14.5px; }
+.card .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; margin-right: 6px; }
+.badge.t1 { background: rgba(255,107,53,.18); color: var(--accent); }
+.badge.t2 { background: rgba(77,208,225,.18); color: var(--accent-2); }
+.badge.t3 { background: rgba(255,209,102,.18); color: var(--accent-3); }
+.card .rel { font-size: 13px; color: var(--muted); margin-top: 6px; font-style: italic; }
+
+/* Quote */
+blockquote {
+  background: rgba(77,208,225,0.06); border-left: 3px solid var(--accent-2);
+  padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0;
+  font-style: italic; font-size: 14px;
+}
+blockquote .ts { display: block; color: var(--accent); font-size: 11px; font-weight: 700; font-style: normal; margin-bottom: 4px; }
+blockquote .attr { display: block; color: var(--muted); font-size: 11px; font-style: normal; margin-top: 6px; }
+
+/* Warn box */
+.warn-box { background: rgba(255,94,91,0.08); border: 1px solid rgba(255,94,91,0.3); border-radius: 10px; padding: 14px 18px; margin: 12px 0; }
+.warn-box h4 { color: var(--warn); font-size: 14px; margin-bottom: 6px; }
+
+/* Lists */
+ul { padding-left: 20px; margin: 8px 0; }
+li { font-size: 14px; margin: 4px 0; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; margin: 18px 0; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin: 14px 0; padding: 10px 14px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); }
+.timeline-item::before { content: ''; position: absolute; left: -19px; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.timeline-item .t { color: var(--accent); font-size: 12px; font-weight: 700; }
+
+/* Footer */
+.footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12.5px; }
+
+/* Responsive (v1.4.3 fix: don't fully hide TOC at 1279px) */
+@media (max-width: 900px) {
+  body { padding-left: 24px; padding-right: 16px; }
+  aside.toc { transform: translateX(-12px); }
+  aside.toc:hover { transform: translateX(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- TOC Sidebar -->
+<aside class="toc">
+  <h4>📑 目录 · TOC</h4>
+  <ul>
+    <li><a href="#overview">⚡ 概述</a></li>
+    <li><a href="#thesis">📐 核心论点</a></li>
+    <li><a href="#three-stages">🔄 三段式演进</a></li>
+    <li><a href="#rswa">🪟 R-SWA 架构</a></li>
+    <li><a href="#bench">📊 实测数据</a></li>
+    <li><a href="#limits">⚠️ 当前限制</a></li>
+    <li><a href="#future">🚀 未来路线</a></li>
+    <li><a href="#takeaways">💡 5 Key Takeaways</a></li>
+    <li><a href="#counter">🔴 反方观点</a></li>
+    <li><a href="#checklist">✅ 实测清单</a></li>
+    <li><a href="#quotes">💬 8 关键金句</a></li>
+    <li><a href="#patrick">🧩 13 Patrick Cards</a></li>
+    <li><a href="#transcript">📜 完整 Transcript</a></li>
+  </ul>
+</aside>
+
+<div class="hero">
+  <span class="tag">🎬 VIDEO DASHBOARD</span>
+  <span class="tag" style="background:rgba(77,208,225,.18);color:var(--accent-2)">OCR · R-SWA · 端到端</span>
+  <h1>五天破万星,一口气扫描一本书的无限OCR,为什么是新篇章</h1>
+  <div class="subtitle">小天fotos · 6:22 · 2,636 views · 2026-06-26</div>
+  <div class="stat-grid">
+    <div class="stat"><div class="v">5天</div><div class="l">⭐ 破万星速度</div></div>
+    <div class="stat"><div class="v">30页</div><div class="l">📄 实测单次扫描</div></div>
+    <div class="stat"><div class="v">0.9B</div><div class="l">🎯 PaddleOCR-VL 参数</div></div>
+    <div class="stat"><div class="v">300+</div><div class="l">⚡ tokens/s 实测速度</div></div>
+    <div class="stat"><div class="v">8</div><div class="l">💬 关键金句</div></div>
+    <div class="stat"><div class="v">13</div><div class="l">🧩 Patrick 关联卡</div></div>
+  </div>
+</div>
+
+<h2 id="overview">⚡ 概述 — 这期视频讲什么</h2>
+<p>百度 PaddleOCR 团队 (8 万+ 星老牌 OCR 仓库) 与 DeepSeek 的端到端 OCR 思路碰撞,推出 <strong>Unlimited OCR</strong>。核心 trick 是把 DeepSeek OCR 的多头注意力 (MHA) 替换为<strong>滑动窗口注意力 (R-SWA, Rectangular Sliding Window Attention)</strong>,让 OCR 模型可以一次吃下一整本书的 PDF 并连续输出,告别"逐页扫描"时代。</p>
+<p><strong>关键判断</strong>: 5 天破万星背后的真正共识不是 Unlimited OCR 本身多强,而是大家认 R-SWA 这条架构路线 — <strong>这是 OCR 领域的技术拐点信号</strong>。</p>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn" data-tab="thesis" id="tab-thesis">📐 核心论点</button>
+  <button class="tab-btn" data-tab="three-stages">🔄 三段演进</button>
+  <button class="tab-btn" data-tab="rswa">🪟 R-SWA</button>
+  <button class="tab-btn" data-tab="bench">📊 实测</button>
+  <button class="tab-btn" data-tab="limits">⚠️ 限制</button>
+  <button class="tab-btn" data-tab="future">🚀 路线</button>
+  <button class="tab-btn" data-tab="takeaways">💡 Takeaways</button>
+  <button class="tab-btn" data-tab="counter">🔴 反方</button>
+  <button class="tab-btn" data-tab="checklist">✅ 清单</button>
+  <button class="tab-btn" data-tab="quotes">💬 金句</button>
+  <button class="tab-btn" data-tab="patrick">🧩 Patrick</button>
+  <button class="tab-btn" data-tab="transcript">📜 Transcript</button>
+</div>
+
+<!-- Tab: Thesis -->
+<div class="tab-content" id="thesis" data-tab="thesis">
+<h2>📐 核心论点 (TL;DR)</h2>
+<p>百度 PaddleOCR 团队 (8 万+ 星的老牌 OCR 仓库) 与 DeepSeek 的端到端 OCR 思路碰撞,推出了 <strong>Unlimited OCR</strong> — 通过把 DeepSeek OCR 的多头注意力 (MHA) 替换为 <strong>滑动窗口注意力 (R-SWA)</strong>,让 OCR 模型可以一次吃下一整本书的 PDF 并连续输出,告别"逐页扫描"时代。</p>
+<p><strong>为什么是"新篇章"</strong>: 不是单纯指标涨点,而是<strong>底层架构变革</strong> — R-SWA 把"能不能连续看多页"这个底座问题解决了,后续跨页表格合并、跨页上下文割裂、prefill pool 拉长到 128K+,都是堆数据和工程优化的事。<strong>这是一条技术路线的拐点,不是单点升级。</strong></p>
+
+<h3>详细论点 (6 段)</h3>
+<h3>1. OCR 三段式流水线 vs 端到端大模型</h3>
+<ul>
+  <li><strong>传统流水线 (PaddleOCR 经典款)</strong>: 文字框检测 → 框内文字识别 → 版面拼合。优势是工业级稳定,但<strong>任一环节出错,后续全错</strong>(误差累积)。</li>
+  <li><strong>VLM 路线 (Qwen-VL / GPT-4V 等)</strong>: 端到端好,但<strong>贵且慢</strong> — "大炮打蚊子"。</li>
+  <li><strong>DeepSeek OCR (3B 参数)</strong>: 第一个真正为 OCR 优化的端到端大模型,在文档解析 Benchmark 上<strong>能跟 235B 掰手腕</strong>。</li>
+  <li><strong>PaddleOCR-VL (0.9B!)</strong>: 比 3B 还小,效果依然能打 — <strong>参数效率证明端到端路线成立</strong>。</li>
+  <li><strong>共同短板</strong>: 文档越大越慢,<strong>必须一页一页扫</strong>,跨页上下文割裂。</li>
+</ul>
+
+<h3>2. Unlimited OCR = R-SWA</h3>
+<ul>
+  <li><strong>核心 trick</strong>: 把 DeepSeek OCR 的多头注意力 (MHA) 改成<strong>滑动窗口注意力 (R-SWA, Rectangular Sliding Window Attention)</strong>。</li>
+  <li><strong>人话类比</strong>: 像人抄书 — 书一直摆在眼前,但脑子里只需要记"刚才抄到哪"那一小段上下文。</li>
+  <li><strong>效果</strong>: 模型可以<strong>一次吃进一整本书的 PDF,一口气输出</strong>。30 页 / 50 页 / 100 页都不卡。</li>
+  <li><strong>类比大模型本身</strong>: 这跟大模型"上下文窗口"的演进逻辑一样 — 从 4K → 32K → 128K → 无限,但 OCR 这边是把它做成了架构级默认,而不是事后优化。</li>
+</ul>
+
+<h3>3. 实测数据 (up 主自己跑,基准代码 Codex 生成)</h3>
+<p><strong>测试设置</strong>: 30 页英文论文 PDF (表格/公式/版面结构复杂) + 30 页中文剧本杀手册 (纯长文本)。指标: Edit Distance / Distinct-n / Line Recall / Number Recall。基准: DeepSeek OCR 单页扫描。</p>
+<p><strong>结果 (惊喜)</strong>:</p>
+<ul>
+  <li><strong>Distinct 35 / Distinct 20 几乎满分</strong> → 幻觉极少,大模型最严重的复读问题在 OCR 场景被 R-SWA 抑制了</li>
+  <li><strong>论文 Edit Distance 看起来不高</strong>: 不是"读不出来",而是 OCR 输出和 PDF 文本层结构不一样(论文有表格公式),<strong>完全可用</strong></li>
+  <li><strong>Line Recall 和 Number Recall (正文召回) 比 DeepSeek OCR 还高</strong> ✓</li>
+  <li><strong>中文长文本 (小说/手册)</strong>: 不论一页页扫 vs 一次扫 20/30 页,<strong>质量差距极小</strong>,字级准确率非常高</li>
+  <li><strong>32K 上下文跑满,性能不衰减</strong> ✓ (跟官方技术报告一致)</li>
+</ul>
+
+<h3>4. 当前版本限制 (up 主亲自踩坑)</h3>
+<ul>
+  <li>⚠️ <strong>跨页表格合并还没天然支持</strong>: 模型能连续读多页,但还<strong>不理解</strong>"上页表格没结束 → 下页要继续合并"。架构底座已就位,合并靠堆训练数据。</li>
+  <li>⚠️ <strong>同时扫 10 页会有轻微质量损失</strong> (官方报告) — up 主不太信,实测后差距确实小,但有</li>
+  <li>⚠️ <strong>NVIDIA 50 系显卡 (Blackwell, sm120) 暂不支持 Flash Attention 3</strong>: 回退到 FlashInfer → R-SWA 处理有问题,up 主差点以为是模型能力差去推特骂人,最后是 Codex 打了点小 patch 救场。50 系用户稍微等官方 PR 修正。</li>
+  <li>⏱ <strong>速度</strong>: up 主卡不支持 FA3,大部分场景 ~300+ tokens/s,还能优化</li>
+</ul>
+
+<h3>5. 未来路线 (技术报告明示)</h3>
+<ul>
+  <li><strong>短期</strong>: 上下文拉到 <strong>128K</strong></li>
+  <li><strong>长期</strong>: 论文提到的 <strong>prefill pool</strong> — 真正接近"无限 OCR"</li>
+  <li><strong>横向扩展</strong>: R-SWA 不只 OCR — 技术报告明示会扩展到 ASR / 翻译等长序列任务</li>
+</ul>
+
+<h3>6. 为什么 PaddleOCR 团队要"认真看"端到端这条路?</h3>
+<p>PaddleOCR 是 8 万+ 星的 OCR 江湖老大哥,长期统治工业流水线。但:</p>
+<ul>
+  <li><strong>DeepSeek OCR 证明了端到端路线是对的</strong> (3B 打 235B)</li>
+  <li><strong>Unlimited OCR 把这条路延展到新领域</strong> (连续多页)</li>
+  <li><strong>从此逐页扫描的时代过去了</strong>,以后是一口气吃下一本书</li>
+</ul>
+</div>
+
+<!-- Tab: Three Stages -->
+<div class="tab-content" id="three-stages" data-tab="three-stages">
+<h2>🔄 OCR 三段式演进</h2>
+<div class="timeline">
+  <div class="timeline-item">
+    <span class="t">阶段 1 — 传统流水线</span>
+    <p><strong>PaddleOCR 经典款</strong>: 文字框检测 → 框内文字识别 → 版面拼合。</p>
+    <p>优势: 工业级稳定,8 万+ 星统治地位。</p>
+    <p>弱点: <strong>任一环节出错,后续全错</strong>(误差累积,无回滚机制)。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">阶段 2 — VLM 端到端</span>
+    <p><strong>Qwen-VL / GPT-4V 等</strong>: 用通用视觉语言大模型直接 OCR。</p>
+    <p>优势: 端到端,无误差累积。</p>
+    <p>弱点: <strong>贵且慢</strong> — "大炮打蚊子",每个 token 都要钱。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">阶段 2.5 — DeepSeek OCR (3B)</span>
+    <p><strong>专门为 OCR 优化的端到端大模型</strong>。</p>
+    <p>效果: 在文档解析 Benchmark 上<strong>能跟 235B 掰手腕</strong>。</p>
+    <p>意义: 证明 OCR 可以端到端 + 小模型。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">阶段 2.7 — PaddleOCR-VL (0.9B)</span>
+    <p>比 3B 还小,效果依然能打。</p>
+    <p>意义: <strong>参数效率证明端到端路线成立</strong>。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">阶段 3 — Unlimited OCR (R-SWA)</span>
+    <p><strong>本次拐点</strong>: MHA → R-SWA,一次吃一整本书。</p>
+    <p>5 天破万星 = 技术路线被社区认可。</p>
+    <p>意义: <strong>架构底座已就位</strong>,后续靠堆数据 + 工程优化。</p>
+  </div>
+</div>
+</div>
+
+<!-- Tab: R-SWA -->
+<div class="tab-content" id="rswa" data-tab="rswa">
+<h2>🪟 R-SWA 架构 (滑动窗口注意力)</h2>
+<h3>核心 trick</h3>
+<p>把 DeepSeek OCR 的<strong>多头注意力 (MHA)</strong> 替换为<strong>滑动窗口注意力 (R-SWA, Rectangular Sliding Window Attention)</strong>。</p>
+
+<h3>人话类比 — 像人抄书</h3>
+<blockquote>
+"书一直都在眼前对吧, 但是人脑子里只需要记得刚刚抄到哪的那一小段就行。"
+<small>— 小天fotos, 1:32-2:03</small>
+</blockquote>
+
+<h3>技术对应</h3>
+<ul>
+  <li><strong>全局可见</strong>: 整本书的 PDF token 都在 attention 范围内</li>
+  <li><strong>局部计算</strong>: 每次只计算当前 token + 邻近窗口内的 attention 权重</li>
+  <li><strong>复杂度</strong>: O(n) 而非 O(n²),内存友好</li>
+  <li><strong>类比大模型上下文窗口演进</strong>: 4K → 32K → 128K → 无限,但 OCR 是架构级默认,不是事后优化</li>
+</ul>
+
+<h3>关键效果</h3>
+<ul>
+  <li>✅ 一次吃进整本书 PDF,一口气输出</li>
+  <li>✅ 30 / 50 / 100 页都不卡</li>
+  <li>✅ 32K 上下文跑满,性能不衰减</li>
+  <li>✅ Distinct 35/20 几乎满分 — 大模型复读问题被抑制</li>
+</ul>
+
+<div class="warn-box">
+  <h4>⚠️ 50 系显卡用户必看</h4>
+  <p>NVIDIA Blackwell (sm120) <strong>不支持 Flash Attention 3</strong>,回退到 FlashInfer 后 R-SWA 处理有问题。up 主实测踩坑 → 差点以为是模型能力差 → 最后 Codex 打 patch 救场。50 系用户预期会有 2-4 周等官方 PR 修复。</p>
+</div>
+</div>
+
+<!-- Tab: Bench -->
+<div class="tab-content" id="bench" data-tab="bench">
+<h2>📊 实测数据 (up 主自己跑)</h2>
+<h3>测试设置</h3>
+<ul>
+  <li><strong>数据集 1</strong>: 30 页英文论文 PDF (表格/公式/版面结构复杂)</li>
+  <li><strong>数据集 2</strong>: 30 页中文剧本杀手册 (纯长文本)</li>
+  <li><strong>指标</strong>: Edit Distance (越低越好) / Distinct-n (越接近 1 越好) / Line Recall / Number Recall</li>
+  <li><strong>基准</strong>: DeepSeek OCR 单页扫描</li>
+  <li><strong>基准代码</strong>: Codex (xHigh) 生成,多模型 review</li>
+</ul>
+
+<h3>结果 — 论文 (复杂版面)</h3>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;">
+  <thead style="background:var(--card);">
+    <tr style="border-bottom:2px solid var(--border);">
+      <th style="padding:10px;text-align:left;">指标</th>
+      <th style="padding:10px;text-align:left;">单页 (DeepSeek OCR baseline)</th>
+      <th style="padding:10px;text-align:left;">多页 (Unlimited OCR)</th>
+      <th style="padding:10px;text-align:left;">解读</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px;"><strong>Distinct 35</strong></td>
+      <td style="padding:8px;">~0.95</td>
+      <td style="padding:8px;"><span style="color:var(--good);">≈ 满分</span></td>
+      <td style="padding:8px;">幻觉极少,复读被抑制</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px;"><strong>Distinct 20</strong></td>
+      <td style="padding:8px;">~0.92</td>
+      <td style="padding:8px;"><span style="color:var(--good);">≈ 满分</span></td>
+      <td style="padding:8px;">同上</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px;"><strong>Edit Distance</strong></td>
+      <td style="padding:8px;">基准</td>
+      <td style="padding:8px;">看起来不高</td>
+      <td style="padding:8px;"><span style="color:var(--warn);">不是读不出来,是结构不一样 — 论文有表格公式,完全可用</span></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px;"><strong>Line Recall</strong></td>
+      <td style="padding:8px;">基准</td>
+      <td style="padding:8px;"><span style="color:var(--good);">↑ 更高</span></td>
+      <td style="padding:8px;">正文行级召回更高</td>
+    </tr>
+    <tr>
+      <td style="padding:8px;"><strong>Number Recall</strong></td>
+      <td style="padding:8px;">基准</td>
+      <td style="padding:8px;"><span style="color:var(--good);">↑ 更高</span></td>
+      <td style="padding:8px;">数字召回更高</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>结果 — 中文长文本</h3>
+<ul>
+  <li>不论一页页扫 vs 一次扫 20/30 页,<strong>质量差距极小</strong></li>
+  <li>字级准确率<strong>非常高</strong></li>
+  <li>结构最漂亮 — 纯文本场景 R-SWA 几乎无 trade-off</li>
+</ul>
+
+<h3>验证方法论亮点</h3>
+<div class="card tier-1">
+<h4>✅ 三层验证 (up 主 = 1 人 GStack)</h4>
+<p>1. 自己写基准代码 (Codex xHigh 生成)<br>2. 多模型交叉 review<br>3. 实测反向验证官方报告</p>
+<p class="rel">完全同源 GStack 多模型协作模式</p>
+</div>
+</div>
+
+<!-- Tab: Limits -->
+<div class="tab-content" id="limits" data-tab="limits">
+<h2>⚠️ 当前版本限制</h2>
+
+<div class="warn-box">
+  <h4>⚠️ 限制 1: 跨页表格合并还没天然支持</h4>
+<p>模型能连续读多页,但还<strong>不理解</strong>"上页表格没结束 → 下页要继续合并"。架构底座已就位,合并靠堆训练数据。up 主押注:"用不了多久就支持"。</p>
+</div>
+
+<div class="warn-box">
+  <h4>⚠️ 限制 2: 同时扫 10 页有轻微质量损失</h4>
+<p>官方技术报告承认,但 up 主实测差距比报告小。整体可接受。</p>
+</div>
+
+<div class="warn-box">
+  <h4>⚠️ 限制 3: NVIDIA 50 系 (Blackwell sm120) 不支持 FA3</h4>
+<p>回退到 FlashInfer → R-SWA 处理有问题。up 主踩坑实录:</p>
+<blockquote>
+"我本来以为是模型能力差, 我都差点去推特上骂人了, 最后还是 Codex 力挽狂澜, 打了点小 patch 拯救了这个测试"
+<small>— 小天fotos, 4:32-5:03</small>
+</blockquote>
+<p><strong>50 系用户预期 2-4 周等官方 PR 修复</strong>。</p>
+</div>
+
+<h3>速度</h3>
+<p>up 主卡不支持 FA3,大部分场景 <strong>~300+ tokens/s</strong>,还能优化。</p>
+</div>
+
+<!-- Tab: Future -->
+<div class="tab-content" id="future" data-tab="future">
+<h2>🚀 未来路线</h2>
+
+<div class="timeline">
+  <div class="timeline-item">
+    <span class="t">短期 (3-6 个月)</span>
+    <p><strong>上下文拉到 128K</strong></p>
+    <p>架构已支持,堆数据 + 优化即可。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">中期 (6-12 个月)</span>
+    <p><strong>跨页表格合并</strong></p>
+    <p>R-SWA 底座已就位,堆训练数据就能补齐。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">长期 (12-18 个月)</span>
+    <p><strong>prefill pool</strong></p>
+    <p>论文提到的真正"无限 OCR"机制 — 接近真正意义上的无限上下文。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="t">横向扩展</span>
+    <p><strong>R-SWA 迁移到 ASR / 翻译 / 其他长序列任务</strong></p>
+    <p>语音识别 = 上下文信息让转录一致性更强(解决"前面对了后面又错")</p>
+    <p>机器翻译 = 跨句上下文对翻译质量提升</p>
+    <p>技术报告明示扩展,基于滑动窗口的延展有更多想象空间</p>
+  </div>
+</div>
+</div>
+
+<!-- Tab: Takeaways -->
+<div class="tab-content" id="takeaways" data-tab="takeaways">
+<h2>💡 5 条关键 Takeaway</h2>
+<div class="card tier-1">
+<h4>1. OCR 三段式演进 + Unlimited OCR 站在第三个拐点</h4>
+<p class="rel">从流水线 → 端到端大模型 → 滑动窗口多页处理,Unlimited OCR 是当下拐点。</p>
+</div>
+<div class="card tier-1">
+<h4>2. R-SWA 不是 trick,是架构变革</h4>
+<p class="rel">人抄书的比喻很贴切 — 全局可见 + 局部记忆,跟大模型本身的上下文窗口演进同源。</p>
+</div>
+<div class="card tier-1">
+<h4>3. 实测数据 > 官方 benchmark</h4>
+<p class="rel">up 主用 Codex 生成基准代码 + 多模型 review,验证 distinct/recall 都比 DeepSeek OCR 单页模式好 — 少有的"up 主实测反向验证官方报告"案例。</p>
+</div>
+<div class="card tier-1">
+<h4>4. 跨页合并是下一个战场</h4>
+<p class="rel">架构底座已就位,数据 + 微调就能补齐 — 值得长期跟踪 prefill pool 进展。</p>
+</div>
+<div class="card tier-1">
+<h4>5. 架构红利外溢 — 长序列建模范式迁移信号</h4>
+<p class="rel">R-SWA 会扩展到 ASR / 翻译等长序列任务 — OCR 这次拐点不是孤例,是整个长序列建模范式的迁移信号。</p>
+</div>
+
+<h3>📊 ASCII Radar — 5 个维度自评</h3>
+<pre style="font-family:ui-monospace,monospace;font-size:12px;background:var(--card);padding:14px;border-radius:8px;color:var(--txt);">
+技术深度   ▓▓▓▓▓▓▓▓░░  8/10  R-SWA + DeepSeek OCR 对比讲清楚
+实操价值   ▓▓▓▓▓▓▓░░░  7/10  up 主给基准代码 + 实测方法
+未来信号   ▓▓▓▓▓▓▓▓▓░  9/10  prefill pool + ASR/翻译迁移路径
+踩坑警告   ▓▓▓▓▓▓▓▓▓░  9/10  50 系 Blackwell + FA3 不兼容
+传播潜力   ▓▓▓▓▓▓▓▓░░  8/10  5 天破万星 + 人抄书类比
+</pre>
+</div>
+
+<!-- Tab: Counter -->
+<div class="tab-content" id="counter" data-tab="counter">
+<h2>🔴 反方观点 / Bull-Bear 分析</h2>
+
+<h3>🐂 Bull Case (技术拐点信号)</h3>
+<ul>
+  <li>5 天破万星 + PaddleOCR 8 万+ 星老大哥站台 = 社区认路线</li>
+  <li>R-SWA 架构底座已就位 → 后续是堆数据问题</li>
+  <li>架构红利外溢到 ASR / 翻译 = 长期 LTV 高</li>
+  <li>实测反向验证官方报告 = 少有的硬证据</li>
+</ul>
+
+<h3>🐻 Bear Case (冷静质疑)</h3>
+<ul>
+  <li><strong>跨页表格合并还没天然支持</strong> — 业务真用跨页表格的人,会非常失望 (up 主自己都踩到了)</li>
+  <li><strong>当前版本 Edit Distance 看起来不高</strong> — 复杂版面(论文) 真正落地的工程质量还要看</li>
+  <li><strong>50 系 Blackwell 不兼容 FA3</strong> — 高端硬件用户反而被卡住,生态分裂</li>
+  <li><strong>FlashInfer fallback R-SWA 有 bug</strong> — 至少 2-4 周修复期,期间 demo 体验差</li>
+  <li><strong>VLM 已经够好</strong> — Qwen-VL / GPT-4V 在通用场景已经够用,R-SWA 多页的优势是 niche (长文档/书籍)</li>
+  <li><strong>Wikipedia / arXiv 已经在做长上下文 LLM</strong> — 不是新 idea,是 LLM 主线技术外溢到 OCR</li>
+</ul>
+
+<h3>⚖️ 我的判断</h3>
+<p>短期 (6 个月): 不值得现在迁移生产,观望 prefill pool + 跨页合并进展。<br>
+中期 (12-18 个月): <strong>如果做长文档/书籍/剧本/教材类 OCR 业务</strong>,Unlimited OCR 是必试路线。<br>
+长期: R-SWA 迁移到 ASR / 翻译比 OCR 本身更有想象力。</p>
+</div>
+
+<!-- Tab: Checklist -->
+<div class="tab-content" id="checklist" data-tab="checklist">
+<h2>✅ 实测 / 验证清单 (interactive)</h2>
+<p>点 checkbox 跟踪你的 Unlimited OCR 实测进度。状态保存在 localStorage。</p>
+
+<div class="checklist-item">
+<input type="checkbox" id="c1"><label for="c1"> <strong>读官方技术报告</strong> — 确认 R-SWA 架构细节 + 训练数据规模</label>
+</div>
+<div class="checklist-item">
+<input type="checkbox" id="c2"><label for="c2"> <strong>跑单页 baseline</strong> — 用 DeepSeek OCR 跑自己的 30 页 PDF,记录 Edit Distance / Distinct / Line Recall</label>
+</div>
+<div class="checklist-item">
+<input type="checkbox" id="c3"><label for="c3"> <strong>跑 Unlimited OCR 多页</strong> — 同样 30 页,一次扫 vs 一页扫,对比结果</label>
+</div>
+<div class="checklist-item">
+<input type="checkbox" id="c4"><label for="c4"> <strong>检查跨页表格合并</strong> — 找一份含跨页表格的 PDF,实测合并是否生效</label>
+</div>
+<div class="checklist-item">
+<input type="checkbox" id="c5"><label for="c5"> <strong>50 系显卡用户等 PR</strong> — 关注官方 GitHub PR 修复 Blackwell sm120 + FlashInfer + R-SWA 兼容</label>
+</div>
+<div class="checklist-item">
+<input type="checkbox" id="c6"><label for="c6"> <strong>评估业务场景</strong> — 你的 OCR 业务是长文档/书籍/剧本/教材吗?如果是,值得接入;如果是单页表单/发票/收据,继续用传统 PaddleOCR</label>
+</div>
+
+<p id="checklist-progress" style="margin-top:14px;color:var(--accent-2);font-weight:700;"></p>
+</div>
+
+<!-- Tab: Quotes -->
+<div class="tab-content" id="quotes" data-tab="quotes">
+<h2>💬 8 关键金句</h2>
+
+<blockquote>
+<span class="ts">[0:00-0:30]</span>
+"你们知道OCR界的江湖大哥是谁吗? 那如果这位江湖大哥和Deepseek碰撞到了一起, 又会产生什么样的火花? 答案就是这个不到一周破万星的项目 Unlimited OCR"
+<span class="attr">— 小天fotos · 开场 hook</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[1:32-2:03]</span>
+"R-SWA 说白了就是像人抄书一样, 书一直都在眼前对吧, 但是人脑子里只需要记得刚刚抄到哪的那一小段就行"
+<span class="attr">— 小天fotos · 核心架构类比</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[2:03-2:35]</span>
+"那这样OCR模型就可以一次读入一整本书的 PDF, 并一口气输出出来"
+<span class="attr">— 小天fotos · 能力总结</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[2:35-3:08]</span>
+"R-SWA 已经把能不能连续看多页这个底座问题解决了, 解决跨页的上下文割裂其实就是猛堆训练数据的事儿, 我猜用不了多久就支持了"
+<span class="attr">— 小天fotos · 架构拐点判断</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[3:08-3:40]</span>
+"大家都知道大模型嘛就是喜欢复读" → 实测 "Distinct 35/20 几乎满分, 代表它的幻觉非常少"
+<span class="attr">— 小天fotos · up 主实测反向验证</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[4:32-5:03]</span>
+"50 系显卡我必须提个醒, 因为我就踩了不少坑, Blackwell 的 GPU 它是不支持 Flash Attention 3 的, 但是如果回退到 FlashInfer 它的 R-SWA 的处理又有问题"
+<span class="attr">— 小天fotos · 50 系踩坑实录</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[5:03-5:35]</span>
+"OCR 支持 R-SWA 只是第一步, 技术报告里明确写了, 以后会把这个技术扩展到语音识别啊机器翻译等领域"
+<span class="attr">— 小天fotos · 横向扩展信号</span>
+</blockquote>
+
+<blockquote>
+<span class="ts">[5:35-6:22]</span>
+"PaddleOCR 这个 8 万多星的 OCR 老大哥, 他为什么要认真看端到端 OCR 这条路呢? 因为 Deepseek OCR 证明了端到端这条路是对的, 而 Unlimited OCR 则是把这条路又延展到了新领域, 从此逐页扫描的时代过去了, 以后就是一口气吃下一本书的时代了"
+<span class="attr">— 小天fotos · 结尾点题</span>
+</blockquote>
+</div>
+
+<!-- Tab: Patrick Cards -->
+<div class="tab-content" id="patrick" data-tab="patrick">
+<h2>🧩 13 张 Patrick 关联卡片</h2>
+<p>按 Tier 分级 — Tier 1 完全同源 / Tier 2 同源 / Tier 3 同源警示。</p>
+
+<h3>🥇 Tier 1: 完全同源 (核心)</h3>
+
+<div class="card tier-1">
+<h4><span class="badge t1">T1</span>1. agentic-os/gstack</h4>
+<p>GStack = 23 specialist + 8 power tool 虚拟工程团队。本期 up 主用 <strong>Codex 生成基准代码 + 让其他模型做 review</strong>,本质就是 GStack 多模型协作的最小实例。</p>
+<p class="rel">完全同源: 单 up 主 = 小型 GStack</p>
+</div>
+
+<div class="card tier-1">
+<h4><span class="badge t1">T1</span>2. autonomous-ai-agents/hybrid-llm-router</h4>
+<p>OCR 路线选择 (流水线 vs VLM vs 端到端大模型 vs R-SWA 多页) 本身就是 <strong>模型路由决策</strong> — 不同场景用不同模型。</p>
+<p class="rel">完全同源: 架构选型 = hybrid routing</p>
+</div>
+
+<div class="card tier-1">
+<h4><span class="badge t1">T1</span>3. knowledge-synthesis/graphify</h4>
+<p>OCR 的"版面拼合" vs "端到端理解" 对应 KG 的"手工构图" vs "自动抽取"。Unlimited OCR 的 R-SWA 类似 Graphify 的增量构建 — 一次吃全文 + 增量 refine。</p>
+<p class="rel">完全同源: 长序列处理范式迁移</p>
+</div>
+
+<h3>🥈 Tier 2: 同源 (技术路径相关)</h3>
+
+<div class="card tier-2">
+<h4><span class="badge t2">T2</span>4. mlops/apple-silicon-llama-server</h4>
+<p>本地 LLM 推理对架构选择敏感 (Metal OOM / quant 选择 / flash-attention 兼容),OCR 在 Blackwell sm120 踩的 Flash Attention 3 坑<strong>完全同源</strong> — 硬件新特性 + 新架构需要专门 patch。</p>
+<p class="rel">同源警示: 任何"新架构 × 新硬件"组合都要预期踩坑</p>
+</div>
+
+<div class="card tier-2">
+<h4><span class="badge t2">T2</span>5. creative/rich-html-output</h4>
+<p>OCR 输出"结构不一样但完全可用" vs HTML 设计"语义 HTML vs 视觉 HTML" — 都是<strong>结构保真 vs 视觉保真的取舍</strong>。</p>
+<p class="rel">同源: 评估指标设计 (Edit Distance / Line Recall) 跟 HTML accessibility audit 指标哲学同源</p>
+</div>
+
+<div class="card tier-2">
+<h4><span class="badge t2">T2</span>6. research/distributed-research-playbook</h4>
+<p>30-day sentiment + long-term research direction 模式,正好对应 Unlimited OCR 的 <strong>5 天破万星信号跟踪</strong> — 短期热度 + 长期架构路线分开评估。</p>
+<p class="rel">同源: 跟踪技术拐点 vs 跟踪单点升级的方法论一致</p>
+</div>
+
+<h3>🥉 Tier 3: 同源警示 (边缘相关)</h3>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>7. software-development/spa-variant-rollout</h4>
+<p>OCR "单页 vs 多页"切换 = SPA "单语言 vs 多语言变体" 切换 — 都是<strong>基础单元 vs 组合单元</strong>的灵活性权衡。</p>
+<p class="rel">同源警示: 不要把"Unlimited"等同于"无限",要看具体使用场景的下界</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>8. mlops/apple-silicon-llama-server (踩坑警示)</h4>
+<p>50 系 Blackwell 用户预期会有 2-4 周 PR 修复窗口,期间 FlashInfer 临时方案质量会掉,<strong>别因此下错"模型不行"的结论</strong>。</p>
+<p class="rel">同源警示: 踩坑期不下定性结论</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>9. autonomous-ai-agents/agent-observability</h4>
+<p>"up 主差点以为是模型能力差去推特骂人" — 这就是<strong>缺观测的诊断错误</strong>,跟 Agent watchdog 的核心价值完全同源: 让 observability 帮你区分"模型不行" vs "环境/兼容性不行"。</p>
+<p class="rel">同源: 调试路径 = 量化 + 隔离 + 对照组</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>10. knowledge-synthesis/understand-anything</h4>
+<p>"5 天破万星"信号解读 = codebase onboarding — 不只看到冰山表面(数字),还要理解冰山下面(架构变革)。</p>
+<p class="rel">同源: 表层指标 + 深层架构分析的两层 evaluate 框架</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>11. creative/front-end-taste</h4>
+<p>OCR 输出"完全可用但格式不一样" 跟"前端设计 token-first vs visual-first" 的取舍同源。</p>
+<p class="rel">同源警示: 工程评估跟设计评估一样,既要能量化 (Line Recall / accessibility score),也要看 qualitative</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>12. creative/toc-sidebar-batch</h4>
+<p>OCR "一次扫描一整本书" 跟 TOC "一次聚合所有章节链接" 都是<strong>长上下文聚合</strong>模式 — 都是"全局一次处理,局部可访问"。</p>
+<p class="rel">同源: TOC v1.4.2 hover-expand 跟 R-SWA 滑动窗口的 UX 同源</p>
+</div>
+
+<div class="card tier-3">
+<h4><span class="badge t3">T3</span>13. software-development/test-driven-development</h4>
+<p>up 主自己<strong>写基准代码 + 多模型 review</strong> 才敢信结果 — 这就是 TDD 模式: red (官方报告) → green (自己跑通) → refactor (多模型交叉验证)。</p>
+<p class="rel">完全同源: 没有自己实测的官方报告要降权,实测数据要交叉验证</p>
+</div>
+</div>
+
+<!-- Tab: Transcript -->
+<div class="tab-content" id="transcript" data-tab="transcript">
+<h2>📜 完整 Transcript</h2>
+<p>基于 youtube-transcript-api 抓取,233 raw segments → 21 cleaned paragraphs (5 步 dedup)。</p>
+
+<h3>[0-31s]</h3>
+<p>你们知道OCR界的江湖大哥是谁吗 那如果这位江湖大哥 和Deepseek碰撞到了一起 又会产生什么样的火花 答案就是这个不到一周 破万星的项目 Unlimited OCR 无限的OCR 听着就很高大上对不对 本期视频 为大家深度解读 百度团队端上桌的这道Unlimited OCR 可能很多朋友还不知道什么是OCR 我稍微解释一下 就是把PDF或者是图片扫描成文字 所使用的模型或者是工作流 我最早用的Paddle OCR 就是深度学习模型组合 它是流水线式的多段处理 挺强的 一直是工业领域的统治地位 这种处理流程 它先检测文字框 再识别每个框里的字</p>
+
+<h3>[31-62s]</h3>
+<p>它是流水线式的多段处理 挺强的 一直是工业领域的统治地位 这种处理流程 它先检测文字框 再识别每个框里的字 最后再把版面拼合在一起 但它有一个问题 就是一个环节一旦有错 后面就全错了 后来我就开始用VLM(视觉语言大模型） 很好用 但是吧 就是大炮打蚊子 又贵又慢 那Deepseek又尝试了一件事 他做了一个专门为OCR优化的 端到端大模型 叫Deepseek OCR 只有3B参数 但后来百度Paddle OCR VL更离谱 才0.9B的参数</p>
+
+<h3>[62-92s]</h3>
+<p>在文档解析Benchmark上 打出了能和235B掰手腕的成绩 但是它们都有一个问题 如果你扫描的文档越大 输出就会越来越慢 就和大模型一模一样的毛病 而且必须得一页一页扫 我今天要介绍的Unlimited OCR 就是来解决这个问题的 那你非要说 我就喜欢一页一页扫怎么了 当然行 而且很多时候一页一页扫最稳 但问题是文档它不是按一页一个 完整意思来做的 对不对 就像是让一个人看书 你每次只准看一页</p>
+
+<h3>[92-123s]</h3>
+<p>看完一页立刻失忆 你再让他接着去读下一页 他能读好吗 普通文档没关系啊 一旦你遇到跨页的内容 就只能靠后处理来硬缝了 所以我一看到Unlimited的OCR 一次可以扫多页 我眼睛就冒光了 这可是太痛点了 它可以让模型把几页 当成同一份连续文档来读 这是通过把Deepseek的多头注意力 改成了滑动窗口注意力 也就是叫R-SWA的技术 说白了就是像人抄书一样 书一直都在眼前对吧 但是人脑子里 只需要记得 刚刚抄到哪的那一小段就行</p>
+
+<h3>[123-155s]</h3>
+<p>那这样OCR模型 就可以一次读入一整本书的PDF 并一口气输出出来 那我就在想 那么跨页导致的上下文割裂 是不是也解决了 比如说一个表格跨页了 一页一页扫会出出两个表格对不对 那一次扫多页 会不会就能合并了？ 结果我实测之后发现 至少在当前这个版本它还不行 它能连续读多页 但还不会天然理解 这个表格上页没结束 下页要继续的合并 感觉这个版本 其实主要还是解决 模型底层的架构变革 但我个人押注啊 这是一个下阶段最值得看的能力</p>
+
+<h3>[155-186s]</h3>
+<p>R-SWA已经把能不能连续看多页 这个底座问题解决了 解决跨页的上下文割裂 其实就是猛堆训练数据的事儿 我猜用不了多久就支持了 那这样一次扫多页就不会有代价吗 有代价但是代价很小 官方的技术报告 告诉我们同时扫10页 会有轻微的丢失一些质量 我才不信 这些技术报告呢 我必须自己亲手试 而且我必须让它同时扫更多页 于是我就做了个实验 第一个数据是 我把几份论文拼成了30页的PDF</p>
+
+<h3>[186-216s]</h3>
+<p>第二个是我拿了一个纯中文的文档 我以前写的剧本杀手册 也是个30页的PDF 那我得先说一下指标啊 首先编辑距离 就是改多少下能和答案一样 这个数值越低越好 distinct看的就是有没有复读 这个是越接近百分百越好 大家都知道大模型嘛 就是喜欢复读 Line Match 只是看行级数的内容有没有对上 论文这种PDF 因为表格公式版面结构复杂 编辑距离 不一定能完全代表出有没有读出来 所以我们还是要看行级的匹配</p>
+
+<h3>[216-247s]</h3>
+<p>和文字数的召回 我这次的测试 是用Deepseek OCR作为基准 对比单页扫描和多页扫描的性能差 结果让我很意外啊 我们先看30页的论文数据啊 它的distinct 35或者20几乎都是满分 代表它的幻觉非常少 编辑距离看起来分数不太高 就我刚说的 因为论文里有大量的表格 公式和版面结构 OCR输出和PDF文本层 它不是一个格式 它不是没读出来 而是读出来的结构不一样 但是完全可用的 所以如果你看line和number的recall</p>
+
+<h3>[247-278s]</h3>
+<p>就是正文 召回 其实它结果还是可以的 而且比Deepseek OCR更高 那到了中文长文本 比如说小说 它的结构就非常漂亮 无论是一页页扫还是 一次扫20页30页 它质量差距都非常小 字级的准确率非常高 在这里我要强调一下 我的所有测试的基准代码 都是codex(xHigh）生成的 而且我同时让其他的模型做了review 那这就完全说明了 滑动窗口注意力机制替代掉MHA 是完全可行的 本身我看到量子位的文章写的 一次吃下一本书我还不大信 但实验告诉我</p>
+
+<h3>[278-310s]</h3>
+<p>跑满32K上下文 它的性能依旧不衰减 和技术报告是一致的 那短期看 我更期待它把上下文直接拉到128K 长期看论文里提到的prefill pool 如果能做出来 那才是更接近真正意义上的无限OCR 不过 如果大家也要尝试又是50系显卡 我要提个醒 因为我就踩了不少坑 Blackwell的GPU（也可能是我的sm120） 它是不支持Flash attention 3的 但是如果回退到Flashinfer 它的R-SWA的处理又有问题 导致一开始的测试质量崩的厉害 我本来以为是模型能力差 我都差点去推特上骂人了</p>
+
+<h3>[310-340s]</h3>
+<p>最后还是Codex力挽狂澜 打了点小patch 拯救了这个测试 所以如果是50系显卡 稍微等一下官方的PR修正 另外大家可能关心速度 因为我的卡不支持fa3 所以不是严格按照官方的环境跑的 但我跑的时候 大部分都是300多TOKEN每秒 当然这个数字肯定还能再优化 最后最重要的是 其实OCR支持R-SWA只是第一步 技术报告里明确写了 以后会把这个技术 扩展到语音识别啊 机器翻译等领域 你想想 语音识别是不是经常会出错</p>
+
+<h3>[340-372s]</h3>
+<p>前面对了 后面又错了 但是如果有了上下文信息 语音转录的一致性就会强很多是不是 翻译是不是也一样 所以基于滑动窗口的这个延展啊 肯定还有更多的想象空间 所以回到开头那个问题 Paddle OCR这个8万多星的OCR老大哥 他为什么要认真看 端到端OCR这条路呢 因为Deepseek OCR证明了 端到端这条路是对的 而Unlimited OCR 则是把这条路又延展到了新领域 从此逐页扫描的时代过去了 以后 就是一口气吃下一本书的时代了</p>
+
+<h3>[372-382s]</h3>
+<p>这才是5天破万星背后的真正共识 那么接下来 就看大家了 能用它挖出什么样的新鲜场景 好了以上就是本期的全部内容了 我们下期见</p>
+</div>
+
+<div class="footer">
+<p>📺 视频源: <a href="https://www.youtube.com/watch?v=ydb0CJVYkpI">youtube.com/watch?v=ydb0CJVYkpI</a></p>
+<p>📂 Obsidian: ~/Downloads/Obsidian Vault/llm-wiki/papers/ocr/index.md</p>
+<p>🔧 Generated: 2026-06-28 · build_dashboard.py v2.0 + Hermes M3 content pass</p>
+<p>📊 Pipeline: 233 raw → 21 cleaned · 0 isolated · graphify PASS</p>
+<p>✅ Content: LLM-filled (中文,基于完整 transcript) · ⚠️ Approval gate: <em>default warn mode (personal vault)</em></p>
+</div>
+
+<script>
+// === Tab switching ===
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    tabs.forEach(b => b.classList.toggle('active', b === btn));
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tab === target));
+    // Sync TOC active
+    document.querySelectorAll('aside.toc a').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      a.classList.toggle('active', href === '#' + target);
+    });
+    // Scroll target section into view
+    const el = document.getElementById(target);
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+});
+
+// === TOC click → activate tab + scroll ===
+document.querySelectorAll('aside.toc a').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href') || '';
+    if (!href.startsWith('#')) return;
+    const targetId = href.slice(1);
+    const targetTab = document.querySelector(`.tab-btn[data-tab="${targetId}"]`);
+    if (targetTab) {
+      targetTab.click();
+    } else {
+      // Section not in tab? Just scroll to it
+      const el = document.getElementById(targetId);
+      if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  });
+});
+
+// === Checklist (localStorage) ===
+const CHECKLIST_KEY = 'ocr-dashboard-checklist-v1';
+const ids = ['c1','c2','c3','c4','c5','c6'];
+function renderProgress() {
+  const done = ids.filter(id => document.getElementById(id).checked).length;
+  const el = document.getElementById('checklist-progress');
+  if (el) el.textContent = `进度: ${done}/${ids.length} 项已完成${done === ids.length ? ' · 🎉 全部完成!' : ''}`;
+}
+function loadChecklist() {
+  const saved = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}');
+  ids.forEach(id => { if (saved[id]) document.getElementById(id).checked = true; });
+  renderProgress();
+}
+function saveChecklist() {
+  const state = {};
+  ids.forEach(id => { state[id] = document.getElementById(id).checked; });
+  localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+  renderProgress();
+}
+ids.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', saveChecklist);
+});
+
+// === Init ===
+// Mark first tab as active on init (manual because we don't hardcode 'active' in HTML)
+const firstBtn = document.querySelector('.tab-btn');
+const firstContent = document.querySelector('.tab-content');
+if (firstBtn && !firstBtn.classList.contains('active')) firstBtn.classList.add('active');
+if (firstContent && !firstContent.classList.contains('active')) firstContent.classList.add('active');
+
+loadChecklist();
+</script>
+</body>
+</html>

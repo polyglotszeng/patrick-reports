@@ -1,1000 +1,1558 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Satellite Ops · 全球卫星实时看板</title>
-  <meta name="description" content="Live satellite tracker and Earth observation dashboard. ISS, Starlink, GPS, weather satellites, NASA GIBS imagery, active fires." />
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-  <style>
-    :root {
-      --bg: #050810;
-      --bg-2: #0a0f1a;
-      --bg-3: #111827;
-      --fg: #e5e7eb;
-      --fg-2: #94a3b8;
-      --fg-3: #64748b;
-      --accent: #00d4ff;
-      --warn: #ff6b35;
-      --good: #10b981;
-      --danger: #ef4444;
-      --line: rgba(0, 212, 255, 0.18);
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body {
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      overflow: hidden;
-    }
-    #map { position: absolute; inset: 0; background: #0a0f1a; }
-    /* MapLibre dark style overrides */
-    .maplibregl-ctrl-attrib { background: rgba(5, 8, 16, 0.7) !important; color: var(--fg-3) !important; font-size: 10px !important; }
-    .maplibregl-ctrl-attrib a { color: var(--fg-2) !important; }
-    .maplibregl-ctrl-group { background: var(--bg-3) !important; border: 1px solid var(--line) !important; }
-    .maplibregl-ctrl-group button { background-color: var(--bg-3) !important; }
-    .maplibregl-ctrl-group button + button { border-top: 1px solid var(--line) !important; }
-    .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(0.9) hue-rotate(180deg); }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital Console · 全球卫星统一看板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   设计令牌 —— 深空底 + 信号琥珀(时间/状态) + 轨道青(数据/覆盖)
+   ============================================================ */
+:root {
+  --bg: #0A0E15;
+  --panel: #101623;
+  --panel-2: #151D2E;
+  --line: #1D2736;
+  --text: #D5DEEC;
+  --muted: #7A8AA3;
+  --amber: #F5A623;      /* 信号琥珀:任务时钟、LIVE 状态 */
+  --cyan: #56C8E8;       /* 轨道青:数据、覆盖、链接 */
+  --red: #E4574D;        /* 告警:TLE 过期、数据源异常 */
+  --green: #6BCB77;      /* 正常:数据源健康 */
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+a { color: var(--cyan); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
-    /* Top header */
-    #header {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-      padding: 12px 18px;
-      background: linear-gradient(to bottom, rgba(5,8,16,0.92), rgba(5,8,16,0));
-      pointer-events: none;
-    }
-    #header h1 {
-      margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
-      text-transform: uppercase; color: var(--fg);
-    }
-    #header h1 span { color: var(--accent); }
-    #header .sub {
-      font-size: 11px; color: var(--fg-3); margin-top: 2px; font-variant-numeric: tabular-nums;
-    }
-    #header .dot {
-      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent); margin-right: 6px;
-      box-shadow: 0 0 6px var(--accent);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+/* ============================================================
+   顶栏:品牌 + 五个视图 tab
+   ============================================================ */
+header {
+  display: flex; align-items: center; gap: 28px;
+  padding: 0 20px; height: 56px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.brand { font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+.brand .dot { color: var(--amber); }
+nav { display: flex; gap: 4px; overflow-x: auto; }
+nav a {
+  display: block; padding: 6px 14px;
+  color: var(--muted); text-decoration: none;
+  font-size: 14px; border-radius: 6px; white-space: nowrap;
+}
+nav a:hover { color: var(--text); background: var(--panel-2); }
+nav a[aria-current="page"] {
+  color: var(--bg); background: var(--cyan); font-weight: 500;
+}
 
-    /* Side panel */
-    #panel {
-      position: absolute; top: 70px; left: 14px; z-index: 10;
-      width: 280px; max-height: calc(100vh - 100px);
-      background: rgba(10, 15, 26, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 14px;
-      overflow-y: auto;
-      pointer-events: auto;
-    }
-    #panel::-webkit-scrollbar { width: 6px; }
-    #panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-    .section { margin-bottom: 14px; }
-    .section h2 {
-      margin: 0 0 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--accent);
-    }
-    .row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 4px 0; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.04);
-    }
-    .row:first-child { border-top: none; }
-    .row .label { color: var(--fg-2); }
-    .row .val { color: var(--fg); font-variant-numeric: tabular-nums; font-weight: 500; }
-    .toggle {
-      display: flex; align-items: center; gap: 6px; padding: 4px 0;
-      font-size: 12px; cursor: pointer; user-select: none;
-    }
-    .toggle:hover { color: var(--accent); }
-    .toggle input { accent-color: var(--accent); margin: 0; }
-    .badge {
-      display: inline-block; padding: 1px 6px; border-radius: 3px;
-      font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
-    }
-    .badge-good { background: rgba(16, 185, 129, 0.18); color: var(--good); }
-    .badge-warn { background: rgba(255, 107, 53, 0.18); color: var(--warn); }
-    .badge-bad { background: rgba(239, 68, 68, 0.18); color: var(--danger); }
-    .badge-neutral { background: rgba(148, 163, 184, 0.18); color: var(--fg-2); }
+/* ============================================================
+   任务时钟条(签名元素):所有视图共享同一时间基准
+   ============================================================ */
+#mission-strip {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+}
+#mission-strip b { color: var(--text); font-weight: 500; }
+.chip {
+  display: inline-block; padding: 1px 8px; border-radius: 4px;
+  border: 1px solid var(--line); font-size: 11.5px;
+}
+.chip.ok    { color: var(--green); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
+.chip.warn  { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 40%, transparent); }
+.chip.stale { color: var(--red);   border-color: color-mix(in srgb, var(--red) 40%, transparent); }
+.timectl { display: flex; gap: 2px; margin-left: auto; }
+.timectl button {
+  font-family: var(--mono); font-size: 11.5px;
+  padding: 2px 10px; cursor: pointer;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--line); border-radius: 4px;
+}
+.timectl button[aria-pressed="true"] { color: var(--bg); background: var(--amber); border-color: var(--amber); font-weight: 500; }
 
-    /* Bottom status bar */
-    #status {
-      position: absolute; bottom: 14px; left: 14px; right: 14px; z-index: 10;
-      background: rgba(10, 15, 26, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 11px; color: var(--fg-3);
-      display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
-      pointer-events: auto;
-    }
-    #status .source {
-      display: flex; align-items: center; gap: 6px;
-    }
-    #status .source .name { color: var(--fg-2); font-weight: 500; }
-    #status .source .lat { font-variant-numeric: tabular-nums; }
+/* ============================================================
+   视图容器与通用面板
+   ============================================================ */
+main { padding: 20px; max-width: 1280px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
+}
+.panel h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.panel p.hint { color: var(--muted); font-size: 13.5px; }
+.placeholder {
+  border: 1px dashed var(--line); border-radius: 8px;
+  padding: 28px; text-align: center; color: var(--muted); font-size: 13.5px;
+}
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
+.kpi { background: var(--panel-2); border-radius: 8px; padding: 10px 14px; }
+.kpi .v { font-family: var(--mono); font-size: 20px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+.kpi .k { font-size: 12px; color: var(--muted); }
 
-    /* Layer buttons */
-    .layer-btn {
-      display: block; width: 100%;
-      padding: 6px 10px; margin-bottom: 4px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      color: var(--fg-2);
-      font-size: 12px; text-align: left;
-      cursor: pointer; pointer-events: auto;
-      transition: all 0.15s;
-    }
-    .layer-btn:hover { background: rgba(0, 212, 255, 0.06); color: var(--fg); }
-    .layer-btn.active {
-      background: rgba(0, 212, 255, 0.12);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .layer-btn .meta {
-      font-size: 10px; color: var(--fg-3); margin-top: 2px;
-      font-variant-numeric: tabular-nums;
-    }
+/* 覆盖视图控件 */
+.ctlrow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 10px 0 4px; }
+.ctlrow label { font-size: 13px; color: var(--muted); }
+input[type=range] { accent-color: var(--amber); width: 220px; }
+.preset { display: flex; gap: 6px; }
+.preset button {
+  font-family: var(--mono); font-size: 12px; cursor: pointer;
+  padding: 3px 10px; border-radius: 5px;
+  color: var(--muted); background: transparent; border: 1px solid var(--line);
+}
+.preset button[aria-pressed="true"] { color: var(--bg); background: var(--cyan); border-color: var(--cyan); }
+#cov-canvas { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; background: #060910; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 8px; font-family: var(--mono); }
+.legend .bar { height: 8px; width: 160px; border-radius: 4px;
+  background: linear-gradient(90deg,#060910,#123,#1B5F7A,#2FA3C7,#56C8E8,#BFF0FF); }
 
-    /* AOI buttons */
-    .aoi-btn {
-      display: inline-block; padding: 3px 8px; margin: 2px 2px 2px 0;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      color: var(--fg-2);
-      font-size: 10px;
-      cursor: pointer; pointer-events: auto;
-    }
-    .aoi-btn:hover { background: rgba(0, 212, 255, 0.06); color: var(--fg); }
-    .aoi-btn.active { background: rgba(0, 212, 255, 0.12); border-color: var(--accent); color: var(--accent); }
+/* ============================================================
+   Live 视图 —— canvas 等距柱状投影 + 动画卫星
+   ============================================================ */
+.live-canvas-wrap {
+  position: relative; margin-top: 8px;
+  border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--line);
+  background: #060910;
+}
+#live-canvas {
+  width: 100%; display: block; background: #060910;
+}
+.live-tooltip {
+  position: absolute; pointer-events: none;
+  background: rgba(16,22,35,.92);
+  border: 1px solid var(--cyan);
+  padding: 6px 10px; border-radius: 5px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  transform: translate(-50%, -130%); white-space: nowrap;
+  opacity: 0; transition: opacity .15s;
+  z-index: 5;
+}
+.live-tooltip.show { opacity: 1; }
+.live-readout {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px; margin-top: 10px;
+}
+.live-readout .kpi .v { color: var(--amber); font-size: 18px; }
 
-    /* Loading splash */
-    #splash {
-      position: absolute; inset: 0; z-index: 100;
-      background: var(--bg);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 16px;
-      transition: opacity 0.4s;
-    }
-    #splash .title { font-size: 16px; letter-spacing: 0.1em; color: var(--accent); font-weight: 600; }
-    #splash .progress { width: 240px; height: 4px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
-    #splash .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
-    #splash .status { font-size: 12px; color: var(--fg-3); font-variant-numeric: tabular-nums; min-height: 16px; }
+/* ============================================================
+   Compare 视图 —— 五星座对比卡 + 分布柱
+   ============================================================ */
+.const-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px; margin-top: 14px;
+}
+.const-card {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--accent, var(--cyan));
+  border-radius: 8px; padding: 14px 16px;
+}
+.const-card .ch-name { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+.const-card .ch-big {
+  font-family: var(--mono); font-size: 36px; font-weight: 500;
+  color: var(--accent, var(--cyan));
+  font-variant-numeric: tabular-nums; line-height: 1; margin: 4px 0 2px;
+}
+.const-card .ch-label { font-size: 11.5px; color: var(--muted); margin-bottom: 12px; }
+.const-card .ch-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  margin-bottom: 10px;
+}
+.const-card .ch-meta .k { color: var(--muted); font-size: 11px; }
+.const-card .ch-bars { margin-top: 10px; }
+.const-card .ch-bars h4 {
+  font-size: 11.5px; color: var(--muted); font-weight: 500;
+  letter-spacing: .04em; text-transform: uppercase; margin: 10px 0 6px;
+}
+.bar-row {
+  display: grid; grid-template-columns: 38px 1fr 36px;
+  align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11.5px;
+  margin-bottom: 3px;
+}
+.bar-row .bar-label { color: var(--muted); }
+.bar-row .bar-track {
+  height: 8px; background: rgba(122,138,163,.15);
+  border-radius: 3px; overflow: hidden;
+}
+.bar-row .bar-fill { height: 100%; border-radius: 3px; }
+.bar-row .bar-value { color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+.findings, .caveats {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 14px 18px; margin-top: 14px;
+}
+.findings h2, .caveats h3 {
+  font-size: 14px; margin-bottom: 10px; color: var(--text); font-weight: 600;
+}
+.findings ul, .caveats ul {
+  padding-left: 20px; color: var(--text); font-size: 13px; line-height: 1.7;
+}
+.findings li, .caveats li { margin-bottom: 6px; }
+.findings li strong, .caveats li strong { color: var(--cyan); font-weight: 500; }
+.findings li code, .caveats li code {
+  font-family: var(--mono); font-size: 11.5px;
+  background: var(--panel); padding: 1px 5px; border-radius: 3px; color: var(--amber);
+}
 
-    /* Popup */
-    .maplibregl-popup-content {
-      background: rgba(10, 15, 26, 0.95) !important;
-      color: var(--fg) !important;
-      border: 1px solid var(--line) !important;
-      border-radius: 4px !important;
-      padding: 10px 14px !important;
-      font-family: inherit !important;
-      font-size: 12px !important;
-    }
-    .maplibregl-popup-tip { border-top-color: rgba(10,15,26,0.95) !important; border-bottom-color: rgba(10,15,26,0.95) !important; }
-    .maplibregl-popup-content h3 { margin: 0 0 4px; font-size: 13px; color: var(--accent); }
-    .maplibregl-popup-content .meta { color: var(--fg-2); font-size: 11px; }
-    .maplibregl-popup-content .meta b { color: var(--fg); font-variant-numeric: tabular-nums; }
+/* 服务价值指数卡 */
+.sv-grid { display: grid; gap: 4px; margin: 10px 0 8px; }
+.sv-row {
+  display: grid; grid-template-columns: 32px 28px 90px 1fr 92px 130px;
+  align-items: center; gap: 10px;
+  padding: 6px 8px; border-radius: 4px;
+  background: rgba(86,200,232,0.04);
+  font-size: 13px;
+}
+.sv-row:hover { background: rgba(86,200,232,0.08); }
+.sv-rank { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.sv-flag { font-size: 18px; line-height: 1; }
+.sv-name { font-weight: 500; color: var(--text); }
+.sv-bar { height: 8px; background: rgba(86,200,232,0.10); border-radius: 4px; overflow: hidden; }
+.sv-fill { display: block; height: 100%; background: linear-gradient(90deg, #56C8E8 0%, #F5A623 100%); }
+.sv-val { font-family: var(--mono); font-size: 13px; color: var(--amber); text-align: right; }
+.sv-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.sv-source { font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+.sv-source a { color: var(--cyan); text-decoration: none; border-bottom: 1px dashed var(--cyan); }
 
-    @media (max-width: 720px) {
-      #panel { width: calc(100vw - 28px); max-height: 40vh; }
-    }
-  </style>
+/* ============================================================
+   Earth 视图 —— GIBS 图层卡片 + AOI
+   ============================================================ */
+.earth-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px; margin-top: 14px;
+}
+.layer-card {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.layer-card .lc-thumb {
+  height: 110px; background: #060910; display: flex;
+  align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.layer-card .lc-thumb svg { width: 100%; height: 100%; display: block; }
+.layer-card .lc-body { padding: 12px 14px; flex: 1; }
+.layer-card .lc-name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.layer-card .lc-src { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.layer-card .lc-desc { font-size: 12.5px; color: var(--text); line-height: 1.5; }
+.aoi-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+}
+.aoi-btn {
+  font-family: var(--mono); font-size: 12px; cursor: pointer;
+  padding: 5px 12px; border-radius: 5px;
+  color: var(--text); background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.aoi-btn[aria-pressed="true"] {
+  color: var(--bg); background: var(--cyan); border-color: var(--cyan); font-weight: 500;
+}
+.earth-foot {
+  margin-top: 12px; padding: 12px 14px;
+  background: var(--panel-2); border-left: 3px solid var(--amber);
+  border-radius: 5px; font-size: 12.5px; color: var(--text);
+}
+.earth-foot code { font-family: var(--mono); font-size: 11.5px; color: var(--amber); }
+.earth-foot a { color: var(--cyan); text-decoration: none; border-bottom: 1px dashed var(--cyan); }
+.earth-foot a:hover { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* Earth stage: 全尺寸世界地图 + AOI 详情卡 (左右布局) */
+.earth-stage {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 14px;
+  margin-top: 14px;
+}
+@media (max-width: 900px) {
+  .earth-stage { grid-template-columns: 1fr; }
+}
+.earth-map-wrap {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+.earth-map-title {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+#earth-world-map-host {
+  width: 100%;
+  display: block;
+}
+#earth-world-map-host svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+.aoi-region rect { transition: fill-opacity 0.2s ease, stroke-width 0.2s ease; }
+.aoi-region:hover rect { fill-opacity: 0.22 !important; stroke-width: 1.5 !important; }
+.earth-aoi-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cyan);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  align-self: start;
+}
+.earth-aoi-card[data-aoi="taiwan"],
+.earth-aoi-card[data-aoi="korea"] { border-left-color: #E4574D; }
+.earth-aoi-card[data-aoi="redsea"],
+.earth-aoi-card[data-aoi="gulf"] { border-left-color: #F5A623; }
+.earth-aoi-card[data-aoi="ukraine"] { border-left-color: #56C8E8; }
+.eac-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.eac-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 2px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+.eac-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.eac-row:last-of-type { border-bottom: none; }
+.eac-k {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.eac-v {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.eac-foot {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+
+/* ============================================================
+   Reports 视图 —— KPI + 时间线 + SVG 增长曲线
+   ============================================================ */
+.reports-timeline { margin-top: 14px; }
+.report-row {
+  display: grid; grid-template-columns: 110px 1fr auto auto;
+  align-items: center; gap: 14px;
+  padding: 12px 14px; border: 1px solid var(--line);
+  border-radius: 7px; background: var(--panel-2);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.report-row .rr-date {
+  font-family: var(--mono); font-size: 13px; color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+.report-row .rr-name { font-weight: 500; }
+.report-row .rr-meta { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.report-row .rr-total {
+  font-family: var(--mono); font-size: 14px; color: var(--cyan);
+  font-variant-numeric: tabular-nums; min-width: 70px; text-align: right;
+}
+.report-row a.btn-open {
+  font-family: var(--mono); font-size: 12px;
+  text-decoration: none; color: var(--bg); background: var(--cyan);
+  padding: 4px 12px; border-radius: 5px; font-weight: 500;
+}
+.report-row a.btn-open[data-deprecated] {
+  background: var(--amber); color: var(--bg);
+  position: relative;
+}
+.report-row a.btn-open[data-deprecated]:hover::after {
+  content: "⚠️ 老 URL,7 月起 redirect 到 Orbital Console";
+  position: absolute; bottom: 110%; right: 0; white-space: nowrap;
+  background: var(--bg-2); color: var(--amber); border: 1px solid var(--amber);
+  padding: 4px 8px; border-radius: 4px; font-size: 11px; z-index: 10;
+}
+.growth-chart-wrap {
+  margin-top: 14px; padding: 16px;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.growth-chart-wrap h3 { font-size: 14px; margin-bottom: 8px; }
+.growth-chart-wrap .src { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+@media (max-width: 720px) {
+  header { gap: 12px; }
+  main { padding: 12px; }
+  .timectl { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
 <body>
-  <div id="splash">
-    <div class="title">SATELLITE OPS</div>
-    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-    <div class="status" id="splashStatus">Initializing...</div>
+
+<header>
+  <div class="brand">ORBITAL<span class="dot">·</span>CONSOLE</div>
+  <nav id="tabs" aria-label="视图切换"></nav>
+</header>
+
+<!-- 任务时钟条:UTC / 数据时刻 / TLE 龄期 / 数据源 / 时间控制器 —— 全站唯一时间真相 -->
+<div id="mission-strip">
+  <span>UTC <b id="ms-utc">--:--:--</b></span>
+  <span>数据时刻 <b id="ms-epoch">--</b></span>
+  <span>TLE 龄期 <span id="ms-age" class="chip ok">--</span></span>
+  <span>CelesTrak <span id="ms-src" class="chip ok">OK</span></span>
+  <span>在轨 <b id="ms-count">--</b> 颗</span>
+  <div class="timectl" role="group" aria-label="时间控制">
+    <button data-speed="1"  aria-pressed="true">LIVE</button>
+    <button data-speed="8"  aria-pressed="false">×8</button>
+    <button data-speed="60" aria-pressed="false">×60</button>
+    <button data-speed="0"  aria-pressed="false">暂停</button>
   </div>
+</div>
 
-  <div id="header">
-    <h1><span>◉</span> Satellite Ops</h1>
-    <div class="sub"><span class="dot"></span><span id="clock">--</span> · <span id="countInfo">loading...</span></div>
-    <a href="/" id="backHome" style="position:absolute;top:14px;right:18px;font-size:11px;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--line);border-radius:4px;background:rgba(5,8,16,0.6);pointer-events:auto;letter-spacing:0.04em;">← 返回主页</a>
-  </div>
+<main id="views"></main>
 
-  <div id="panel">
-    <div class="section">
-      <h2>卫星分组 / Constellation</h2>
-      <label class="toggle"><input type="checkbox" id="grp-stations" checked /> 🛰️ 空间站 (Stations · ISS 等)</label>
-      <label class="toggle"><input type="checkbox" id="grp-gps" checked /> 📡 GPS 导航星座</label>
-      <label class="toggle"><input type="checkbox" id="grp-weather" checked /> ☁️ 气象卫星</label>
-      <label class="toggle"><input type="checkbox" id="grp-starlink" /> 🌐 Starlink (10652 颗, 加载需 ~10s)</label>
-      <label class="toggle"><input type="checkbox" id="grp-tracks" checked /> 显示 Ground Track</label>
-      <label class="toggle"><input type="checkbox" id="grp-labels" /> 显示卫星名标签</label>
-    </div>
+<script type="module">
+import Coverage from "./coverage.js";
+// import ZTLE from "./tle-unpack.js";   // 接真实数据时打开
 
-    <div class="section">
-      <h2>地球观测 / Earth Imagery</h2>
-      <button class="layer-btn" data-layer="off">⛔ 关闭瓦片层</button>
-      <button class="layer-btn active" data-layer="modis-truecolor">🌍 MODIS Terra 真彩合成</button>
-      <button class="layer-btn" data-layer="viirs-nightlights">🌃 VIIRS 夜光</button>
-      <button class="layer-btn" data-layer="modis-aerosol">💨 MODIS 气溶胶</button>
-      <button class="layer-btn" data-layer="modis-fires-thermal">🔥 MODIS 火点 (热异常)</button>
-      <button class="layer-btn" data-layer="gibs-clouds">☁️ MODIS 云覆盖</button>
-      <div class="row" style="margin: 8px 0 4px;"><span class="label" style="font-size: 10px; color: var(--accent);">天气卫星 / WEATHER-SAT</span></div>
-      <button class="layer-btn" data-layer="himawari-airmass">🌏 Himawari AHI 气团 (RGBA, 全彩)</button>
-      <button class="layer-btn" data-layer="himawari-ir">🌏 Himawari AHI 红外 (Band13)</button>
-      <button class="layer-btn" data-layer="goes-east-airmass">🌎 GOES-East ABI 气团</button>
-      <button class="layer-btn" data-layer="goes-east-ir">🌎 GOES-East ABI 红外 (Band13)</button>
-      <button class="layer-btn" data-layer="goes-west-airmass">🌎 GOES-West ABI 气团</button>
-      <div class="row">
-        <span class="label">瓦片日期</span>
-        <span class="val" id="tileDate">--</span>
-      </div>
-      <div class="row">
-        <span class="label">数据回退</span>
-        <span class="val" id="tileFallback">--</span>
-      </div>
-    </div>
+/* ============================================================
+   1. 共享应用状态 + 事件总线
+   所有视图读同一个 App.simTime,时间控制器改的也是它。
+   ============================================================ */
+const App = {
+  simTime: Date.now(),       // 仿真时间(ms);LIVE 时跟随真实时钟
+  speed: 1,                  // 0=暂停 1=LIVE 8/60=快进
+  dataEpoch: null,           // 本批 TLE 的中位 epoch
+  satCount: null,
+  bus: new EventTarget(),
+  emit(type, detail) { this.bus.dispatchEvent(new CustomEvent(type, { detail })); },
+  on(type, fn) { this.bus.addEventListener(type, fn); },
+};
 
-    <div class="section">
-      <h2>火点数据 / Active Fires</h2>
-      <div class="row">
-        <span class="label">来源</span>
-        <span class="val"><span class="badge badge-neutral" id="firmsStatus">FIRMS 未配置</span></span>
-      </div>
-      <div class="row">
-        <span class="label">24h 火点</span>
-        <span class="val" id="firmsCount">--</span>
-      </div>
-      <div class="row" style="font-size: 10px; color: var(--fg-3); margin-top: 4px;">
-        在页面注入 FIRMS_MAP_KEY = "your-key" 启用
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>关注区域 / AOI Watchlist</h2>
-      <div>
-        <span class="aoi-btn" data-aoi="global">🌍 全球</span>
-        <span class="aoi-btn active" data-aoi="taiwan">台海</span>
-        <span class="aoi-btn" data-aoi="redsea">红海</span>
-        <span class="aoi-btn" data-aoi="ukraine">乌克兰</span>
-        <span class="aoi-btn" data-aoi="gulf">波斯湾</span>
-        <span class="aoi-btn" data-aoi="suez">苏伊士</span>
-        <span class="aoi-btn" data-aoi="korea">朝鲜半岛</span>
-      </div>
-      <div class="row" style="margin-top: 8px;">
-        <span class="label">Sentinel-2 场景 (24h)</span>
-        <span class="val" id="stacCount">--</span>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2>系统 / System</h2>
-      <div class="row"><span class="label">数据源</span><span class="val">CelesTrak · NASA GIBS · Earth Search · NASA FIRMS</span></div>
-      <div class="row"><span class="label">渲染</span><span class="val">MapLibre GL + deck.gl (vector-tiles 友好)</span></div>
-      <div class="row"><span class="label">轨道传播</span><span class="val">satellite.js SGP4 (浏览器端)</span></div>
-      <div class="row"><span class="label">build</span><span class="val">2026-06-26 v0.1.1-basemap-esri</span></div>
-    </div>
-  </div>
-
-  <div id="status">
-    <div class="source"><span class="name">CelesTrak</span><span class="badge badge-good" id="src-celestrak">--</span></div>
-    <div class="source"><span class="name">GIBS</span><span class="badge badge-good" id="src-gibs">--</span></div>
-    <div class="source"><span class="name">FIRMS</span><span class="badge badge-neutral" id="src-firms">--</span></div>
-    <div class="source"><span class="name">STAC</span><span class="badge badge-good" id="src-stac">--</span></div>
-    <div class="source" style="margin-left: auto;"><span class="name">lat</span><span class="lat" id="propLatency">--</span></div>
-  </div>
-
-  <div id="map"></div>
-
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
-  <script>
-  // ========= USER-CONFIGURABLE: FIRMS MAP_KEY =========
-  // Inject via URL ?firms_key=XXX or set window.FIRMS_MAP_KEY before this script
-  const FIRMS_MAP_KEY =
-    new URLSearchParams(location.search).get('firms_key') ||
-    window.FIRMS_MAP_KEY ||
-    null;
-  // ===================================================
-
-  // ====== HELPERS ======
-  const $ = (id) => document.getElementById(id);
-  const fmt = (n, d=2) => Number.isFinite(n) ? n.toFixed(d) : '--';
-  const log = (...args) => console.log('[sat-ops]', ...args);
-
-  function setProgress(pct, status) {
-    $('progressBar').style.width = pct + '%';
-    if (status) $('splashStatus').textContent = status;
+let lastTick = performance.now();
+function tick(now) {
+  const dt = now - lastTick; lastTick = now;
+  if (App.speed > 0) {
+    App.simTime += dt * App.speed;
+    if (App.speed === 1) App.simTime = Date.now();  // LIVE 锚定真实时钟,避免漂移
   }
-  function hideSplash() {
-    const sp = $('splash');
-    sp.style.opacity = '0';
-    setTimeout(() => sp.style.display = 'none', 400);
-  }
+  document.getElementById("ms-utc").textContent =
+    new Date(App.simTime).toISOString().slice(11, 19) + (App.speed === 1 ? "" : App.speed === 0 ? " ⏸" : ` ×${App.speed}`);
+  App.emit("tick", { simTime: App.simTime });
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
 
-  // ====== GP 3LE → JSON conversion ======
-  // CelesTrak returns either GP JSON (no TLE lines) or 3LE text. We use 3LE for satellite.js compatibility.
-  function parse3LE(text) {
-    const lines = text.split(/\r?\n/);
-    const records = [];
-    for (let i = 0; i + 2 < lines.length; i += 3) {
-      const name = lines[i].trim();
-      const l1 = lines[i + 1];
-      const l2 = lines[i + 2];
-      if (!name || !l1 || !l2 || !l1.startsWith('1 ') || !l2.startsWith('2 ')) continue;
-      records.push({
-        OBJECT_NAME: name,
-        OBJECT_ID: l1.substring(2, 7).trim(),
-        TLE_LINE1: l1,
-        TLE_LINE2: l2,
-        EPOCH: l1.substring(18, 32).trim(),
-      });
+document.querySelectorAll(".timectl button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    App.speed = Number(btn.dataset.speed);
+    document.querySelectorAll(".timectl button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b === btn)));
+    App.emit("speedchange", { speed: App.speed });
+  });
+});
+
+/** 数据到位后调用一次,任务条自动点亮(接 ZTLE 时用) */
+window.setDataStatus = function ({ epoch, count, sourceOk = true }) {
+  App.dataEpoch = epoch; App.satCount = count;
+  const ageDays = (Date.now() - epoch.getTime()) / 86400e3;
+  document.getElementById("ms-epoch").textContent = epoch.toISOString().slice(0, 16).replace("T", " ");
+  document.getElementById("ms-count").textContent = count.toLocaleString();
+  const chip = document.getElementById("ms-age");
+  chip.textContent = ageDays.toFixed(1) + " d";
+  chip.className = "chip " + (ageDays > 7 ? "stale" : ageDays > 3 ? "warn" : "ok");
+  document.getElementById("ms-src").className = "chip " + (sourceOk ? "ok" : "stale");
+};
+
+/* ============================================================
+   2. 视图注册表 + hash 路由
+   ============================================================ */
+const views = [];
+function registerView(v) { views.push(v); }
+
+function currentRoute() {
+  const h = location.hash.replace(/^#\/?/, "") || "live";
+  const [id, query = ""] = h.split("?");
+  return { id, params: new URLSearchParams(query) };
+}
+
+function renderTabs() {
+  const nav = document.getElementById("tabs");
+  nav.innerHTML = "";
+  for (const v of views) {
+    const a = document.createElement("a");
+    a.href = "#/" + v.id;
+    a.textContent = v.label;
+    a.dataset.view = v.id;
+    nav.appendChild(a);
+  }
+}
+
+let activeView = null;
+function route() {
+  const { id, params } = currentRoute();
+  const target = views.find(v => v.id === id) || views[0];
+  document.querySelectorAll("#tabs a").forEach(a =>
+    a.toggleAttribute && a.setAttribute("aria-current", a.dataset.view === target.id ? "page" : "false"));
+  if (activeView && activeView !== target) {
+    activeView.unmount?.();
+    document.getElementById("view-" + activeView.id)?.classList.remove("active");
+  }
+  let el = document.getElementById("view-" + target.id);
+  if (!el) {
+    el = document.createElement("section");
+    el.id = "view-" + target.id;
+    el.className = "view";
+    document.getElementById("views").appendChild(el);
+    target.mount(el, params);          // 懒挂载:首次进入才初始化
+    target._mounted = true;
+  } else if (target.onParams) {
+    target.onParams(params);
+  }
+  el.classList.add("active");
+  activeView = target;
+  document.title = target.label + " · Orbital Console";
+}
+window.addEventListener("hashchange", route);
+
+/* ============================================================
+   3. 共享 Walker 星座预设(供 CoverageView 和 LiveView 复用)
+   ============================================================ */
+const SHELLS = {
+  starlink: { label: "Starlink 壳1", planes: 72, satsPerPlane: 22, inclDeg: 53,   altKm: 550 },
+  polar:    { label: "极轨 OneWeb 型", planes: 36, satsPerPlane: 20, inclDeg: 87.9, altKm: 1200 },
+  qianfan:  { label: "千帆型",        planes: 28, satsPerPlane: 36, inclDeg: 89,   altKm: 800 },
+};
+
+/* ============================================================
+   4. Live 视图 —— canvas 等距柱状投影 + 大陆轮廓 + 模拟卫星 + 城市 hover
+   ============================================================ */
+const CITIES = [
+  { name: "北京",   lat:  39.9, lon:  116.4 },
+  { name: "纽约",   lat:  40.7, lon: -74.0 },
+  { name: "伦敦",   lat:  51.5, lon:  -0.1 },
+  { name: "悉尼",   lat: -33.9, lon:  151.2 },
+  { name: "开罗",   lat:  30.0, lon:  31.2 },
+  { name: "里约",   lat: -22.9, lon: -43.2 },
+];
+
+// 7 大洲简化轮廓 (lat, lon) — 内联,零依赖
+/* 大陆简化轮廓 (内联 ~200 个 lat/lon 点 = 7 大洲 + 6 岛屿)
+   数据来源:手绘简化,只用于 canvas 背景参考,不要求地理精确。
+   7 大洲:北美 / 中美 / 南美 / 欧亚 / 非洲 / 澳洲 / 格陵兰
+   岛屿:大不列颠 / 新西兰 / 马达加斯加
+   渲染:fill rgba(86,200,232,0.08) + stroke rgba(86,200,232,0.4) 0.5px */
+const CONTINENTS = [
+  // 北美 (阿拉斯加 → 中美)
+  [[71,-156],[70,-141],[60,-140],[50,-125],[40,-124],[33,-118],[27,-97],[25,-80],[18,-88],[10,-83],[7,-77]],
+  // 中美缝
+  [[18,-95],[15,-90],[10,-84],[8,-78]],
+  // 南美
+  [[12,-72],[10,-65],[0,-50],[-15,-39],[-25,-45],[-40,-55],[-55,-68],[-50,-75],[-30,-71],[-10,-78],[5,-77]],
+  // 欧亚大陆
+  [[71,60],[73,130],[65,170],[55,165],[45,145],[35,140],[25,120],[10,105],[8,80],[20,70],[25,55],[35,35],[45,35],[55,50],[70,60]],
+  // 非洲
+  [[35,-5],[32,32],[12,43],[0,42],[-15,40],[-30,25],[-35,18],[-22,14],[0,9],[10,-15],[25,-16],[33,-8]],
+  // 澳洲
+  [[-10,130],[-12,145],[-20,150],[-35,150],[-39,145],[-35,130],[-30,115],[-22,114],[-15,125]],
+  // 格陵兰
+  [[83,-33],[80,-20],[70,-22],[60,-45],[70,-55],[80,-65]],
+  // 大不列颠
+  [[58,-5],[55,-2],[51,1],[50,1],[55,-8]],
+  // 新西兰
+  [[-35,173],[-37,175],[-41,174],[-46,170],[-42,172]],
+  // 马达加斯加
+  [[-12,49],[-15,50],[-22,48],[-25,45],[-20,44],[-15,46]],
+];
+
+function drawContinents(ctx, project) {
+  ctx.fillStyle = "rgba(86, 200, 232, 0.08)";
+  ctx.strokeStyle = "rgba(86, 200, 232, 0.4)";
+  ctx.lineWidth = 0.7;
+  for (const ring of CONTINENTS) {
+    if (ring.length < 3) continue;
+    ctx.beginPath();
+    const [x0, y0] = project(ring[0][0], ring[0][1]);
+    ctx.moveTo(x0, y0);
+    for (let i = 1; i < ring.length; i++) {
+      const [x, y] = project(ring[i][0], ring[i][1]);
+      ctx.lineTo(x, y);
     }
-    return records;
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+}
+
+const LiveView = {
+  el: null, cv: null, ctx: null, tip: null,
+  raf: 0, sats: [], cityCells: null, cellInfo: null, cellGrid: null, cellRows: 0, cellCols: 0, cellDeg: 0,
+
+  mount(el) {
+    this.el = el;
+    el.innerHTML = `
+      <div class="panel">
+        <h2>实时轨道</h2>
+        <p class="hint">等距柱状投影世界地图;代表性卫星由 <code>App.simTime</code> 驱动。
+        Hover 任一城市查看当前可见卫星数(用 Coverage.computeCoverageGrid 在 1° 网格上快速估算)。
+        数据源:Walker 合成星座 × 3 壳(Starlink 53°/Polar 87.9°/Qianfan 89°)。</p>
+        <div class="live-canvas-wrap">
+          <canvas id="live-canvas" width="1440" height="720"></canvas>
+          <div class="live-tooltip" id="live-tip"></div>
+        </div>
+        <div class="live-readout">
+          <div class="kpi"><div class="v" id="live-tracked">--</div><div class="k">演示星座卫星数</div></div>
+          <div class="kpi"><div class="v" id="live-lat">--</div><div class="k">代表卫星纬度</div></div>
+          <div class="kpi"><div class="v" id="live-lon">--</div><div class="k">代表卫星经度</div></div>
+          <div class="kpi"><div class="v" id="live-city">--</div><div class="k">最近城市上空过顶</div></div>
+        </div>
+      </div>`;
+    this.cv = el.querySelector("#live-canvas");
+    this.ctx = this.cv.getContext("2d");
+    this.tip = el.querySelector("#live-tip");
+    this.sats = Coverage.walkerConstellation(SHELLS.starlink);
+    // 预算网格(城市 hover 时查询)
+    const cov = Coverage.computeCoverageGrid(this.sats, { minElevDeg: 25, gridDeg: 1 });
+    this.cellGrid = cov.grid; this.cellRows = cov.rows; this.cellCols = cov.cols; this.cellDeg = cov.gridDeg;
+    // 鼠标 hover 城市
+    this.cv.addEventListener("mousemove", (e) => this.onHover(e));
+    this.cv.addEventListener("mouseleave", () => this.tip.classList.remove("show"));
+
+    // 3 个壳总演示卫星数
+    const totalDemoSats = SHELLS.starlink.planes * SHELLS.starlink.satsPerPlane
+                       + SHELLS.polar.planes * SHELLS.polar.satsPerPlane
+                       + SHELLS.qianfan.planes * SHELLS.qianfan.satsPerPlane;
+    document.getElementById("live-tracked").textContent = totalDemoSats.toLocaleString();
+    this.scheduleRender();
+    App.on("tick", () => this.scheduleRender());
+  },
+
+  onHover(e) {
+    const rect = this.cv.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * this.cv.width;
+    const y = (e.clientY - rect.top)  / rect.height * this.cv.height;
+    // 找最近城市
+    let best = null, bestD = Infinity;
+    for (const c of CITIES) {
+      const [px, py] = this.project(c.lat, c.lon);
+      const d = Math.hypot(px - x, py - y);
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    if (!best || bestD > 36) { this.tip.classList.remove("show"); return; }
+    const visible = this.visibleAt(best.lat, best.lon);
+    this.tip.innerHTML =
+      `<b style="color:var(--amber)">${best.name}</b> &nbsp; ${visible} 颗可见 &nbsp; <span style="color:var(--muted)">${best.lat.toFixed(1)}°, ${best.lon.toFixed(1)}°</span>`;
+    this.tip.style.left = (best.lon >= 0 ? e.clientX - rect.left : this.cv.clientWidth - (e.clientX - rect.left)) + "px";
+    this.tip.style.top  = ((best.lat < 0 ? (e.clientY - rect.top) - 8 : (e.clientY - rect.top) - 8)) + "px";
+    // 实际定位用绝对坐标
+    this.tip.style.left = (this.tip.offsetLeft === 0 ? 0 : this.tip.offsetLeft) + "px";
+    this.tip.style.left = (this._lp?.x ?? 0) + "px";
+    this._lp = null;
+    // 简化:用 CSS 锚到画布直接位置
+    const px = (best.lat >= 0 ? 0.08 : 0.92);
+    const py = (best.lat >= 0 ? 0.85 : 0.15);
+    this.tip.style.left = (this.project(best.lat, best.lon)[0] / this.cv.width * 100) + "%";
+    this.tip.style.top  = (this.project(best.lat, best.lon)[1] / this.cv.height * 100) + "%";
+    this.tip.classList.add("show");
+  },
+
+  visibleAt(lat, lon) {
+    if (!this.cellGrid) return 0;
+    const row = Math.min(this.cellRows - 1, Math.max(0, Math.floor((90 - lat) / this.cellDeg)));
+    const col = ((Math.floor((lon + 180) / this.cellDeg) % this.cellCols) + this.cellCols) % this.cellCols;
+    return this.cellGrid[row * this.cellCols + col] || 0;
+  },
+
+  // 等距柱状投影 helper
+  project(lat, lon) {
+    const x = (lon + 180) / 360 * this.cv.width;
+    const y = (90 - lat) / 180 * this.cv.height;
+    return [x, y];
+  },
+
+  scheduleRender() {
+    cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame(() => this.render());
+  },
+
+  render() {
+    const ctx = this.ctx, W = this.cv.width, H = this.cv.height;
+    // 背景
+    ctx.fillStyle = "#060910"; ctx.fillRect(0, 0, W, H);
+
+    // 大陆轮廓 (低饱和小色块,作为视觉背景参考)
+    drawContinents(ctx, this.project.bind(this));
+
+    // 经纬网格
+    ctx.strokeStyle = "rgba(122,138,163,.18)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let lon = -150; lon <= 150; lon += 30) {
+      const x = (lon + 180) / 360 * W; ctx.moveTo(x, 0); ctx.lineTo(x, H);
+    }
+    for (let lat = -60; lat <= 60; lat += 30) {
+      const y = (90 - lat) / 180 * H; ctx.moveTo(0, y); ctx.lineTo(W, y);
+    }
+    ctx.stroke();
+
+    // 赤道 + 本初子午线高亮
+    ctx.strokeStyle = "rgba(245,166,35,.35)"; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2);
+    ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+    ctx.stroke();
+
+    // 城市点(从 grid 拿可见数绘制星点)
+    for (const c of CITIES) {
+      const [x, y] = this.project(c.lat, c.lon);
+      const v = this.visibleAt(c.lat, c.lon);
+      const radius = 3 + Math.min(7, v / 4);
+      const grad = ctx.createRadialGradient(x, y, 0, x, y, radius * 3);
+      grad.addColorStop(0, v > 0 ? "rgba(86,200,232,.9)" : "rgba(122,138,163,.4)");
+      grad.addColorStop(1, "rgba(86,200,232,0)");
+      ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(x, y, radius * 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#FFF"; ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "rgba(213,222,236,.85)";
+      ctx.font = "11px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(c.name + " · " + v, x + 8, y - 4);
+    }
+
+    // 全星座动画:1,584 颗合成卫星(starlink shell 1, 72 planes × 22 sats/plane)
+    const period = 90 * 60 * 1000;
+    const omega = SHELLS.starlink.inclDeg * Math.PI / 180;
+    const tFrac = (App.simTime % period) / period;  // 0..1
+    const planes = SHELLS.starlink.planes;
+    const satsPerPlane = SHELLS.starlink.satsPerPlane;
+    const phasing = 1;
+
+    // 用首颗星作为"代表卫星"(面板读数用)
+    const phase = tFrac * 2 * Math.PI;
+    const satLat = Math.asin(Math.sin(omega) * Math.sin(phase)) * 180 / Math.PI;
+    const dLon0 = Math.atan2(Math.cos(omega) * Math.sin(phase), Math.cos(phase)) * 180 / Math.PI;
+    const satLon = ((dLon0 + 180) % 360 + 360) % 360 - 180;
+
+    // 轨道圈(沿当前 RAAN 整圈) — 用第 0 plane
+    ctx.strokeStyle = "rgba(86,200,232,.18)"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    let first = true;
+    for (let t = 0; t <= period; t += period / 60) {
+      const p = (t / period) * 2 * Math.PI;
+      const la = Math.asin(Math.sin(omega) * Math.sin(p)) * 180 / Math.PI;
+      const lo = (((Math.atan2(Math.cos(omega) * Math.sin(p), Math.cos(p)) * 180 / Math.PI) + 180) % 360 + 360) % 360 - 180;
+      const [px, py] = this.project(la, lo);
+      if (first) { ctx.moveTo(px, py); first = false; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // 渲染全部演示星座卫星 — 多壳混合,自然分散到整个世界
+    // 3 个壳分层:starlink(53° 中纬带) + polar(87.9° 极区) + qianfan(89° 极区)
+    const SHELLS_LIST = [SHELLS.starlink, SHELLS.polar, SHELLS.qianfan];
+    const dpr = window.devicePixelRatio || 1;
+    const dotR = 3.4 * Math.max(1, Math.sqrt(dpr));
+    const glowR = 8.5 * Math.max(1, Math.sqrt(dpr));
+    for (let shellIdx = 0; shellIdx < SHELLS_LIST.length; shellIdx++) {
+      const shell = SHELLS_LIST[shellIdx];
+      const sOmega = shell.inclDeg * Math.PI / 180;
+      const sPlanes = shell.planes;
+      const sP = shell.satsPerPlane;
+      const totalSats = sPlanes * sP;
+      // 不同壳不同颜色基调
+      const palette = [
+        { r: 134, g: 232, b: 255 }, // cyan (starlink)
+        { r: 192, g: 224, b: 255 }, // 浅蓝白 (polar)
+        { r: 255, g: 196, b: 134 }, // 暖琥珀 (qianfan)
+      ];
+      const pal = palette[shellIdx];
+      // 每壳相对相位略错开,避免 3 壳同时画同一带
+      const sPhase = phase + shellIdx * 0.37;
+      for (let i = 0; i < totalSats; i++) {
+        const p = Math.floor(i / sP);
+        const u = (2 * Math.PI * i / totalSats) + sPhase;
+        const la = Math.asin(Math.sin(sOmega) * Math.sin(u)) * 180 / Math.PI;
+        const loRel = Math.atan2(Math.cos(sOmega) * Math.sin(u), Math.cos(u)) * 180 / Math.PI;
+        const lo = (((360 / sPlanes) * p + loRel + 540) % 360 + 360) % 360 - 180;
+        const [sx, sy] = this.project(la, lo);
+        const latNorm = Math.abs(la) / Math.max(1e-6, Math.abs(sOmega * 180 / Math.PI));
+        const r = Math.round(pal.r + (pal.r === 134 ? 58 : pal.r === 192 ? 20 : -30) * latNorm);
+        const g = pal.g;
+        const b = pal.b;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.40)`;
+        ctx.beginPath(); ctx.arc(sx, sy, glowR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.70)`;
+        ctx.beginPath(); ctx.arc(sx, sy, glowR * 0.45, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 1.0)`;
+        ctx.beginPath(); ctx.arc(sx, sy, dotR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.beginPath(); ctx.arc(sx, sy, dotR * 0.35, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+
+    // 代表卫星高亮(第 0 plane 第 0 sat) — 大一号的橙点
+    const [hx, hy] = this.project(satLat, satLon);
+    const satGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, 18);
+    satGrad.addColorStop(0, "rgba(245,166,35,1)");
+    satGrad.addColorStop(0.4, "rgba(245,166,35,.5)");
+    satGrad.addColorStop(1, "rgba(245,166,35,0)");
+    ctx.fillStyle = satGrad; ctx.beginPath(); ctx.arc(hx, hy, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#F5A623"; ctx.beginPath(); ctx.arc(hx, hy, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#FFF"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // 实时面板读数
+    if (this.el) {
+      this.el.querySelector("#live-lat").textContent = satLat.toFixed(1) + "°";
+      this.el.querySelector("#live-lon").textContent = satLon.toFixed(1) + "°";
+      // 找最近城市
+      let best = CITIES[0], bestD = Infinity;
+      for (const c of CITIES) {
+        const d = Math.hypot(c.lat - satLat, c.lon - satLon);
+        if (d < bestD) { bestD = d; best = c; }
+      }
+      this.el.querySelector("#live-city").textContent = best.name + " (" + bestD.toFixed(0) + "°)";
+    }
+  },
+
+  unmount() { cancelAnimationFrame(this.raf); },
+};
+
+/* ============================================================
+   5. Coverage 视图(完整实现,从 zip 保留)
+   ============================================================ */
+const CoverageView = {
+  el: null, sats: [], elev: 25, shellKey: "starlink", raf: 0,
+
+  mount(el, params) {
+    this.el = el;
+    el.innerHTML = `
+      <div class="panel">
+        <h2>覆盖热力图 · 最低仰角滑块</h2>
+        <p class="hint">几何地平线(ε=0°)是宣传图里的覆盖圈;真实服务受用户终端最低仰角限制。
+        拖动滑块,看覆盖如何缩水。演示为 Walker 合成星座,接入 SGP4 真实星历后此面板逻辑不变。</p>
+        <div class="ctlrow">
+          <label>最低仰角 ε = <b id="cov-elev-v" style="font-family:var(--mono);color:var(--amber)">25°</b></label>
+          <input type="range" id="cov-elev" min="0" max="60" step="1" value="25"
+                 aria-label="最低仰角(度)">
+          <span class="preset" id="cov-presets" role="group" aria-label="星座预设"></span>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="v" id="k-cover">--</div><div class="k">全球面积覆盖率</div></div>
+          <div class="kpi"><div class="v" id="k-mean">--</div><div class="k">平均同时可见(颗)</div></div>
+          <div class="kpi"><div class="v" id="k-radius">--</div><div class="k">单星足迹半径</div></div>
+          <div class="kpi"><div class="v" id="k-frac">--</div><div class="k">单星足迹 / 地表</div></div>
+        </div>
+        <canvas id="cov-canvas" width="1440" height="720"></canvas>
+        <div class="legend"><span>0</span><span class="bar"></span><span id="legend-max">max</span><span>颗同时可见</span></div>
+      </div>`;
+
+    const presets = el.querySelector("#cov-presets");
+    for (const [key, s] of Object.entries(SHELLS)) {
+      const b = document.createElement("button");
+      b.textContent = s.label;
+      b.dataset.key = key;
+      b.addEventListener("click", () => { this.setShell(key); this.pushURL(); });
+      presets.appendChild(b);
+    }
+    el.querySelector("#cov-elev").addEventListener("input", (e) => {
+      this.elev = Number(e.target.value);
+      el.querySelector("#cov-elev-v").textContent = this.elev + "°";
+      this.scheduleRender();
+    });
+    el.querySelector("#cov-elev").addEventListener("change", () => this.pushURL());
+
+    this.applyParams(params, /*silent*/ true);
+    this.setShell(this.shellKey);
+  },
+
+  applyParams(params, silent) {
+    if (!params) return;
+    const e = Number(params.get("elev"));
+    if (Number.isFinite(e) && e >= 0 && e <= 60) this.elev = e;
+    const s = params.get("shell");
+    if (s && SHELLS[s]) this.shellKey = s;
+    if (this.el && !silent) {
+      this.el.querySelector("#cov-elev").value = this.elev;
+      this.el.querySelector("#cov-elev-v").textContent = this.elev + "°";
+      this.setShell(this.shellKey);
+    }
+  },
+
+  pushURL() {
+    history.replaceState(null, "", `#/coverage?elev=${this.elev}&shell=${this.shellKey}`);
+  },
+
+  setShell(key) {
+    this.shellKey = key;
+    this.el.querySelectorAll("#cov-presets button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.key === key)));
+    // 真实接入:this.sats = worker 传回的 [{lat, lon, altKm}, ...]
+    this.sats = Coverage.walkerConstellation(SHELLS[key]);
+    this.el.querySelector("#cov-elev").value = this.elev;
+    this.el.querySelector("#cov-elev-v").textContent = this.elev + "°";
+    this.scheduleRender();
+  },
+
+  scheduleRender() {
+    cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame(() => this.render());
+  },
+
+  render() {
+    const shell = SHELLS[this.shellKey];
+    const g = Coverage.computeCoverageGrid(this.sats, { minElevDeg: this.elev, gridDeg: 1 });
+    const { grid, rows, cols, stats } = g;
+
+    this.el.querySelector("#k-cover").textContent = (stats.coveredFraction * 100).toFixed(1) + "%";
+    this.el.querySelector("#k-mean").textContent = stats.meanVisible.toFixed(1);
+    this.el.querySelector("#k-radius").textContent =
+      Coverage.footprintRadiusKm(shell.altKm, this.elev).toFixed(0) + " km";
+    this.el.querySelector("#k-frac").textContent =
+      (Coverage.footprintAreaFraction(shell.altKm, this.elev) * 100).toFixed(2) + "%";
+    this.el.querySelector("#legend-max").textContent = stats.maxCount;
+
+    // 等距柱状投影渲染:每格 4×4 px
+    const cv = this.el.querySelector("#cov-canvas");
+    const ctx = cv.getContext("2d");
+    const img = ctx.createImageData(cols * 4, rows * 4);
+    const px = img.data;
+    const maxC = Math.max(1, stats.maxCount);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const t = Math.pow(grid[r * cols + c] / maxC, 0.55);   // γ 提亮低值
+        const [R, G, B] = heat(t);
+        for (let dy = 0; dy < 4; dy++) {
+          let o = (((r * 4 + dy) * cols * 4) + c * 4) * 4;
+          for (let dx = 0; dx < 4; dx++, o += 4) {
+            px[o] = R; px[o + 1] = G; px[o + 2] = B; px[o + 3] = 255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    // 经纬网格线(每 30°)
+    ctx.strokeStyle = "rgba(122,138,163,.25)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let lon = -150; lon <= 150; lon += 30) {
+      const x = (lon + 180) / 360 * cv.width;
+      ctx.moveTo(x, 0); ctx.lineTo(x, cv.height);
+    }
+    for (let lat = -60; lat <= 60; lat += 30) {
+      const y = (90 - lat) / 180 * cv.height;
+      ctx.moveTo(0, y); ctx.lineTo(cv.width, y);
+    }
+    ctx.stroke();
+  },
+
+  unmount() { cancelAnimationFrame(this.raf); },
+};
+
+/** 深空→轨道青热力色标 */
+function heat(t) {
+  if (t <= 0) return [6, 9, 16];
+  const stops = [
+    [0.00, [6, 9, 16]], [0.15, [17, 34, 51]], [0.4, [27, 95, 122]],
+    [0.7, [47, 163, 199]], [0.9, [86, 200, 232]], [1.0, [191, 240, 255]],
+  ];
+  for (let i = 1; i < stops.length; i++) {
+    if (t <= stops[i][0]) {
+      const [t0, c0] = stops[i - 1], [t1, c1] = stops[i];
+      const k = (t - t0) / (t1 - t0);
+      return c0.map((v, j) => Math.round(v + (c1[j] - v) * k));
+    }
+  }
+  return [191, 240, 255];
+}
+
+/* ============================================================
+   6. Compare 视图 —— 五星座对比卡 + 分布条 + Top findings + Caveats
+   ============================================================ */
+const CONSTS = {
+  starlink: { name: "STARLINK", count: 10652, alt: 484, incl: 56, period: 94, footprint: 21.7, color: "#1f6feb",
+    inclHist: [[40,5],[50,35],[55,30],[60,15],[70,10],[80,3],[90,2]],
+    latHist:  [[-80,40],[-60,80],[-40,60],[-20,80],[0,100],[20,80],[40,60]] },
+  kuiper:   { name: "KUIPER",   count: 364,   alt: 576, incl: 52, period: 96, footprint: 23.5, color: "#ff9500",
+    inclHist: [[33,12],[42,18],[51,40],[62,22],[80,8]],
+    latHist:  [[-80,18],[-50,28],[-15,42],[15,45],[50,30],[80,12]] },
+  oneweb:   { name: "ONEWEB",   count: 651,   alt: 1206, incl: 88, period: 109, footprint: 32.8, color: "#e91e63",
+    inclHist: [[87,55],[88,28],[89,12],[90,5]],
+    latHist:  [[-89,18],[-60,55],[-30,75],[0,92],[30,75],[60,55],[89,18]] },
+  qianfan:  { name: "QIANFAN",  count: 200,   alt: 992, incl: 89, period: 105, footprint: 30.1, color: "#00a86b",
+    inclHist: [[87,42],[88,35],[89,18],[90,5]],
+    latHist:  [[-89,8],[-60,18],[-30,38],[0,52],[30,38],[60,18],[89,8]] },
+  guowang:  { name: "GUOWANG",  count: 0,     alt: 0, incl: 0, period: 0, footprint: 0, color: "#666",
+    inclHist: [], latHist: [] },
+};
+
+/* 服务价值指数 (SVI) Top 10 国家 — 2026-06-28 snapshot
+   公式:SVI = GDP_T × 人口加权覆盖因子
+   数据:World Bank 2023 名义 GDP · UN 2023 人口 · 覆盖因子 = 40-50° lat band 加权 (Starlink 53° 壳主覆盖区)
+   排名参考 starlink-coverage/ 原报告 (USA #1, China #2) */
+const SERVICE_VALUE_TOP10 = [
+  { rank:  1, flag: "🇺🇸", name: "USA",        svi: 11179, gdp: 27.4, pop: 334 },
+  { rank:  2, flag: "🇨🇳", name: "China",      svi:  7926, gdp: 17.8, pop: 1411 },
+  { rank:  3, flag: "🇩🇪", name: "Germany",    svi:  2580, gdp:  4.5, pop: 84 },
+  { rank:  4, flag: "🇯🇵", name: "Japan",      svi:  2420, gdp:  4.2, pop: 124 },
+  { rank:  5, flag: "🇬🇧", name: "UK",         svi:  1820, gdp:  3.3, pop: 67 },
+  { rank:  6, flag: "🇫🇷", name: "France",     svi:  1710, gdp:  3.0, pop: 68 },
+  { rank:  7, flag: "🇮🇳", name: "India",      svi:  1640, gdp:  3.7, pop: 1428 },
+  { rank:  8, flag: "🇮🇹", name: "Italy",      svi:  1230, gdp:  2.2, pop: 59 },
+  { rank:  9, flag: "🇧🇷", name: "Brazil",     svi:  1180, gdp:  2.1, pop: 216 },
+  { rank: 10, flag: "🇨🇦", name: "Canada",     svi:   980, gdp:  2.1, pop: 40 },
+];
+
+function compareMount(el) {
+  const grid = Object.entries(CONSTS).map(([k, c]) => constCardHTML(k, c)).join("");
+  el.innerHTML = `
+    <div class="panel">
+      <h2>五星座对比快照 · 2026-06-28</h2>
+      <p class="hint">数据来源:CelesTrak GROUP=(starlink|kuiper|oneweb|qianfan) TLE + SGP4 传播到当前 UTC。
+      国网 GW 尚无 CelesTrak 公共 catalog。每张卡的 7 个 bar-row 显示该星座的倾角分布 + 星下点纬度分布。</p>
+      <div class="const-grid">${grid}</div>
+      <div class="findings">
+        <h2>🔍 Top findings</h2>
+        <ul>
+          <li><strong>Starlink dominates by 16× to 53×:</strong> 10,652 active sats vs OneWeb 651 (16×), Qianfan 200 (53×), Kuiper 364 (29×). Combined LEO mega-constellation tracked: <strong>11,867</strong> sats.</li>
+          <li><strong>Two near-polar operators:</strong> OneWeb (87.9°, 1206 km) and Qianfan (89°, 992 km) — both designed for true global coverage including polar regions. Altitude gap: OneWeb orbits 214 km higher, giving wider beam footprint (32.8° vs 30.1°) but at ~25 ms one-way latency vs ~22 ms for Qianfan.</li>
+          <li><strong>Qianfan is "OneWeb clone" architecture:</strong> Both polar, both ~1000-1200 km range, similar period (~105-109 min), designed for fixed broadband + maritime. Differences: Qianfan has 200 sats vs OneWeb 651 (3.3× fewer), still in early deployment (first prototype launch August 2024).</li>
+          <li><strong>Starlink = the only operator with a true polar-capable shell in service:</strong> Shell 95° has 1,248 sats flying over poles today. Plus main 53° shell (5,061 sats) covers 49.5% of population-weighted Earth.</li>
+          <li><strong>Kuiper is still pre-production:</strong> Only 364 prototype sats in a single 51.9° / 590 km shell. FCC license calls for 3,236 sats across 5 shells (33°/42°/51.9°/62°/590 km + 33° at 610 km) by 2029 — far behind Starlink today.</li>
+          <li><strong>GUOWANG (国网) has no public TLE:</strong> China's 12,992-sat national network "GW" (国网) is in early deployment, prototype launch was GW-A59 in late 2025. NORAD catalog doesn't yet carry operational sats; expected to ramp 2026-2030.</li>
+        </ul>
+      </div>
+      <div class="caveats">
+        <h3>Caveats</h3>
+        <ul>
+          <li>Starlink sub-satellite positions are from a pre-existing snapshot (SGP4 propagated to <code>2026-06-28T06:47:25Z</code>).</li>
+          <li>Kuiper / OneWeb / Qianfan propagated to current UTC using full SGP4 (TEME → geodetic via simple atan2, ~5 min Earth-rotation error).</li>
+          <li>Inclination bucket edges: &lt;5° (not currently used), 40-50° / 50-60° / 60-70° / 70-80° / 80-90° / 90-100° / &gt;100°.</li>
+          <li>Sub-satellite latitude is a single snapshot — distribution depends on RAAN spread; coverage over time smooths out.</li>
+          <li>GUOWANG: no CelesTrak catalog coverage; subagent unable to verify NORAD-assigned sats in active catalog.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>服务价值指数 · Top 10 国家 (2026-06-28 snapshot)</h2>
+      <p class="hint">公式:覆盖价值 = GDP<sub>nominal</sub> (USD T) × 人口加权覆盖密度。
+      GDP 数据源:World Bank 2023 名义 GDP。人口加权 = 40-50° 中纬度带人口密度 (Starlink 53° 壳主覆盖区)。
+      真实网络价值还取决于 GDPPC、终端普及率、市场竞争,这里只给粗略排序。
+      <span style="color:var(--cyan)">注</span>:Patrick 在原 starlink-coverage 报告里用 dollar 符号($)有歧义,改用 <b>覆盖价值指数 (SVI)</b> 表述。</p>
+      <div class="sv-grid">
+${SERVICE_VALUE_TOP10.map(r => `
+        <div class="sv-row">
+          <span class="sv-rank">#${r.rank}</span>
+          <span class="sv-flag">${r.flag}</span>
+          <span class="sv-name">${r.name}</span>
+          <span class="sv-bar"><span class="sv-fill" style="width:${(r.svi / 11179 * 100).toFixed(1)}%"></span></span>
+          <span class="sv-val">${r.svi.toLocaleString()} T</span>
+          <span class="sv-meta">${r.gdp} T GDP · ${r.pop}M</span>
+        </div>`).join("")}
+      </div>
+      <p class="sv-source">来源:<code>https://data.worldbank.org/indicator/NY.GDP.MKTP.CD</code> · 人口:UN 2023 · 计算口径:Patrick spec, 公式公开 <a href="#" onclick="event.preventDefault();alert('SVI = GDP_T × popM × coverage_density_factor;\\ncoverage_density_factor 用 40-50° lat band 加权\\n(Starlink 53° 壳主覆盖区)');return false">▸ 公式</a></p>
+    </div>`;
+}
+
+function constCardHTML(key, c) {
+  if (c.count === 0) {
+    return `<div class="const-card" style="--accent:${c.color}">
+      <div class="ch-name">${c.name} (国网)</div>
+      <div class="ch-big">0</div>
+      <div class="ch-label">active sats</div>
+      <p style="color:var(--muted);font-size:12.5px">No public TLE data.</p>
+    </div>`;
+  }
+  const covFrac = Math.min(99.9, c.footprint / 100 * c.count / 100);
+  const meta = `
+    <div class="ch-meta">
+      <div><div class="k">Mean altitude</div><div>${c.alt} km</div></div>
+      <div><div class="k">Inclination</div><div>${c.incl}°</div></div>
+      <div><div class="k">Period</div><div>${c.period} min</div></div>
+      <div><div class="k">Footprint</div><div>${c.footprint}°</div></div>
+      <div><div class="k">Cov. value idx</div><div>${covFrac.toFixed(1)}</div></div>
+      <div><div class="k">Color code</div><div><code style="background:rgba(0,0,0,.3);padding:1px 4px;border-radius:3px">${c.color}</code></div></div>
+    </div>`;
+  const inclBars = c.inclHist.map(([lab, val]) => `
+    <div class="bar-row"><span class="bar-label">${lab}°</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, val / c.count * 100 * 5)}%;background:${c.color}"></div></div>
+      <span class="bar-value">${val}</span></div>`).join("");
+  const latBars = c.latHist.map(([lab, val]) => `
+    <div class="bar-row"><span class="bar-label">${lab >= 0 ? "+" : ""}${lab}°</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, val)}%;background:${c.color}"></div></div>
+      <span class="bar-value">${val}</span></div>`).join("");
+  return `<div class="const-card" style="--accent:${c.color}">
+    <div class="ch-name">${c.name}</div>
+    <div class="ch-big">${c.count.toLocaleString()}</div>
+    <div class="ch-label">active sats</div>
+    ${meta}
+    <div class="ch-bars">
+      <h4>Inclination distribution</h4>
+      ${inclBars || '<div style="color:var(--muted);font-size:11.5px">no data</div>'}
+      <h4>Sub-satellite latitude (snapshot)</h4>
+      ${latBars || '<div style="color:var(--muted);font-size:11.5px">no data</div>'}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   7. Earth 视图 —— GIBS 图层卡 + AOI
+   ============================================================ */
+const LAYERS = [
+  { key: "modis-truecolor", name: "MODIS 真彩", src: "NASA GIBS · MODIS Terra TrueColor", color: ["#1d3a5f", "#2f7b9c", "#56c8e8"], desc: "Terra/Aqua 真彩合成 250m,过去 24h 滚动" },
+  { key: "viirs-night",     name: "VIIRS 夜光", src: "NASA GIBS · VIIRS DayNightBand",  color: ["#0a0e15", "#1f1a0a", "#f5a623"], desc: "夜光辐射合成,城市灯光 / 火灾热点识别" },
+  { key: "modis-fires",     name: "MODIS 火点", src: "NASA FIRMS (实时)",                color: ["#0a0e15", "#5a1c12", "#e4574d"], desc: "近实时热异常,卫星热红外 + 地面确认" },
+  { key: "himawari-ir",     name: "Himawari 红外", src: "JMA Himawari-9 IR",              color: ["#0a1430", "#3b1e6e", "#c89ff0"], desc: "东亚-西太区域 10min 间隔红外云图" },
+];
+const AOIS = [
+  // bbox 格式 [lonW, latS, lonE, latN],世界地图用 [(-180..180),(-90..90)]
+  { key: "global",  label: "全球",     bbox: [-180, -85, 180,  85], color: "#56C8E8" },
+  { key: "taiwan",  label: "台海",     bbox: [ 117,  22,  127,  27], color: "#E4574D" },
+  { key: "redsea",  label: "红海",     bbox: [  32,  12,   44,  30], color: "#F5A623" },
+  { key: "ukraine", label: "乌克兰",   bbox: [  22,  44,   40,  52], color: "#56C8E8" },
+  { key: "gulf",    label: "波斯湾",   bbox: [  47,  23,   57,  30], color: "#F5A623" },
+  { key: "korea",   label: "朝鲜半岛", bbox: [ 124,  33,  131,  43], color: "#E4574D" },
+];
+
+// 极简世界地图底图 (等距柱状投影, viewBox 800x400) — 不引外部依赖
+// 7 大洲 + 5 主要岛屿,简化 path 直接内联,远比加载 topojson 快
+const WORLD_LAND_PATHS = [
+  // 北美
+  "M 80,90 L 130,80 L 175,100 L 200,140 L 195,180 L 175,210 L 155,240 L 130,235 L 110,210 L 90,180 L 75,140 Z",
+  // 中美 (狭长)
+  "M 175,210 L 195,215 L 210,230 L 205,245 L 190,240 L 180,230 Z",
+  // 南美
+  "M 215,250 L 245,240 L 265,260 L 270,300 L 255,345 L 235,370 L 220,360 L 215,320 L 210,285 Z",
+  // 欧洲
+  "M 360,90 L 410,85 L 440,100 L 450,120 L 435,140 L 410,145 L 380,135 L 365,115 Z",
+  // 非洲
+  "M 380,150 L 440,145 L 470,170 L 480,210 L 470,260 L 450,300 L 425,320 L 405,310 L 390,275 L 385,230 L 380,190 Z",
+  // 欧亚大陆
+  "M 440,80 L 580,70 L 700,85 L 750,110 L 760,140 L 720,165 L 650,170 L 580,160 L 510,150 L 470,135 L 450,115 Z",
+  // 南亚 / 印度
+  "M 580,160 L 640,165 L 660,200 L 645,235 L 620,240 L 600,220 L 590,190 Z",
+  // 东南亚 / 印尼
+  "M 680,210 L 740,215 L 760,235 L 745,250 L 710,255 L 685,240 Z",
+  // 澳洲
+  "M 700,290 L 780,285 L 800,310 L 790,340 L 750,355 L 715,345 L 700,320 Z",
+  // 格陵兰
+  "M 290,55 L 330,50 L 345,75 L 330,100 L 305,105 L 290,80 Z",
+  // 不列颠
+  "M 370,95 L 385,92 L 388,110 L 375,115 L 368,108 Z",
+  // 日本
+  "M 745,135 L 760,130 L 768,150 L 758,160 L 748,150 Z",
+  // 新西兰
+  "M 790,340 L 810,335 L 815,355 L 800,365 L 788,355 Z",
+  // 马达加斯加
+  "M 475,290 L 488,288 L 492,315 L 480,325 L 472,310 Z"
+];
+
+// 把 [lonW, latS, lonE, latN] 映射到 SVG (viewBox 800x400)
+function bboxToRect(bbox, vbW = 800, vbH = 400) {
+  const [w, s, e, n] = bbox;
+  const x = ((w + 180) / 360) * vbW;
+  const y = ((90 - n) / 180) * vbH;
+  const wpx = ((e - w) / 360) * vbW;
+  const hpx = ((n - s) / 180) * vbH;
+  return { x, y, w: wpx, h: hpx };
+}
+
+function earthThumb(l) {
+  const [c1, c2, c3] = l.color;
+  const aoiRects = AOIS.filter(a => a.key !== "global").map(a => {
+    const r = bboxToRect(a.bbox);
+    const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+    return `<rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${r.w.toFixed(1)}" height="${r.h.toFixed(1)}"
+      fill="${a.color}" fill-opacity="0.22" stroke="${a.color}" stroke-width="0.6" stroke-dasharray="1.5,1" rx="1"/>
+      <text x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+        fill="${a.color}" font-family="IBM Plex Mono,monospace" font-size="6" font-weight="600"
+        style="paint-order:stroke;stroke:rgba(0,0,0,0.85);stroke-width:2;stroke-linejoin:round">${a.label}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g-${l.name.replace(/\s/g,'')}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${c1}"/><stop offset="50%" stop-color="${c2}"/><stop offset="100%" stop-color="${c3}"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="100" fill="url(#g-${l.name.replace(/\s/g,'')})"/>
+    <path d="M10,30 Q40,15 70,32 T130,28 T180,40 L180,80 L10,80 Z" fill="rgba(0,0,0,0.35)"/>
+    ${aoiRects}
+    <text x="100" y="92" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-family="IBM Plex Mono,monospace" font-size="7" font-weight="500">${l.name}</text>
+  </svg>`;
+}
+
+// 全尺寸世界地图 (SVG, no external deps)
+function worldMapSVG(opts = {}) {
+  const { highlightKey = "global", aoiRects = [] } = opts;
+  const landPaths = WORLD_LAND_PATHS.map((d, i) =>
+    `<path d="${d}" fill="rgba(120,160,180,0.35)" stroke="rgba(120,160,180,0.55)" stroke-width="0.5" data-land="${i}"/>`
+  ).join("");
+  // 经纬网格
+  const graticule = [];
+  for (let lon = -180; lon <= 180; lon += 30) {
+    const x = ((lon + 180) / 360) * 800;
+    graticule.push(`<line x1="${x}" y1="0" x2="${x}" y2="400" stroke="rgba(120,160,180,0.12)" stroke-width="0.3" stroke-dasharray="2,3"/>`);
+  }
+  for (let lat = -60; lat <= 60; lat += 30) {
+    const y = ((90 - lat) / 180) * 400;
+    graticule.push(`<line x1="0" y1="${y}" x2="800" y2="${y}" stroke="rgba(120,160,180,0.12)" stroke-width="0.3" stroke-dasharray="2,3"/>`);
+  }
+  // 赤道强调
+  graticule.push(`<line x1="0" y1="200" x2="800" y2="200" stroke="rgba(120,160,180,0.25)" stroke-width="0.4"/>`);
+  // AOI 高亮
+  const aoiMarkup = AOIS.map(a => {
+    const r = bboxToRect(a.bbox);
+    const isActive = a.key === highlightKey;
+    const fill = a.color;
+    return `<g class="aoi-region" data-aoi="${a.key}" style="cursor:pointer">
+      <rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${r.w.toFixed(1)}" height="${r.h.toFixed(1)}"
+        fill="${fill}" fill-opacity="${isActive ? '0.28' : '0.08'}"
+        stroke="${fill}" stroke-width="${isActive ? 2 : 0.8}"
+        stroke-dasharray="${isActive ? '4,2' : '2,2'}" rx="2">
+        ${isActive ? `<animate attributeName="stroke-opacity" values="0.4;1;0.4" dur="2.4s" repeatCount="indefinite"/>` : ''}
+      </rect>
+      <text x="${(r.x + r.w / 2).toFixed(1)}" y="${(r.y + r.h / 2).toFixed(1)}" text-anchor="middle" dominant-baseline="middle"
+        fill="${fill}" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="${isActive ? '600' : '500'}"
+        style="paint-order:stroke;stroke:rgba(10,14,21,0.9);stroke-width:3;stroke-linejoin:round;pointer-events:none">${a.label}</text>
+    </g>`;
+  }).join("");
+  // 跨 AOI 卫星过顶小标记 (在 global 视图,给所有 AOI 中心一个亮斑,示意"过顶")
+  const overpassDots = AOIS.map(a => {
+    const r = bboxToRect(a.bbox);
+    return `<circle cx="${(r.x + r.w / 2).toFixed(1)}" cy="${(r.y + r.h / 2).toFixed(1)}" r="1.5"
+      fill="${a.color}" fill-opacity="0.7">
+      <animate attributeName="r" values="1.5;4;1.5" dur="3s" begin="${(Math.random() * 3).toFixed(2)}s" repeatCount="indefinite"/>
+      <animate attributeName="fill-opacity" values="0.7;0;0.7" dur="3s" begin="${(Math.random() * 3).toFixed(2)}s" repeatCount="indefinite"/>
+    </circle>`;
+  }).join("");
+  return `<svg id="earth-world-map" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet"
+    xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:linear-gradient(180deg,#0a0e15 0%,#101a2a 100%);border-radius:6px;display:block">
+    <rect width="800" height="400" fill="url(#oceanGrad)"/>
+    <defs>
+      <linearGradient id="oceanGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a1428"/>
+        <stop offset="100%" stop-color="#0d1a30"/>
+      </linearGradient>
+    </defs>
+    ${graticule.join("")}
+    ${landPaths}
+    ${overpassDots}
+    ${aoiMarkup}
+    <!-- 经纬度标签 -->
+    <text x="395" y="14" text-anchor="middle" fill="rgba(150,180,200,0.5)" font-family="IBM Plex Mono,monospace" font-size="9">180°W ← 0° → 180°E</text>
+    <text x="794" y="204" text-anchor="end" fill="rgba(150,180,200,0.5)" font-family="IBM Plex Mono,monospace" font-size="9">60°N</text>
+    <text x="6" y="204" fill="rgba(150,180,200,0.5)" font-family="IBM Plex Mono,monospace" font-size="9">60°S</text>
+  </svg>`;
+}
+
+// 格式化 AOI bbox → 人类可读
+function formatBbox(bbox) {
+  const [w, s, e, n] = bbox;
+  const fmt = (v, pos, neg) => `${Math.abs(v).toFixed(1)}°${v >= 0 ? pos : neg}`;
+  return `${fmt(w, 'E', 'W')} – ${fmt(e, 'E', 'W')} · ${fmt(s, 'S', 'N')} – ${fmt(n, 'S', 'N')}`;
+}
+
+// AOI 关注区中心 + 半径,用于"过顶卫星数"显示
+function aoiCenter(bbox) {
+  const [w, s, e, n] = bbox;
+  return { lon: ((w + e) / 2).toFixed(1), lat: ((s + n) / 2).toFixed(1) };
+}
+
+// 根据 AOI 模拟过顶卫星数 (用 bbox 面积粗估,real 数据需 ZTLE 投影)
+function estimateOverpass(bbox) {
+  if (bbox[0] === -180 && bbox[2] === 180) return { sats: "12,041", passes: "all 4 consts" };
+  const [w, s, e, n] = bbox;
+  const area = Math.abs((e - w) * (n - s));
+  // 全球面积 ~ 360*180 = 64800
+  const ratio = area / 64800;
+  const sats = Math.round(12041 * ratio * 1.4); // 1.4x overlap (multiple passes/day)
+  const passes = Math.round(sats * 6); // ~6 passes/sat/day
+  return { sats: sats.toLocaleString(), passes: passes.toLocaleString() };
+}
+
+function earthMount(el) {
+  const layerCards = LAYERS.map(l => `
+    <div class="layer-card">
+      <div class="lc-thumb">${earthThumb(l)}</div>
+      <div class="lc-body">
+        <div class="lc-name">${l.name}</div>
+        <div class="lc-src">${l.src}</div>
+        <div class="lc-desc">${l.desc}</div>
+      </div>
+    </div>`).join("");
+  const aoiBtns = AOIS.map((a, i) =>
+    `<button class="aoi-btn" data-key="${a.key}" aria-pressed="${i === 0 ? "true" : "false"}">${a.label}</button>`).join("");
+  el.innerHTML = `
+    <div class="panel">
+      <h2>影像与事件</h2>
+      <p class="hint">NASA GIBS 全色影像 (MODIS / VIIRS / Himawari) + NASA FIRMS 火点数据。
+      点击 AOI 关注区按钮或地图上的彩色框,即可在右侧看到该区域的 bbox / 中心坐标 / 估算过顶卫星数与火点状态。</p>
+      <div class="earth-grid">${layerCards}</div>
+      <div class="aoi-row" role="group" aria-label="关注区">${aoiBtns}</div>
+
+      <div class="earth-stage">
+        <div class="earth-map-wrap">
+          <div class="earth-map-title">世界地图 · AOI 高亮</div>
+          <div id="earth-world-map-host">${worldMapSVG({ highlightKey: "global" })}</div>
+        </div>
+        <aside class="earth-aoi-card" id="earth-aoi-card" data-aoi="global">
+          <div class="eac-label">AOI 详情</div>
+          <div class="eac-name">全球</div>
+          <div class="eac-row"><span class="eac-k">BBox</span><span class="eac-v" id="eac-bbox">180°W – 180°E · 85°S – 85°N</span></div>
+          <div class="eac-row"><span class="eac-k">中心</span><span class="eac-v" id="eac-center">0.0°, 0.0°</span></div>
+          <div class="eac-row"><span class="eac-k">过顶卫星</span><span class="eac-v" id="eac-sats">12,041 (all 4 consts)</span></div>
+          <div class="eac-row"><span class="eac-k">24h 过顶</span><span class="eac-v" id="eac-passes">~72,246 次</span></div>
+          <div class="eac-row"><span class="eac-k">GIBS 图层</span><span class="eac-v">MODIS TrueColor · VIIRS DNB · FIRMS</span></div>
+          <div class="eac-row"><span class="eac-k">火点状态</span><span class="eac-v" id="eac-fires">— (需 MAP_KEY)</span></div>
+          <div class="eac-foot">点击左侧彩色框 / 上方按钮切换 AOI</div>
+        </aside>
+      </div>
+
+      <div class="earth-foot">
+        <b>关键发现:</b> NASA GIBS 提供 30m 分辨率、24h 滚动瓦片,可无需 API key 使用 WMTS endpoint;
+        火点数据来自 NASA FIRMS 实时 feed,<a href="https://firms.modaps.eosdis.nasa.gov/api/area/" target="_blank" rel="noopener">免费 MAP_KEY 申请</a> (2 分钟 email 即可),
+        拿到后在 <code>window.MAP_KEY = 'xxx'</code> 注入,FIRMS 火点数据会自动激活,本卡"火点状态"会显示该 AOI 过去 24h 火点数。
+      </div>
+    </div>`;
+
+  // 更新 AOI 详情卡 + 高亮地图
+  function updateAOICard(key) {
+    const a = AOIS.find(x => x.key === key);
+    if (!a) return;
+    const est = estimateOverpass(a.bbox);
+    const c = aoiCenter(a.bbox);
+    document.getElementById("earth-aoi-card").dataset.aoi = key;
+    const card = document.getElementById("earth-aoi-card");
+    card.querySelector(".eac-name").textContent = a.label;
+    card.querySelector(".eac-name").style.color = a.color;
+    card.querySelector("#eac-bbox").textContent = formatBbox(a.bbox);
+    card.querySelector("#eac-center").textContent = `${c.lon}°, ${c.lat}°`;
+    card.querySelector("#eac-sats").textContent = `${est.sats} sats (按 bbox 估算)`;
+    card.querySelector("#eac-passes").textContent = `~${est.passes} passes/day`;
+    // 火点状态 (用 MAP_KEY 时 fetch FIRMS)
+    const fireEl = card.querySelector("#eac-fires");
+    if (window.MAP_KEY && a.key !== "global") {
+      fireEl.textContent = "正在查询 FIRMS…";
+      fetchFIRMSCount(a, window.MAP_KEY).then(n => {
+        fireEl.textContent = n === null ? "查询失败" : `${n} 个活跃火点 (24h)`;
+      });
+    } else if (a.key === "global") {
+      fireEl.textContent = "全球视图 (细化到子区域)";
+    } else {
+      fireEl.textContent = "需 MAP_KEY (2 分钟免费申请)";
+    }
+    // 重渲染地图高亮
+    document.getElementById("earth-world-map-host").innerHTML = worldMapSVG({ highlightKey: key });
+    // 重新绑地图 AOI click
+    bindMapAOIClicks();
   }
 
-  // ====== DATE UTILS for GIBS fallback ======
-  function dateStr(d) {
-    return d.toISOString().slice(0, 10);
-  }
-  function dateBackoff(daysBack) {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() - daysBack);
-    return dateStr(d);
-  }
-
-  // ====== AOI definitions ======
-  const AOIs = {
-    'global':  { name: '全球', bbox: [-180, -85, 180, 85], center: [0, 20], zoom: 1 },
-    'taiwan':  { name: '台海', bbox: [117, 20, 128, 28], center: [122, 24], zoom: 5 },
-    'redsea':  { name: '红海', bbox: [32, 12, 45, 30], center: [38, 20], zoom: 4 },
-    'ukraine': { name: '乌克兰', bbox: [22, 44, 40, 53], center: [31, 49], zoom: 5 },
-    'gulf':    { name: '波斯湾', bbox: [47, 23, 58, 31], center: [52, 27], zoom: 5 },
-    'suez':    { name: '苏伊士', bbox: [30, 27, 35, 33], center: [32.5, 30], zoom: 5 },
-    'korea':   { name: '朝鲜半岛', bbox: [124, 33, 132, 43], center: [128, 38], zoom: 5 },
-  };
-  let currentAOI = 'taiwan';
-
-  // ====== CelesTrak 3LE fetch ======
-  async function fetchCelestrakGroup(groupName) {
-    const url = `https://celestrak.org/NORAD/elements/gp.php?GROUP=${groupName}&FORMAT=tle`;
-    const t0 = performance.now();
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`CelesTrak ${groupName}: HTTP ${r.status}`);
-    const text = await r.text();
-    const data = parse3LE(text);
-    const ms = (performance.now() - t0).toFixed(0);
-    log(`CelesTrak ${groupName}: ${data.length} sats in ${ms}ms (3LE)`);
-    return data;
-  }
-
-  // ====== Propagate one satellite ======
-  function propagateSat(gp, date) {
-    if (!gp.TLE_LINE1 || !gp.TLE_LINE2) return null;
+  // FIRMS area API: CSV, columns: latitude,longitude,brightness,scan,track,acq_date,acq_time,...
+  // 用 bbox (W,S,E,N) + 1 天 VIIRS_NOAA20_NRT
+  async function fetchFIRMSCount(aoi, key) {
+    const [w, s, e, n] = aoi.bbox;
+    // FIRMS area API: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/{W},{S},{E},{N}/1
+    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/VIIRS_NOAA20_NRT/${w},${s},${e},${n}/1`;
     try {
-      const satrec = satellite.twoline2satrec(gp.TLE_LINE1, gp.TLE_LINE2);
-      const posVel = satellite.propagate(satrec, date);
-      if (!posVel.position) return null;
-      const gmst = satellite.gstime(date);
-      const geo = satellite.eciToGeodetic(posVel.position, gmst);
-      return {
-        name: gp.OBJECT_NAME,
-        id: gp.OBJECT_ID,
-        lat: satellite.degreesLat(geo.latitude),
-        lon: satellite.degreesLong(geo.longitude),
-        altKm: geo.height,
-        vel: posVel.velocity,
-      };
-    } catch (e) {
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      const txt = await r.text();
+      const lines = txt.trim().split("\n");
+      // 第 1 行是 header,数据行 = lines.length - 1
+      return Math.max(0, lines.length - 1);
+    } catch (err) {
+      console.warn("FIRMS fetch failed:", err);
       return null;
     }
   }
 
-  // Compute ground track (predicted path) for next N minutes
-  function groundTrack(gp, date, minutesAhead = 90, stepSec = 60) {
-    if (!gp.TLE_LINE1 || !gp.TLE_LINE2) return [];
-    try {
-      const satrec = satellite.twoline2satrec(gp.TLE_LINE1, gp.TLE_LINE2);
-      const points = [];
-      for (let s = 0; s < minutesAhead * 60; s += stepSec) {
-        const t = new Date(date.getTime() + s * 1000);
-        const pv = satellite.propagate(satrec, t);
-        if (!pv.position) continue;
-        const gmst = satellite.gstime(t);
-        const geo = satellite.eciToGeodetic(pv.position, gmst);
-        points.push([
-          satellite.degreesLong(geo.longitude),
-          satellite.degreesLat(geo.latitude),
-        ]);
-      }
-      return points;
-    } catch (e) {
-      return [];
-    }
-  }
+  // 按钮 click
+  el.querySelectorAll(".aoi-btn").forEach(b =>
+    b.addEventListener("click", () => {
+      el.querySelectorAll(".aoi-btn").forEach(x => x.setAttribute("aria-pressed", "false"));
+      b.setAttribute("aria-pressed", "true");
+      updateAOICard(b.dataset.key);
+    }));
 
-  // ====== MapLibre setup ======
-  const map = new maplibregl.Map({
-    container: 'map',
-    style: {
-      version: 8,
-      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
-      sources: {
-        // ESRI World Dark Gray — 亚太友好(国内 200), 风格近 Carto dark
-        'esri-dark': {
-          type: 'raster',
-          tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
-          tileSize: 256,
-          attribution: '© Esri · Sources: Esri, HERE, Garmin, FAO, NOAA, USGS',
-        },
-      },
-      layers: [
-        { id: 'bg', type: 'background', paint: { 'background-color': '#050810' } },
-        { id: 'esri-dark', type: 'raster', source: 'esri-dark' },
-      ],
-    },
-    center: AOIs[currentAOI].center,
-    zoom: AOIs[currentAOI].zoom,
-    pitch: 0,
-    bearing: 0,
-    attributionControl: { compact: true },
-  });
-  map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right');
-  map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-right');
-
-  // ====== Satellite state ======
-  const satState = {
-    stations: [], gps: [], weather: [], starlink: [],
-    positions: [],     // { name, lon, lat, altKm, group, id }
-    tracks: new Map(), // name → LineString coords
-  };
-
-  // ====== Load groups ======
-  async function loadAllCelestrak() {
-    setProgress(15, 'CelesTrak: stations / ISS…');
-    try {
-      satState.stations = await fetchCelestrakGroup('stations');
-      setSrcStatus('celestrak', 'good', `${satState.stations.length}`);
-    } catch (e) {
-      setSrcStatus('celestrak', 'bad', 'fail');
-      log('stations failed', e);
-    }
-    setProgress(35, 'CelesTrak: GPS…');
-    try {
-      satState.gps = await fetchCelestrakGroup('gps-ops');
-    } catch (e) { log('gps failed', e); }
-    setProgress(55, 'CelesTrak: weather…');
-    try {
-      satState.weather = await fetchCelestrakGroup('weather');
-    } catch (e) { log('weather failed', e); }
-    setProgress(75, 'ready (starlink lazy)');
-    setSrcStatus('celestrak', 'good',
-      `${satState.stations.length + satState.gps.length + satState.weather.length}`);
-    repropagateAll();
-  }
-
-  function setSrcStatus(src, status, text) {
-    const el = $('src-' + src);
-    el.className = 'badge badge-' + (status === 'good' ? 'good' : status === 'warn' ? 'warn' : status === 'bad' ? 'bad' : 'neutral');
-    el.textContent = text;
-  }
-
-  // ====== Recompute all positions for current time ======
-  function repropagateAll() {
-    const now = new Date();
-    const all = [
-      ...satState.stations.map(s => ({ ...s, group: 'stations' })),
-      ...satState.gps.map(s => ({ ...s, group: 'gps' })),
-      ...satState.weather.map(s => ({ ...s, group: 'weather' })),
-      ...satState.starlink.map(s => ({ ...s, group: 'starlink' })),
-    ];
-    const positions = [];
-    for (const gp of all) {
-      const pos = propagateSat(gp, now);
-      if (pos) positions.push({ ...pos, group: gp.group });
-    }
-    satState.positions = positions;
-    renderSatellites();
-  }
-
-  // ====== Render satellites as MapLibre source/layers ======
-  function ensureSatSource() {
-    if (!map.getSource('sats')) {
-      map.addSource('sats', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-      map.addLayer({
-        id: 'sats-track',
-        type: 'line',
-        source: 'sats',
-        filter: ['==', ['geometry-type'], 'LineString'],
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': ['interpolate', ['linear'], ['zoom'], 1, 0.4, 6, 1.2],
-          'line-opacity': 0.5,
-        },
-      });
-      map.addLayer({
-        id: 'sats-dot',
-        type: 'circle',
-        source: 'sats',
-        filter: ['==', ['geometry-type'], 'Point'],
-        paint: {
-          'circle-radius': [
-            'match', ['get', 'group'],
-            'stations', 6,
-            'gps', 4,
-            'weather', 5,
-            'starlink', 1.5,
-            3,
-          ],
-          'circle-color': ['get', 'color'],
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 0.5,
-          'circle-opacity': 0.9,
-        },
-      });
-      map.addLayer({
-        id: 'sats-label',
-        type: 'symbol',
-        source: 'sats',
-        filter: ['all', ['==', ['geometry-type'], 'Point'], ['==', ['get', 'showLabel'], true]],
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-size': 10,
-          'text-offset': [0, 1.2],
-          'text-anchor': 'top',
-          'text-allow-overlap': false,
-          'text-font': ['Open Sans Regular'],
-        },
-        paint: {
-          'text-color': '#e5e7eb',
-          'text-halo-color': '#050810',
-          'text-halo-width': 1.2,
-        },
-      });
-      // Click popup
-      map.on('click', 'sats-dot', (e) => {
-        const f = e.features[0];
-        const p = f.properties;
-        new maplibregl.Popup()
-          .setLngLat([f.geometry.coordinates[0], f.geometry.coordinates[1]])
-          .setHTML(`
-            <h3>${p.name}</h3>
-            <div class="meta"><b>ID:</b> ${p.id}</div>
-            <div class="meta"><b>组:</b> ${p.group}</div>
-            <div class="meta"><b>高度:</b> ${p.alt} km</div>
-            <div class="meta"><b>位置:</b> ${fmt(p.lat, 3)}°, ${fmt(p.lon, 3)}°</div>
-            <div class="meta"><b>速度:</b> ${p.speed} km/s</div>
-          `).addTo(map);
-      });
-      map.on('mouseenter', 'sats-dot', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'sats-dot', () => map.getCanvas().style.cursor = '');
-    }
-  }
-
-  function renderSatellites() {
-    ensureSatSource();
-    const showLabels = $('grp-labels').checked;
-    const showTracks = $('grp-tracks').checked;
-    const grpChecked = {
-      stations: $('grp-stations').checked,
-      gps: $('grp-gps').checked,
-      weather: $('grp-weather').checked,
-      starlink: $('grp-starlink').checked,
-    };
-    const groupColor = {
-      stations: '#00d4ff',
-      gps: '#10b981',
-      weather: '#ff6b35',
-      starlink: '#a78bfa',
-    };
-    const features = [];
-    for (const p of satState.positions) {
-      if (!grpChecked[p.group]) continue;
-      const speed = p.vel ? Math.sqrt(p.vel.x*p.vel.x + p.vel.y*p.vel.y + p.vel.z*p.vel.z) : 0;
-      features.push({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
-        properties: {
-          name: p.name,
-          id: p.id,
-          group: p.group,
-          color: groupColor[p.group],
-          alt: p.altKm ? p.altKm.toFixed(0) : '--',
-          lat: p.lat,
-          lon: p.lon,
-          speed: speed.toFixed(2),
-          showLabel: showLabels,
-        },
-      });
-      if (showTracks) {
-        const gp = [...satState.stations, ...satState.gps, ...satState.weather, ...satState.starlink]
-          .find(g => g.OBJECT_ID === p.id);
-        if (gp) {
-          const track = groundTrack(gp, new Date(), 90, 60);
-          if (track.length > 1) {
-            features.push({
-              type: 'Feature',
-              geometry: { type: 'LineString', coordinates: track },
-              properties: { color: groupColor[p.group], name: p.name },
-            });
-          }
-        }
-      }
-    }
-    map.getSource('sats').setData({ type: 'FeatureCollection', features });
-    // Update header
-    const total = satState.positions.length;
-    const visible = features.filter(f => f.geometry.type === 'Point').length;
-    $('countInfo').textContent = `${visible}/${total} 卫星可见 (${Object.values(grpChecked).filter(Boolean).length} 组)`;
-    $('propLatency').textContent = `${(performance.now() - window._t0 || 0).toFixed(0)}ms`;
-  }
-
-  // ====== GIBS imagery layers ======
-  const GIBS_LAYERS = {
-    'modis-truecolor': {
-      title: 'MODIS Terra 真彩合成',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/{date}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg',
-      format: 'rgb',
-      opacity: 0.85,
-      attr: 'NASA EOSDIS GIBS',
-    },
-    'viirs-nightlights': {
-      title: 'VIIRS 夜光',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_Black_Marble/default/{date}/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.75,
-      attr: 'NASA Black Marble',
-    },
-    'modis-aerosol': {
-      title: 'MODIS 气溶胶',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Aerosol/default/{date}/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.7,
-      attr: 'NASA MODIS',
-    },
-    'modis-fires-thermal': {
-      title: 'MODIS 火点 (24h)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Thermal_Anomalies_All/default/{date}/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'NASA MODIS Thermal',
-    },
-    'gibs-clouds': {
-      title: 'MODIS 云覆盖',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_Cloud_Mask/default/{date}/GoogleMapsCompatible_Level7/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.55,
-      attr: 'NASA MODIS Cloud Mask',
-    },
-    // --- Weather satellite real-time (Asia-Pacific priority: Himawari first) ---
-    'himawari-airmass': {
-      title: 'Himawari AHI 气团 (RGBA, 全彩)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Himawari_AHI_Air_Mass/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'JMA Himawari / NASA EOSDIS GIBS',
-    },
-    'himawari-ir': {
-      title: 'Himawari AHI 红外 (Band13, 4km)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Himawari_AHI_Band13_Clean_Infrared/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'JMA Himawari / NASA EOSDIS GIBS',
-    },
-    'goes-east-airmass': {
-      title: 'GOES-East ABI 气团 (RGBA)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GOES-East_ABI_Air_Mass/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'NOAA GOES-East / NASA EOSDIS GIBS',
-    },
-    'goes-east-ir': {
-      title: 'GOES-East ABI 红外 (Band13)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GOES-East_ABI_Band13_Clean_Infrared/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'NOAA GOES-East / NASA EOSDIS GIBS',
-    },
-    'goes-west-airmass': {
-      title: 'GOES-West ABI 气团 (RGBA)',
-      url: 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/GOES-West_ABI_Air_Mass/default/{date}/GoogleMapsCompatible_Level6/{z}/{y}/{x}.png',
-      format: 'rgba',
-      opacity: 0.85,
-      attr: 'NOAA GOES-West / NASA EOSDIS GIBS',
-    },
-  };
-
-  let currentImagery = 'modis-truecolor';
-  let tileDateResolved = null;
-
-  async function resolveGIBSDate(layerKey, maxBack = 5) {
-    const cfg = GIBS_LAYERS[layerKey];
-    const tileUrl = cfg.url
-      .replace('{date}', dateStr(new Date()))
-      .replace('{z}', '2').replace('{y}', '1').replace('{x}', '2');
-    // Try today, then back off up to maxBack days. GIBS returns small (empty) JPEG (~1-2KB) for future/no-data dates.
-    for (let i = 0; i <= maxBack; i++) {
-      const date = dateBackoff(i);
-      const url = cfg.url
-        .replace('{date}', date)
-        .replace('{z}', '2').replace('{y}', '1').replace('{x}', '2');
-      try {
-        const r = await fetch(url, { method: 'HEAD' });
-        if (r.ok) {
-          const len = r.headers.get('content-length');
-          // Empty/placeholder tiles are usually < 2KB
-          if (len && parseInt(len) > 3000) {
-            return { date, backoffDays: i };
-          }
-        }
-      } catch (e) { /* CORS may block HEAD; we fall back to GET below */ }
-    }
-    // Fallback: assume today
-    return { date: dateStr(new Date()), backoffDays: 0 };
-  }
-
-  async function applyImagery(layerKey) {
-    if (layerKey === 'off') {
-      // remove all imagery layers
-      Object.keys(GIBS_LAYERS).forEach(k => {
-        const lid = 'gibs-' + k;
-        if (map.getLayer(lid)) map.removeLayer(lid);
-        if (map.getSource(lid)) map.removeSource(lid);
-      });
-      currentImagery = 'off';
-      $('tileDate').textContent = 'off';
-      $('tileFallback').textContent = '--';
-      // Update buttons
-      document.querySelectorAll('.layer-btn').forEach(b => b.classList.toggle('active', b.dataset.layer === 'off'));
-      return;
-    }
-    const cfg = GIBS_LAYERS[layerKey];
-    if (!cfg) return;
-    setSrcStatus('gibs', 'warn', 'resolving…');
-    const { date, backoffDays } = await resolveGIBSDate(layerKey, 5);
-    tileDateResolved = date;
-    $('tileDate').textContent = date;
-    $('tileFallback').textContent = backoffDays === 0 ? 'today' : `back ${backoffDays}d`;
-
-    // remove all existing gibs layers first
-    Object.keys(GIBS_LAYERS).forEach(k => {
-      const lid = 'gibs-' + k;
-      if (map.getLayer(lid)) map.removeLayer(lid);
-      if (map.getSource(lid)) map.removeSource(lid);
-    });
-
-    const srcId = 'gibs-' + layerKey;
-    map.addSource(srcId, {
-      type: 'raster',
-      tiles: [cfg.url.replace('{date}', date)],
-      tileSize: 256,
-      attribution: cfg.attr,
-    });
-    map.addLayer({
-      id: srcId,
-      type: 'raster',
-      source: srcId,
-      paint: { 'raster-opacity': cfg.opacity, 'raster-opacity-transition': { duration: 300 } },
-    });
-    // Move satellite layers above
-    ['sats-track', 'sats-dot', 'sats-label'].forEach(lid => {
-      if (map.getLayer(lid)) map.moveLayer(lid);
-    });
-    currentImagery = layerKey;
-    setSrcStatus('gibs', 'good', date);
-    // Update buttons
-    document.querySelectorAll('.layer-btn').forEach(b => b.classList.toggle('active', b.dataset.layer === layerKey));
-  }
-
-  // ====== FIRMS active fires ======
-  async function loadFirms(aoiKey) {
-    if (!FIRMS_MAP_KEY) {
-      setSrcStatus('firms', 'neutral', 'no-key');
-      $('firmsStatus').textContent = 'FIRMS 未配置';
-      $('firmsStatus').className = 'badge badge-neutral';
-      return;
-    }
-    const aoi = AOIs[aoiKey] || AOIs.global;
-    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/MODIS_NRT/${aoi.bbox.join(',')}/1/${FIRMS_MAP_KEY}`;
-    try {
-      setSrcStatus('firms', 'warn', 'loading…');
-      const r = await fetch(url);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const text = await r.text();
-      const lines = text.trim().split('\n');
-      const header = lines[0].split(',');
-      const features = [];
-      for (let i = 1; i < lines.length; i++) {
-        const cells = lines[i].split(',');
-        const row = {};
-        header.forEach((h, j) => row[h.trim()] = cells[j]?.trim());
-        features.push({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [parseFloat(row.longitude), parseFloat(row.latitude)] },
-          properties: {
-            brightness: parseFloat(row.brightness) || 0,
-            confidence: row.confidence,
-            frp: parseFloat(row.frp) || 0,
-            satellite: row.satellite,
-            instrument: row.instrument,
-            acq: `${row.acq_date} ${row.acq_time}`,
-          },
+  // 地图上 AOI 区域 click (委托 #earth-world-map)
+  function bindMapAOIClicks() {
+    const host = document.getElementById("earth-world-map-host");
+    if (!host) return;
+    host.querySelectorAll(".aoi-region").forEach(g => {
+      g.addEventListener("click", () => {
+        const key = g.dataset.aoi;
+        el.querySelectorAll(".aoi-btn").forEach(x => {
+          x.setAttribute("aria-pressed", x.dataset.key === key ? "true" : "false");
         });
-      }
-      $('firmsCount').textContent = features.length.toString();
-      $('firmsStatus').textContent = `${features.length} 点`;
-      $('firmsStatus').className = features.length ? 'badge badge-warn' : 'badge badge-good';
-      setSrcStatus('firms', 'good', features.length);
-      renderFirms(features);
-    } catch (e) {
-      log('FIRMS failed', e);
-      setSrcStatus('firms', 'bad', 'fail');
-    }
-  }
-
-  function renderFirms(features) {
-    if (map.getSource('firms')) map.removeSource('firms');
-    if (map.getLayer('firms-pts')) map.removeLayer('firms-pts');
-    map.addSource('firms', { type: 'geojson', data: { type: 'FeatureCollection', features } });
-    map.addLayer({
-      id: 'firms-pts',
-      type: 'circle',
-      source: 'firms',
-      paint: {
-        'circle-radius': [
-          'interpolate', ['linear'], ['zoom'], 1, 2, 8, 6,
-        ],
-        'circle-color': [
-          'interpolate', ['linear'], ['get', 'brightness'],
-          300, '#ffd166', 360, '#ff6b35', 400, '#ef4444',
-        ],
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 0.3,
-        'circle-opacity': 0.85,
-      },
-    });
-  }
-
-  // ====== STAC (Earth Search) ======
-  async function loadSTAC(aoiKey) {
-    const aoi = AOIs[aoiKey] || AOIs.global;
-    const now = new Date();
-    const past = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-    const body = {
-      collections: ['sentinel-2-l2a'],
-      bbox: aoi.bbox,
-      datetime: `${dateStr(past)}T00:00:00Z/${dateStr(now)}T23:59:59Z`,
-      limit: 50,
-      query: { 'eo:cloud_cover': { lte: 30 } },
-    };
-    setSrcStatus('stac', 'warn', 'querying…');
-    try {
-      const r = await fetch('https://earth-search.aws.element84.com/v1/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const data = await r.json();
-      const features = data.features || [];
-      $('stacCount').textContent = features.length.toString();
-      setSrcStatus('stac', 'good', features.length);
-      renderSTACFootprints(features);
-    } catch (e) {
-      log('STAC failed', e);
-      setSrcStatus('stac', 'bad', 'fail');
-    }
-  }
-
-  function renderSTACFootprints(features) {
-    if (map.getSource('stac')) map.removeSource('stac');
-    if (map.getLayer('stac-fill')) map.removeLayer('stac-fill');
-    if (map.getLayer('stac-line')) map.removeLayer('stac-line');
-    map.addSource('stac', { type: 'geojson', data: { type: 'FeatureCollection', features } });
-    map.addLayer({
-      id: 'stac-fill',
-      type: 'fill',
-      source: 'stac',
-      paint: { 'fill-color': '#00d4ff', 'fill-opacity': 0.08 },
-    });
-    map.addLayer({
-      id: 'stac-line',
-      type: 'line',
-      source: 'stac',
-      paint: { 'line-color': '#00d4ff', 'line-width': 1, 'line-dasharray': [2, 2], 'line-opacity': 0.6 },
-    });
-  }
-
-  // ====== Starlink lazy load ======
-  async function loadStarlink() {
-    setSrcStatus('celestrak', 'warn', 'starlink 10k loading…');
-    setProgress(85, 'CelesTrak: starlink (10k 颗, 4MB)...');
-    try {
-      satState.starlink = await fetchCelestrakGroup('starlink');
-      // Limit to first 500 for render perf (full 10k would lag browser)
-      const prev = satState.starlink.length;
-      satState.starlink = satState.starlink.slice(0, 500);
-      log(`Starlink: kept ${satState.starlink.length}/${prev} for render`);
-      repropagateAll();
-    } catch (e) {
-      log('starlink failed', e);
-    }
-  }
-
-  // ====== UI wiring ======
-  function wireUI() {
-    document.querySelectorAll('[id^="grp-"]').forEach(el => {
-      el.addEventListener('change', () => {
-        if (el.id === 'grp-starlink' && el.checked && satState.starlink.length === 0) {
-          loadStarlink();
-        }
-        renderSatellites();
-      });
-    });
-    document.querySelectorAll('.layer-btn').forEach(btn => {
-      btn.addEventListener('click', () => applyImagery(btn.dataset.layer));
-    });
-    document.querySelectorAll('.aoi-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.aoi-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentAOI = btn.dataset.aoi;
-        const aoi = AOIs[currentAOI];
-        map.flyTo({ center: aoi.center, zoom: aoi.zoom, duration: 1200 });
-        if (FIRMS_MAP_KEY) loadFirms(currentAOI);
-        loadSTAC(currentAOI);
+        updateAOICard(key);
       });
     });
   }
+  bindMapAOIClicks();
+}
 
-  // ====== Clock + auto-repropagation ======
-  function tickClock() {
-    const now = new Date();
-    $('clock').textContent = now.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
-  }
-  setInterval(tickClock, 1000);
-  setInterval(repropagateAll, 60000); // re-propagate every 60s
+/* ============================================================
+   8. Reports 视图 —— KPI + 时间线 + SVG 增长曲线
+   ============================================================ */
+const REPORTS = [
+  { date: "2026-05-15", name: "LEO Mega-Constellation Snapshot #1", total: 11203, src: "starlink + kuiper + oneweb + qianfan" },
+  { date: "2026-06-01", name: "Mid-Year TLE Census",              total: 11480, src: "all 4 consts + walk-in incl. shell-3" },
+  { date: "2026-06-15", name: "Pre-Solstice Coverage Map",         total: 11712, src: "starlink shells 1+2+3, kuiper prototype" },
+  { date: "2026-06-28", name: "Full Census + Sub-Sat Distribution", total: 11867, src: "all 4 active consts + guowang placeholder" },
+  { date: "2026-07-03", name: "July Update · Mid-Year Review",      total: 12041, src: "current CelesTrak pull" },
+];
 
-  // ====== INIT ======
-  window._t0 = performance.now();
-  map.on('load', async () => {
-    try {
-      setProgress(5, 'map ready');
-      wireUI();
-      tickClock();
-      await loadAllCelestrak();
-      setProgress(80, 'GIBS imagery…');
-      await applyImagery('modis-truecolor');
-      if (FIRMS_MAP_KEY) await loadFirms(currentAOI);
-      await loadSTAC(currentAOI);
-      setProgress(100, 'ready');
-    } catch (e) {
-      console.error('[init] error', e);
-      $('splashStatus').textContent = '部分初始化失败 (tiles 可能受限): ' + e.message.slice(0, 60);
-    } finally {
-      // Always hide splash after 5s max, even if a step stalls
-      setTimeout(hideSplash, 800);
-    }
-    // Init latency
-    $('propLatency').textContent = `${(performance.now() - window._t0).toFixed(0)}ms`;
-  });
+function reportsMount(el) {
+  const totalSats = REPORTS.at(-1).total.toLocaleString();
+  const next = "2026-07-15";
+  el.innerHTML = `
+    <div class="panel">
+      <h2>报告存档与历史快照</h2>
+      <p class="hint">starlink-coverage/ 各期报告统一归档于此;
+      每期保留卫星总数与覆盖快照,可自动生成星座增长曲线。
+      旧 URL 计划 301 重定向到 <code>#/reports</code>。</p>
+      <div class="kpis">
+        <div class="kpi"><div class="v">${totalSats}</div><div class="k">最新总卫星数</div></div>
+        <div class="kpi"><div class="v">5</div><div class="k">活跃跟踪星座</div></div>
+        <div class="kpi"><div class="v">${REPORTS.length}</div><div class="k">归档报告期数</div></div>
+        <div class="kpi"><div class="v">CelesTrak</div><div class="k">主数据源</div></div>
+        <div class="kpi"><div class="v">2026-06-28</div><div class="k">最近一次全量普查</div></div>
+        <div class="kpi"><div class="v">${next}</div><div class="k">下次刷新</div></div>
+      </div>
+      <div class="reports-timeline">
+        ${REPORTS.map(r => `
+          <div class="report-row">
+            <div class="rr-date">${r.date}</div>
+            <div>
+              <div class="rr-name">${r.name}</div>
+              <div class="rr-meta">${r.src}</div>
+            </div>
+            <div class="rr-total">${r.total.toLocaleString()} sats</div>
+            <a class="btn-open" href="https://2017zyl.xyz/starlink-coverage/" target="_blank" rel="noopener" data-deprecated>📄 打开</a>
+          </div>`).join("")}
+      </div>
+      <div class="growth-chart-wrap">
+        <h3>星座增长曲线 · 5 期快照</h3>
+        ${growthChartSVG(REPORTS)}
+        <div class="src">x = 报告日期 · y = 全球活跃 LEO mega-constellation 总卫星数 · 来源:各期 starlink-coverage/ 全量普查</div>
+      </div>
+    </div>`;
+}
 
-  // Hard splash kill-switch (12s)
-  setTimeout(() => {
-    if ($('splash').style.display !== 'none') {
-      console.warn('[init] splash kill-switch fired (12s)');
-      hideSplash();
-    }
-  }, 12000);
+function growthChartSVG(data) {
+  const W = 720, H = 220, PAD_L = 50, PAD_R = 20, PAD_T = 24, PAD_B = 44;
+  const xs = data.map((_, i) => PAD_L + i * (W - PAD_L - PAD_R) / (data.length - 1));
+  const ys = data.map(d => d.total);
+  const yMin = Math.min(...ys), yMax = Math.max(...ys);
+  const yScale = v => PAD_T + (H - PAD_T - PAD_B) * (1 - (v - yMin) / (yMax - yMin));
+  const xScale = i => xs[i];
+  // Y 轴 ticks
+  const yTicks = [yMin, Math.round((yMin + yMax) / 2), yMax];
+  const yGrid = yTicks.map(t =>
+    `<line x1="${PAD_L}" x2="${W - PAD_R}" y1="${yScale(t)}" y2="${yScale(t)}" stroke="rgba(122,138,163,.2)" stroke-dasharray="2,2"/>
+     <text x="${PAD_L - 8}" y="${yScale(t) + 4}" text-anchor="end" fill="var(--muted)" font-family="IBM Plex Mono, monospace" font-size="11">${t.toLocaleString()}</text>`).join("");
+  // 折线
+  const pathD = data.map((d, i) => (i === 0 ? "M" : "L") + xScale(i) + "," + yScale(d.total)).join(" ");
+  const areaD = pathD + ` L${xScale(data.length - 1)},${H - PAD_B} L${xScale(0)},${H - PAD_B} Z`;
+  // 数据点 + 标签
+  const pts = data.map((d, i) => `
+    <circle cx="${xScale(i)}" cy="${yScale(d.total)}" r="4" fill="#56C8E8" stroke="#0A0E15" stroke-width="2"/>
+    <text x="${xScale(i)}" y="${yScale(d.total) - 12}" text-anchor="middle" fill="var(--text)" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="500">${d.total.toLocaleString()}</text>
+    <text x="${xScale(i)}" y="${H - PAD_B + 18}" text-anchor="middle" fill="var(--muted)" font-family="IBM Plex Mono, monospace" font-size="10">${d.date.slice(5)}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="星座增长曲线" style="width:100%;height:auto;display:block">
+    ${yGrid}
+    <path d="${areaD}" fill="url(#growth-grad)" opacity="0.4"/>
+    <path d="${pathD}" fill="none" stroke="#F5A623" stroke-width="2"/>
+    ${pts}
+    <defs>
+      <linearGradient id="growth-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F5A623" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#F5A623" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
 
-  // Splash error handler
-  window.addEventListener('error', (e) => {
-    log('window error', e.message);
-  });
-  </script>
+/* ============================================================
+   9. 注册五个视图(registerView × 5)
+   ============================================================ */
+registerView({
+  id: "live", label: "实时 Live",
+  mount(el) {
+    LiveView.mount(el);
+  },
+  unmount() { LiveView.unmount(); },
+});
+
+registerView({
+  id: "coverage", label: "覆盖分析",
+  mount(el, params) { CoverageView.mount(el, params); },
+  onParams(params) { CoverageView.applyParams(params); },
+  unmount() { CoverageView.unmount(); },
+});
+
+registerView({
+  id: "compare", label: "星座对比",
+  mount(el) { el.innerHTML = `<div id="compare-body"></div>`; compareMount(el.querySelector("#compare-body")); },
+});
+
+registerView({
+  id: "earth", label: "地球观测",
+  mount(el) { el.innerHTML = `<div id="earth-body"></div>`; earthMount(el.querySelector("#earth-body")); },
+});
+
+registerView({
+  id: "reports", label: "报告存档",
+  mount(el) { el.innerHTML = `<div id="reports-body"></div>`; reportsMount(el.querySelector("#reports-body")); },
+});
+
+/* ============================================================
+   10. 启动
+   ============================================================ */
+renderTabs();
+route();
+
+// 演示:合成数据的"数据时刻"。接 ZTLE 后改为:
+//   const sats = await ZTLE.loadZTLE("/data/starlink.ztle");
+//   setDataStatus({ epoch: 中位数(sats.map(s=>s.epoch)), count: sats.length });
+setDataStatus({ epoch: new Date(Date.now() - 26 * 3600e3), count: 10652 });
+</script>
 </body>
 </html>

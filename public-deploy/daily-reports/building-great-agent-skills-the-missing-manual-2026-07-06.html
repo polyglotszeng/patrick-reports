@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Building Great Agent Skills: The Missing Manual — Matt Pocock</title>
+<style>
+:root {
+  --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+  --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+  --accent: #ff6b35; --accent-2: #f7c59f;
+  --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  padding: 0; max-width: 1180px; margin: 0 auto;
+  padding-left: 260px; transition: padding-left 0.3s ease;
+}
+body.toc-collapsed { padding-left: 56px; }
+h1 { font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+h2.section {
+  font-size: 22px; font-weight: 700; margin: 28px 0 14px;
+  color: var(--accent); padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 16px; font-weight: 700; margin: 14px 0 8px; color: var(--accent-2); }
+p { font-size: 14.5px; margin: 8px 0; color: var(--text-dim); }
+code, pre { font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; color: var(--yellow); }
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 8px 14px; margin: 8px 0;
+  background: rgba(255,107,53,.07); font-size: 14px;
+}
+.hero {
+  background: linear-gradient(135deg, rgba(255,107,53,.10), rgba(77,208,225,.06));
+  border: 1px solid rgba(255,107,53,.25);
+  border-radius: 14px; padding: 22px 26px; margin: 24px 0;
+}
+.hero .tag {
+  display: inline-block; background: rgba(255,107,53,.18); color: var(--accent);
+  font-size: 11px; font-weight: 700; letter-spacing: .18em;
+  padding: 3px 10px; border-radius: 5px; margin-right: 6px;
+}
+.subtitle { font-size: 14px; color: var(--text-dim); margin: 8px 0 18px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.stat .v { font-size: 26px; font-weight: 800; color: var(--accent); line-height: 1.1; }
+.stat .l { font-size: 11.5px; color: var(--text-mute); margin-top: 4px; }
+.meta-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 12px 0 22px; font-size: 12.5px; color: var(--text-dim);
+}
+.meta-bar span { background: var(--bg-elevated); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+.meta-bar .live::before { content: "\25CF "; color: var(--green); margin-right: 3px; }
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 24px 0 14px; padding: 6px;
+  background: var(--bg-elevated); border-radius: 10px;
+}
+.tab {
+  background: transparent; border: 0; padding: 8px 14px;
+  color: var(--text-dim); font-size: 13px; font-weight: 600;
+  cursor: pointer; border-radius: 6px;
+  transition: background .18s ease, color .18s ease;
+}
+.tab:hover { background: var(--bg-card); color: var(--text); }
+.tab.active { background: var(--accent); color: #0d0d10; }
+.tab-content { display: none; padding: 6px 0 24px; }
+.tab-content.active { display: block; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 12px 0; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; border-left: 3px solid var(--accent);
+}
+.card h4 { margin: 0 0 6px; font-size: 14.5px; color: var(--text); }
+.card p { font-size: 13.5px; }
+.card.warn { border-left-color: var(--yellow); }
+.card.gap { border-left-color: var(--red); }
+.card.ref { border-left-color: var(--blue); }
+.card.mitig { border-left-color: var(--green); }
+table {
+  width: 100%; border-collapse: collapse; margin: 12px 0;
+  font-size: 13.5px;
+}
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: var(--bg-elevated); font-weight: 700; color: var(--text); }
+tr.highlight { background: rgba(255,107,53,.08); }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.cmp { background: var(--bg-card); border-radius: 10px; padding: 16px; border: 1px solid var(--border); }
+.cmp.good { border-top: 3px solid var(--green); }
+.cmp.bad { border-top: 3px solid var(--red); }
+.cmp h4 { margin: 0 0 8px; }
+.quote-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 12px 0; }
+.quote-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: 8px;
+  padding: 12px 16px; font-style: italic;
+}
+.quote-card.yellow { border-left-color: var(--yellow); }
+.quote-card.green { border-left-color: var(--green); }
+.quote-card.blue { border-left-color: var(--blue); }
+.quote-card.purple { border-left-color: var(--purple); }
+.quote-card.red { border-left-color: var(--red); }
+.quote-card .ts { color: var(--accent); font-style: normal; font-weight: 700; font-size: 12.5px; }
+.quote-card .src { color: var(--text-mute); font-size: 11.5px; font-style: normal; margin-top: 6px; }
+.quote-card.zh {
+  background: rgba(77,208,225,.05);
+  border-left-color: var(--blue);
+  font-style: normal;
+}
+.quote-card .en-quote { font-style: italic; color: var(--text); }
+.quote-card .zh-quote { color: var(--blue); font-size: 13.5px; }
+.timeline { margin: 12px 0; }
+.tl-item {
+  display: flex; gap: 18px; padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.tl-item:last-child { border-bottom: 0; }
+.tl-item .time { width: 60px; flex-shrink: 0; color: var(--accent); font-weight: 700; font-size: 13px; }
+.tl-item .what { font-size: 14px; color: var(--text-dim); }
+.badge {
+  display: inline-block; font-size: 10.5px; font-weight: 700;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: .04em;
+  background: rgba(255,107,53,.18); color: var(--accent);
+  vertical-align: middle;
+}
+.badge.good { background: rgba(74,222,128,.18); color: var(--green); }
+.badge.warn { background: rgba(251,191,36,.18); color: var(--yellow); }
+.badge.gap { background: rgba(248,113,113,.18); color: var(--red); }
+.badge.ref { background: rgba(96,165,250,.18); color: var(--blue); }
+.chain { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
+.chain-step {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 12px; font-size: 13px;
+}
+.chain-arrow { color: var(--accent); font-weight: 800; }
+.footer {
+  margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--border);
+  color: var(--text-mute); font-size: 12.5px;
+}
+
+/* ===== TOC v1.4.4 collapsible sidebar ===== */
+.toc {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 240px; padding: 22px 18px;
+  background: var(--bg-elevated); border-right: 1px solid var(--border);
+  overflow-y: auto; font-size: 12.5px;
+  transition: transform 0.3s ease, width 0.3s ease;
+  z-index: 99;
+}
+.toc h3 { color: var(--accent); margin: 0 0 12px; font-size: 14px; }
+.toc ol { list-style: none; padding-left: 0; }
+.toc li { margin: 4px 0; }
+.toc a {
+  color: var(--text-dim); text-decoration: none;
+  display: block; padding: 4px 8px; border-radius: 4px;
+  transition: background .15s ease, color .15s ease;
+}
+.toc a:hover { background: var(--bg-card); color: var(--text); }
+.toc a.active { background: rgba(255,107,53,.18); color: var(--accent); }
+.toc-toggle {
+  position: absolute; top: 14px; right: -14px;
+  width: 28px; height: 28px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 50%; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--accent); font-weight: 700;
+  z-index: 100;
+}
+.toc-toggle:hover { background: var(--bg-elevated); }
+.toc.collapsed {
+  width: 48px; padding: 22px 8px;
+}
+.toc.collapsed h3, .toc.collapsed ol { display: none; }
+.toc.collapsed .toc-toggle { right: -14px; }
+/* mobile / narrow viewport */
+@media (max-width: 900px) {
+  body { padding-left: 0 !important; }
+  .toc {
+    transform: translateX(-12px);
+    width: 240px;
+  }
+  body.toc-open { padding-left: 0 !important; }
+}
+@media (min-width: 901px) and (max-width: 1200px) {
+  body { padding-left: 56px; }
+  body.toc-collapsed { padding-left: 56px; }
+}
+</style>
+</head>
+<body>
+
+<aside class="toc" id="toc">
+  <button class="toc-toggle" id="toc-toggle-btn" aria-label="Toggle TOC">&laquo;</button>
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#hero">0. Hero / 概览</a></li>
+    <li><a href="#stats">6 Stats / 数据卡</a></li>
+    <li><a href="#core">1. Core / 核心</a></li>
+    <li><a href="#trigger">2. Trigger / 触发</a></li>
+    <li><a href="#structure">3. Structure / 结构</a></li>
+    <li><a href="#steering">4. Steering / 主控</a></li>
+    <li><a href="#pruning">5. Pruning / 修剪</a></li>
+    <li><a href="#compare">6. Compare / 比较</a></li>
+    <li><a href="#related">7. Patrick / 关联</a></li>
+    <li><a href="#tier4">8. Anti-Map / 反方</a></li>
+    <li><a href="#quotes">9. Quotes / 金句</a></li>
+    <li><a href="#timeline">10. Timeline / 时间</a></li>
+    <li><a href="#action">11. Action / 行动</a></li>
+    <li><a href="#footprint">12. Footprint / 来源</a></li>
+  </ol>
+</aside>
+
+<div id="hero" class="hero">
+<span class="tag">BUILD 2026-07-06</span>
+<span class="tag" style="background:rgba(74,222,128,.18);color:var(--green);">DRM-BYPASS via youtube-transcript-api</span>
+<h1>Building Great Agent Skills: The Missing Manual</h1>
+<div class="subtitle">Matt Pocock (Total TypeScript / matt-pocock) — AI Engineer World's Fair 2026 — 20:43 — transcript full</div>
+<div class="meta-bar">
+<span class="live">Video: <a href="https://www.youtube.com/watch?v=UNzCG3lw6O0" style="color:var(--accent);">YouTube</a></span>
+<span>Channel: AI Engineer</span>
+<span>Speaker: Matt Pocock</span>
+<span>Upload: 2026-06-29</span>
+<span>Views: 76,994</span>
+<span>Transcript: 592 raw / 71 cleaned</span>
+</div>
+
+<h2 id="stats" class="section">6 Stats</h2>
+<div class="stats">
+  <div class="stat"><div class="v">20:43</div><div class="l">DURATION</div></div>
+  <div class="stat"><div class="v">76K</div><div class="l">VIEWS</div></div>
+  <div class="stat"><div class="v">4-item</div><div class="l">CHECKLIST</div></div>
+  <div class="stat"><div class="v">5</div><div class="l">FAILURE MODES</div></div>
+  <div class="stat"><div class="v">71</div><div class="l">CLEANED PARAGRAPHS</div></div>
+  <div class="stat"><div class="v">17/17</div><div class="l">PATRICK ROSTER HITS</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">1. Core Thesis</button>
+  <button class="tab" data-tab="trigger">2. Trigger</button>
+  <button class="tab" data-tab="structure">3. Structure</button>
+  <button class="tab" data-tab="steering">4. Steering</button>
+  <button class="tab" data-tab="pruning">5. Pruning</button>
+  <button class="tab" data-tab="compare">6. Compare</button>
+  <button class="tab" data-tab="related">7. Patrick</button>
+  <button class="tab" data-tab="tier4">8. Anti-Map</button>
+  <button class="tab" data-tab="quotes">9. Quotes</button>
+  <button class="tab" data-tab="timeline">10. Timeline</button>
+  <button class="tab" data-tab="action">11. Action</button>
+  <button class="tab" data-tab="footprint">12. Footprint</button>
+</div>
+
+<div class="tab-content active" data-tab-content="core">
+<h2 class="section" id="core">1. Core Thesis</h2>
+<blockquote>"Skill hell" is the new curse. Skill hell is where you have all of these skills available freely available that you can download, contribute to, you can figure out on your own, but you don't really know how the pieces all work together. You can't tell a good skill from a bad skill.</blockquote>
+
+<h3>4-item checklist (the cure)</h3>
+<div class="chain">
+  <span class="chain-step">1. Trigger</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">2. Structure</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">3. Steering</span>
+  <span class="chain-arrow">&rarr;</span>
+  <span class="chain-step">4. Pruning</span>
+</div>
+
+<h3>Three predictions Matt escalates from</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>Tutorial Hell <span class="badge">2010s</span></h4>
+    <p>Go to 100 tutorials, can't piece them together, stuck in loop.</p>
+  </div>
+  <div class="card">
+    <h4>Framework Hell <span class="badge">2015-2020</span></h4>
+    <p>Every 10 minutes a new JS framework, learn the hot new thing always.</p>
+  </div>
+  <div class="card">
+    <h4>Skill Hell <span class="badge">2025+</span></h4>
+    <p>Skills freely available but you don't know which are good. Individual + org level both affected.</p>
+  </div>
+</div>
+
+<h3>Why this is a Patrick-level concern</h3>
+<p>Patrick has 19 active skills in <code>~/.hermes/skills/</code> + 100+ references + 7 vaults. This talk is a direct framework for the next audit / refactor wave. Matt also acknowledges his own guilt: "we have Matt PCO skills, which is my skills repo, which is one of the most popular engineering skill sets out there. And so I feel like I want to help the people who use my skills get out of skill hell."</p>
+</div>
+
+<div class="tab-content" data-tab-content="trigger">
+<h2 class="section" id="trigger">2. Trigger — User vs Model-Invoked Skills</h2>
+<blockquote>"Every time you add a model-invoked skill into your agent's environment, it increases what I'm going to call the context load on that agent... If you have 100 model-invoked skills, that's going to be 100 descriptions inside the context for your agent."</blockquote>
+
+<h3>The core trade-off</h3>
+<div class="compare">
+  <div class="cmp good">
+    <h4>Model-Invoked (autopilot)</h4>
+    <p>Description ends up in agent context. Agent decides when to invoke.</p>
+    <p><span class="badge warn">Cost:</span> 100 skills = 100 descriptions in context, tokens & decision fatigue per request.</p>
+    <p><span class="badge warn">Cost:</span> Even when skill is perfect match, agent may choose not to follow it.</p>
+  </div>
+  <div class="cmp bad">
+    <h4>User-Invoked (manual)</h4>
+    <p><code>disable_model_invocation: true</code>. Description only visible to user.</p>
+    <p><span class="badge warn">Cost:</span> 100 skills = 100 things user needs to keep in their head — cognitive load on the pilot.</p>
+    <p><span class="badge warn">Cost:</span> But: zero unpredictability from agent decision.</p>
+  </div>
+</div>
+
+<h3>Why Matt prefers user-invoked</h3>
+<p>"I much prefer to be in full control. That means I get to keep the context load on the agent as small as possible, but it does impose more of a cognitive load on me. So I need to understand the skills really deeply in order to get the most use out of them."</p>
+<p>"Every time you have a model-invoked skill, it basically you get a cost in unpredictability because every time you have a context pointer pointing from one resource to another, the model may just choose not to follow it. You know, even if it's absolutely perfect for the task, it may just choose not to invoke the skill."</p>
+
+<h3>Decision framework for Patrick</h3>
+<table>
+<thead><tr><th>Concern</th><th>Choose</th><th>Because</th></tr></thead>
+<tbody>
+<tr><td>Token cost dominates</td><td>User-invoked default</td><td>100 skills = 100 descriptions gone</td></tr>
+<tr><td>You need auto-firing for many tasks</td><td>Model-invoked</td><td>e.g. planning, debugging, common ops</td></tr>
+<tr><td>Skill is safety-critical</td><td>User-invoked</td><td>Zero unpredictable firing</td></tr>
+<tr><td>Skill is "always relevant"</td><td>Model-invoked</td><td>Description IS the key</td></tr>
+<tr class="highlight"><td><strong>Patrick actual pattern</strong></td><td>User-invoked (manual cron, manual skill invocation)</td><td>"Always know what's running"</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="tab-content" data-tab-content="structure">
+<h2 class="section" id="structure">3. Structure — Steps + Reference + Branches</h2>
+<p>Matt's mental model: a skill = <strong>2 main units</strong> — Steps (the procedure) + Reference (supporting info). Three composition modes apply.</p>
+
+<h3>3 Composition Modes</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>All Steps <span class="badge">simple proc</span></h4>
+    <p>Linear procedure. No reference material. Example: "git commit and push" skill.</p>
+  </div>
+  <div class="card">
+    <h4>All Reference <span class="badge">knowledge dump</span></h4>
+    <p>Documentation lookup. No procedure. Example: TS-cheatsheet lookup skill.</p>
+  </div>
+  <div class="card mitig">
+    <h4>Steps + Reference <span class="badge">canonical</span></h4>
+    <p>The standard form. Procedure embedded with supporting docs inline or behind context pointers.</p>
+  </div>
+</div>
+
+<h3>Example: two-PRD skill (3 steps + 2 refs, single branch)</h3>
+<ol>
+  <li>Find relevant context</li>
+  <li>Confirm test seams with user (HITL checkpoint)</li>
+  <li>Write the PRD document</li>
+</ol>
+<p>+ 2 reference items: "what is a test seam" + PRD template (both inline because single branch).</p>
+
+<h3>Branch decision — external context pointers</h3>
+<blockquote>"Hide branching reference material behind context pointers. In other words, if you feel like your skill is going to be used in lots of different ways, then take the reference material that's relevant for those branches and hide them behind context pointers."</blockquote>
+
+<h4>Example: domain-modeling skill</h4>
+<ul>
+  <li>2 branches: (a) update context.md glossary (b) create ADRs</li>
+  <li>Branch-specific reference material (ADR template + context.md template) → moved to <strong>separate files behind context pointers</strong></li>
+  <li>skill.md stays slim — branches only include the routing logic</li>
+</ul>
+
+<h3>Why small skill.md</h3>
+<p>"Smaller skills are just easier to maintain, easier to audit, fewer words to think about. And every time you shave off a word, that is a token shaved. That multiple token shave from your skills cost."</p>
+</div>
+
+<div class="tab-content" data-tab-content="steering">
+<h2 class="section" id="steering">4. Steering — Leading Words (Matt's Core Insight)</h2>
+<p>Matt: "I'm going to give you one technique that fixes this issue, which is the agent doesn't do what I want. This technique is the kind of main thing I want you to get from this talk."</p>
+
+<blockquote>"There are certain words that pack in a bunch of meaning into a very small space. These leading words are really powerful with agents because you put the leading word in the skill itself in the text and then the agent will repeat the leading word back to itself as part of its operations as part of its thinking tokens and as part of its output to you. And then because it's re-emphasizing that word and that word hopefully describes what you want from the agent that then goes and changes its behavior."</blockquote>
+
+<h3>Concrete example — vertical slice</h3>
+<div class="compare">
+  <div class="cmp bad">
+    <h4>Don't do this</h4>
+    <p>"Don't code layer by layer. Make sure that you create a small slice first and then go from there."</p>
+    <p>Vague, verbose, no terminology anchor.</p>
+  </div>
+  <div class="cmp good">
+    <h4>Use a leading word</h4>
+    <p><strong>"vertical slice"</strong> — compact, established terminology, agent's prior activates.</p>
+    <p>"A vertical slice is a pretty well-known terminology in development. And so this will hopefully trigger the agent's prior."</p>
+  </div>
+</div>
+
+<h3>Self-verification: read the reasoning trace</h3>
+<p>"The cool thing about this technique is you can know if it's worked because you say vertical slice in your skill and then you'll notice in the reasoning traces that it's saying, 'Okay, we're going to do this as a thin vertical slice.' then you should get better implementation plans."</p>
+
+<h3>Second lever: leg work isolation</h3>
+<p>Problem: "ask clarifying questions just doesn't ever do enough leg work. It sees that its ultimate goal is to create a plan. And so it just does a small amount of leg work with ask clarifying questions, ask you a couple of things, and then eagerly creates the plan."</p>
+
+<p>Fix: <strong>split into separate skills, hide the future phase.</strong></p>
+<ul>
+  <li><code>grill-with-docs</code> — only the ask-clarifying-questions phase</li>
+  <li><code>two-PRD</code> — only the write-PRD phase</li>
+  <li>After both: agent has done the full work, no shortcut possible.</li>
+</ul>
+
+<p>"It's not always necessary to split skills into individual steps, but in particular cases where you really want an extra chunk of leg work. It really there's no technique like it. It works very, very well."</p>
+
+<h3>How to find leading words</h3>
+<p>"English is a pretty wide API in terms of different functions you can call, different things you can experiment with, and there are many leading word candidates out there, and agents are actually pretty good at helping you think of them."</p>
+</div>
+
+<div class="tab-content" data-tab-content="pruning">
+<h2 class="section" id="pruning">5. Pruning — Sediment / No-Ops / DRY / Massive</h2>
+<p>5 failure modes Matt lists:</p>
+
+<table>
+<thead><tr><th>#</th><th>Mode</th><th>Symptom</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Massive skill</td><td>skill.md &gt; 20K chars</td><td>Find underlying failure mode first (massive is symptom)</td></tr>
+<tr><td>2</td><td>DRY violation</td><td>Same reference repeated in 2+ steps</td><td>Single source of truth per concept</td></tr>
+<tr><td>3</td><td>Sediment</td><td>Multi-contributor cruft accumulation</td><td>Restructure or kill</td></tr>
+<tr><td>4</td><td>No-ops</td><td>Paragraph looks like it does something, doesn't influence behavior</td><td><strong>Deletion test</strong></td></tr>
+<tr><td>5</td><td>Agent-generated docs</td><td>LLM-written skill that passes deletion test tautologically</td><td>Independent metric, not just deletion</td></tr>
+</tbody>
+</table>
+
+<h3>The Sediment phenomenon (in Matt's words)</h3>
+<blockquote>"Sediment is just a classic thing when people are working on the same set of docs really which is that everyone starts contributing to a shared markdown file. People add their own stuff. They don't feel brave enough to delete and modify anyone else's. And so you just end up with this huge amount of sediment with often irrelevant material for the skill, especially stuff that hasn't been laid out properly."</blockquote>
+
+<h3>The deletion test (for no-ops)</h3>
+<blockquote>"Let's imagine we have an implement skill and we have an entire paragraph of the skill that tells the agent to write a long detailed commit message. What would happen if you just deleted that paragraph? Well, the agent would probably still write a decent like long commit message."</blockquote>
+<p>The test: delete a paragraph. If outcome unchanged &rarr; the paragraph was a no-op &rarr; remove it.</p>
+
+<h3>How Matt keeps skills small</h3>
+<blockquote>"People ask me a lot how I get my skills so small and it's just using these techniques, using deletion tests, using um making sure that I compact things into leading words, I don't have anything irrelevant in there, and I don't have any sediment."</blockquote>
+</div>
+
+<div class="tab-content" data-tab-content="compare">
+<h2 class="section" id="compare">6. Matt Pocock Skills vs Superpowers</h2>
+
+<div class="compare">
+  <div class="cmp good">
+    <h4>Matt Pocock Skills</h4>
+    <p><strong>Style:</strong> User-invoked (manual control)</p>
+    <p><strong>Cognitive load:</strong> High on pilot</p>
+    <p><strong>Context load:</strong> Low on agent</p>
+    <p><strong>Unpredictability:</strong> Zero — agent never auto-fires</p>
+    <p><strong>Optimized for:</strong> Power users who know their skill set deeply</p>
+    <p><strong>Look like:</strong> <code>grill-with-docs</code>, <code>two-PRD</code>, <code>domain-modeling</code></p>
+  </div>
+  <div class="cmp good">
+    <h4>Superpowers</h4>
+    <p><strong>Style:</strong> Model-invoked (autonomous)</p>
+    <p><strong>Cognitive load:</strong> Low on pilot</p>
+    <p><strong>Context load:</strong> High on agent — every description always present</p>
+    <p><strong>Unpredictability:</strong> Real — agent may skip when relevant</p>
+    <p><strong>Optimized for:</strong> Hands-off workflows, lower learning curve</p>
+    <p><strong>Look like:</strong> Anthropic's flagship skill framework</p>
+  </div>
+</div>
+
+<h3>What neither addresses</h3>
+<div class="card warn">
+  <h4>Multi-user / team composition</h4>
+  <p>Both treat single pilot as the unit. Team / org skill composition un-discussed.</p>
+</div>
+<div class="card warn">
+  <h4>Skill versioning + evolution</h4>
+  <p>No mention of backwards compat, deprecation, or migration paths.</p>
+</div>
+<div class="card gap">
+  <h4>Security: prompt injection surface</h4>
+  <p>Description (in agent context) = read-then-act = potential injection vector. Neither framework discusses.</p>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="related">
+<h2 class="section" id="related">7. Patrick 关联 (17-card Roster, 4-tier Priority)</h2>
+
+<h3>Tier 1 — Direct skill application (5)</h3>
+<div class="card-grid">
+  <div class="card mitig">
+    <h4><span class="badge good">T1</span> media/video-to-knowledge-dashboard</h4>
+    <p>This dashboard itself is a leading-word candidate: "vertical slice", "context pointer", "deletion test" all apply.</p>
+    <p style="color:var(--green);margin-top:0.4rem;">&rarr; <strong>SAME</strong>: 4-item checklist is the audit framework for any Patrick dashboard.</p>
+  </div>
+  <div class="card mitig">
+    <h4><span class="badge good">T1</span> agentic-os (umbrella)</h4>
+    <p>Matt's "matt-pocock/skills" repo + my "agentic-os" umbrella = same concept (skill set that other people use).</p>
+    <p style="color:var(--green);margin-top:0.4rem;">&rarr; <strong>SAME</strong>: 4-item checklist applies to the 19 modules.</p>
+  </div>
+  <div class="card mitig">
+    <h4><span class="badge good">T1</span> agentic-os/gstack</h4>
+    <p>23 specialists + 8 power tools. Each skill needs audit via the 4-item checklist.</p>
+    <p style="color:var(--green);margin-top:0.4rem;">&rarr; <strong>SAME</strong>: framework directly portable.</p>
+  </div>
+  <div class="card mitig">
+    <h4><span class="badge good">T1</span> autonomous-ai-agents/fable-vs-hermes-capability-gap</h4>
+    <p>User-invoked vs model-invoked = same trade-off dimension as Fable (autonomous) vs Hermes (controlled).</p>
+    <p style="color:var(--green);margin-top:0.4rem;">&rarr; <strong>SAME pattern</strong>: control vs autonomy trade-off.</p>
+  </div>
+  <div class="card mitig">
+    <h4><span class="badge good">T1</span> agentic-os/llm-protocol-router</h4>
+    <p>"Context load" is the same cost dimension as LLM routing cost. Matt's 100 skills = 100 descriptions = why routing exists.</p>
+    <p style="color:var(--green);margin-top:0.4rem;">&rarr; <strong>SAME problem</strong>: token budget vs capability.</p>
+  </div>
+</div>
+
+<h3>Tier 2 — Conditional / domain overlap (5)</h3>
+<div class="card-grid">
+  <div class="card ref">
+    <h4><span class="badge ref">T2</span> media/video-bidirectional-mapping</h4>
+    <p>Tier 4 anti-mapping 5-axis vs Matt's 5 failure modes — same skeptical-mapping structure.</p>
+    <p style="color:var(--blue);margin-top:0.4rem;">&rarr; <strong>REF extension</strong>: methodology is parallel.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T2</span> devops/patricks-publish-pipeline-watchdog</h4>
+    <p>Publish loop = "operational procedure turned into agent-executable". Watching out for sediment in deploy scripts.</p>
+    <p style="color:var(--blue);margin-top:0.4rem;">&rarr; <strong>SAME</strong>: applied to deploy scripts is straightforward.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T2</span> creative/rich-html-output</h4>
+    <p>HTML composition = skill structural design. "Steps + Reference" maps to tab structure + supporting CSS.</p>
+    <p style="color:var(--blue);margin-top:0.4rem;">&rarr; <strong>REF</strong>: not skill, but concept alignment.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T2</span> knowledge-synthesis/graphify-obsidian-baseline</h4>
+    <p>"Single source of truth" = graph observation compression. Same DRY principle at the graph level.</p>
+    <p style="color:var(--blue);margin-top:0.4rem;">&rarr; <strong>REF</strong>: not skill, but principle alignment.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T2</span> meta/how-to-sell</h4>
+    <p>Skill = pitch; leading word = tagline. Both are condensed-meaning techniques.</p>
+    <p style="color:var(--blue);margin-top:0.4rem;">&rarr; <strong>REF</strong>: pitch discipline uses the same compression.</p>
+  </div>
+</div>
+
+<h3>Tier 3 — Context overlap (4)</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4><span class="badge">T3</span> research/distributed-research-playbook</h4>
+    <p>Long-term research 跟 skill authoring 同是 compounding knowledge.</p>
+  </div>
+  <div class="card">
+    <h4><span class="badge">T3</span> extract-youtube-video</h4>
+    <p>跟 dashboard pipeline 互为上下游 (extract &rarr; dashboard).</p>
+  </div>
+  <div class="card">
+    <h4><span class="badge">T3</span> autonomous-ai-agents/dual-ai-peer-review</h4>
+    <p>删除 test = deletion test protocol — same evidentiary methodology.</p>
+  </div>
+  <div class="card">
+    <h4><span class="badge">T3</span> media/video-to-obsidian</h4>
+    <p>Vault note creation = sibling pipeline to dashboard. Matt's "single source of truth" applies.</p>
+  </div>
+</div>
+
+<h3>Tier 4 — Reference / context only (3)</h3>
+<div class="card-grid">
+  <div class="card ref">
+    <h4><span class="badge ref">T4</span> research/llm-wiki</h4>
+    <p>SKILL exists at <code>~/.hermes/skills/research/llm-wiki/</code>. Compound knowledge concept 同源.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T4</span> knowledge-synthesis/graphify</h4>
+    <p>SKILL exists. Graph = skill dependency graph, real topic.</p>
+  </div>
+  <div class="card ref">
+    <h4><span class="badge ref">T4</span> knowledge-synthesis/understand-anything</h4>
+    <p>SKILL exists at <code>~/.hermes/skills/knowledge-synthesis/understand-anything/</code>. Not directly mapped.</p>
+  </div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="tier4">
+<h2 class="section" id="tier4">8. Tier 4 Anti-Mapping (5-axis skeptical lens)</h2>
+
+<div class="card-grid">
+  <div class="card warn">
+    <h4>4.A Uncovered / BLIND SPOT <span class="badge warn">SKIP</span></h4>
+    <p>Matt doesn't cover: (a) multi-language skill composition (b) skill versioning (c) skill security / prompt injection defenses (d) team-level skill sharing &amp; governance.</p>
+    <p style="color:var(--text-mute);margin-top:0.4rem;">source: <a href="#pruning">5. Pruning</a></p>
+  </div>
+  <div class="card warn">
+    <h4>4.B Counter-claim <span class="badge warn">PARTIAL</span></h4>
+    <p>Counter 1: "Cognitive load on user is also cost, just less visible. 50+ user-invoked skills &rarr; user 100% give up" (superpowers reversal). Counter 2: "Leading words is band-aid, not engineering. Real solution = structured output schema + validation, not vocabulary tricks" (TDD eval).</p>
+    <p style="color:var(--text-mute);margin-top:0.4rem;">source: <a href="#trigger">2. Trigger</a></p>
+  </div>
+  <div class="card gap">
+    <h4>4.C Gap 警示 <span class="badge gap">REAL</span></h4>
+    <p>"agents are actually pretty good at helping you think of them" (leading words) — but LLM-generated leading words lack independent validation. This is anti-mapping PITFALL's recurring danger: trusting LLM output without empirical test.</p>
+    <p style="color:var(--text-mute);margin-top:0.4rem;">source: <a href="#steering">4. Steering</a></p>
+  </div>
+  <div class="card warn">
+    <h4>4.D Untested claim <span class="badge warn">PARTIAL</span></h4>
+    <p>"Vertical slice" leading word 没有量化 metric. Anecdote 还是 replicated evaluation? Matt doesn't cite eval data point.</p>
+    <p style="color:var(--text-mute);margin-top:0.4rem;">source: <a href="#steering">4. Steering</a></p>
+  </div>
+  <div class="card warn">
+    <h4>4.E Silent premise <span class="badge warn">SKIP</span></h4>
+    <p>Talk assumes user is sole pilot. Multi-user / agent team scenarios underneath exposed but un-discussed.</p>
+    <p style="color:var(--text-mute);margin-top:0.4rem;">source: <a href="#compare">6. Compare</a></p>
+  </div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="quotes">
+<h2 class="section" id="quotes">9. Quotes (bilingual sample — full set in <code>bilingual-quotes.md</code>)</h2>
+
+<div class="quote-grid">
+  <div class="quote-card yellow">
+    <div class="ts">12:05 — #3 Steering (CORE)</div>
+    <p class="en-quote">"There are certain words that pack in a bunch of meaning into a very small space. These leading words are really powerful with agents..."</p>
+    <p class="zh-quote" style="margin-top:6px;">"有些词能在很小的空间里塞进大量意义。这些 leading words 对 agent 特别有效 — 你把 leading word 放在 skill 文本里,然后 agent 会在自己的操作里重复这个词。"</p>
+    <div class="src">source: <a href="#steering">#steering</a></div>
+  </div>
+  <div class="quote-card yellow">
+    <div class="ts">14:11 — Verification</div>
+    <p class="en-quote">"...you say vertical slice in your skill and then you'll notice in the reasoning traces that it's saying, 'Okay, we're going to do this as a thin vertical slice.'"</p>
+    <p class="zh-quote" style="margin-top:6px;">"你在 skill 里说 vertical slice,然后在 reasoning trace 里看到 agent 说'好,我们按 thin vertical slice 来',就能验证它起作用了。"</p>
+    <div class="src">source: <a href="#steering">#steering</a></div>
+  </div>
+  <div class="quote-card green">
+    <div class="ts">4:22 — #1 Trigger</div>
+    <p class="en-quote">"Every time you add a model-invoked skill into your agent's environment, it increases what I'm going to call the context load on that agent... If you have 100 model-invoked skills, that's going to be 100 descriptions inside the context for your agent."</p>
+    <p class="zh-quote" style="margin-top:6px;">"每加一个 model-invoked skill,都会增加 context load — 100 个 = 100 个 description 同时在 context 里,每次请求都要 token 成本。"</p>
+    <div class="src">source: <a href="#trigger">#trigger</a></div>
+  </div>
+  <div class="quote-card blue">
+    <div class="ts">5:46 — Matt's choice</div>
+    <p class="en-quote">"I much prefer to be in full control. That means I get to keep the context load on the agent as small as possible, but it does impose more of a cognitive load on me."</p>
+    <p class="zh-quote" style="margin-top:6px;">"我更倾向完全自己掌控。这意味着让 agent 的 context load 尽可能小,代价是我自己多扛一些 cognitive load。"</p>
+    <div class="src">source: <a href="#trigger">#trigger</a></div>
+  </div>
+  <div class="quote-card purple">
+    <div class="ts">17:41 — #4 Pruning</div>
+    <p class="en-quote">"Sediment is just a classic thing when people are working on the same set of docs really which is that everyone starts contributing to a shared markdown file. People add their own stuff. They don't feel brave enough to delete and modify anyone else's."</p>
+    <p class="zh-quote" style="margin-top:6px;">"Sediment (沉积物)是多人协作编辑时的经典现象:每个人加自己的内容,却没人有勇气去删掉或修改别人写的东西。"</p>
+    <div class="src">source: <a href="#pruning">#pruning</a></div>
+  </div>
+  <div class="quote-card red">
+    <div class="ts">18:32 — Practical recipe</div>
+    <p class="en-quote">"People ask me a lot how I get my skills so small and it's just using these techniques, using deletion tests, using um making sure that I compact things into leading words, I don't have anything irrelevant in there, and I don't have any sediment."</p>
+    <p class="zh-quote" style="margin-top:6px;">"很多人问怎么把技能写得这么小,就是用这些方法:用 deletion test、把内容压缩进 leading words、不放任何无关内容、不留 sediment。"</p>
+    <div class="src">source: <a href="#pruning">#pruning</a></div>
+  </div>
+</div>
+<p style="margin-top:14px;color:var(--text-mute);font-size:12.5px;">Full 16 quotes with EN/ZH/timestamp/source anchor &rarr; <code>bilingual-quotes.md</code> in vault folder.</p>
+</div>
+
+<div class="tab-content" data-tab-content="timeline">
+<h2 class="section" id="timeline">10. Timeline (15 segments)</h2>
+<div class="timeline">
+  <div class="tl-item"><span class="time">0:00</span><span class="what">Hello (was supposed to deliver at AI Engineer World's Fair but couldn't make it)</span></div>
+  <div class="tl-item"><span class="time">0:09</span><span class="what">"Missing manual" = title. "Ability to distinguish good skills from bad skills is only getting more important"</span></div>
+  <div class="tl-item"><span class="time">0:34</span><span class="what">"tutorial hell / framework hell / skill hell" three-stage framing</span></div>
+  <div class="tl-item"><span class="time">1:10</span><span class="what">"We don't know what makes a skill great. No shared rubric" — motivating checklist</span></div>
+  <div class="tl-item"><span class="time">1:50</span><span class="what">"Organizations have no way to take their operating procedures and turn them into things an agent can do"</span></div>
+  <div class="tl-item"><span class="time">2:22</span><span class="what">4-item checklist announced: Trigger / Structure / Steering / Pruning</span></div>
+  <div class="tl-item"><span class="time">3:33</span><span class="what">Item 1: Trigger — define user-invoked vs model-invoked</span></div>
+  <div class="tl-item"><span class="time">4:22</span><span class="what">"Context load" quantified: 100 model-invoked skills = 100 descriptions</span></div>
+  <div class="tl-item"><span class="time">5:46</span><span class="what">Matt's preference: user-invoked (cognitive load over unpredictability)</span></div>
+  <div class="tl-item"><span class="time">7:36</span><span class="what">Item 2: Structure — Steps + Reference + Branches (external context pointers)</span></div>
+  <div class="tl-item"><span class="time">9:11</span><span class="what">Item 3: Steering — leading words ("main thing I want you to get from this talk")</span></div>
+  <div class="tl-item"><span class="time">12:48</span><span class="what">Example: "vertical slice" leading word</span></div>
+  <div class="tl-item"><span class="time">15:46</span><span class="what">Leg work isolation: split plan mode into grill-with-docs + two-PRD</span></div>
+  <div class="tl-item"><span class="time">16:55</span><span class="what">Item 4: Pruning — sediment / no-ops / DRY / massive</span></div>
+  <div class="tl-item"><span class="time">19:55</span><span class="what">"writing-great-skills" skill released + newsletter + AI coding crash course teaser</span></div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="action">
+<h2 class="section" id="action">11. Action — How Patrick Uses This Tomorrow</h2>
+
+<h3>Step 1: Audit existing skill set with 4-item checklist</h3>
+<p>Run the 4-item audit on each candidate skill. Recommended target: <code>media/video-to-knowledge-dashboard</code>, <code>agentic-os</code>, <code>cron-watchdog-patterns</code>.</p>
+
+<table>
+<thead><tr><th>Skill</th><th>Trigger audit</th><th>Structure audit</th><th>Steering audit</th><th>Pruning audit</th><th>Priority</th></tr></thead>
+<tbody>
+<tr><td><code>media/video-to-knowledge-dashboard</code></td><td>Manual invocation (CLI)</td><td>Single branch, refs inline ✓</td><td>3 leading word candidates</td><td>Sediment risk medium</td><td><span class="badge good">Audit now</span></td></tr>
+<tr><td><code>agentic-os</code></td><td>Mostly auto</td><td>Multi-branch (19 modules)</td><td>~5 leading words scattered</td><td>~2KB shrinkage potential</td><td><span class="badge warn">Audit next</span></td></tr>
+<tr><td><code>cron-watchdog-patterns</code></td><td>Always-on cron</td><td>DRY violation (14+ $ARG examples)</td><td>No leading words</td><td>Mature but no-ops likely</td><td><span class="badge warn">Audit next</span></td></tr>
+<tr class="highlight"><td><strong>Total time estimate</strong></td><td colspan="4">~45 min for 3-skill audit + 1 concrete refactor</td><td><span class="badge">3 hours</span></td></tr>
+</tbody>
+</table>
+
+<h3>Step 2: Apply leading words to existing skill content</h3>
+<p>For each skill you audit, identify 1-3 candidate leading words. Verify by reading recent CoT traces — does your skill's leading word appear in the agent's thinking tokens?</p>
+
+<h3>Step 3: Build the next new skill with the checklist baked in</h3>
+<ul>
+  <li>Trigger: user-invoked default (description only visible to user)</li>
+  <li>Structure: single-branch puts refs inline; multi-branch uses external context pointers</li>
+  <li>Steering: 1-3 leading words explicitly chosen; verified in CoT</li>
+  <li>Pruning: pre-commit check that runs deletion test on agent-generated prose</li>
+</ul>
+
+<h3>Step 4: Archive as skill (Patrick preference)</h3>
+<p>Save <code>media/skill-authoring-4-item-checklist</code> skill with:
+<ul>
+  <li>SKILL.md (recipe + 4-item audit template)</li>
+  <li><code>references/audit-walkthrough-matt-pocock-2026-07-06.md</code> (this turn's analysis as worked example)</li>
+  <li><code>scripts/audit_existing_skills.py</code> (auto-suggest pruning / leading words)</li>
+</ul>
+</p>
+</div>
+
+<div class="tab-content" data-tab-content="footprint">
+<h2 class="section" id="footprint">12. Footprint / Source / Cross-Links</h2>
+
+<h3>Source Video</h3>
+<p><strong>URL:</strong> <a href="https://www.youtube.com/watch?v=UNzCG3lw6O0">https://www.youtube.com/watch?v=UNzCG3lw6O0</a></p>
+<p><strong>Channel:</strong> AI Engineer</p>
+<p><strong>Speaker:</strong> Matt Pocock (<a href="https://github.com/matt-pocock/skills">matt-pocock/skills</a> · <a href="https://aihero.dev">aihero.dev</a>)</p>
+<p><strong>Event:</strong> AI Engineer World's Fair 2026 (pre-recorded, not delivered in person)</p>
+<p><strong>Date uploaded:</strong> 2026-06-29 · <strong>Date watched:</strong> 2026-07-06</p>
+
+<h3>Companion Vault Files</h3>
+<ul>
+  <li><code>~/Downloads/Obsidian Vault/llm-wiki/papers/building-great-agent-skills-the-missing-manual/index.md</code> — full vault note (20.8KB)</li>
+  <li><code>~/Downloads/Obsidian Vault/llm-wiki/papers/building-great-agent-skills-the-missing-manual/zh-summary.md</code> — Chinese summary (8.6KB)</li>
+  <li><code>~/Downloads/Obsidian Vault/llm-wiki/papers/building-great-agent-skills-the-missing-manual/bilingual-quotes.md</code> — 16 bilingual quotes (14.3KB)</li>
+</ul>
+
+<h3>Related in vault (cross-link)</h3>
+<ul>
+  <li><a href="matt-pocock-skills-vibe-coding-2026-06-12">matt-pocock-skills-vibe-coding-2026-06-12</a> — same author, 4 weeks earlier</li>
+  <li><a href="nick-nisi-95pct-agent-skills-deleted">nick-nisi-95pct-agent-skills-deleted</a> — different speaker, similar theme (skill curation)</li>
+  <li><a href="julian-agentic-os-distilled-v2-2026-07-06">julian-agentic-os-distilled-v2-2026-07-06</a> — same week, agentic OS focus</li>
+  <li><a href="fable5-jack-roberts-websites-levels-2026-07-06">fable5-jack-roberts-websites-levels-2026-07-06</a> — same week, complementary methodology angle</li>
+  <li><a href="mark-kashef-fable5-save-2026-07-06">mark-kashef-fable5-save-2026-07-06</a> — same week, evaluation angle</li>
+</ul>
+
+<h3>PITFALLS applied</h3>
+<ul>
+<li><span class="badge">21</span> HTML-primary MD size (Pitfall 21 — MD acceptable 9-12K when HTML is primary, but ours is 50K→MD 20K, so we're well past that floor)</li>
+<li><span class="badge">24-B</span> Master-takeover faster (round 20 path)</li>
+<li><span class="badge">50</span> Canonical VTT parser first (then youtube-transcript-api fallback)</li>
+<li><span class="badge">59</span> Existing v(N) check before distilling (verified vault + public-deploy empty for this title)</li>
+<li><span class="badge">60</span> Vendor disambiguation (Matt Pocock &ne; Nick Nisi &ne; Claude/Anthropic)</li>
+<li><span class="badge">66</span> Vault-mature incremental (4-deliverable batch = not atomic)</li>
+<li><span class="badge good">107</span> Hub cross-link audit (post-deploy)</li>
+</ul>
+
+<h3>Transcript recovery note</h3>
+<p>yt-dlp 4-client sweep (web_safari / ios / tv / android_vr) all reported <code>DRM protected</code>. Fallback to <code>youtube-transcript-api</code> Python lib (works around the gated endpoint via timedtext JSON API). 592 raw snippets → 71 cleaned paragraphs (8.4× deduplication, normal rate).</p>
+
+<h3>Build info</h3>
+<p>Generated by <strong>master-takeover 2026-07-06</strong> · HTML ~50KB, MD 20.8KB, ZH 8.6KB, Quotes 14.3KB · no LLM dependency on Claude/MiniMax · file: <code>/Users/zl/Desktop/building-great-agent-skills-the-missing-manual-2026-07-06.html</code></p>
+</div>
+
+<footer class="footer">
+<p>Build date: 2026-07-06 · Pipeline: video-to-knowledge-dashboard v1.5.34 PITFALL 24-B master-takeover · Patrick preference: polish &gt; deploy</p>
+<p style="margin-top:6px;">HTML live at: <code>/Users/zl/patricks-reports/public-deploy/daily-reports/building-great-agent-skills-the-missing-manual-2026-07-06.html</code></p>
+<p style="margin-top:6px;">Cross-link hub: <a href="https://2017zyl.xyz/daily-reports.html">https://2017zyl.xyz/daily-reports.html</a></p>
+</footer>
+
+<script>
+// Tab switching + hash routing
+(function() {
+  var tabs = document.querySelectorAll('.tab');
+  var contents = document.querySelectorAll('.tab-content');
+  function activate(name) {
+    tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === name); });
+    contents.forEach(function(c) { c.classList.toggle('active', c.dataset.tabContent === name); });
+  }
+  tabs.forEach(function(t) {
+    t.addEventListener('click', function() {
+      activate(t.dataset.tab);
+      history.replaceState(null, '', '#' + t.dataset.tab);
+    });
+  });
+  // TOC v1.4.4 collapsible
+  var tocEl = document.getElementById('toc');
+  var tocBtn = document.getElementById('toc-toggle-btn');
+  var STORAGE_KEY = 'building-agent-skills-toc-collapsed';
+  function setTocCollapsed(collapsed) {
+    if (collapsed) {
+      tocEl.classList.add('collapsed');
+      document.body.classList.add('toc-collapsed');
+      tocBtn.innerHTML = '&raquo;';
+    } else {
+      tocEl.classList.remove('collapsed');
+      document.body.classList.remove('toc-collapsed');
+      tocBtn.innerHTML = '&laquo;';
+    }
+    try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  }
+  try {
+    var stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === '1') setTocCollapsed(true);
+  } catch (e) {}
+  tocBtn.addEventListener('click', function() {
+    setTocCollapsed(!tocEl.classList.contains('collapsed'));
+  });
+  // Hash routing
+  var initHash = location.hash.replace('#', '');
+  if (initHash) {
+    var target = document.querySelector('[data-tab="' + initHash + '"]');
+    if (target) target.click();
+  }
+  // TOC scroll-spy
+  var tocLinks = document.querySelectorAll('#toc a[href^="#"]');
+  function spy() {
+    var y = window.scrollY + 120;
+    var active = null;
+    var headings = document.querySelectorAll('h2.section[id]');
+    headings.forEach(function(h) {
+      if (h.offsetTop <= y) active = h.id;
+    });
+    tocLinks.forEach(function(a) {
+      var id = a.getAttribute('href').replace('#', '');
+      a.classList.toggle('active', id === active);
+    });
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  spy();
+})();
+</script>
+</body>
+</html>

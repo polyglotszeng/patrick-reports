@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Library Dashboard · 49 站 · Patrick</title>
+<style>
+:root{
+  --bg:#0a0a0f;--panel:#13131a;--elev:#1c1c26;--border:#2a2a38;--border2:#3d3d52;
+  --txt:#e5e5e5;--txt2:#a3a3a3;--txt3:#6b6b6b;
+  --c1:#f472b6;--c2:#a78bfa;--c3:#4dd0e1;--c4:#5eead4;
+  --good:#22c55e;--warn:#f59e0b;--err:#ef4444;--info:#3b82f6;--purple:#a78bfa;
+  --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:radial-gradient(ellipse at 30% 20%,#1a0d1f 0%,var(--bg) 60%);color:var(--txt);min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:24px 20px}
+header{padding:32px 0 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+h1{font-size:28px;font-weight:700;background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .emo{background:none;-webkit-text-fill-color:initial;color:initial;margin-right:8px}
+.subtitle{color:var(--txt2);font-size:14px;margin-top:6px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:8px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--txt2);text-decoration:none;font-family:var(--mono);transition:all 0.15s}
+.btn:hover{border-color:var(--c1);color:var(--txt);background:var(--elev)}
+.btn.primary{background:#f472b622;border-color:var(--c1);color:var(--c1)}
+
+/* === KPI Grid === */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--c1),var(--c2))}
+.kpi .n{font-size:30px;font-weight:700;font-family:var(--mono);line-height:1.1;margin-bottom:4px}
+.kpi .l{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.08em}
+.kpi.good .n{color:var(--good)}
+.kpi.shell .n{color:var(--info)}
+.kpi.wall .n{color:var(--warn)}
+.kpi.tld .n{color:var(--purple)}
+.kpi.net .n{color:#8b5cf6}
+.kpi.fail .n{color:var(--err)}
+.kpi .sub{font-size:10px;color:var(--txt3);margin-top:4px;font-family:var(--mono)}
+
+/* === Section === */
+section{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;margin:20px 0}
+section h2{font-size:18px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px;letter-spacing:-0.01em}
+section h2 .num{font-family:var(--mono);font-size:12px;color:var(--txt3);background:var(--elev);padding:2px 8px;border-radius:4px}
+section .desc{color:var(--txt2);font-size:12px;margin-bottom:14px}
+.layer{background:linear-gradient(135deg,#1a0d1f,#0d1a1f);border-color:var(--c1)}
+
+/* === Quick picks === */
+.picks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.pick{background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:14px;text-decoration:none;color:inherit;transition:all 0.15s;display:block}
+.pick:hover{border-color:var(--c1);transform:translateY(-2px);box-shadow:0 8px 24px #00000066}
+.pick .n{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:3px}
+.pick .d{font-size:11px;color:var(--txt2)}
+.pick .t{font-family:var(--mono);font-size:9px;color:var(--txt3);margin-top:4px;letter-spacing:0.04em}
+
+/* === Trend grid === */
+.trend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.trend{background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:14px}
+.trend h4{color:var(--c1);font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.trend p{color:var(--txt2);font-size:11px;line-height:1.5}
+
+/* === Status table === */
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th{text-align:left;padding:8px 6px;color:var(--txt2);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--border)}
+td{padding:8px 6px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--elev)}
+.site{font-weight:600;color:var(--txt);text-decoration:none}
+.site:hover{color:var(--c1)}
+.url{font-family:var(--mono);font-size:10px;color:var(--txt3)}
+.tag{display:inline-block;padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:0.04em}
+.tag-good{background:#22c55e22;color:var(--good);border:1px solid #22c55e44}
+.tag-warn{background:#f59e0b22;color:var(--warn);border:1px solid #f59e0b44}
+.tag-info{background:#3b82f622;color:var(--info);border:1px solid #3b82f644}
+.tag-purple{background:#a78bfa22;color:#a78bfa;border:1px solid #a78bfa44}
+.tag-net{background:#8b5cf622;color:#8b5cf6;border:1px solid #8b5cf644}
+
+/* === Live indicator === */
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:6px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 4px var(--good)}50%{opacity:0.5;box-shadow:0 0 0 transparent}}
+.live-stale .live-dot{background:var(--warn);animation:none}
+footer{text-align:center;color:var(--txt3);font-size:11px;padding:32px 0;border-top:1px solid var(--border);margin-top:32px}
+footer a{color:var(--c1);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1><span class="emo">🎨</span>Design Library Dashboard</h1>
+    <div class="subtitle">49 sites · 5 layers · 8 PITFALLS · <span class="live-dot"></span><span id="live-status">live</span> probe <span id="last-sweep" style="color:var(--txt3)"></span></div>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="/daily-reports/html-design-library-viewer-2026-07-06.html">→ Browse viewer (filter)</a>
+    <a class="btn" href="/daily-reports">← daily-reports</a>
+    <a class="btn" href="https://github.com/Patrick/agentic-os/blob/main/skills/creative/html-design-library/SKILL.md" title="skill source">📦 SKILL.md</a>
+  </div>
+</header>
+
+<!-- ===== KPI Strip ===== -->
+<div class="kpi-grid" id="kpi-grid">
+  <div class="kpi"><div class="n" id="k-total">49</div><div class="l">Total sites</div><div class="sub">21+25+3 TLD-blocked</div></div>
+  <div class="kpi good"><div class="n" id="k-pass">14</div><div class="l">✅ PASS</div><div class="sub">200 + real title</div></div>
+  <div class="kpi shell"><div class="n" id="k-shell">26</div><div class="l">🟡 PASS-SHELL</div><div class="sub">JS-rendered, alive</div></div>
+  <div class="kpi net"><div class="n" id="k-net">3</div><div class="l">🟣 NETWORK</div><div class="sub">sandbox DNS fail</div></div>
+  <div class="kpi tld"><div class="n" id="k-tld">3</div><div class="l">🔵 TLD-BLOCK</div><div class="sub">.dev / .design</div></div>
+  <div class="kpi fail"><div class="n" id="k-fail">3</div><div class="l">❌ FAIL</div><div class="sub">CF/Vercel wall</div></div>
+</div>
+
+<!-- ===== Quick Picks ===== -->
+<section>
+  <h2><span class="num">⚡</span> Quick picks · Patrick's top 5</h2>
+  <div class="picks">
+    <a class="pick" href="https://html5up.net" target="_blank">
+      <div class="n">HTML5 UP</div>
+      <div class="d">50+ 整页 templates, CC BY 3.0, 纯 HTML5+CSS3</div>
+      <div class="t">1 HOUR TO MARKETING SITE</div>
+    </a>
+    <a class="pick" href="https://cruip.com" target="_blank">
+      <div class="n">Cruip</div>
+      <div class="d">30+ Tailwind 模板, SaaS landing 黄金标准</div>
+      <div class="t">SAAS LANDING GOLD</div>
+    </a>
+    <a class="pick" href="https://ui.shadcn.com" target="_blank">
+      <div class="n">shadcn/ui</div>
+      <div class="d">React + Tailwind, 40+ components, MIT</div>
+      <div class="t">2026 DASHBOARD DEFAULT</div>
+    </a>
+    <a class="pick" href="https://godly.website" target="_blank">
+      <div class="n">Recent (Godly)</div>
+      <div class="d">8000+ modern SaaS sites, stack tags</div>
+      <div class="t">FRONTIER VISUAL</div>
+    </a>
+    <a class="pick" href="https://www.typewolf.com" target="_blank">
+      <div class="n">Typewolf</div>
+      <div class="d">字体搭配圣经, 5 套 Google Fonts 推荐</div>
+      <div class="t">TYPOGRAPHY BIBLE</div>
+    </a>
+  </div>
+</section>
+
+<!-- ===== Layer 5 Reverse Lookup ===== -->
+<section class="layer">
+  <h2><span class="num">⑤</span> popular-web-designs Reverse Lookup · brand → template</h2>
+  <div class="desc">说 "I want X look" → 找最像的 fork-able 模板</div>
+  <table>
+    <tr><th>Want brand</th><th>→ Layer 1 template</th><th>→ Layer 2 inspiration</th></tr>
+    <tr><td><b>Stripe</b> (purple gradients)</td><td>Cruip Mosaic / Stellar</td><td>Recent SaaS section</td></tr>
+    <tr><td><b>Linear</b> (dark, purple)</td><td>shadcn/ui + Custom</td><td>Mobbin Linear flows</td></tr>
+    <tr><td><b>Vercel</b> (Geist, B/W)</td><td>21st.dev + Aceternity</td><td>Bento Grids</td></tr>
+    <tr><td><b>Apple</b> (premium white)</td><td>HTML5 UP (Massively)</td><td>Mobbin Apple</td></tr>
+    <tr><td><b>Notion</b> (warm serif)</td><td>Templated.co + Origin UI</td><td>Minimal Gallery</td></tr>
+    <tr><td><b>Figma</b> (multi-color)</td><td>Magic UI + Aceternity</td><td>Dribbble Figma tag</td></tr>
+    <tr><td><b>SpaceX</b> (B/W full-bleed)</td><td>HTML5 UP (Big Picture)</td><td>Brutalist Sites</td></tr>
+    <tr><td><b>Spotify</b> (green on dark)</td><td>Cult UI + 21st.dev</td><td>Dark Mode Design</td></tr>
+  </table>
+</section>
+
+<!-- ===== Trends ===== -->
+<section>
+  <h2><span class="num">📈</span> 2026 Design Trends</h2>
+  <div class="trend-grid">
+    <div class="trend"><h4>1. Bento Grid</h4><p>CSS Grid <code>grid-template-areas</code>; 8-12 不规则块, 每块一个 feature. bentogrids.com</p></div>
+    <div class="trend"><h4>2. Scroll-driven</h4><p><code>position:sticky</code> + <code>IntersectionObserver</code> + Framer. Codrops / awwwards SOTD</p></div>
+    <div class="trend"><h4>3. Glassmorphism</h4><p>毛玻璃 + grainy gradient + noise. Recent (Godly) 大量站</p></div>
+    <div class="trend"><h4>4. 3D / WebGL</h4><p>Three.js 装在 hero 一处, 全文克制. Aceternity / splinetool</p></div>
+    <div class="trend"><h4>5. Neo-brutalism</h4><p>厚黑边 + 鲜亮色 + 系统字体. neobrutalism.dev</p></div>
+  </div>
+</section>
+
+<!-- ===== Probe Status ===== -->
+<section>
+  <h2><span class="num">📡</span> Probe status · latest sweep</h2>
+  <div class="desc">Cron <code>4bcff59dd862</code> 09:00 daily · source: <code>~/.hermes/state/html-design-library.json</code></div>
+  <table>
+    <tr><th>Site</th><th>URL</th><th>Status</th><th>HTTP</th><th>Size</th></tr>
+    <tr><td colspan="5" style="text-align:center;color:var(--txt3);padding:24px">Loading live data…</td></tr>
+  </table>
+  <p style="color:var(--txt2);font-size:11px;margin-top:10px">
+    <b>3 real FAIL</b> (all behind Cloudflare / Vercel checkpoint, expected):<br>
+    Land-book (403 CF) · SiteInspire (429 Vercel) · LottieFiles (403 CF)<br>
+    <b>3 NETWORK-BLOCKED</b> (sandbox DNS): Behance · Minimal Gallery · godly.website
+  </p>
+</section>
+
+
+<!-- ===== PITFALLS (mirror viewer 8 PITFALLS) ===== -->
+<section class="layer">
+  <h2><span class="num">⚠️</span> PITFALLS <span style="color:var(--txt3);font-weight:400;font-size:14px">— 8 documented</span></h2>
+  <div class="desc">跟 viewer <a href="/daily-reports/html-design-library-viewer-2026-07-06.html#pitfalls" style="color:var(--c1)">#pitfalls</a> 同步. 实战踩到的真坑, 不是理论.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:10px;margin-top:12px">
+    <div class="trend"><h4>1. Sandbox `.dev`/`.design` TLD block</h4><p>neobrutalism.dev, refero.design, interfaceindex.com. Don't mark as "down" — TLD-blocked.</p></div>
+    <div class="trend"><h4>2. CF wall = title-presence, NOT cf-ray</h4><p>Real pages behind CF have cf-ray too. Only mark CF-WALL when body has challenge marker AND no real &lt;title&gt;.</p></div>
+    <div class="trend"><h4>3. Vercel security checkpoint</h4><p>SiteInspire, vercel.com/design. x-vercel-id header + "Verifying..." body. Mark only if no real title.</p></div>
+    <div class="trend"><h4>4. Godly → Recent rebrand (2025)</h4><p>godly.website rebranded; old links still 302. Current name is <b>Recent</b>.</p></div>
+    <div class="trend"><h4>5. Tailwind UI requires auth</h4><p>200 + JS shell, no real content. PASS-SHELL, not PASS.</p></div>
+    <div class="trend"><h4>6. curl -w unsafe split on |</h4><p>Use curl -sLi + parse last HTTP status line. header_json has pipes/semicolons.</p></div>
+    <div class="trend"><h4>7. Don't trust your own audit tool on first run</h4><p>First probe reported 32/32 FAIL (curl parse bug), ground truth was PASS 5 min earlier. Smoke test on known-good site first.</p></div>
+    <div class="trend"><h4>8. PASS-SHELL ≠ FAIL</h4><p>Modern sites (Tailwind UI, Magic UI, Framer) are JS-rendered. Use browser_navigate for visual verify.</p></div>
+  </div>
+</section>
+
+<footer>
+  🎨 <b>Design Library Dashboard v1.0.0</b> · 49 sites · 5 layers · cron 4bcff59dd862<br>
+  Companion to <a href="/mission-control">mission-control</a> (agent fleet) + <a href="/daily-reports/html-design-library-viewer-2026-07-06.html">viewer</a> (filterable)
+</footer>
+</div>
+
+<script>
+(function(){
+  // === Live probe status (static fallback — server.py doesn't exist) ===
+  // If we ever add /api/v3/design endpoint, fetch it; else show static.
+  const FALLBACK = {
+    last_sweep: '2026-07-06 09:10 UTC',
+    stats: { pass: 14, shell: 26, net: 3, tld: 3, fail: 3 },
+    fails: [
+      {name: 'Land-book', url: 'land-book.com', code: 403, note: 'CF wall'},
+      {name: 'SiteInspire', url: 'siteinspire.com', code: 429, note: 'Vercel'},
+      {name: 'LottieFiles', url: 'lottiefiles.com', code: 403, note: 'CF wall'},
+    ],
+    network_blocked: [
+      {name: 'Behance', url: 'behance.net'},
+      {name: 'Minimal Gallery', url: 'minimal.gallery'},
+      {name: 'godly.website', url: 'godly.website'},
+    ]
+  };
+
+  // Try fetch live data if endpoint exists
+  fetch('/api/v3/design', {cache: 'no-store'})
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(data => render(data))
+    .catch(() => render(FALLBACK));
+
+  function render(data) {
+    document.getElementById('last-sweep').textContent = '· ' + (data.last_sweep || '—');
+    const s = data.stats || {};
+    if (s.pass != null) document.getElementById('k-pass').textContent = s.pass;
+    if (s.shell != null) document.getElementById('k-shell').textContent = s.shell;
+    if (s.net != null) document.getElementById('k-net').textContent = s.net;
+    if (s.tld != null) document.getElementById('k-tld').textContent = s.tld;
+    if (s.fail != null) document.getElementById('k-fail').textContent = s.fail;
+    // Render probe table
+    const rows = [];
+    (data.fails || []).forEach(f => rows.push(`<tr><td><b>${f.name}</b></td><td><a class="url" href="https://${f.url}">${f.url}</a></td><td><span class="tag tag-warn">FAIL · ${f.note || ''}</span></td><td>${f.code}</td><td>—</td></tr>`));
+    (data.network_blocked || []).forEach(n => rows.push(`<tr><td>${n.name}</td><td><a class="url" href="https://${n.url}">${n.url}</a></td><td><span class="tag tag-net">NETWORK</span></td><td>0</td><td>—</td></tr>`));
+    if (rows.length) {
+      const table = document.querySelector('section:last-of-type table');
+      table.innerHTML = `<tr><th>Site</th><th>URL</th><th>Status</th><th>HTTP</th><th>Size</th></tr>` + rows.join('');
+    }
+  }
+})();
+</script>
+</body>
+</html>

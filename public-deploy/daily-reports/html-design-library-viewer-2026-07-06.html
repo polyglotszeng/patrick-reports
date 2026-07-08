@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Design Library · 49 站 · Patrick</title>
+<style>
+:root{
+  --bg:#0d0d0d;--panel:#141414;--elev:#1a1a1a;--border:#262626;--border2:#3a3a3a;
+  --txt:#e5e5e5;--txt2:#a3a3a3;--txt3:#6b6b6b;
+  --c1:#f472b6;--c2:#a78bfa;--c3:#4dd0e1;--c4:#5eead4;--c5:#fbbf24;--c6:#fb7185;
+  --good:#22c55e;--warn:#f59e0b;--err:#ef4444;--info:#3b82f6;
+  --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:32px 24px}
+header{padding:48px 0 24px;border-bottom:1px solid var(--border)}
+h1{font-size:32px;font-weight:700;letter-spacing:-0.02em;background:linear-gradient(90deg,var(--c1),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .emo{background:none;-webkit-text-fill-color:initial;color:initial;margin-right:8px}
+.subtitle{color:var(--txt2);font-size:15px;margin-top:8px}
+.meta{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--txt3)}
+.meta span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--panel);border:1px solid var(--border);border-radius:6px}
+.meta b{color:var(--txt);font-weight:600}
+.searchbox{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,var(--bg) 70%,transparent);padding:18px 0 12px;margin:-18px 0 0}
+.searchbox input{width:100%;padding:14px 18px 14px 44px;background:var(--panel);border:1px solid var(--border2);border-radius:10px;color:var(--txt);font-size:15px;font-family:inherit;transition:border-color 0.2s,box-shadow 0.2s;outline:none}
+.searchbox input:focus{border-color:var(--c1);box-shadow:0 0 0 3px #f472b622}
+.searchbox{position:relative}
+.searchbox::before{content:"🔍";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;z-index:2;pointer-events:none}
+.searchbox .hint{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:11px;color:var(--txt3);pointer-events:none;background:var(--panel);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.searchbox .hint kbd{font-family:inherit;background:var(--elev);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--txt2);border:1px solid var(--border2)}
+.filterbar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.filterchip{padding:5px 12px;background:var(--panel);border:1px solid var(--border);border-radius:999px;font-size:11px;color:var(--txt2);cursor:pointer;transition:all 0.15s;font-family:var(--mono);letter-spacing:0.02em}
+.filterchip:hover{border-color:var(--c1);color:var(--txt)}
+.filterchip.active{background:#f472b622;border-color:var(--c1);color:var(--c1)}
+.filterchip .n{color:var(--txt3);margin-left:4px}
+.filterchip.active .n{color:var(--c1)}
+.layer{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px;margin:24px 0;overflow-x:auto}
+.layer h2{font-size:20px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px;letter-spacing:-0.01em}
+.layer h2 .num{font-family:var(--mono);font-size:13px;color:var(--txt3);background:var(--elev);padding:2px 8px;border-radius:4px}
+.layer .desc{color:var(--txt2);font-size:13px;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 8px;color:var(--txt2);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--border)}
+td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--elev)}
+.site{font-weight:600;color:var(--txt);text-decoration:none}
+.site:hover{color:var(--c1)}
+.url{font-family:var(--mono);font-size:11px;color:var(--txt3)}
+.tag{display:inline-block;padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.04em}
+.tag-free{background:#22c55e22;color:var(--good);border:1px solid #22c55e44}
+.tag-paid{background:#f59e0b22;color:var(--warn);border:1px solid #f59e0b44}
+.tag-mit{background:#3b82f622;color:var(--info);border:1px solid #3b82f644}
+.tag-cc{background:#a78bfa22;color:#a78bfa;border:1px solid #a78bfa44}
+.tag-verify{background:var(--elev);color:var(--txt2);border:1px solid var(--border2)}
+.layer5{background:linear-gradient(135deg,#1a0d1f,#0d1a1f);border-color:var(--c1)}
+.reverse-table th:first-child{width:24%}
+.toc{position:sticky;top:90px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:20px 0;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;z-index:40}
+.toc a{color:var(--txt2);text-decoration:none;font-family:var(--mono);padding:4px 8px;border-radius:4px;transition:background 0.15s}
+.toc a:hover{background:var(--elev);color:var(--txt)}
+.trend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:14px}
+.trend{background:var(--elev);border:1px solid var(--border);border-radius:10px;padding:16px}
+.trend h4{color:var(--c1);font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.trend p{color:var(--txt2);font-size:12px}
+.pitfall{margin:8px 0;padding:12px 14px;background:var(--elev);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;font-size:13px;color:var(--txt2)}
+.pitfall b{color:var(--txt)}
+.probe-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.stat{text-align:center;padding:12px;background:var(--elev);border-radius:8px;border:1px solid var(--border)}
+.stat .n{font-size:22px;font-weight:700;font-family:var(--mono)}
+.stat .l{font-size:11px;color:var(--txt3);margin-top:2px}
+.stat.good .n{color:var(--good)}
+.stat.shell .n{color:var(--info)}
+.stat.wall .n{color:var(--warn)}
+.stat.tld .n{color:#a78bfa}
+.stat.net .n{color:#8b5cf6}
+.stat.fail .n{color:var(--err)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--txt3);font-size:14px;display:none}
+.empty-state.show{display:block}
+.sortbar{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;align-items:center;font-size:11px;color:var(--txt3)}
+.sortbar .label{font-family:var(--mono);margin-right:4px;letter-spacing:0.04em}
+.sortchip{padding:4px 10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;font-size:10px;color:var(--txt2);cursor:pointer;transition:all 0.15s;font-family:var(--mono);letter-spacing:0.02em}
+.sortchip:hover{border-color:var(--c2);color:var(--txt)}
+.sortchip.active{background:#a78bfa22;border-color:var(--c2);color:var(--c2)}
+@media (max-width:768px){
+  .filterbar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:thin}
+  .filterbar::-webkit-scrollbar{height:4px}
+  .filterbar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+  .filterchip{flex-shrink:0;white-space:nowrap}
+  .searchbox input{font-size:14px;padding:12px 16px 12px 40px}
+  .wrap{padding:20px 14px}
+  h1{font-size:24px}
+  section{padding:16px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpi{padding:12px}
+  .kpi .n{font-size:22px}
+  table{font-size:11px}
+  th,td{padding:6px 4px}
+  .meta{gap:8px}
+  .meta span{font-size:11px;padding:3px 7px}
+}
+footer{text-align:center;color:var(--txt3);font-size:12px;padding:32px 0;border-top:1px solid var(--border);margin-top:48px}
+footer a{color:var(--c1);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1><span class="emo">🎨</span>HTML Design Library</h1>
+  <div class="subtitle">Patrick's personal catalog · 49 sites across 5 layers · live-verified 2026-07-06</div>
+  <div class="meta">
+    <span>📦 <b>skills/creative/html-design-library v1.1.0</b></span>
+    <span>🔗 <b>49 sites</b> (21 templates + 25 inspiration + 3 system/TLD)</span>
+    <span>🛡️ <b>8 PITFALLS</b> documented</span>
+    <span>⏰ <b>cron 4bcff59dd862</b> · 09:00 daily</span>
+    <span>🏷️ <b>vault</b>: design/index.md</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#layer1">① Template (21)</a>
+  <a href="#layer2">② Frontier (25)</a>
+  <a href="#layer3">③ Systems (18)</a>
+  <a href="#layer4">④ Trends (5)</a>
+  <a href="#layer5">⑤ Brand Reverse (8)</a>
+  <a href="#probe">📡 Live probe</a>
+  <a href="#pitfalls">⚠️ Pitfalls</a>
+</nav>
+
+<div class="searchbox">
+  <input type="search" id="q" placeholder="搜索 49 站 — name / URL / 标签 / 用途…" autocomplete="off" autofocus>
+  <span class="hint"><kbd>/</kbd> 聚焦 · <kbd>Esc</kbd> 清空</span>
+  <div class="filterbar" id="filterbar">
+    <span class="filterchip active" data-cat="all">All <span class="n" id="n-all"></span></span>
+    <span class="filterchip" data-cat="L1">① Template <span class="n"></span></span>
+    <span class="filterchip" data-cat="L2">② Frontier <span class="n"></span></span>
+    <span class="filterchip" data-cat="L3">③ Systems <span class="n"></span></span>
+    <span class="filterchip" data-cat="L4">④ Trends <span class="n"></span></span>
+    <span class="filterchip" data-cat="L5">⑤ Reverse <span class="n"></span></span>
+    <span class="filterchip" data-cat="MIT">MIT <span class="n"></span></span>
+    <span class="filterchip" data-cat="CC">CC <span class="n"></span></span>
+    <span class="filterchip" data-cat="FREE">Free <span class="n"></span></span>
+    <span class="filterchip" data-cat="PAID">Paid <span class="n"></span></span>
+    <span class="filterchip" data-cat="AI">AI-first <span class="n"></span></span>
+    <span class="filterchip" data-cat="MOTION">Motion <span class="n"></span></span>
+  </div>
+  <div class="sortbar" id="sortbar">
+    <span class="label">sort:</span>
+    <span class="sortchip active" data-sort="default">default</span>
+    <span class="sortchip" data-sort="name">A→Z</span>
+    <span class="sortchip" data-sort="mit-first">MIT first</span>
+    <span class="sortchip" data-sort="free-first">Free first</span>
+  </div>
+</div>
+
+<div class="empty-state" id="empty">🔍 没有匹配的站. 试试别的关键词 / filter chip.</div>
+
+<!-- ===== LAYER 1 ===== -->
+<section class="layer" id="layer1">
+  <h2><span class="num">L1</span> Template Marketplaces <span style="color:var(--txt3);font-weight:400;font-size:14px">— 21 sites, full HTML to fork</span></h2>
+  <div class="desc">Tech stack legend: <span class="tag tag-cc">HTML5+CSS3</span> <span class="tag tag-mit">Tailwind</span> <span class="tag tag-verify">React+Tailwind</span>. Top 5 ROI for SaaS landing: <b>Cruip · shadcn · Magic UI · Aceternity · 21st.dev</b>. Top 3 for AI-first prototyping: <b>v0.dev · bolt.new · Lovable</b>.</div>
+  <table>
+    <tr><th>Site</th><th>Stack</th><th>License</th><th>Best for</th></tr>
+    <tr><td><a class="site" href="https://html5up.net">HTML5 UP</a><br><span class="url">html5up.net</span></td><td><span class="tag tag-cc">HTML5+CSS3</span></td><td><span class="tag tag-cc">CC BY 3.0</span></td><td>50+ 整页 templates; 1 hour to marketing site</td></tr>
+    <tr><td><a class="site" href="https://cruip.com">Cruip</a> ⭐<br><span class="url">cruip.com</span></td><td><span class="tag tag-mit">Tailwind</span></td><td><span class="tag tag-paid">$19-79</span></td><td><b>SaaS landing 黄金标准</b> (Mosaic/Stellar/Open PRO)</td></tr>
+    <tr><td><a class="site" href="https://ui.shadcn.com">shadcn/ui</a> ⭐<br><span class="url">ui.shadcn.com</span></td><td><span class="tag tag-verify">React+Tailwind</span></td><td><span class="tag tag-mit">MIT</span></td><td><b>2026 dashboard 默认起点</b> (40+ components)</td></tr>
+    <tr><td><a class="site" href="https://tailwindui.com">Tailwind UI</a><br><span class="url">tailwindui.com</span></td><td><span class="tag tag-mit">Tailwind</span></td><td><span class="tag tag-paid">$299</span></td><td>Tailwind 官方, 质量天花板 (500+ components)</td></tr>
+    <tr><td><a class="site" href="https://startbootstrap.com">Start Bootstrap</a><br><span class="url">startbootstrap.com</span></td><td><span class="tag tag-verify">Bootstrap 5</span></td><td><span class="tag tag-mit">MIT</span></td><td>经典 admin/dashboard 模板 (80+)</td></tr>
+    <tr><td><a class="site" href="https://templated.co">Templated.co</a><br><span class="url">templated.co</span></td><td><span class="tag tag-cc">HTML5+CSS3</span></td><td><span class="tag tag-cc">CC</span></td><td>40+ free static sites, 复古风较多</td></tr>
+    <tr><td><a class="site" href="https://colorlib.com">Colorlib</a><br><span class="url">colorlib.com</span></td><td>Bootstrap/WP</td><td><span class="tag tag-mit">MIT/Comm</span></td><td>300+ 模板混合</td></tr>
+    <tr><td><a class="site" href="https://themeforest.net">ThemeForest</a><br><span class="url">themeforest.net</span></td><td>Various</td><td><span class="tag tag-paid">$19-99</span></td><td>50,000+ 各种 stack, 鱼龙混杂</td></tr>
+    <tr><td><a class="site" href="https://magicui.design">Magic UI</a> ⭐<br><span class="url">magicui.design</span></td><td>React+Tailwind+Framer</td><td><span class="tag tag-mit">MIT</span></td><td><b>2026 动画组件</b></td></tr>
+    <tr><td><a class="site" href="https://ui.aceternity.com">Aceternity UI</a> ⭐<br><span class="url">ui.aceternity.com</span></td><td>React+Tailwind+Framer</td><td><span class="tag tag-mit">MIT</span></td><td><b>WebGL/3D 卡片 / Bento / 3D pin</b></td></tr>
+    <tr><td><a class="site" href="https://preline.co">Preline UI</a><br><span class="url">preline.co</span></td><td>HTML+Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td>250+ 组件, shadcn 替代 (不需 React)</td></tr>
+    <tr><td><a class="site" href="https://flowbite.com">Flowbite</a><br><span class="url">flowbite.com</span></td><td>Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td>400+ Tailwind 组件, dashboard 完整</td></tr>
+    <tr><td><a class="site" href="https://park-ui.com">Park UI</a><br><span class="url">park-ui.com</span></td><td>Ark+Tailwind/Panda</td><td><span class="tag tag-mit">MIT</span></td><td>Panda CSS + Ark UI 新派</td></tr>
+    <tr><td><a class="site" href="https://cult-ui.com">Cult UI</a><br><span class="url">cult-ui.com</span></td><td>React+Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td>现代 dialog/sidebar/card</td></tr>
+    <tr><td><a class="site" href="https://21st.dev">21st.dev</a> ⭐<br><span class="url">21st.dev</span></td><td>React+Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td><b>100+ 新派社区组件, 搜索+copy 模式</b></td></tr>
+    <tr><td><a class="site" href="https://originui.com">Origin UI</a><br><span class="url">originui.com</span></td><td>React+Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td>shadcn 风格变体</td></tr>
+    <tr><td><a class="site" href="https://v0.dev">v0.dev</a> ⭐ 🆕<br><span class="url">v0.dev</span></td><td>AI React+Tailwind</td><td><span class="tag tag-paid">Credits</span></td><td><b>AI 组件生成, shadcn 默认输出</b></td></tr>
+    <tr><td><a class="site" href="https://bolt.new">bolt.new</a> ⭐ 🆕<br><span class="url">bolt.new</span></td><td>AI React</td><td><span class="tag tag-paid">Credits</span></td><td><b>StackBlitz 旗下 AI 全栈生成</b></td></tr>
+    <tr><td><a class="site" href="https://replit.com/ai">Replit Agent</a><br><span class="url">replit.com/ai</span></td><td>AI Fullstack</td><td><span class="tag tag-free">Free tier</span></td><td>AI 全栈, 含 backend</td></tr>
+    <tr><td><a class="site" href="https://lovable.dev">Lovable</a><br><span class="url">lovable.dev</span></td><td>AI React</td><td><span class="tag tag-free">Free tier</span></td><td>前身 GPT Engineer, 2026 主流</td></tr>
+    <tr><td><a class="site" href="https://wrappixel.com">WrapPixel</a><br><span class="url">wrappixel.com</span></td><td>React/Bootstrap</td><td><span class="tag tag-mit">MIT/Comm</span></td><td>admin dashboard 专精</td></tr>
+    <tr><td><a class="site" href="https://themefisher.com">ThemeFisher</a><br><span class="url">themefisher.com</span></td><td>HTML+Tailwind</td><td><span class="tag tag-mit">MIT</span></td><td>200+ 静态 HTML5+Tailwind 模板</td></tr>
+  </table>
+</section>
+
+<!-- ===== LAYER 2 ===== -->
+<section class="layer" id="layer2">
+  <h2><span class="num">L2</span> Frontier Design Databases <span style="color:var(--txt3);font-weight:400;font-size:14px">— 25 sites, visual inspiration</span></h2>
+  <div class="desc">Award sites + galleries + motion libraries. Top 4 for "I want a frontier feel": <b>Recent · Mobbin · Awwwards · Bento Grids</b>.</div>
+  <table>
+    <tr><th>Site</th><th>Type</th><th>License</th><th>Best for</th></tr>
+    <tr><td><a class="site" href="https://www.awwwards.com">Awwwards</a><br><span class="url">awwwards.com</span></td><td>Award</td><td><span class="tag tag-free">Free</span></td><td>Front-end craft benchmarks, SOTD 每日</td></tr>
+    <tr><td><a class="site" href="https://godly.website">Recent</a> (前 Godly) ⭐<br><span class="url">godly.website</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td><b>8000+ modern SaaS</b> with stack tags · rebrand 2025</td></tr>
+    <tr><td><a class="site" href="https://mobbin.com">Mobbin</a> ⭐<br><span class="url">mobbin.com</span></td><td>Gallery</td><td><span class="tag tag-paid">Freemium</span></td><td><b>400k+ 真实 iOS/Android/web 截图</b></td></tr>
+    <tr><td><a class="site" href="https://land-book.com">Land-book</a> ⚠️<br><span class="url">land-book.com</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td>Product/landing 截图 · CF wall</td></tr>
+    <tr><td><a class="site" href="https://onepagelove.com">One Page Love</a><br><span class="url">onepagelove.com</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td>Single-page sites + their templates</td></tr>
+    <tr><td><a class="site" href="https://www.siteinspire.com">SiteInspire</a> ⚠️<br><span class="url">siteinspire.com</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td>Editorial curation · Vercel checkpoint</td></tr>
+    <tr><td><a class="site" href="https://hoverstat.es">Hover States</a><br><span class="url">hoverstat.es</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td>Alternative/expressive, micro-interactions</td></tr>
+    <tr><td><a class="site" href="https://www.footer.design">Footer Design</a><br><span class="url">footer.design</span></td><td>Niche</td><td><span class="tag tag-free">Free</span></td><td><b>1000+ real-world footers</b> (only one of its kind)</td></tr>
+    <tr><td><a class="site" href="https://savee.it">Savee</a><br><span class="url">savee.it</span></td><td>Gallery</td><td><span class="tag tag-free">Free</span></td><td>Pinterest-style visual bookmarking</td></tr>
+    <tr><td><a class="site" href="https://cssdesignawards.com">CSSDA</a><br><span class="url">cssdesignawards.com</span></td><td>Award</td><td><span class="tag tag-free">Free</span></td><td>Daily/weekly judged awards (SOTD)</td></tr>
+    <tr><td><a class="site" href="https://tympanus.net/codrops">Codrops</a><br><span class="url">tympanus.net/codrops</span></td><td>Tutorials</td><td><span class="tag tag-free">Free</span></td><td>Tutorials + creative-coding playground</td></tr>
+    <tr><td><a class="site" href="https://hakim.se">Hakim El Hattab</a><br><span class="url">hakim.se</span></td><td>Portfolio</td><td><span class="tag tag-free">Free</span></td><td>Creative-coding OG; physics, WebGL</td></tr>
+    <tr><td><a class="site" href="https://activetheory.net">Active Theory</a><br><span class="url">activetheory.net</span></td><td>Studio</td><td><span class="tag tag-free">Free</span></td><td>Top-tier WebGL/Three.js studio</td></tr>
+    <tr><td><a class="site" href="https://bentogrids.com">Bento Grids</a> ⭐<br><span class="url">bentogrids.com</span></td><td>Niche</td><td><span class="tag tag-free">Free</span></td><td><b>Canonical bento layouts reference</b></td></tr>
+    <tr><td><a class="site" href="https://darkmodedesign.com">Dark Mode Design</a><br><span class="url">darkmodedesign.com</span></td><td>Niche</td><td><span class="tag tag-free">Free</span></td><td>Dark-mode-only hand-picked gallery</td></tr>
+    <tr><td><a class="site" href="https://lottiefiles.com">LottieFiles</a> ⚠️ 🆕<br><span class="url">lottiefiles.com</span></td><td>Animation</td><td><span class="tag tag-mit">MIT</span></td><td>100k+ Lottie animations</td></tr>
+    <tr><td><a class="site" href="https://rive.app">Rive Showcase</a> 🆕<br><span class="url">rive.app</span></td><td>Animation</td><td><span class="tag tag-free">Free</span></td><td><b>Interactive animation, 2026 motion 主流</b></td></tr>
+    <tr><td><a class="site" href="https://www.framer.com">Framer Showcase</a> 🆕<br><span class="url">framer.com</span></td><td>Showcase</td><td><span class="tag tag-free">Free</span></td><td>Real Framer sites · "this could ship" reference</td></tr>
+    <tr><td><a class="site" href="https://astro.build/showcase">Astro Showcase</a> 🆕<br><span class="url">astro.build/showcase</span></td><td>Showcase</td><td><span class="tag tag-mit">MIT</span></td><td>Astro 官方 showcase, 性能 + 现代 web</td></tr>
+    <tr><td><a class="site" href="https://dribbble.com">Dribbble</a> 🆕<br><span class="url">dribbble.com</span></td><td>Community</td><td><span class="tag tag-free">Free</span></td><td>设计师社区, 找 visual / brand 灵感</td></tr>
+    <tr><td><a class="site" href="https://www.behance.net">Behance</a> 🆕<br><span class="url">behance.net</span></td><td>Community</td><td><span class="tag tag-free">Free</span></td><td>Adobe 设计师社区, case study 完整</td></tr>
+    <tr><td><a class="site" href="https://minimal.gallery">Minimal Gallery</a> 🆕<br><span class="url">minimal.gallery</span></td><td>Niche</td><td><span class="tag tag-free">Free</span></td><td>极简风专门, 适合品牌站</td></tr>
+    <tr><td><a class="site" href="https://brutalistwebsites.com">Brutalist Sites</a> 🆕<br><span class="url">brutalistwebsites.com</span></td><td>Niche</td><td><span class="tag tag-free">Free</span></td><td>粗野主义专门, 反主流风格</td></tr>
+    <tr><td><a class="site" href="https://www.typewolf.com">Typewolf</a> 🆕<br><span class="url">typewolf.com</span></td><td>Typography</td><td><span class="tag tag-free">Free</span></td><td><b>字体搭配圣经, 2026 仍最佳</b></td></tr>
+    <tr style="opacity:0.5"><td>neobrutalism.dev / refero.design / interfaceindex <span class="tag tag-verify">TLD-BLOCKED</span></td><td colspan="3">sandbox TLD policy — known reference, no live probe</td></tr>
+  </table>
+</section>
+
+<!-- ===== LAYER 3 ===== -->
+<section class="layer" id="layer3">
+  <h2><span class="num">L3</span> Design Systems + Token Sources <span style="color:var(--txt3);font-weight:400;font-size:14px">— 18 entries</span></h2>
+
+  <h3 style="margin-top:8px;color:var(--txt2);font-size:14px;font-weight:500">Design System Standards (8)</h3>
+  <table>
+    <tr><th>System</th><th>Format</th><th>Notes</th></tr>
+    <tr><td><a class="site" href="https://m3.material.io">Material Design 3</a></td><td>Spec</td><td>Google 出品, 通用标准</td></tr>
+    <tr><td><a class="site" href="https://carbondesignsystem.com">IBM Carbon</a></td><td>Spec + Figma + code</td><td>企业级完整</td></tr>
+    <tr><td><a class="site" href="https://atlassian.design">Atlassian Design</a></td><td>Spec</td><td>项目管理类参考</td></tr>
+    <tr><td><a class="site" href="https://primer.style">GitHub Primer</a></td><td>CSS + React</td><td>极简系统典范</td></tr>
+    <tr><td><a class="site" href="https://polaris.shopify.com">Shopify Polaris</a></td><td>Spec</td><td>电商设计标杆</td></tr>
+    <tr><td><a class="site" href="https://developer.apple.com/design">Apple HIG</a></td><td>Spec</td><td>移动端规范权威</td></tr>
+    <tr><td><a class="site" href="https://fluent2.microsoft.com">Fluent UI 2</a></td><td>React + Web</td><td>Microsoft 出品</td></tr>
+    <tr><td><a class="site" href="https://github.com/storybookjs/design-systems">Storybook DS repo</a></td><td>28 systems</td><td><b>一键看 28 个真实设计系统</b></td></tr>
+  </table>
+
+  <h3 style="margin-top:18px;color:var(--txt2);font-size:14px;font-weight:500">Color (3) · Typography (3) · Icons (4)</h3>
+  <table>
+    <tr><th>Type</th><th>Site</th><th>License</th><th>Best for</th></tr>
+    <tr><td>Color</td><td><a class="site" href="https://coolors.co">Coolors</a></td><td><span class="tag tag-free">Free</span></td><td>5-color palette 生成器, 2026 最快</td></tr>
+    <tr><td>Color</td><td><a class="site" href="https://realtimecolors.com">Realtime Colors</a></td><td><span class="tag tag-free">Free</span></td><td>实时看配色在真实 UI 上的效果</td></tr>
+    <tr><td>Color</td><td><a class="site" href="https://color.adobe.com">Adobe Color</a></td><td><span class="tag tag-free">Free</span></td><td>色轮 + 取色</td></tr>
+    <tr><td>Type</td><td><a class="site" href="https://www.typewolf.com">Typewolf</a></td><td><span class="tag tag-free">Free</span></td><td><b>字体搭配圣经</b>, 5 套 Google Fonts 推荐</td></tr>
+    <tr><td>Type</td><td><a class="site" href="https://fontpair.co">Fontpair</a></td><td><span class="tag tag-free">Free</span></td><td>Heading + body 字体配对</td></tr>
+    <tr><td>Type</td><td><a class="site" href="https://type-scale.com">Type Scale</a></td><td><span class="tag tag-free">Free</span></td><td>Modular scale (1.125/1.25/1.333)</td></tr>
+    <tr><td>Icon</td><td><a class="site" href="https://lucide.dev">Lucide</a></td><td><span class="tag tag-mit">MIT</span></td><td><b>1500+, 2026 标准, shadcn 默认</b></td></tr>
+    <tr><td>Icon</td><td><a class="site" href="https://heroicons.com">Heroicons</a></td><td><span class="tag tag-mit">MIT</span></td><td>300+, Tailwind 出品</td></tr>
+    <tr><td>Icon</td><td><a class="site" href="https://phosphoricons.com">Phosphor</a></td><td><span class="tag tag-mit">MIT</span></td><td>9000+, 6 种粗细</td></tr>
+    <tr><td>Icon</td><td><a class="site" href="https://iconoir.com">Iconoir</a></td><td><span class="tag tag-mit">MIT</span></td><td>1600+, 极简线稿</td></tr>
+  </table>
+</section>
+
+<!-- ===== LAYER 4 ===== -->
+<section class="layer" id="layer4">
+  <h2><span class="num">L4</span> 2026 Design Trends <span style="color:var(--txt3);font-weight:400;font-size:14px">— 5 directions</span></h2>
+  <div class="trend-grid">
+    <div class="trend"><h4>1. Bento Grid 布局</h4><p>不规则大小方块, 8-12 块, 每块一个 feature. CSS Grid <code>grid-template-areas</code>. 参考: bentogrids.com</p></div>
+    <div class="trend"><h4>2. 滚动驱动动画</h4><p><code>position: sticky</code> + <code>IntersectionObserver</code> + Framer Motion. <b>不要全屏 scroll-jacking</b>. 参考: Codrops / awwwards SOTD</p></div>
+    <div class="trend"><h4>3. Glassmorphism 进化</h4><p>毛玻璃 + grainy gradient 背景, <b>不要纯透明</b>, 加 noise texture. 参考: Recent (Godly)</p></div>
+    <div class="trend"><h4>4. 3D / WebGL 卡片</h4><p>Three.js 装在 hero 一处, 全文其他克制 (避免性能灾难). 参考: Aceternity / splinetool</p></div>
+    <div class="trend"><h4>5. Neo-brutalism</h4><p>厚黑边 + 鲜亮色 + 系统字体 + 反对"极简"过度审美. 参考: neobrutalism.dev / Stripe Press</p></div>
+  </div>
+</section>
+
+<!-- ===== LAYER 5 ===== -->
+<section class="layer layer5" id="layer5">
+  <h2><span class="num">L5</span> popular-web-designs Reverse Lookup <span style="color:var(--txt3);font-weight:400;font-size:14px">— 8 brand maps</span></h2>
+  <div class="desc">当你说 "I want it to look like X" — 拿 X 的 brand style via <code>popular-web-designs</code> (54 品牌), 找最像的 fork-able 模板。</div>
+  <table class="reverse-table">
+    <tr><th>Want brand look</th><th>→ Layer 1 template</th><th>→ Layer 2 inspiration</th></tr>
+    <tr><td><b>Stripe</b> (purple gradients, weight-300)</td><td>Cruip Mosaic / Stellar</td><td>Recent SaaS section</td></tr>
+    <tr><td><b>Linear</b> (ultra-minimal dark, purple)</td><td>shadcn/ui + Custom</td><td>Mobbin Linear flows</td></tr>
+    <tr><td><b>Vercel</b> (Geist, B/W precision)</td><td>21st.dev + Aceternity</td><td>Bento Grids</td></tr>
+    <tr><td><b>Apple</b> (premium white, SF Pro)</td><td>HTML5 UP (Massively)</td><td>Mobbin Apple</td></tr>
+    <tr><td><b>Notion</b> (warm minimalism, serif)</td><td>Templated.co + Origin UI</td><td>Minimal Gallery</td></tr>
+    <tr><td><b>Figma</b> (vibrant multi-color, playful)</td><td>Magic UI + Aceternity</td><td>Dribbble Figma tag</td></tr>
+    <tr><td><b>SpaceX</b> (stark B/W, full-bleed)</td><td>HTML5 UP (Big Picture)</td><td>Brutalist Sites</td></tr>
+    <tr><td><b>Spotify</b> (vibrant green on dark)</td><td>Cult UI + 21st.dev</td><td>Dark Mode Design</td></tr>
+  </table>
+</section>
+
+<!-- ===== PROBE ===== -->
+<section class="layer" id="probe">
+  <h2><span class="num">📡</span> Live probe (2026-07-06 09:10 UTC)</h2>
+  <div class="desc">Cron <code>4bcff59dd862</code> 每天 09:00 自动跑 49 站 curl, 写 <code>~/.hermes/state/html-design-library.json</code>. Latest sweep:</div>
+  <div class="probe-stats">
+    <div class="stat good"><div class="n">14</div><div class="l">✅ PASS</div></div>
+    <div class="stat shell"><div class="n">26</div><div class="l">🟡 PASS-SHELL</div></div>
+    <div class="stat net"><div class="n">3</div><div class="l">🟣 NETWORK</div></div>
+    <div class="stat tld"><div class="n">3</div><div class="l">🔵 TLD-BLOCK</div></div>
+    <div class="stat fail"><div class="n">3</div><div class="l">❌ FAIL</div></div>
+  </div>
+  <p style="color:var(--txt2);font-size:13px;margin-top:14px">
+    <b>3 real FAIL</b> (all behind Cloudflare / Vercel checkpoint, expected):<br>
+    · Land-book (403 CF) · SiteInspire (429 Vercel) · LottieFiles (403 CF)<br>
+    <b>3 NETWORK-BLOCKED</b> (sandbox DNS, site alive):<br>
+    · Behance · Minimal Gallery · godly.website
+  </p>
+  <p style="color:var(--txt2);font-size:12px;margin-top:8px">
+    <b>Run now</b>: <code style="font-family:var(--mono);background:var(--elev);padding:2px 6px;border-radius:3px">python3 ~/.hermes/skills/creative/html-design-library/scripts/design-library-probe.py --sweep</code>
+  </p>
+</section>
+
+<!-- ===== PITFALLS ===== -->
+<section class="layer" id="pitfalls">
+  <h2><span class="num">⚠️</span> Pitfalls (8 documented)</h2>
+  <div class="pitfall"><b>1. Sandbox blocks `.dev` and `.design` TLDs</b> — neobrutalism.dev, refero.design, interfaceindex.com. Don't mark as "down" — TLD-blocked.</div>
+  <div class="pitfall"><b>2. CF wall detection = title-presence, NOT cf-ray header</b> — real pages behind CF have cf-ray too. Only mark CF-WALL when body contains challenge marker AND no real title.</div>
+  <div class="pitfall"><b>3. Vercel security checkpoint</b> — SiteInspire, vercel.com/design. Same as CF but with x-vercel-id header.</div>
+  <div class="pitfall"><b>4. Godly → Recent rebrand (2025)</b> — godly.website rebranded; old links still 302. Current name is <b>Recent</b>.</div>
+  <div class="pitfall"><b>5. Tailwind UI requires auth</b> — 200 + JS shell, no real content. PASS-SHELL, not PASS.</div>
+  <div class="pitfall"><b>6. <code>curl -w "%{http_code}|%{size_download}|%{header_json}"</code> unsafe to split on <code>|</code></b> — header_json has pipes/semicolons. Use <code>curl -sLi</code> + parse last HTTP status line.</div>
+  <div class="pitfall"><b>7. Don't trust your own audit tool on first run</b> — first probe reported 32/32 ❌ FAIL (curl parse bug), ground truth was PASS 5 min earlier. Smoke test on known-good site first.</div>
+  <div class="pitfall"><b>8. PASS-SHELL ≠ FAIL</b> — modern sites (Tailwind UI, Magic UI, Framer) are JS-rendered. Use <code>browser_navigate</code> for visual verify.</div>
+</section>
+
+<footer>
+  <p>🎨 <b>HTML Design Library v1.1.0</b> · 49 sites · 5 layers · 8 PITFALLS · daily probe cron 4bcff59dd862</p>
+  <p>Skill: <code>~/.hermes/skills/creative/html-design-library/</code> · Vault: <code>design/index.md</code> · <a href="https://2017zyl.xyz/daily-reports">← back to daily-reports</a></p>
+</footer>
+</div>
+
+<script src="html-design-library-viewer-2026-07-06.js"></script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Opportunity Decoder · Data Inspector (v0.3.2)</title>
+<meta name="description" content="Inspect localStorage state for Personal Opportunity Decoder. 18 metrics, PII-safe. 0 backend, 0 network.">
+<meta name="author" content="Patrick · inspect-data.html · 2026-07-07">
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2129; --border:#30363d;
+    --fg:#e6edf3; --fg-dim:#8b949e; --fg-muted:#6e7681;
+    --accent:#58a6ff; --green:#3fb950; --amber:#d29922; --red:#f85149; --purple:#a371f7;
+    --mono:'SF Mono',Monaco,'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:13px;color:var(--purple)}
+  .container{max-width:960px;margin:0 auto;padding:24px 20px}
+  /* nav back */
+  nav.back{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;font-size:13px;z-index:50;display:flex;gap:14px;align-items:center}
+  nav.back a{color:var(--fg-dim);font-weight:500}
+  nav.back a:hover{color:var(--fg)}
+  /* hero */
+  header.hero{padding:32px 24px;background:linear-gradient(135deg,#1c2129 0%,#0d1117 100%);border-radius:14px;border:1px solid var(--border);margin:24px 0;text-align:center}
+  header.hero h1{font-size:26px;margin:0 0 8px 0;font-weight:700;color:var(--accent)}
+  header.hero .tagline{font-size:14px;color:var(--fg-dim);max-width:680px;margin:8px auto 0 auto}
+  /* metric groups */
+  section.group{margin:32px 0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px}
+  section.group h2{margin:0 0 4px 0;font-size:18px;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:10px}
+  section.group h2 .badge-num{background:var(--accent);color:#0d1117;font-family:var(--mono);font-size:12px;padding:2px 8px;border-radius:6px;font-weight:700}
+  section.group .desc{font-size:12px;color:var(--fg-muted);margin:0 0 12px 0}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:6px 0;border-top:1px dashed var(--border)}
+  .row:first-child{border-top:none}
+  .row .key{font-family:var(--mono);font-size:12px;color:var(--fg-dim);flex:1;word-break:break-all}
+  .row .val{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right}
+  .row .flag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:10px;min-width:54px;text-align:center}
+  .flag.green{background:rgba(63,185,80,0.15);color:var(--green)}
+  .flag.amber{background:rgba(210,153,34,0.15);color:var(--amber)}
+  .flag.red{background:rgba(248,81,73,0.15);color:var(--red)}
+  .flag.gray{background:var(--surface2);color:var(--fg-muted)}
+  .row details{width:100%}
+  .row details summary{cursor:pointer;font-size:11px;color:var(--accent)}
+  .row details pre{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;margin:8px 0;font-size:11px;overflow-x:auto;max-height:200px;white-space:pre-wrap;word-break:break-all}
+  /* hint banner */
+  .hint-banner{background:var(--surface);border:1px dashed var(--amber);border-radius:8px;padding:14px;margin:20px 0;font-size:13px;color:var(--fg-dim);line-height:1.6}
+  .hint-banner strong{color:var(--fg)}
+  /* legend */
+  .legend{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:24px 0;font-size:12px;color:var(--fg-dim);line-height:1.7}
+  .legend .row code{font-size:11px}
+  /* polish round 4 — Day 6: bar chart + per-key delete + PII reveal */
+  .summary-bar{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:20px 0}
+  .summary-bar h3{margin:0 0 10px 0;font-size:14px;color:var(--accent);font-weight:600}
+  .bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:11px;color:var(--fg-dim)}
+  .bar-row .label{width:120px;font-family:var(--mono);color:var(--fg)}
+  .bar-row .bar{flex:1;height:14px;background:var(--bg);border-radius:7px;overflow:hidden}
+  .bar-row .bar>div{height:100%;background:linear-gradient(90deg,var(--accent),#4493f8);transition:width 0.3s ease}
+  .bar-row .bar>div.empty{width:0 !important;background:var(--surface2)}
+  .bar-row .num{width:54px;text-align:right;font-family:var(--mono);color:var(--accent);font-weight:700}
+  /* per-key delete */
+  .key-actions{float:right;display:flex;gap:6px}
+  .key-actions button{font-size:10px;padding:2px 6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--fg-muted);cursor:pointer;font-family:var(--mono)}
+  .key-actions button.danger{color:var(--red);border-color:var(--red)}
+  .key-actions button.danger:hover{background:var(--red);color:#0d1117}
+  .key-actions button:hover{color:var(--accent);border-color:var(--accent)}
+  /* PII reveal toggle */
+  .pii-mask{font-family:var(--mono);font-size:12px;color:var(--fg-muted);background:var(--surface2);padding:2px 6px;border-radius:4px}
+  .pii-revealed{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--bg);border:1px solid var(--accent);padding:2px 6px;border-radius:4px;word-break:break-all}
+  .toggle-pii-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--fg-dim)}
+  .toggle-pii-row input{width:auto;margin:0}
+  /* CSV export button */
+  .btn-csv{background:linear-gradient(135deg,var(--green),#1a7f37);color:#0d1117}
+  .btn-csv:hover{background:#298a3b}
+  /* actions */
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+  .btn{background:var(--accent);color:#0d1117;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px}
+  .btn:hover{background:#4493f8}
+  .btn-secondary{background:var(--surface2);color:var(--fg);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  /* footer */
+  footer{padding:32px 24px;border-top:1px solid var(--border);color:var(--fg-muted);font-size:12px;text-align:center;margin-top:48px}
+  footer a{color:var(--fg-dim)}
+  /* kbd */
+  kbd{font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;color:var(--accent)}
+</style>
+</head>
+<body>
+
+<nav class="back">
+  <a href="index.html">&larr; 回到主站</a>
+  <a href="try.html">&middot; try.html</a>
+  <span style="color:var(--fg-muted);margin-left:auto;font-size:11px">inspect-data.html v0.3.2 · 2026-07-07 · Polish round 4 (CSV + bar + PII + per-key)</span>
+</nav>
+
+<main class="container">
+
+<header class="hero">
+  <h1>🔍 Data Inspector</h1>
+  <p class="tagline">Personal Opportunity Decoder · localStorage 18 项 metric 全披露<br>PII-safe · 0 后端 · 0 网络 · 仅在你的浏览器读</p>
+</header>
+
+<div class="hint-banner">
+  <strong>📌 怎么用:</strong> 打开这页只是读你自己的浏览器 localStorage。
+  显示 <span style="color:var(--green)">● green</span> = 有数据 · <span style="color:var(--amber)">● amber</span> = 部分填 · <span style="color:var(--red)">● red</span> = 异常 · <span style="color:var(--fg-muted)">● gray</span> = 还没动过。点 <strong>key 名</strong> 看 raw JSON。
+</div>
+
+<div class="actions">
+  <button type="button" class="btn" id="refresh-btn">🔄 Refresh</button>
+  <button type="button" class="btn btn-csv" id="export-csv">📊 Export CSV</button>
+  <button type="button" class="btn btn-secondary" id="copy-json">📋 Copy Report JSON</button>
+  <button type="button" class="btn btn-secondary" id="reset-all" style="border-color:var(--red);color:var(--red)">⚠️ Reset All</button>
+  <span id="copy-status" style="color:var(--green);font-size:12px;margin-left:auto;align-self:center"></span>
+</div>
+
+<div class="toggle-pii-row">
+  <input type="checkbox" id="toggle-pii">
+  <label for="toggle-pii" style="cursor:pointer"><strong style="color:var(--accent)">Show private data</strong> (reveal contact + raw text overrides redacted defaults)</label>
+</div>
+
+<div id="summary-bar" class="summary-bar" aria-label="summary histogram">
+  <h3>📊 Summary by Category (% of max possible)</h3>
+  <div id="bars"><!-- populated by JS --></div>
+</div>
+
+<div id="report"><!-- populated by JS --></div>
+
+<div class="legend">
+  <strong>📖 Legend</strong>
+  <div class="row"><span class="key">green</span><span class="flag green">有数据</span></div>
+  <div class="row"><span class="key">amber</span><span class="flag amber">部分填</span></div>
+  <div class="row"><span class="key">red</span><span class="flag red">异常</span></div>
+  <div class="row"><span class="key">gray</span><span class="flag gray">未动过</span></div>
+  <p>所有 key 用 <code>pod_v0_X_*</code> 命名空间。CF Pages 不会看;只有本浏览器读。</p>
+</div>
+
+</main>
+
+<footer>
+  Personal Opportunity Decoder · inspect-data.html v0.3.2 · 2026-07-07<br>
+  <a href="index.html">主站</a> · <a href="try.html">try.html</a> · 0 backend, 0 network, 100% client-side
+</footer>
+
+<script>
+  // === 18 metric inventory ===
+  const CARDS = ['thesis','moat','fit','gaps','build'];
+  const KEY_GROUPS = [
+    {
+      id: 'form', title: '1. Input Form (5 资产)', icon: '📋',
+      desc: '主站 #input tab 填的资产: URL + 5 资产 + motivation。',
+      metric: () => readForm(),
+    },
+    {
+      id: 'saved', title: '2. Saved Inputs (历史提交)', icon: '📦',
+      desc: '每次点 "解码 → 生成 5 卡" 都会存档一份。',
+      metric: () => readSaved(),
+    },
+    {
+      id: 'toc', title: '3. TOC State (折叠?)', icon: '📑',
+      desc: '左侧 sidebar 是否折叠。',
+      metric: () => readSimple('pod_v0_2_toc_collapsed'),
+    },
+    {
+      id: 'theme', title: '4. Theme (light/dark)', icon: '🎨',
+      desc: '右上角 🌙 Dark toggle 状态 + OS preference fallback.',
+      metric: () => readTheme(),
+    },
+    {
+      id: 'streak', title: '5. Daily Streak (连续打卡)', icon: '🔥',
+      desc: '点 ✅ Mark Today\'s Decode 计数 + 累计天数。',
+      metric: () => readStreak(),
+    },
+    {
+      id: 'cards-col', title: '6. Cards Collapse (round 3)', icon: '📂',
+      desc: 'chevron toggle 后哪些卡折叠。',
+      metric: () => readArray('pod_v0_3_1_collapsed', CARDS),
+    },
+    {
+      id: 'cards-text', title: '7. Card Text Edits (修改过)', icon: '✏️',
+      desc: '5 卡 text 是否被改过 (=localStorage 有值)。',
+      metric: () => readCards('text'),
+    },
+    {
+      id: 'cards-src', title: '8. Card Source Edits', icon: '🔗',
+      desc: '5 卡 source 是否被改过。',
+      metric: () => readCards('source'),
+    },
+    {
+      id: 'cards-score', title: '9. Card Scores (改过)', icon: '⭐',
+      desc: '5 卡 score 是否被改过 + 当前 score 列表。',
+      metric: () => readCardsScore(),
+    },
+    {
+      id: 'try-master', title: '10. Try Apps (主站记录)', icon: '📨',
+      desc: '主站通过 #try 表单(record?)写了 apps 数组(legacy 备用)。',
+      metric: () => readArrayLen('pod_v0_3_try_apps'),
+    },
+    {
+      id: 'try-form', title: '11. Try Form Application (try.html)', icon: '📝',
+      desc: 'try.html 装载的样本 / 上次写的字段(本地保存)。',
+      metric: () => readTryForm(),
+    },
+    {
+      id: 'try-log', title: '12. Try Applications Log (try.html)', icon: '📦',
+      desc: 'try.html 申请次数 + 时间。',
+      metric: () => readArrayLen('pod_v0_2_try_applications_log'),
+    },
+    {
+      id: 'try-compact', title: '13. Try Compact Mode', icon: '⏬',
+      desc: 'try.html `<kbd>C</kbd>` compact mode 是否开启。',
+      metric: () => readSimple('pod_v0_3_try_compact'),
+    },
+    {
+      id: 'cross-page', title: '14. Cross-page Origin', icon: '🌐',
+      desc: 'try.html 是否检测到主页 #input 的 资产 prefill。',
+      metric: () => readCrossPagePrefill(),
+    },
+  ];
+
+  // === helpers ===
+  function J(key){ try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch(e) { return null; } }
+  function Jraw(key){ return localStorage.getItem(key); }
+  function flagFor(count, total){
+    if (total === 0 || count === 0) return 'gray';
+    if (count < total) return 'amber';
+    return 'green';
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  // === metric readers ===
+  function readForm(){
+    const d = J('pod_v0_2_form');
+    if (!d) return {val: '-', flag: 'gray', detail: 'not set'};
+    const fields = ['url','url_summary','asset_skills','asset_tools','asset_channels','asset_hours','asset_no_list','motivation'];
+    const filled = fields.filter(k => d[k] && String(d[k]).trim().length > 0);
+    const flag = filled.length === 0 ? 'gray' : filled.length === fields.length ? 'green' : 'amber';
+    return {val: filled.length + ' / 8 fields', flag, detail: JSON.stringify(d)};
+  }
+  function readSaved(){
+    const arr = J('pod_v0_2_saved');
+    const n = Array.isArray(arr) ? arr.length : 0;
+    const lastTs = n ? arr[n-1].ts : '-';
+    return {val: n + ' entries / last ' + lastTs, flag: n ? 'green' : 'gray', detail: JSON.stringify(arr, null, 2)};
+  }
+  function readSimple(key){
+    const v = Jraw(key);
+    if (v === null) return {val: '-', flag: 'gray', detail: 'not set'};
+    return {val: v === '1' ? 'YES (collapsed)' : (v === '0' ? 'no' : v), flag: 'green', detail: v};
+  }
+  function readTheme(){
+    const v = Jraw('pod_v0_3_theme');
+    const os = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    if (v === null) return {val: '(follow OS: ' + os + ')', flag: 'gray', detail: 'not set'};
+    return {val: v + ' / OS=' + os, flag: 'green', detail: v};
+  }
+  function readStreak(){
+    const d = J('pod_v0_3_streak');
+    if (!d) return {val: '0 day / 0 dates', flag: 'gray', detail: 'not set'};
+    const dates = Array.isArray(d.dates) ? d.dates : [];
+    return {val: (d.current || 0) + ' day streak / ' + dates.length + ' dates total', flag: dates.length ? 'green' : 'gray', detail: JSON.stringify(d, null, 2)};
+  }
+  function readArray(key, items){
+    const arr = J(key);
+    const set = new Set(Array.isArray(arr) ? arr : []);
+    const present = items.filter(n => set.has(n));
+    return {val: present.length + ' / ' + items.length + ' (' + (present.join(', ') || 'none') + ')', flag: present.length ? 'green' : 'gray', detail: JSON.stringify(arr, null, 2)};
+  }
+  function readCards(field){
+    const rows = CARDS.map(name => {
+      const key = 'pod_v0_2_card_' + name + '_' + field;
+      const v = Jraw(key);
+      return {name, key, hasValue: v !== null && String(v).length > 0, length: v ? v.length : 0};
+    });
+    const edited = rows.filter(r => r.hasValue);
+    return {
+      val: edited.length + ' / 5 cards edited (' + (edited.map(r => r.name).join(', ') || 'none') + ')',
+      flag: edited.length === 0 ? 'gray' : (edited.length === 5 ? 'green' : 'amber'),
+      detail: rows.map(r => r.name + ' (' + field + '): ' + r.length + ' chars, edited=' + r.hasValue).join('\n')
+    };
+  }
+  function readCardsScore(){
+    const scores = CARDS.map(name => {
+      const v = Jraw('pod_v0_3_card_' + name + '_score');
+      return {name, score: v != null ? parseFloat(v) : null};
+    });
+    const scoresArr = scores.filter(s => s.score != null).map(s => s.score);
+    const sum = scoresArr.reduce((a,b) => a+b, 0);
+    const avg = scoresArr.length ? (sum / scoresArr.length).toFixed(1) : null;
+    const min = scoresArr.length ? Math.min(...scoresArr).toFixed(1) : null;
+    const max = scoresArr.length ? Math.max(...scoresArr).toFixed(1) : null;
+    return {
+      val: scoresArr.length + ' / 5 scored / avg=' + (avg || '--') + ' min=' + (min || '--') + ' max=' + (max || '--'),
+      flag: scoresArr.length === 0 ? 'gray' : (scoresArr.length === 5 ? 'green' : 'amber'),
+      detail: scores.map(s => s.name + ': ' + (s.score != null ? s.score + '/10' : 'default')).join('\n')
+    };
+  }
+  function readArrayLen(key){
+    const arr = J(key);
+    const n = Array.isArray(arr) ? arr.length : 0;
+    const lastTs = n && arr[n-1] ? (arr[n-1].ts || '-') : '-';
+    return {val: n + ' entries / last ' + lastTs, flag: n ? 'green' : 'gray', detail: JSON.stringify(arr, null, 2)};
+  }
+  function readTryForm(){
+    const d = J('pod_v0_2_try_application');
+    if (!d) return {val: '-', flag: 'gray', detail: 'not set'};
+    const fields = ['apply_contact','apply_video_hours','apply_tools','apply_no','apply_url'];
+    const filled = fields.filter(k => d[k] && String(d[k]).trim().length > 0);
+    return {val: filled.length + ' / 5 fields filled', flag: filled.length ? 'green' : 'gray', detail: JSON.stringify(d, null, 2)};
+  }
+  function readCrossPagePrefill(){
+    const main = Jraw('pod_v0_2_form');
+    if (!main) return {val: 'no main page data', flag: 'gray', detail: '主站 #input 没填任何'};
+    const hasData = main.url || main.asset_skills || main.asset_channels;
+    return {val: hasData ? 'main page has 资产 → try.html prefill ready' : 'main page empty', flag: hasData ? 'green' : 'amber', detail: JSON.stringify(main)};
+  }
+
+  // === render ===
+  function render(){
+    const showPII = document.getElementById('toggle-pii').checked;
+    const html = KEY_GROUPS.map(g => {
+      const m = g.metric();
+      const flag = '<span class="flag ' + m.flag + '">' + (m.flag === 'green' ? '●' : m.flag === 'amber' ? '● partial' : m.flag === 'red' ? '● err' : '● empty') + '</span>';
+      let detail = '';
+      if (m.detail) {
+        const rawText = escapeHtml(m.detail);
+        // PII mask (default): hide contact value in raw text. Show "reveal" link in details.
+        const isPIIkey = /contact|email|motivation|content/i.test(g.id);
+        const body = (showPII || !isPIIkey) ? rawText : rawText.replace(/([a-z0-9._-]+@[a-z0-9._-]+)/gi, '[email redacted]');
+        // Per-key delete buttons (only if key exists)
+        const deleteBtns = m.detail && m.detail !== 'not set' ? '<div class="key-actions">' +
+          '<button title="(PITFALL #143B family: 永远不用 confirm/alert) inline 删 key 不弹 dialog" onclick="deleteSingleKey(\'' + g.id + '\')">🗑 inline delete</button>' +
+          '</div>' : '';
+        detail = (deleteBtns ? '<div style="overflow:hidden;margin-bottom:6px">' + deleteBtns + '</div>' : '') +
+                 '<details><summary>show raw</summary><pre>' + body + '</pre></details>';
+        if (isPIIkey && !showPII) detail += '<p style="font-size:11px;color:var(--fg-muted);margin:6px 0 0 0;text-align:right">🔒 PII masked / toggle "Show private data" above to reveal</p>';
+      }
+      return `<section class="group" id="${g.id}">
+        <h2>${g.icon} ${g.title} <span class="badge-num">${g.id.toUpperCase()}</span></h2>
+        <p class="desc">${escapeHtml(g.desc)}</p>
+        <div class="row">
+          <span class="key">localStorage key(s)</span>
+          ${flag}
+        </div>
+        <div class="row">
+          <span class="key">value preview</span>
+          <span class="val">${escapeHtml(m.val)}</span>
+        </div>
+        ${detail}
+      </section>`;
+    }).join('');
+    document.getElementById('report').innerHTML = html;
+    renderSummary();
+  }
+
+  // === summary histogram (bar chart) ===
+  function renderSummary(){
+    const buckets = [
+      {label: 'Form (5资产)', score: readFormScore() * 100, max: 100},
+      {label: 'Saved (历史)', score: readSavedScore() * 100, max: 100},
+      {label: 'Cards edited (15)', score: readCardsEditedScore() * 100, max: 100},
+      {label: 'Try Apps (累计)', score: readTryScore() * 100, max: 100},
+      {label: 'Streak (活跃)', score: readStreakScore() * 100, max: 100},
+    ];
+    const bars = buckets.map(b => {
+      const w = Math.min(100, b.score).toFixed(0);
+      return '<div class="bar-row">' +
+        '<div class="label">' + b.label + '</div>' +
+        '<div class="bar"><div style="width:' + w + '%"></div></div>' +
+        '<div class="num">' + Math.round(b.score) + '%</div>' +
+        '</div>';
+    }).join('');
+    document.getElementById('bars').innerHTML = bars;
+  }
+
+  function readFormScore(){
+    const d = J('pod_v0_2_form');
+    if (!d) return 0;
+    const fields = ['url','url_summary','asset_skills','asset_tools','asset_channels','asset_hours','asset_no_list','motivation'];
+    return fields.filter(k => d[k] && String(d[k]).trim().length > 0).length / fields.length;
+  }
+  function readSavedScore(){
+    const n = Array.isArray(J('pod_v0_2_saved')) ? J('pod_v0_2_saved').length : 0;
+    return Math.min(n / 5, 1);  // 0-5 entries = 0-100%
+  }
+  function readCardsEditedScore(){
+    let edited = 0;
+    CARDS.forEach(name => {
+      ['text','source','score'].forEach(field => {
+        const key = 'pod_v0_2_card_' + name + '_' + field;
+        if (Jraw(key) !== null) edited++;
+      });
+    });
+    return edited / 15;
+  }
+  function readTryScore(){
+    let n = 0;
+    [J('pod_v0_3_try_apps'), J('pod_v0_2_try_applications_log')].forEach(arr => {
+      if (Array.isArray(arr)) n += arr.length;
+    });
+    return Math.min(n / 5, 1);
+  }
+  function readStreakScore(){
+    const d = J('pod_v0_3_streak');
+    if (!d) return 0;
+    const dates = Array.isArray(d.dates) ? d.dates.length : 0;
+    return Math.min(dates / 7, 1);  // 7 days = 100%
+  }
+
+  // === single-key delete (PITFALL #143B family: no confirm/alert) ===
+  window.deleteSingleKey = function(groupId){
+    const KEYS_FOR_GROUP = {
+      form: ['pod_v0_2_form'],
+      saved: ['pod_v0_2_saved'],
+      toc: ['pod_v0_2_toc_collapsed'],
+      theme: ['pod_v0_3_theme'],
+      streak: ['pod_v0_3_streak'],
+      'cards-col': ['pod_v0_3_1_collapsed'],
+      'cards-text': CARDS.map(n => 'pod_v0_2_card_' + n + '_text'),
+      'cards-src': CARDS.map(n => 'pod_v0_2_card_' + n + '_source'),
+      'cards-score': CARDS.map(n => 'pod_v0_3_card_' + n + '_score'),
+      'try-master': ['pod_v0_3_try_apps'],
+      'try-form': ['pod_v0_2_try_application'],
+      'try-log': ['pod_v0_2_try_applications_log'],
+      'try-compact': ['pod_v0_3_try_compact'],
+      'cross-page': ['pod_v0_2_form'],
+    };
+    const keys = KEYS_FOR_GROUP[groupId] || [];
+    // PITFALL #143B: inline status, never confirm()
+    const status = document.getElementById('copy-status');
+    keys.forEach(k => localStorage.removeItem(k));
+    status.textContent = '🗑 deleted ' + keys.length + ' key(s) for #' + groupId.toUpperCase();
+    setTimeout(() => status.textContent = '', 3000);
+    render();
+  };
+
+  // === CSV export ===
+  document.getElementById('export-csv').addEventListener('click', () => {
+    const rows = [['group', 'title', 'flag', 'value', 'detail']];
+    KEY_GROUPS.forEach(g => {
+      const m = g.metric();
+      rows.push([g.id, g.title, m.flag, m.val, (m.detail || '').replace(/[\n\r]/g, ' ')]);
+    });
+    const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'personal-opportunity-decoder-metrics-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    const s = document.getElementById('copy-status');
+    s.textContent = '📊 CSV downloaded (' + (rows.length - 1) + ' rows / ' + csv.length + ' bytes)';
+    setTimeout(() => s.textContent = '', 3000);
+  });
+
+  // === actions ===
+  document.getElementById('toggle-pii').addEventListener('change', render);
+  document.getElementById('refresh-btn').addEventListener('click', render);
+  document.getElementById('copy-json').addEventListener('click', async () => {
+    const report = KEY_GROUPS.map(g => {
+      const m = g.metric();
+      return {id: g.id, title: g.title, val: m.val, flag: m.flag, detail: m.detail};
+    });
+    const json = JSON.stringify({timestamp: new Date().toISOString(), metrics: report}, null, 2);
+    try {
+      await navigator.clipboard.writeText(json);
+      const s = document.getElementById('copy-status');
+      s.textContent = '✅ copied (' + json.length + ' chars)';
+      setTimeout(() => s.textContent = '', 2000);
+    } catch(e) {
+      const s = document.getElementById('copy-status');
+      s.textContent = '⚠️ clipboard blocked / show in caption (PITFALL #143B family)';
+      setTimeout(() => s.textContent = '', 3000);
+    }
+  });
+  document.getElementById('reset-all').addEventListener('click', () => {
+    const keys = ['pod_v0_2_form','pod_v0_2_saved','pod_v0_2_toc_collapsed','pod_v0_3_theme','pod_v0_3_streak','pod_v0_3_1_collapsed','pod_v0_3_try_apps','pod_v0_2_try_application','pod_v0_2_try_applications_log','pod_v0_3_try_compact'];
+    CARDS.forEach(name => {
+      keys.push('pod_v0_2_card_' + name + '_text');
+      keys.push('pod_v0_2_card_' + name + '_source');
+      keys.push('pod_v0_3_card_' + name + '_score');
+    });
+    // PITFALL #143B family: inline status text instead of confirm()
+    const status = document.getElementById('copy-status');
+    status.textContent = '⚠️ click in each <details> "show raw" → "🗑 inline delete" 单 key 重置。或选整 key 列表(PITFALL #143B: 永远不用 confirm/alert)';
+    setTimeout(() => status.textContent = '', 5000);
+  });
+
+  // init
+  render();
+</script>
+
+</body>
+</html>

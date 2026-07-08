@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>DB diagnose</title>
+<style>body{font-family:monospace;padding:30px;color:#0b0f1a;background:#39d0a4;} pre{background:#fff;padding:20px;border-radius:8px;font-size:14px;} .ok{color:#39d0a4;} .err{color:#ff5d6c;}</style>
+</head>
+<body>
+<h1>🚀 Diagnostic page — copy output below ⬇️</h1>
+<pre id="out">running checks...</pre>
+<script>
+const out = document.getElementById('out');
+const log = (m, cls='') => { out.innerHTML += (cls ? `<span class="${cls}">${m}</span>` : m) + '\n'; };
+async function run(){
+  log('--- Browser Environment ---');
+  log('UA: ' + navigator.userAgent);
+  log('online: ' + navigator.onLine);
+  log('time: ' + new Date().toISOString());
+  log('SW registered count: ' + (await navigator.serviceWorker.getRegistrations().then(r=>r.length)).toString());
+  for (const c of await caches.keys()) log('Cache: ' + c);
+
+  log('');
+  log('--- Direct fetch tests ---');
+  const paths = ['./data/launches.json','./data/stats.json','./data/agencies.json'];
+  for(const p of paths){
+    try{
+      const t0 = performance.now();
+      const r = await fetch(p + '?cb='+Date.now(), {cache:'no-store'});
+      const body = await r.text();
+      const ms = (performance.now()-t0).toFixed(0);
+      log(`✓ ${p}: HTTP ${r.status} ${body.length}B in ${ms}ms`, 'ok');
+    } catch(e){
+      log(`✗ ${p}: ${e.message}`, 'err');
+    }
+  }
+
+  log('');
+  log('--- HTML fetch ---');
+  try{
+    const r = await fetch('./?cb='+Date.now(), {cache:'no-store'});
+    log(`HTML status: ${r.status} ${(await r.text()).length}B`, 'ok');
+  } catch(e){ log('HTML err: ' + e.message, 'err'); }
+}
+run();
+</script>
+</body></html>

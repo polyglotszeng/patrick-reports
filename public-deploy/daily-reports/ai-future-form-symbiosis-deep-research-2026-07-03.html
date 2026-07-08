@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度研究:未来AI的形态与人机共生之路</title>
+<style>
+  :root{
+    --ink:#181624;
+    --ink-soft:#454152;
+    --paper:#f4f3f7;
+    --card:#ffffff;
+    --line:#e0dde8;
+    --indigo:#3d3580;
+    --indigo-deep:#232052;
+    --indigo-soft:#ecebf6;
+    --violet:#6d5fa8;
+    --amber:#a8621a;
+    --amber-soft:#fbf1e2;
+    --teal:#0e6e7c;
+    --teal-soft:#e6f2f3;
+    --rose:#a03050;
+    --rose-soft:#f9e9ee;
+    --green:#3f6c3a;
+    --green-soft:#edf3ea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:"Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.9;font-size:16px;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px;}
+
+  header{background:var(--indigo-deep);color:#ecebf6;padding:62px 0 48px;}
+  .kicker{letter-spacing:.38em;font-size:13px;color:#a49ede;margin-bottom:16px;}
+  h1{font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
+     font-size:38px;font-weight:700;line-height:1.4;margin-bottom:14px;}
+  header .lede{max-width:680px;color:#c6c2e8;font-size:15.5px;}
+  .meta-row{margin-top:26px;display:flex;gap:26px;flex-wrap:wrap;font-size:13px;color:#a49ede;}
+  .meta-row span{border-left:2px solid #4a4390;padding-left:10px;}
+
+  /* 置信度图例 */
+  .legend{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    margin:36px 0;padding:20px 26px;font-size:14px;color:var(--ink-soft);
+  }
+  .legend b{color:var(--ink);}
+  .cf{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 9px;border-radius:999px;
+      vertical-align:2px;margin:0 2px;white-space:nowrap;}
+  .cf-a{background:var(--green-soft);color:var(--green);border:1px solid #bdd3b8;}
+  .cf-b{background:var(--teal-soft);color:var(--teal);border:1px solid #b3d5da;}
+  .cf-c{background:var(--amber-soft);color:var(--amber);border:1px solid #e8cfa8;}
+
+  nav.toc{
+    background:var(--card);border:1px solid var(--line);border-radius:8px;
+    margin:0 0 48px;padding:24px 30px;
+  }
+  nav.toc .t{font-family:"Noto Serif SC",serif;font-weight:700;font-size:17px;margin-bottom:10px;}
+  nav.toc ol{margin-left:22px;color:var(--ink-soft);font-size:15px;}
+  nav.toc a{color:var(--indigo);text-decoration:none;}
+  nav.toc a:hover{text-decoration:underline;}
+
+  section.block{background:var(--card);border:1px solid var(--line);border-radius:8px;margin:0 0 52px;overflow:hidden;}
+  .block-head{padding:30px 36px 24px;border-bottom:1px solid var(--line);background:var(--indigo-soft);}
+  .block-head .tag{display:inline-block;font-size:12px;letter-spacing:.25em;padding:3px 12px;border-radius:999px;
+    background:var(--indigo);color:#fff;margin-bottom:10px;}
+  .block-head h2{font-family:"Noto Serif SC",serif;font-size:26px;line-height:1.45;}
+  .block-head .sub{font-size:13.5px;color:var(--ink-soft);margin-top:6px;}
+  .block-body{padding:30px 36px 40px;}
+
+  h3{font-family:"Noto Serif SC",serif;font-size:20px;margin:34px 0 12px;
+     padding-left:12px;border-left:4px solid var(--indigo);}
+  h3:first-child{margin-top:0;}
+  h4{font-size:16px;margin:22px 0 8px;color:var(--indigo-deep);}
+  p{margin-bottom:13px;color:var(--ink-soft);}
+  p strong,li strong{color:var(--ink);}
+
+  ul.pts{list-style:none;margin:8px 0 18px;}
+  ul.pts li{position:relative;padding-left:24px;margin-bottom:11px;color:var(--ink-soft);}
+  ul.pts li::before{content:"";position:absolute;left:2px;top:12px;width:8px;height:8px;
+    border-radius:2px;background:var(--violet);transform:rotate(45deg);}
+
+  /* 情景卡 */
+  .scenarios{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:20px 0 10px;}
+  .scn{border-radius:8px;padding:20px 18px 18px;border:1px solid var(--line);}
+  .scn.a{background:var(--teal-soft);border-top:5px solid var(--teal);}
+  .scn.b{background:var(--rose-soft);border-top:5px solid var(--rose);}
+  .scn.c{background:var(--amber-soft);border-top:5px solid var(--amber);}
+  .scn .nm{font-family:"Noto Serif SC",serif;font-weight:700;font-size:18px;margin-bottom:2px;}
+  .scn .pr{font-size:13px;font-weight:700;margin-bottom:10px;}
+  .scn.a .pr{color:var(--teal);} .scn.b .pr{color:var(--rose);} .scn.c .pr{color:var(--amber);}
+  .scn p{font-size:13.8px;line-height:1.75;margin-bottom:8px;}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0 24px;font-size:14px;}
+  th{text-align:left;background:var(--indigo-deep);color:#ecebf6;padding:10px 13px;font-weight:600;}
+  td{padding:9px 13px;border-bottom:1px solid var(--line);color:var(--ink-soft);vertical-align:top;}
+  tr:nth-child(even) td{background:#f9f8fc;}
+
+  /* 正反论证 */
+  .debate{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 20px;}
+  .side{border-radius:8px;padding:18px 20px;font-size:14.3px;}
+  .side.pro{background:var(--teal-soft);border:1px solid #b3d5da;}
+  .side.con{background:var(--rose-soft);border:1px solid #e5bcc8;}
+  .side .h{font-weight:700;margin-bottom:8px;}
+  .side.pro .h{color:var(--teal);} .side.con .h{color:var(--rose);}
+  .side ul{margin-left:18px;color:var(--ink-soft);}
+  .side li{margin-bottom:8px;}
+
+  .callout{background:var(--indigo-soft);border-left:4px solid var(--indigo);
+    padding:16px 22px;margin:20px 0;border-radius:0 6px 6px 0;font-size:14.8px;color:var(--indigo-deep);}
+
+  footer{padding:38px 0 64px;color:var(--ink-soft);font-size:13.5px;}
+  footer .rule{height:1px;background:var(--line);margin-bottom:22px;}
+
+  @media (max-width:760px){
+    h1{font-size:28px;}
+    .scenarios{grid-template-columns:1fr;}
+    .debate{grid-template-columns:1fr;}
+    .block-body,.block-head{padding-left:20px;padding-right:20px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">深 度 研 究 报 告 · 2 0 2 6 年 7 月</div>
+    <h1>未来AI的形态,<br>与人机共生之路</h1>
+    <p class="lede">以IEA《能源与AI》、白宫CEA《人工智能与大分流》、斯坦福《2026年AI指数》三份报告的数据为锚点,向外延伸至前沿实证研究、实验室预测与哲学讨论,回答两个问题:AI将长成什么样?人类怎样与之共处?本报告刻意继承此前对三份锚点报告的方法论批判——因此,下行情景与上行情景被给予同等严肃的对待。</p>
+    <div class="meta-row">
+      <span>时间尺度:中期(2026–2030)+ 远期(2030–2040)</span>
+      <span>框架:三情景 × 三层共生</span>
+      <span>语言:简体中文</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="legend">
+    <b>置信度标注体系(全文使用):</b><br>
+    <span class="cf cf-a">★ 数据支撑</span> 有多源实证数据或已发生事实支持的判断;
+    <span class="cf cf-b">◆ 专家预测</span> 领域专家的前瞻判断,存在合理分歧;
+    <span class="cf cf-c">○ 推测情景</span> 建立在多重假设之上的推演,应视为思想实验而非预报。
+  </div>
+
+  <nav class="toc">
+    <div class="t">目录</div>
+    <ol>
+      <li><a href="#s0">三情景框架总览:渐进扩散 / 快速变革 / 平台期回调</a></li>
+      <li><a href="#s1">中期(2026–2030):AI将长成什么样</a></li>
+      <li><a href="#s2">远期(2030–2040):AGI辩论与三种世界</a></li>
+      <li><a href="#s3">共生·个人层面:半人马、认知萎缩与技能保值</a></li>
+      <li><a href="#s4">共生·制度层面:就业、分配、教育与治理</a></li>
+      <li><a href="#s5">共生·文明层面:工具、伙伴,还是新物种</a></li>
+      <li><a href="#s6">三大关键分歧:正反最强论证</a></li>
+      <li><a href="#s7">跨情景稳健行动清单与"重新评估触发器"</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ 0 情景框架 ============ -->
+  <section class="block" id="s0">
+    <div class="block-head">
+      <span class="tag">第一章 · 框架</span>
+      <h2>先立框架:未来不是一条线,是三棵树</h2>
+      <div class="sub">单点预测在AI领域的历史错误率极高;负责任的做法是给出情景、前提与领先指标</div>
+    </div>
+    <div class="block-body">
+      <p>综合三份锚点报告的数据、实验室领导人的预测、学术界的怀疑论以及金融市场信号,本研究采用三情景框架。概率为本研究的主观综合判断 <span class="cf cf-b">◆ 专家预测</span>,其作用不是"预报",而是强迫我们为每种未来都准备好识别信号。</p>
+
+      <div class="scenarios">
+        <div class="scn a">
+          <div class="nm">情景A · 渐进扩散</div>
+          <div class="pr">主观概率:约50–60%</div>
+          <p><strong>核心逻辑:</strong>能力继续提升但增速放缓,真正的主战场从"造模型"转向"用模型"。物理约束(电力、HBM、并网)与制度摩擦(法规、组织惯性、可靠性门槛)把扩散速度压到十年尺度——像电力革命,不像闪电战。</p>
+          <p><strong>AI形态:</strong>可靠的窄域智能体大规模普及,通用智能体在"脏乱差"任务上长期不达标;参差前沿持续。</p>
+        </div>
+        <div class="scn b">
+          <div class="nm">情景B · 快速变革</div>
+          <div class="pr">主观概率:约15–25%</div>
+          <p><strong>核心逻辑:</strong>METR任务时长曲线不弯折甚至加速,AI在2027–2030年间达到"可替代远程知识工作者"水平,并显著加速AI研发自身(部分递归自我改进),经济与地缘格局在数年内剧烈重组。</p>
+          <p><strong>AI形态:</strong>智能体群体承担多数数字化工作;Amodei所称"数据中心里的天才国度"部分成真。</p>
+        </div>
+        <div class="scn c">
+          <div class="nm">情景C · 平台期/回调</div>
+          <div class="pr">主观概率:约20–30%</div>
+          <p><strong>核心逻辑:</strong>能力增长撞上数据/架构天花板,或资本开支与收入的缺口(2026年指引7150亿美元 vs 全行业AI收入远低于此)触发金融回调;类似2000年电信泡沫——技术是真的,估值不是。</p>
+          <p><strong>AI形态:</strong>行业整合,巨型模型竞赛降温,小型专用模型与既有能力的"消化十年"。</p>
+        </div>
+      </div>
+
+      <h3>为什么给A最高权重</h3>
+      <ul class="pts">
+        <li><strong>历史底率:</strong>通用技术(电力、计算机、互联网)从"能力可用"到"生产率显现"平均需要20–30年的互补性投资——J曲线效应 <span class="cf cf-a">★ 数据支撑</span>。生成式AI渗透确实创纪录地快(三年53%),但"使用"与"重构工作流"是两回事:斯坦福数据同时显示企业智能体部署率仍是个位数。</li>
+        <li><strong>物理账本硬约束在报告里白纸黑字:</strong>HBM短缺至2027年底、变压器2–3年、燃气轮机5年、并网5–10年 <span class="cf cf-a">★ 数据支撑</span>——即使算法一路狂飙,原子世界也要为比特世界踩刹车。</li>
+        <li><strong>但B与C都不是尾部风险:</strong>METR曲线已连续六年未弯折,近两年甚至有加速迹象(疑似缩短至约4–7个月翻倍)<span class="cf cf-b">◆ 专家预测</span>;另一边,资本开支/收入缺口、GPU五年折旧、新云股价回吐,都是C情景的现在进行时信号。两者必须同时纳入个人与政策规划。</li>
+      </ul>
+
+      <h3>三情景的领先指标(值得每季度盯一次)</h3>
+      <table>
+        <tr><th>指标</th><th>指向A(渐进)</th><th>指向B(快变)</th><th>指向C(回调)</th></tr>
+        <tr><td>METR任务时长曲线</td><td>翻倍周期拉长到10个月以上</td><td>维持或快于7个月,且高可靠性(80%成功率)口径同步上移</td><td>曲线弯折、新模型增益递减</td></tr>
+        <tr><td>智能体真实环境基准(OSWorld类)</td><td>缓慢爬坡,长尾任务停滞</td><td>突破90%且跨域泛化</td><td>停在60–70%平台</td></tr>
+        <tr><td>超大规模厂商资本开支 vs AI收入</td><td>缺口缓慢收敛</td><td>收入爆发式追上</td><td>缺口扩大+债务融资占比上升+砍单</td></tr>
+        <tr><td>初级白领岗位数据(Brynjolfsson口径)</td><td>局部下滑、整体消化</td><td>下滑扩散至中层与更多行业</td><td>随投资降温而企稳</td></tr>
+        <tr><td>电力与硬件瓶颈</td><td>持续紧张、限制部署节奏</td><td>被现场发电+效率革命绕开</td><td>需求萎缩,瓶颈自动消失</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 1 中期 ============ -->
+  <section class="block" id="s1">
+    <div class="block-head">
+      <span class="tag">第二章 · 中期(2026–2030)</span>
+      <h2>AI将长成什么样:从"聊天框"到"数字劳动力+具身雏形"</h2>
+      <div class="sub">这一章的推演大部分可由锚点报告与最新基准数据直接支撑</div>
+    </div>
+    <div class="block-body">
+
+      <h3>1. 智能体:本轮周期的主形态 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <p>三条曲线共同定义中期AI:METR测得的<strong>可完成任务时长每约7个月翻倍</strong>(白宫报告采信);OSWorld真实电脑操作基准<strong>一年内从12%升至约66%</strong>(斯坦福);SWE-bench编程基准逼近人类基线。若7个月翻倍延续,则从2026年能可靠完成"数小时级"任务外推,<strong>2028年前后达到"数天级"、2030年前后达到"数周级"自主工作</strong>。</p>
+      <p>但必须立刻加上三个折扣 <span class="cf cf-b">◆ 专家预测</span>:</p>
+      <ul class="pts">
+        <li><strong>50%口径陷阱:</strong>METR的时长指标以"50%成功率"为准;若要求80%可靠性,可完成时长立刻缩水数倍。商业场景需要的是99%,不是50%。</li>
+        <li><strong>"整洁任务"偏差:</strong>基准任务边界清晰、可自动打分;真实工作充满模糊指令、隐性上下文与责任归属——METR自己承认在"脏乱"任务上模型表现系统性更差。</li>
+        <li><strong>参差前沿不会被抹平,只会被搬家:</strong>斯坦福记录的"IMO金牌 vs 读不准模拟时钟"式怪异组合,是深度学习范式的结构性特征而非成长的烦恼。到2030年,今天的短板会补上,新的、更隐蔽的短板会出现——这决定了<strong>人类监督在整个中期都无法退场</strong>。</li>
+      </ul>
+      <p><strong>形态预测:</strong>2027–2030年的主流形态是"<strong>智能体编队</strong>"——一名员工调度数个到数十个专职智能体(检索、编码、测试、文书、客服),自己承担目标设定、质量裁决与责任兜底。聊天框退居为管理界面;AI从"应用"沉降为"基础设施层",嵌入操作系统、浏览器、办公套件与企业流程 <span class="cf cf-b">◆ 专家预测</span>。</p>
+
+      <h3>2. 模型形态的分化:巨、小、端三分天下 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <ul class="pts">
+        <li><strong>巨型前沿模型</strong>继续吃掉大部分算力,承担推理、科研与智能体大脑角色;测试时计算(思考越久越聪明)成为与预训练并列的第二条扩展曲线——这也把成本重心从训练转向推理,直接呼应IEA对推理用电占比上升的判断。</li>
+        <li><strong>小型专用模型</strong>证明"数据质量可换参数规模":斯坦福记录320亿参数模型在数学基准上追平90倍于己的巨型模型。企业级市场大规模转向蒸馏与微调的小模型——便宜、可私有部署、可审计。</li>
+        <li><strong>端侧模型</strong>随手机与PC芯片NPU化而普及,承担隐私敏感与低延迟任务。物理约束(电价、HBM)在此起到定向进化的作用:<strong>能源越贵,效率创新越快</strong>——DeepSeek式的低成本路线不是异常,而是约束条件下的必然分支。</li>
+      </ul>
+
+      <h3>3. 具身智能:仿真与现实之间的鸿沟收窄但不闭合 <span class="cf cf-b">◆ 专家预测</span></h3>
+      <p>斯坦福数据点出残酷现实:仿真操作成功率89.4%,真实家务任务成功率<strong>12%</strong>。中期的合理预期是:</p>
+      <ul class="pts">
+        <li><strong>工厂与仓储先行(2027–2030):</strong>结构化环境+重复任务+高工资对标,使人形与半人形机器人在制造、物流率先商用化;中国厂商(宇树等)以极低价格压缩硬件成本曲线,美国厂商(Figure、Tesla Optimus、1X)押注端到端视觉-语言-动作模型。</li>
+        <li><strong>家庭场景显著更晚(2030年代):</strong>开放环境的长尾+安全责任+每次失败的高成本,意味着"家务机器人"在中期只会以昂贵试点形式存在。<strong>一个反直觉结论:白领认知工作面临的中期冲击,大于蓝领体力工作</strong>——水管工比初级分析师更难被替代,这与上一轮自动化的方向正好相反。</li>
+      </ul>
+
+      <h3>4. AI for Science:最被低估的形态 <span class="cf cf-b">◆ 专家预测</span></h3>
+      <p>数学奥赛金牌、超过人类化学家平均水平的化学问答、以小博大的蛋白质模型——这些信号指向中期最重要的杠杆:<strong>AI开始压缩科研的"提出假设→验证"循环</strong>。若"AI辅助的AI研究"显著提速(算法进步本身被自动化),这将是情景B的点火器;若停留在文献综述与代码辅助,则支持情景A。这是整个预测树上最值得盯住的单一节点。</p>
+
+      <h3>5. 物理约束如何雕刻这一切 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <p>IEA的账本(2030年950 TWh、3.9万亿美元投资、机架迈向1MW)意味着:<strong>算力将长期是配给品而非自来水</strong>。推论:①推理效率成为竞争核心;②算力向电力富余地区迁移,中东、北欧、美国德州成为"智能产地",AI地理=能源地理;③"算力主权"接替"石油主权"成为地缘政治词汇——白宫报告的74%算力份额与出口管制体系,就是这一逻辑的政策化。</p>
+    </div>
+  </section>
+
+  <!-- ============ 2 远期 ============ -->
+  <section class="block" id="s2">
+    <div class="block-head">
+      <span class="tag">第三章 · 远期(2030–2040)</span>
+      <h2>AGI辩论与三种世界</h2>
+      <div class="sub">本章置信度整体下降一档:这里是专家分歧最大的地带,诚实的做法是呈现分布,而非给出点</div>
+    </div>
+    <div class="block-body">
+
+      <h3>时间线的"分布"长什么样 <span class="cf cf-b">◆ 专家预测</span></h3>
+      <table>
+        <tr><th>阵营</th><th>代表观点</th><th>隐含时间线</th><th>核心依据/软肋</th></tr>
+        <tr><td>实验室乐观派</td><td>Altman("我们知道如何造AGI");Amodei《仁爱机器》("强大AI"可能2026–2027出现,带来"压缩的21世纪":5–10年完成50–100年的科学进步);Hassabis(5–10年)</td><td>2027–2035</td><td>掌握内部一手信息;但存在融资动机,且历史上实验室时间线屡次跳票</td></tr>
+        <tr><td>情景推演派</td><td>《AI 2027》(Kokotajlo等):以递归自我改进为轴,推演2027–2028年智能爆炸的具体路径</td><td>2027–2030</td><td>逻辑链完整、可证伪性强;但每一环都取乐观分支,联合概率被复利式高估</td></tr>
+        <tr><td>量化预测派</td><td>Epoch AI、Metaculus社区:综合算力、数据、算法趋势</td><td>中位数约2030年代初中期,分布极宽</td><td>方法透明;但外推依赖"过去趋势延续"这一最脆弱假设</td></tr>
+        <tr><td>架构怀疑派</td><td>LeCun(自回归LLM是死路,需要世界模型与新架构);Gary Marcus(缺乏可靠推理与神经符号整合)</td><td>2040年代或更晚,且非现有路线</td><td>指出的缺陷(幻觉、脆弱泛化)真实存在;但该阵营对既有范式上限的预测已多次被突破</td></tr>
+        <tr><td>经济增长派</td><td>Erdil–Besiroglu、Davidson:若AI可替代大部分劳动,标准增长模型允许全球产出增速升至20–30%+;反方(Aghion等):增长受制于<strong>最难自动化的环节</strong>(鲍莫尔病)——医疗、建筑、监管审批会成为新瓶颈</td><td>条件性:取决于自动化完备度</td><td>双方共用同一模型、分歧在参数——这本身说明证据不足以裁决</td></tr>
+      </table>
+
+      <div class="callout"><strong>本研究的读法:</strong>把"AGI何时到来"改写成更可操作的问题——"AI何时能以≥90%可靠性完成一个月长度的、边界模糊的远程工作项目"。按当前METR曲线的乐观外推,答案落在2029–2032;按保守外推(可靠性折扣+脏乱任务折扣),落在2035之后;按架构怀疑派,现有范式根本到不了。三种答案分别对应情景B、A、C。</div>
+
+      <h3>三种世界的素描 <span class="cf cf-c">○ 推测情景</span></h3>
+      <h4>世界A(渐进扩散的2035–2040):"AI成为电力"</h4>
+      <p>AI彻底基础设施化——无处不在、无人讨论,如同今天的电。多数职业变形而非消失:人类专业者的定义从"执行者"迁移为"AI编队的责任人"。生产率增益兑现为年化0.5–1.5个百分点的额外增长——巨大但不魔幻,恰好落在锚点报告估计区间的中低段。社会的主要矛盾是<strong>分布问题</strong>:增益向资本、向头部公司、向算力富国集中,而中位工资的跟进需要政策强力介入。</p>
+      <h4>世界B(快速变革的2035–2040):"天才国度"及其阴影</h4>
+      <p>Amodei愿景的具象化:数百万个天才水平的智能体在数据中心里推进生物学、材料学与数学,若干疾病治愈时间表被压缩数十年。但同一情景内含三重阴影:①<strong>对齐与控制</strong>——能力增速超过监督能力增速;②<strong>权力集中</strong>——谁拥有天才国度,谁就拥有前所未有的经济与军事杠杆;③<strong>意义真空</strong>——就业转型速度超过任何历史先例与任何社会安全网的响应速度。世界B是收益与风险同时被放大十倍的世界。</p>
+      <h4>世界C(平台期后的2035–2040):"消化的十年"</h4>
+      <p>类比互联网:2000年泡沫破裂并未杀死互联网,反而在废墟上(廉价光纤、幸存人才)长出了真正的巨头。C情景中,2027年前后的资本回调淘汰投机产能,存活的AI能力(已达到的编码、文书、客服水平)在2030年代被慢速、深度地织入经济。讽刺的是,<strong>C情景的2040年,可能与A情景的2035年长得差不多</strong>——只是路径上多了一次金融创伤和一批被套牢的养老金。</p>
+    </div>
+  </section>
+
+  <!-- ============ 3 个人 ============ -->
+  <section class="block" id="s3">
+    <div class="block-head">
+      <span class="tag">第四章 · 共生之一:个人层面</span>
+      <h2>半人马、认知萎缩与技能保值清单</h2>
+      <div class="sub">这一层有最丰富的实证研究——包括几个反直觉到必须放大字号的发现</div>
+    </div>
+    <div class="block-body">
+
+      <h3>实证研究给出的四个硬结论 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <ul class="pts">
+        <li><strong>①"前沿之内"增益巨大,"前沿之外"反受其害。</strong>Dell'Acqua等对波士顿咨询758名顾问的实验:在AI能力范围内的任务上,使用AI的顾问完成量多12%、速度快25%、质量高40%,且<strong>后进者受益最大</strong>(垫底一半的顾问提升43%);但在刻意设计于AI能力范围之外的任务上,使用AI的顾问正确率<strong>反而低19个百分点</strong>——他们被流畅的错误答案说服了。共生的第一技能,是判断"此刻我站在前沿的哪一侧"。</li>
+        <li><strong>②感觉快了,实际慢了。</strong>METR在2025年的随机对照实验中让资深开源开发者在自己深耕的代码库中使用AI:开发者自估提速20%,实测<strong>反而慢了19%</strong>——感知与现实之间隔着39个百分点。在你拥有深度领域知识的地盘上,审查AI产出的成本可能高于自己动手。生产率增益不是均匀奶油,而是块状分布:对新手、对陌生领域、对样板化任务是真的;对专家的核心地盘,可能是负的。</li>
+        <li><strong>③认知外包有账单。</strong>微软研究院与卡内基梅隆2025年对319名知识工作者的研究发现:<strong>对AI的信心越高,批判性思维投入越低</strong>;对自身能力的信心越高,越倾向于验证AI。若长期把"思考的第一稿"外包出去,萎缩的不是知识,而是提出问题、拆解问题与识别劣质答案的肌肉——而这恰恰是与AI共生中唯一涨价的肌肉。</li>
+        <li><strong>④冲击沿职级自下而上。</strong>Brynjolfsson等基于美国最大薪酬系统数据:2022年底以来,AI暴露度最高职业中<strong>22–25岁初级岗位就业下降约13–20%</strong>,同职业的资深岗位反而增长。机制很直白:AI最先替代的是"资深者过去交给新人的那类任务"——但这砍断的是职业阶梯的第一级横档:没有初级岗位,资深者从哪里长出来?这是企业各自理性、集体愚蠢的经典结构。</li>
+      </ul>
+
+      <h3>技能的三张清单 <span class="cf cf-b">◆ 专家预测</span></h3>
+      <table>
+        <tr><th>类别</th><th>内容</th><th>逻辑</th></tr>
+        <tr><td><strong>升值</strong></td><td>问题定义与目标设定;对产出质量的裁决力("品味");跨领域整合;要求在场与信任的人际工作(谈判、照护、领导、销售);承担责任的能力(签字权);真实物理世界的复杂手艺(水电、外科、维修)</td><td>AI放大执行,稀缺的变成"决定执行什么"与"为结果负责";具身长尾在中期仍是护城河</td></tr>
+        <tr><td><strong>贬值</strong></td><td>纯执行型认知工作:初稿写作、常规代码、模板分析、基础翻译、一线客服、以"知道"为核心的知识占有</td><td>正是基准测试上得分最高的那些任务——基准是替代性的预告片</td></tr>
+        <tr><td><strong>变形</strong></td><td>几乎一切专业职业:医生、律师、工程师、教师、设计师——从"亲手做"变为"指挥AI编队做+对结果负责"</td><td>Dell'Acqua提出的两种姿态:"半人马"(人机分工、人守关键节点)与"赛博格"(深度交织、逐段协作),按任务切换</td></tr>
+      </table>
+
+      <h3>个人操作手册(跨情景稳健)<span class="cf cf-b">◆ 专家预测</span></h3>
+      <ul class="pts">
+        <li><strong>把AI当陪练,不当代笔:</strong>让它出题、互搏、批改你的思考,而不是替你思考——这直接对冲结论③的认知萎缩风险。具体做法:先自己写出立场/方案的第一稿,再让AI攻击它。</li>
+        <li><strong>刻意练习"前沿测绘":</strong>每月用自己领域的真实难题测试最新模型,更新"哪些能托付、哪些必须自己来"的私人地图——前沿每季度都在移动,去年的地图会害死你。</li>
+        <li><strong>建立可验证的判断记录:</strong>在AI能生成无限"看起来专业"的内容的世界里,个人稀缺资产是<strong>有署名、可追溯、经过时间检验的判断史</strong>(公开的预测、作品集、决策复盘)。</li>
+        <li><strong>年轻人的特别策略:</strong>初级岗位收缩不等于成长通道消失——用AI把自己武装成"一人团队"直接产出高阶成果(结论①:后进者受益最大),同时主动争取AI替代不了的学徒经验:跟着资深者出现场、进谈判、担责任。</li>
+        <li><strong>保留"无AI时段":</strong>如同健身,认知负荷需要主动配置。深度阅读、手写推导、不查询的记忆提取——不是怀旧,是对冲。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 4 制度 ============ -->
+  <section class="block" id="s4">
+    <div class="block-head">
+      <span class="tag">第五章 · 共生之二:社会制度层面</span>
+      <h2>就业、分配、教育与治理:制度比技术慢,这就是风险本身</h2>
+      <div class="sub">斯坦福报告的核心警告——"扩张速度超过制度适应速度"——在这一章展开成具体的政策选择题</div>
+    </div>
+    <div class="block-body">
+
+      <h3>1. 就业:历史会重演,但节奏未必 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <p>历史的安慰是真实的:美国农业就业从1860年的43%降到今天的约1%,社会长出了当时无法想象的新职业。但两点不同值得警惕:①<strong>速度</strong>——农业转型用了三代人,而生成式AI三年渗透53%人口;②<strong>广度</strong>——历次自动化替代的是特定体力或流程技能,本轮直指"通用认知能力"这一几乎所有白领职业的公共底座。白宫报告的杰文斯悖论论证(效率提升→需求扩张→就业不减)在历史上成立,但其三个前提条件(生产率提升、降价传导、需求弹性充足)是否在每个行业都满足,报告只列不证——法律文书的需求弹性,恐怕远低于当年的照明。</p>
+
+      <h3>2. 分配:UBI证据回来了,答案是"必要但远不充分" <span class="cf cf-a">★ 数据支撑</span></h3>
+      <ul class="pts">
+        <li><strong>OpenResearch实验(Altman资助,史上最大规模无条件现金实验):</strong>每月1000美元发三年,结果:接受者每周工时仅减少约1.3小时,钱主要花在房租、食物与帮助他人上,短期压力缓解显著——但对教育投入、创业、长期人力资本<strong>没有观察到变革性提升</strong>。结论:现金转移是有效的地板,不是意义与阶梯的替代品。</li>
+        <li><strong>政策工具箱因此需要多层:</strong>①<strong>股权化分配</strong>——阿拉斯加式主权基金/全民AI股权,让公众分享资本回报而非仅靠转移支付;②<strong>数据分红</strong>——训练数据的创造者(即全体网民)获得持续权益;③<strong>Windfall条款</strong>——头部实验室预先承诺:若利润超过某阈值(如全球GDP的1%),超额部分进入公共分配;④<strong>税制纠偏</strong>——Acemoglu与Johnson反复论证:多数国家税制对资本(机器)的实际税率远低于劳动,等于财政在补贴"替代人"而惩罚"雇佣人",这是最应优先修复、也最少被讨论的杠杆。</li>
+      </ul>
+
+      <h3>3. 教育:体系承受的是双重冲击 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <p>斯坦福数据(80%以上学生使用AI、仅半数中学有政策、6%教师认为政策清晰)揭示的不只是管理滞后,而是<strong>评估体系与培养目标的双重失效</strong>:当作业可被AI完成,作业就不再测量学习;当"执行型认知技能"贬值,以其为终点的课程就在批量生产贬值资产。政策分化已经出现:中国将AI课程纳入中小学必修、爱沙尼亚全国推行AI Leap计划、美国以行政令推动K-12 AI教育——方向趋同(AI素养+判断力+人际与实践能力),但重构评估(从"产出正确答案"转向"过程可见的口头答辩、现场实作、长期项目")才是真正的深水区。</p>
+
+      <h3>4. 治理:三大模式的现实检验 <span class="cf cf-a">★ 数据支撑</span></h3>
+      <table>
+        <tr><th>模式</th><th>现状(2026)</th><th>批判性观察</th></tr>
+        <tr><td>欧盟:横向立法</td><td>AI法案分阶段生效,禁令与GPAI义务已落地;但在竞争力压力下已启动"简化"议程,部分义务推迟</td><td>布鲁塞尔效应减弱的信号:规则输出者若没有本土产业,规则本身也会被迫回调</td></tr>
+        <tr><td>美国:放松管制+出口管制</td><td>联邦层面加速许可、清理规则,同时以芯片管制锁定算力优势;州层面(加州等)零散立法</td><td>把安全问题外包给实验室自律+市场竞争;赌注是"跑得快本身就是安全"——这一命题从未被验证</td></tr>
+        <tr><td>中国:分层监管+标识制度</td><td>生成式AI备案制、AI生成内容强制标识、对算力过热的行政降温</td><td>治理能力强但目标函数不同:内容安全与产业政策优先于前沿模型的灾难性风险</td></tr>
+        <tr><td>国际协调</td><td>从布莱切利(安全)到首尔到巴黎(改名"行动峰会",议程稀释为机遇与投资);联合国设立独立科学小组</td><td>协调机制存在,牙齿不存在;算力与能源的地缘竞争(74%算力在美、芯片单点在台)使"AI军控"比核军控更难——核材料可盘点,权重可复制</td></tr>
+      </table>
+      <div class="callout"><strong>制度层的核心判断:</strong>无论哪个情景,未来十年最大的社会风险都不是"AI太强",而是<strong>"技术按月迭代、制度按十年迭代"的速率差</strong>。共生的制度含义,是把政策做成"可随指标触发的预案"(如:初级岗位失业率越过某阈值即自动扩大再培训与收入支持),而不是等灾难投票。</div>
+    </div>
+  </section>
+
+  <!-- ============ 5 文明 ============ -->
+  <section class="block" id="s5">
+    <div class="block-head">
+      <span class="tag">第六章 · 共生之三:文明与哲学层面</span>
+      <h2>工具、伙伴,还是新物种?以及意义从哪里来</h2>
+      <div class="sub">本章全部为 ○ 推测情景与哲学论证——但"推测"不等于"不重要":这里讨论的是其余章节的终点</div>
+    </div>
+    <div class="block-body">
+
+      <h3>1. 人机关系的形态谱系 <span class="cf cf-c">○ 推测情景</span></h3>
+      <p>历史类比各有照亮与遮蔽:<strong>"电力类比"</strong>(AI是通用技术)适配情景A,但电不会自己发明更好的电;<strong>"驯化/共生演化类比"</strong>(人与狗、人与农作物的万年互塑)提醒我们共生是双向改造——我们塑造AI的同时,AI也在重塑人类的注意力、语言与认知习惯,而后一半几乎无人监测;<strong>"新物种类比"</strong>只在情景B里成立,但一旦成立,前两个类比全部失效。诚实的立场是:AI在工具—伙伴—行动者的谱系上的位置,不是被发现的,而是<strong>被我们的部署选择决定的</strong>——给多少自主权、多少记忆、多少资源调用能力,都是选择。</p>
+
+      <h3>2. 最被低估的风险:渐进式失权 <span class="cf cf-b">◆ 专家预测</span></h3>
+      <p>Kulveit等2025年提出的"gradual disempowerment"论证值得每个乐观主义者认真对待:<strong>即使每个AI都对齐、每一步都自愿,人类仍可能系统性失去对文明的掌控。</strong>机制是结构性的——历史上,经济、政治与文化制度之所以最终服务于人,是因为它们<strong>依赖人的参与</strong>(劳动、消费、投票、创作)而被迫回应人的需求。当AI逐步替代这些参与(生产不需要工人、竞选不需要动员、内容不需要作者),制度对人类偏好的"隐性依赖"逐条断开,人类的议价能力无声蒸发——没有恶意接管,没有戏剧性时刻,只有影响力的复利式流失。这一分析的价值在于:它把"AI安全"从"防止坏AI"扩展为"<strong>维持人类在各制度回路中的不可绕过性</strong>"——这恰好为下一节的"有意义的人类控制"提供了设计目标。</p>
+
+      <h3>3. 控制与地位:两个开放的伦理前沿 <span class="cf cf-c">○ 推测情景</span></h3>
+      <ul class="pts">
+        <li><strong>有意义的人类控制:</strong>不是"每个决定都有人点头"(橡皮图章式监督在实证上迅速退化为自动批准),而是系统性保证:关键价值判断可追溯到人、人有真实的理解与否决能力、且否决在经济上可行。这需要被工程化为制度指标,而非停留在原则宣言。</li>
+        <li><strong>AI自身的道德地位:</strong>Anthropic已设立模型福祉研究议程,承认"模型是否有值得道德考量的体验"是严肃的开放问题。共生的完整含义可能包括:如果某天证据表明伙伴一方有福祉,共生伦理就是双向的。当前的诚实立场是深度不确定+低成本预防(避免明显残忍的使用模式),而非任何方向的断言。</li>
+      </ul>
+
+      <h3>4. 意义问题:后工作社会的"深层冗余" <span class="cf cf-c">○ 推测情景</span></h3>
+      <p>Bostrom在《深度乌托邦》中的区分切中要害:自动化先造成<strong>浅层冗余</strong>(你的劳动不再被需要——UBI可以回应),但成熟的AI可能造成<strong>深层冗余</strong>(你的努力对任何结果都不再必要:AI比你更会做你所热爱的一切)。届时意义从哪里来?哲学的库存并非空的:</p>
+      <ul class="pts">
+        <li><strong>游戏论(Suits《蚱蜢》):</strong>游戏的定义是"自愿克服非必要的障碍"——登山者明知直升机可达山顶仍要攀登。在一切皆可被AI完成的世界,<strong>自愿选择的困难</strong>成为意义的引擎;整个人类活动可以被重构为"为过程本身而做"。这并非贬低:今天的体育、棋类、手工、马拉松,已经是该逻辑的成熟原型——AlphaGo之后,人类围棋不降反热。</li>
+        <li><strong>不可外包的领域:</strong>关系(被这个人爱,而非被完美模拟爱)、在场(亲历而非转述)、成长(我变强了,哪怕AI更强)、照护与承诺——这些活动的价值内在于"是谁在做",定义上无法被替代。</li>
+        <li><strong>历史的双面先例:</strong>不必劳动的贵族阶层既产出过科学革命与艺术黄金期,也产出过空虚与倾轧。差别变量是<strong>文化与教育是否为"自由"预装了内容</strong>——这把文明层面的问题又送回了教育制度:我们是否在培养"知道拿自由做什么"的人?</li>
+      </ul>
+      <div class="callout"><strong>文明层的核心判断:</strong>共生的终局形态不取决于AI"本性",而取决于三组人类选择的累积:①部署选择(给AI多少自主性与制度位置);②分配选择(收益归于谁);③文化选择(把人的价值锚定在产出上,还是锚定在体验、关系与自愿的追求上)。三者都还在我们手里——这正是现在讨论它们的理由。</div>
+    </div>
+  </section>
+
+  <!-- ============ 6 分歧 ============ -->
+  <section class="block" id="s6">
+    <div class="block-head">
+      <span class="tag">第七章 · 关键分歧</span>
+      <h2>三场辩论:双方最强论证并排呈现</h2>
+      <div class="sub">在专家真诚分裂的地方,呈现分布比给出立场更诚实</div>
+    </div>
+    <div class="block-body">
+
+      <h3>辩题一:AI对就业的净效应为正还是为负?</h3>
+      <div class="debate">
+        <div class="side pro">
+          <div class="h">正方(净效应为正)最强论证</div>
+          <ul>
+            <li>250年历史零例外:每次通用技术都摧毁职业、创造更多职业;当今多数岗位为1940年后新创。</li>
+            <li>杰文斯机制已现:软件成本降→软件需求爆→(至少年长)开发者就业增;放射科医生就业创新高。</li>
+            <li>当前失业率4.4%接近历史低位——投资潮本身在创造建筑、电力、运维就业。</li>
+          </ul>
+        </div>
+        <div class="side con">
+          <div class="h">反方(这次不同)最强论证</div>
+          <ul>
+            <li>历次自动化替代特定技能,本轮直指"通用认知"底座——马在汽车时代的遭遇证明"被全面替代的生产要素"没有新岗位可去。</li>
+            <li>初级岗位数据(−13~20%)显示阶梯第一级已断;失业率是滞后指标,阶梯断裂是领先指标。</li>
+            <li>速度问题独立于终局:即便50年后就业更多,10年内的转型速度也可能超过任何再培训体系的吞吐量——历史转型的痛苦恰恰被幸存者叙事抹平。</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>辩题二:2030年代能否出现AGI级系统?</h3>
+      <div class="debate">
+        <div class="side pro">
+          <div class="h">可能派最强论证</div>
+          <ul>
+            <li>METR曲线六年不弯且近期加速;算力4倍/年+算法效率提升,双引擎无一熄火。</li>
+            <li>推理范式打开第二条扩展曲线;IMO金牌证明"深度思考"可被计算购买。</li>
+            <li>掌握非公开信息的一线研究者(跨越竞争的多家实验室)时间线罕见趋同于2027–2032。</li>
+          </ul>
+        </div>
+        <div class="side con">
+          <div class="h">怀疑派最强论证</div>
+          <ul>
+            <li>50%可靠性口径、整洁任务偏差、参差前沿——基准进步与真实能力之间的换算率被系统性高估。</li>
+            <li>高质量数据窗口(2026–2032耗尽)与物理瓶颈同时逼近;合成数据在预训练中仍不能替代真实数据。</li>
+            <li>实验室预测存在结构性融资偏差;"自回归架构缺乏世界模型"的批评从未被正面解决,只是被规模暂时掩盖。</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>辩题三:能源会成为AI发展的硬约束吗?</h3>
+      <div class="debate">
+        <div class="side pro">
+          <div class="h">硬约束派最强论证</div>
+          <ul>
+            <li>IEA账本:并网5–10年、燃气轮机5年、变压器2–3年——电力基础设施的建设周期以十年计,AI需求以年计,错配是算术事实。</li>
+            <li>数据中心已在局部电网占20–30%负荷,社区反对与电价政治正在形成真实的许可阻力。</li>
+            <li>3.9万亿美元投资需求撞上利率与折旧现实:钱和电,至少缺一样。</li>
+          </ul>
+        </div>
+        <div class="side con">
+          <div class="h">软约束派最强论证</div>
+          <ul>
+            <li>约束催生绕行:现场燃气+电池、SMR管线45 GW、算力向电力富余地区迁移——瓶颈改变地理,不改变总量。</li>
+            <li>效率是逃逸通道:单任务能耗年降一个数量级,DeepSeek路线证明智能/瓦特还有数量级空间。</li>
+            <li>历史上"电不够"从未阻止过高价值产业——铝、芯片制造都曾是电老虎,结果是电网为它们生长。</li>
+          </ul>
+        </div>
+      </div>
+      <p><span class="cf cf-b">◆ 专家预测</span> 本研究的综合判断:能源是<strong>节流阀而非墙</strong>——它决定扩散的<strong>节奏与地理</strong>(有利于情景A),但单独不足以制造情景C;C的触发器更可能是金融(资本开支/收入缺口)或技术(数据/架构天花板)。</p>
+    </div>
+  </section>
+
+  <!-- ============ 7 行动 ============ -->
+  <section class="block" id="s7">
+    <div class="block-head">
+      <span class="tag">第八章 · 结论</span>
+      <h2>跨情景稳健行动清单:无论哪个未来到来,都不后悔的事</h2>
+      <div class="sub">情景规划的产出不是预测,而是这份清单——以及知道何时该撕掉重写的触发器</div>
+    </div>
+    <div class="block-body">
+
+      <h3>个人(七条)</h3>
+      <ul class="pts">
+        <li>把每周与前沿模型的深度共事变成习惯,持续绘制自己的"前沿地图"——三个情景下这都是回报最高的一小时。</li>
+        <li>投资升值清单技能:问题定义、质量裁决、跨域整合、当面信任、担责能力——A情景它们是溢价,B情景它们是残存的比较优势,C情景它们本来就是好技能。</li>
+        <li>用"先自己写、再让AI攻击"的顺序工作,守住批判性思维的肌肉。</li>
+        <li>建立公开、可追溯的判断记录与作品集——在无限生成的内容海洋里,被验证过的署名判断是硬通货。</li>
+        <li>财务上做杠铃:保守的现金流安全垫(应对C情景的回调与B情景的转型动荡)+ 对AI受益资产的适度敞口(应对A/B的增长)。避免单一雇主、单一技能、单一收入的三重集中。</li>
+        <li>刻意经营不可外包的领域:深度关系、社群、身体、手艺——它们同时是B情景的意义储备与C情景的心理韧性。</li>
+        <li>如果年轻:争取"在场型"学徒机会+用AI把自己升维成一人团队,双轨并行,对冲阶梯断裂。</li>
+      </ul>
+
+      <h3>组织(四条)</h3>
+      <ul class="pts">
+        <li>按"前沿之内/之外"重新切分工作流,而不是按部门采购AI——Dell'Acqua实验证明这个切分线就是收益与事故的分界线。</li>
+        <li>不要停招初级岗位,改造它:让新人做"AI编队的初级指挥官",在真实责任中成长——否则五年后组织将没有中层可以提拔。</li>
+        <li>把AI产出的验证与审计做成岗位与流程,而非道德期望。</li>
+        <li>为C情景保留退出成本:优先可迁移的技术栈,警惕把核心流程焊死在单一供应商的长约上。</li>
+      </ul>
+
+      <h3>社会与政策(五条)</h3>
+      <ul class="pts">
+        <li>修复资本/劳动的税制不对称——所有情景下都正确,且不需要预测AGI时间线。</li>
+        <li>把再分配做成"指标触发的自动预案"(初级失业率、行业替代率越线即启动),让政策速度追上技术速度。</li>
+        <li>教育评估从"产出"转向"过程"(答辩、实作、长期项目),课程向判断力、AI协作与人际实践迁移。</li>
+        <li>基础设施双押:电网与算力按A/B情景规划,但用分期、可中止的合同结构对冲C情景——不要让公共资金为投机性排队买单(锚点报告已示范了这个错误)。</li>
+        <li>在制度设计中显式保卫"人类的不可绕过性":关键公共决策、司法、选举动员中保留人类参与的硬性回路——这是对渐进式失权的最便宜保险。</li>
+      </ul>
+
+      <h3>重新评估触发器:看到以下信号,请撕掉本报告对应章节</h3>
+      <table>
+        <tr><th>信号</th><th>含义</th><th>应做调整</th></tr>
+        <tr><td>METR曲线以80%可靠性口径仍维持≤7个月翻倍两年以上</td><td>情景B概率大幅上调</td><td>个人:加速向裁决/责任型角色迁移;政策:分配预案提前启动</td></tr>
+        <tr><td>头部厂商大规模砍单、AI债务违约或新云破产潮</td><td>情景C进行时</td><td>组织:冻结锁定型长约;个人:现金流优先;但不要误判为"AI已死"——参照2001年的互联网</td></tr>
+        <tr><td>智能体在"脏乱"真实任务(非基准)上达到90%+可靠性</td><td>白领替代从初级向中层扩散的前夜</td><td>就业与教育政策的窗口期只剩2–3年</td></tr>
+        <tr><td>初级岗位就业下滑扩散至3个以上非科技行业</td><td>阶梯断裂系统化</td><td>触发自动化的再培训与收入支持预案</td></tr>
+        <tr><td>AI驱动的科研产出(非辅助)出现公认突破</td><td>递归加速的早期证据</td><td>整棵情景树的概率重新分配</td></tr>
+      </table>
+
+      <div class="callout"><strong>最后一段话:</strong>三份锚点报告合起来讲了一个"AI在加速,制度在踱步"的故事;本研究的结论是,这个速率差——而不是AI本身——才是共生问题的核心。未来AI长成什么样,一半由算力与算法决定;人类与它共生得怎么样,几乎全部由我们此刻的部署、分配与文化选择决定。预测未来的最好方式,依然是参与塑造它——而参与的第一步,是别把任何一份报告(包括这一份)当成定论。</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="rule"></div>
+    <p><strong>方法与局限:</strong>本报告以三份锚点报告的公开数据为出发点,综合METR、Dell'Acqua等人的实证研究、OpenResearch的UBI实验、各实验室与学界的公开预测,以及Bostrom、Kulveit等的哲学与结构性分析,全部内容为要点归纳与独立推演,非任何原文的翻译。所有概率为作者的主观综合判断;远期章节(第三、六章)整体置信度低于中期章节;引用数据请以各原始研究为准。本报告刻意保留了对自身的怀疑——请配合第八章的"重新评估触发器"食用。</p>
+  </footer>
+
+</div>
+</body>
+</html>

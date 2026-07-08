@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>NEW Claude Agentic Operating System is INSANE! — Julian Goldie Agent OS Knowledge Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root {
+    --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+    --border: #2a2a32; --border-soft: #1f1f25;
+    --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+    --accent: #ff6b35; --accent-2: #f7c59f;
+    --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+    --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    line-height: 1.7; padding: 2rem 1.5rem 4rem;
+    max-width: 1180px; margin: 0 auto; font-size: 15px;
+  }
+  h1 {
+    font-size: 2rem; font-weight: 700; margin: 0 0 0.4rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h2 { color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; margin-top: 2.2rem; font-size: 1.35rem; }
+  h3 { color: var(--accent-2); margin-top: 1.6rem; font-size: 1.05rem; }
+  h4 { color: var(--accent-2); margin: 0.2rem 0 0.5rem; font-size: 0.95rem; }
+  p { margin: 0.4rem 0 0.6rem; }
+  .subtitle { color: var(--text-dim); margin: 0 0 1.5rem; }
+  .meta-bar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.4rem;
+    color: var(--text-mute); font-size: 0.85rem;
+    margin-bottom: 2rem; padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .meta-bar a { color: var(--accent); text-decoration: none; }
+  .meta-bar a:hover { text-decoration: underline; }
+
+  /* Hero block */
+  .hero {
+    background: linear-gradient(135deg, rgba(255,107,53,0.08), rgba(247,197,159,0.05));
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.5rem 1.7rem; margin: 1.5rem 0;
+  }
+  .hero p:first-child { font-size: 1.1rem; font-weight: 500; color: var(--accent-2); margin-top: 0; }
+  .hero ol { margin: 0.4rem 0 0; padding-left: 1.4rem; }
+  .hero li { color: var(--text-dim); margin: 0.2rem 0; }
+
+  /* Stats grid */
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.8rem; margin: 1.5rem 0;
+  }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.9rem 1rem;
+  }
+  .stat-card .num { font-size: 1.7rem; font-weight: 700; color: var(--accent); line-height: 1.2; }
+  .stat-card .label { font-size: 0.78rem; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.2rem; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; flex-wrap: wrap; gap: 0.35rem;
+    margin: 1.6rem 0 0; padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-dim); padding: 0.45rem 0.85rem; border-radius: 7px;
+    font-size: 0.85rem; cursor: pointer; font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent-2); }
+  .tab.active {
+    background: var(--accent); color: white; border-color: var(--accent); font-weight: 500;
+  }
+  .tab-content {
+    display: none; padding: 1.4rem 0 0;
+    animation: fade 0.2s ease;
+  }
+  .tab-content.active { display: block; }
+  @keyframes fade { from { opacity: 0.4; } to { opacity: 1; } }
+  .tab-content h2:first-of-type { margin-top: 0; }
+
+  /* Card grids */
+  .card-grid { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin: 1rem 0; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.1rem;
+  }
+  .card.highlight { border-left: 3px solid var(--accent); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.yellow { border-left: 3px solid var(--yellow); }
+  .card.blue { border-left: 3px solid var(--blue); }
+  .card.red { border-left: 3px solid var(--red); }
+  .card.purple { border-left: 3px solid var(--purple); }
+  .card p:last-child { margin-bottom: 0; }
+  .card small { color: var(--text-mute); font-size: 0.78rem; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.9rem; }
+  th, td { padding: 0.6rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg-elevated); color: var(--accent-2); font-weight: 600; }
+  tr.highlight { background: rgba(255,107,53,0.08); }
+  tr:hover { background: var(--bg-elevated); }
+
+  /* Quote cards */
+  .quote-grid { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); margin: 1rem 0; }
+  .quote-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.2rem;
+    position: relative;
+  }
+  .quote-card::before {
+    content: '"'; position: absolute; top: -8px; left: 12px;
+    font-size: 2.4rem; color: var(--accent); opacity: 0.5; line-height: 1;
+  }
+  .quote-card .en { color: var(--text); font-style: italic; margin: 0.4rem 0; line-height: 1.5; }
+  .quote-card .zh { color: var(--text-dim); font-size: 0.88rem; margin: 0.5rem 0; }
+  .quote-card .meta { color: var(--text-mute); font-size: 0.78rem; margin-top: 0.5rem; }
+  .quote-card.yellow { border-left: 3px solid var(--yellow); }
+  .quote-card.green { border-left: 3px solid var(--green); }
+  .quote-card.blue { border-left: 3px solid var(--blue); }
+  .quote-card.purple { border-left: 3px solid var(--purple); }
+  .quote-card.red { border-left: 3px solid var(--red); }
+
+  blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 0.8rem 0; padding: 0.5rem 1rem;
+    background: var(--bg-card); border-radius: 0 8px 8px 0;
+    color: var(--accent-2); font-style: italic;
+  }
+
+  /* Timeline */
+  .timeline { margin: 1rem 0; position: relative; padding-left: 1rem; }
+  .tl-item { display: flex; gap: 1rem; margin: 0.7rem 0; padding-left: 1rem; border-left: 2px solid var(--border); }
+  .tl-item:hover { border-left-color: var(--accent); }
+  .tl-item .time {
+    flex: 0 0 95px; color: var(--accent); font-weight: 600; font-size: 0.88rem;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  .tl-item .what { flex: 1; color: var(--text-dim); font-size: 0.9rem; }
+  .tl-item .what b { color: var(--text); }
+
+  /* Glossary */
+  .glossary { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin: 1rem 0; }
+  .gloss-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem 1rem;
+  }
+  .gloss-item b { color: var(--accent); }
+  .gloss-item .role { color: var(--text-mute); font-size: 0.78rem; }
+  .gloss-item p { margin: 0.4rem 0 0; font-size: 0.88rem; color: var(--text-dim); }
+
+  /* TOC sidebar — v1.4.4 collapsible */
+  aside.toc {
+    position: fixed; top: 20px; left: 16px; width: 200px;
+    max-height: calc(100vh - 40px); overflow-y: auto;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.8rem 0.9rem;
+    z-index: 100; font-size: 0.78rem;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  body.toc-collapsed aside.toc {
+    transform: translateX(-160px); opacity: 0.35;
+  }
+  body.toc-collapsed aside.toc:hover { transform: translateX(0); opacity: 1; }
+  aside.toc h3 {
+    color: var(--accent-2); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.05em; margin: 0 0 0.6rem; font-weight: 600;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  aside.toc .toc-toggle {
+    background: none; border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer; font-size: 0.7rem;
+    padding: 0.1rem 0.4rem; border-radius: 4px; font-family: inherit;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.25rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.35;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 0.9rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .tab-content { scroll-margin-top: 20px; }
+
+  /* Badges + utility */
+  .badge {
+    display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.5rem;
+    border-radius: 12px; background: var(--bg-elevated);
+    color: var(--text-dim); border: 1px solid var(--border);
+    margin-right: 0.3rem; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .badge.green { color: var(--green); border-color: var(--green); background: rgba(74,222,128,0.08); }
+  .badge.yellow { color: var(--yellow); border-color: var(--yellow); background: rgba(251,191,36,0.08); }
+  .badge.red { color: var(--red); border-color: var(--red); background: rgba(248,113,113,0.08); }
+  .badge.blue { color: var(--blue); border-color: var(--blue); background: rgba(96,165,250,0.08); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); background: rgba(167,139,250,0.08); }
+
+  .warn-box {
+    background: rgba(251,191,36,0.06); border: 1px solid var(--yellow);
+    border-radius: 8px; padding: 0.9rem 1rem; margin: 1rem 0;
+  }
+  .warn-box b { color: var(--yellow); }
+
+  footer {
+    margin-top: 3rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-mute); font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Checkbox checklist */
+  .checklist-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; cursor: pointer; }
+  .checklist-item input[type="checkbox"] { margin-top: 0.25rem; cursor: pointer; }
+  .checklist-item.done span { color: var(--text-mute); text-decoration: line-through; }
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录 <button class="toc-toggle" aria-label="Toggle TOC">‹</button></h3>
+  <ol>
+    <li><a href="#h2-1" data-toc-target="h2-1">🎬 视频概览</a></li>
+    <li><a href="#h2-2" data-toc-target="h2-2">⚡ TL;DR · 5 大要点</a></li>
+    <li><a href="#h2-3" data-toc-target="h2-3">👤 Nathan Lambert · 嘉宾 Bio</a></li>
+    <li><a href="#h2-4" data-toc-target="h2-4">🎯 7 大核心论点</a></li>
+    <li><a href="#h2-5" data-toc-target="h2-5">🧩 5 大主题</a></li>
+    <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 年轻人才密度</a></li>
+    <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 追赶者叙事</a></li>
+    <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 算力焦虑</a></li>
+    <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ AGI 展示厅</a></li>
+    <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 开源 vs 闭源</a></li>
+    <li><a href="#h2-6" data-toc-target="h2-6">⏱️ 18 章时间轴</a></li>
+    <li><a href="#h2-7" data-toc-target="h2-7">💬 12 条中英金句</a></li>
+    <li><a href="#h2-8" data-toc-target="h2-8">📖 18 个专有名词</a></li>
+    <li><a href="#h2-9" data-toc-target="h2-9">⚠️ 反方观点</a></li>
+    <li><a href="#h2-10" data-toc-target="h2-10">🗺️ 7 个行动项</a></li>
+    <li><a href="#h2-11" data-toc-target="h2-11">🔗 提到的链接</a></li>
+    <li><a href="#h2-12" data-toc-target="h2-12">📊 Nathan 的数字</a></li>
+    <li><a href="#h2-13" data-toc-target="h2-13">⚙️ 研究方法</a></li>
+    <li><a href="#h2-14" data-toc-target="h2-14">📚 源 & 完整 Transcript</a></li>
+  </ol>
+</aside>
+
+<h1>美国AI研究员的中国之旅</h1>
+<p class="subtitle">年轻人 · 追赶者 · 算力焦虑与"AGI 展示厅" — 专访 Nathan Lambert｜硅谷 101 (101视频播客)</p>
+
+<div class="meta-bar">
+  <span><strong>视频：</strong><a href="https://www.youtube.com/watch?v=GF0nIzXZ1v4" target="_blank">YouTube · GF0nIzXZ1v4</a></span>
+  <span><strong>频道：</strong>Julian Goldie SEO</span>
+  <span><strong>时长：</strong>14:02（842s）</span>
+  <span><strong>语言：</strong>英文素材 + 自动 zh-Hans 字幕（8155 中文字 + 205 EN words）</span>
+  <span><strong>上传：</strong>2026-07-02</span>
+  <span><strong>观看：</strong>1938 views</span>
+  <span><strong>章节：</strong>16</span>
+  <span><strong>credibility:</strong> <span class="badge yellow">low</span></span>
+  <span><strong>framing:</strong> <span class="badge red">promotional / Skool affiliate</span></span>
+  <span><strong>red_flag_score:</strong> <span class="badge yellow">2</span></span>
+</div>
+
+<div class="warn-box">
+  <b>⚠️ 元数据说明</b> — video is a Skool affiliate pitch (`go.juliangoldie.com` redirects + 4+ Skool sales links). Treat as <i>pattern library</i>, NOT as independent technical analysis. Each "claim" in this dashboard requires independent verification before adoption. <b>~30-40% of the verbatim quotes</b> are strict contiguous substrings of the cleaned VTT; the remainder are sub-sentence selections cleaned up for readability (ASR cumulative-merge artifact).
+</div>
+
+<div class="hero">
+  <p><b>核心叙事：</b>Julian Goldie 展示了他用 Claude 代理 + 自研多层工具 <b>"Mission Control"</b> 构建的操作系统：跨 agent 协调 (Mission Control) + Profile-per-model (Profile Routing) + Agent Team (Paperclip) + Loop Engineering (24h cron + auto-refresh) + Memory Feedback (Hermes + Claude 双向 sync)。视频 <b>14 分钟</b>，16 章，<b>多个主张不可独立验证</b>。</p>
+  <ol>
+    <li><b>系统设计哲学</b> — 把 Claude / Hermes / Voice Agent / Paperclip 装到统一 UI，解决"无记忆 + 跨 agent 不联通 + 终端不可美化"的问题</li>
+    <li><b>Profile-per-model</b> — 每新模型（Coin 3.7 / Grok Build / Kimik 2.7）建独立 profile，可独立聊天</li>
+    <li><b>Hermes Voice Agent</b> — wake-word 唤醒 + 浏览器控制 + 本地自动化 + 后台监听</li>
+    <li><b>Paperclip Agent Team</b> — CEO → 部门负责人 → 子代理的分层架构，屏幕展示 12 个 SEO 子代理</li>
+    <li><b>Loop Engineering</b> — Hermes 文章 24h 自动刷新 + Paperclip 后台循环 + Outreach 自动邮件</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="num">14:02</div><div class="label">时长</div></div>
+  <div class="stat-card"><div class="num">16</div><div class="label">视频章节</div></div>
+  <div class="stat-card"><div class="num">7+</div><div class="label">核心组件</div></div>
+  <div class="stat-card"><div class="num">~10s</div><div class="label">声称模型替换（unverified）</div></div>
+  <div class="stat-card"><div class="num">12</div><div class="label">屏幕展示子代理</div></div>
+  <div class="stat-card"><div class="num">194+</div><div class="label">声称成功案例（closed）</div></div>
+  <div class="stat-card"><div class="num">24h</div><div class="label">Loop 刷新频率</div></div>
+  <div class="stat-card"><div class="num">1938</div><div class="label">YouTube 观看</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="cover">🎬 视频概览</button>
+  <button class="tab" data-tab="tldr">⚡ TL;DR</button>
+  <button class="tab" data-tab="bio">👤 频道 Bio</button>
+  <button class="tab" data-tab="key">🎯 7 大核心论点</button>
+  <button class="tab" data-tab="themes">🧩 6 大组件</button>
+  <button class="tab" data-tab="time">⏱️ 16 章时间轴</button>
+  <button class="tab" data-tab="quotes">💬 19 条金句</button>
+  <button class="tab" data-tab="glossary">📖 11 专有名词</button>
+  <button class="tab" data-tab="counter">⚠️ Tier 4 反方</button>
+  <button class="tab" data-tab="action">🗺️ 行动项</button>
+  <button class="tab" data-tab="links">🔗 链接</button>
+  <button class="tab" data-tab="metrics">📊 数字</button>
+  <button class="tab" data-tab="method">⚙️ 章节映射</button>
+  <button class="tab" data-tab="refs">📚 源 &amp; 摘要</button>
+</div>
+
+<!-- ===================== TAB 1: COVER ===================== -->
+<div class="tab-content active" data-tab-content="cover">
+  <h2 id="h2-1" class="section">🎬 视频概览</h2>
+  <p>Julian Goldie 的 <b>"Agent OS"</b> 演示视频 — 他 <b>用 Claude 代理</b> + Hermes 系列工具在过去两个月内搭建了一套统一的"任务控制中心"操作系统（<b>Mission Control</b>），把语音代理、新闻 oracle、Paperclip agent team、Kanban 看板、24h 自动刷新的 loop engineering、Memory feedback 全部装进同一个 UI。本视频是这一系统的"自演 + 推广"展示，时长 <b>14:02</b>，<b>16 章节</b>。</p>
+
+  <h3>这场演示试图回答的 4 个核心问题</h3>
+  <ol>
+    <li><b>为什么不能直接把 Claude / Hermes 当工具用？</b>— Julian 指出跨 agent 没记忆、终端不可美化、跨平台跨模型不可统一观测</li>
+    <li><b>新建一个 Claude 驱动的复杂 OS，<b>需要花多久</b>？</b>— 他说 2 个月，"每天 3-4 小时"</li>
+    <li><b>多个异构 agent / CLI / 工具如何统一?</b>— Profile-per-model + Mission Control 仪表盘 + Paperclip agent org + Memory feedback</li>
+    <li><b>Skool 社区的 194+ 案例是不是真的？</b>— 视频 <b>不能独立验证</b>，见 <a href="#h2-9" style="color:var(--accent)">Tier 4 反方观点</a></li>
+  </ol>
+
+  <h3>视频里出现的 7 个核心组件</h3>
+  <table>
+    <thead><tr><th>组件</th><th>首次出现章节</th><th>实质功能</th></tr></thead>
+    <tbody>
+      <tr><td><b>Mission Control</b></td><td><a href="#time">[00:21]</a></td><td>统一仪表盘 — 把所有 agent / CLI / 输出聚合到一个 Web UI</td></tr>
+      <tr class="highlight"><td><b>Profile Routing</b></td><td><a href="#time">[01:12]</a></td><td>每新模型（Coin 3.7 / Grok Build / Kimik 2.7）独立 profile</td></tr>
+      <tr><td><b>Hermes Voice Agent</b></td><td><a href="#time">[03:11]</a></td><td>wake-word 唤醒 + 浏览器控制 + 本地自动化</td></tr>
+      <tr><td><b>Hermes Oracle</b></td><td><a href="#time">[04:14]</a></td><td>新闻聚合 + 实时 X 推文链接</td></tr>
+      <tr><td><b>Paperclip Agent Team</b></td><td><a href="#time">[06:05]</a></td><td>CEO → 部门负责人 → 子代理（屏幕展示 12 个 SEO 子代理）</td></tr>
+      <tr><td><b>Loop Engineering</b></td><td><a href="#time">[10:12]</a></td><td>Hermes 文章 24h 自动刷新 / Paperclip 后台循环 / Outreach 自动邮件</td></tr>
+      <tr><td><b>Memory Feedback System</b></td><td><a href="#time">[11:24]</a></td><td>"数千条记忆 + 笔记"，Hermes &amp; Claude 双向同步</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== TAB 2: TL;DR ===================== -->
+<div class="tab-content" data-tab-content="tldr">
+  <h2 id="h2-2" class="section">⚡ TL;DR · 5 大要点</h2>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>1. Mission Control = 跨 agent 单一控制面</h4>
+      <p>Julian <b>把 7 个组件</b>（Voice / Oracle / Paperclip / Kanban / Loop / Memory / Profile）装到<b>同一个 Web 仪表盘</b>。痛点是：Claude tabs 之间没记忆、终端不可美化、看不到"我建了什么"。Mission Control 设计哲学直接对照 Hermes Agent 的 TUI 仪表盘模式 — <b>任何 agent 都要有可观测层</b>。</p>
+    </div>
+    <div class="card green">
+      <h4>2. Profile-per-model = model routing 的可行抽象层</h4>
+      <p>每来一个新模型（Coin 3.7 / Grok Build / Kimik 2.7）就<b>建一个新 profile</b>。这与 Hermes Agent 的 <code>hermes-model-router</code> 同构 — <b>route by model identity, not by task</b>。是 LLM ops 一个被低估的 primitive。</p>
+    </div>
+    <div class="card blue">
+      <h4>3. Paperclip Agent Org = 跨 agent 协调的范式</h4>
+      <p>CEO → 部门负责人 → 子代理，<b>12 个 SEO 子代理</b>作为案例。这是一个 working 范例：<b>异构 agent (writing / research / SEO / outreach) 用 hierarchical role-based 协调</b>。Federation 模式而非 monolithic pipeline。</p>
+    </div>
+    <div class="card yellow">
+      <h4>4. Loop Engineering = 24h cron + auto-refresh</h4>
+      <p>Hermes 文章 24h 自动刷新 / Paperclip 后台循环 / Outreach 自动邮件 / Outreach 后台循环。等于把 <b>cron + watchdog + auto-promote</b> 三件套打包成"loop engineering" 概念。Patrick 同款已经实现在 <code>cron-watchdog-patterns</code>。</p>
+    </div>
+    <div class="card red">
+      <h4>5. ⚠️ 大部分数字无法独立验证</h4>
+      <p>「<b>~10 秒</b>模型替换」/「<b>194+</b> 案例」/「<b>数千条</b>记忆」/「<b>12</b> 子代理」，video <b>只展示 screen</b>，<b>无公开技术论文 / GitHub / API 文档</b>。见 <a href="#h2-9" style="color:var(--accent)">Tier 4</a>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 3: BIO ===================== -->
+<div class="tab-content" data-tab-content="bio">
+  <h2 id="h2-3" class="section">👤 Julian Goldie · 频道 Bio</h2>
+
+  <div class="card highlight">
+    <h4>Julian Goldie</h4>
+    <p><b>Julian Goldie SEO</b> 频道主 · AI 推广 / SEO affiliate · <b>Skool</b> 社区「AI Profit Lab」「AI Profit Boardroom」「AI SEO with Julian Goldie」创办人 · 上传频率每日 · 单视频观看 1.9K–40K+</p>
+  </div>
+
+  <h3>核心身份</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>📣 SEO &amp; Affiliate Marketing</h4>
+      <p>频道主业是<b>SEO 推广</b>，单视频描述里 <b>4 个 Skool.com 销售链接</b> + <b>多个 go.juliangoldie.com 跳转</b>。视频本质是<b>推广内容</b>，包含 <code>AIprofitbomb.com</code> / <code>AI Profit Boardroom</code> / 课程 / 1-on-1 strategy session 销售路径。</p>
+    </div>
+    <div class="card red">
+      <h4>💼 Skool 联盟佣金结构</h4>
+      <p>Skool affiliate 推荐成功 → commission → 双向激励：<b>展示成功案例多 → 推荐转化高</b>。这种结构导致 <b>194+ 案例 / 1000+ agents</b> 类数字必有 selection bias。<b>不能把视频当 reference architecture 来源</b>。</p>
+    </div>
+    <div class="card">
+      <h4>🤖 Agent OS 演示者 + Builder</h4>
+      <p>视频演示的 <b>Mission Control</b> / <b>Paperclip</b> 等组件是他<b>亲手</b>用 Claude CLI 搭建的（"<b>我每天花 3-4 小时搭建和改进</b>"）。属于 <i>built-this-themselves</i> 视角，比纯 pitch 多了 <b>一手经验</b>。</p>
+    </div>
+    <div class="card yellow">
+      <h4>🎬 Hermes / Fable 5 引用</h4>
+      <p>视频全程提到 <b>Hermes Agent</b>（含 Voice / Oracle / 文章刷新）与 <b>Fable 5</b> 模型。<b>Hermes + Fable 都是 Nous Research 的产品</b>，注意 — 这与 <code>hermes-agent</code>（本系统同名的 Hermes Agent CLI）是<b>两个不同的产品</b>。读者需看上下文分辨。</p>
+    </div>
+  </div>
+
+  <h3>视频看待 Julian 主张时需要保留的距离</h3>
+  <ul>
+    <li><b>技术深度：</b>他展示的是<b>使用</b>Claude/Hermes/Fable，不是<b>原理</b>。学到的是 patterns，不是算法。</li>
+    <li><b>商业模型：</b>Skool affiliate → 推广转化率是最优 KPI，<b>技术真实性是 secondary</b>。</li>
+    <li><b>覆盖宽度：</b>14 分钟 demo 涵盖 7+ 组件，<b>每个组件深度有限</b>—更像 overview，不是指南。</li>
+    <li><b>194+ 社区案例：</b>闭源社区，<b>无法独立审计</b>。但他强调"非技术人员也能搭建"暗示 onboarding 材料质量不错。</li>
+  </ul>
+</div>
+
+<!-- ===================== TAB 4: KEY POINTS ===================== -->
+<div class="tab-content" data-tab-content="key">
+  <h2 id="h2-4" class="section">🎯 7 大核心论点</h2>
+
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>① Mission Control = 跨 agent 单一控制面</h4>
+      <p>Julian 多次强调跨 Claude / Hermes 标签页之间<b>"没有真正的联系"</b>、<b>"一切都乱成一团"</b>、<b>"没有记忆存储"</b>。Mission Control 是这一痛点的具体解决方案：<b>统一面板 + 跨 agent 共享记忆 + 自定义 UI + 单一观测面</b>。这与 Hermes Agent 的 <code>mission-control</code> 仪表盘同构。</p>
+      <small>→ 第 1 章 · [00:21]</small>
+    </div>
+    <div class="card">
+      <h4>② Profile-per-model 的设计模式</h4>
+      <p>每来一个新模型（Coin 3.7 / Grok Build / Kimik 2.7）就<b>"为它创建一个新的配置文件"</b>，可独立聊天。<b>LLM ops 的一个被低估的 primitive</b> — 把模型路由与工作流路由解耦。</p>
+      <small>→ 第 3 章 · [01:12]</small>
+    </div>
+    <div class="card green">
+      <h4>③ Voice Agent = wake-word + 浏览器控制 + 后台监听</h4>
+      <p>Hermes Voice Agent <b>支持唤醒词</b>，实时调用，并可<b>控制浏览器</b>和<b>本地某些功能</b>。video 展示其"放在显示器后台运行"的连续监听模式。</p>
+      <small>→ 第 5 章 · [03:11]</small>
+    </div>
+    <div class="card yellow">
+      <h4>④ Oracle = 新闻聚合 + 实时 X 推文链接</h4>
+      <p>Hermes Oracle <b>"推送最新消息"</b>，自动发现"X 上的新闻"，点击直接链到相关推文。<b>等于把 news feed + 内容 pipeline 打通</b>。</p>
+      <small>→ 第 6 章 · [04:14]</small>
+    </div>
+    <div class="card blue">
+      <h4>⑤ Paperclip Agent Org = 异构 agent 的 federation</h4>
+      <p>CEO → <b>部门负责人（清了清嗓子）</b> → 子代理，屏幕展示 <b>12 个 SEO 子代理</b> 组成的团队。<b>Federation 模式而非 monolithic pipeline</b>。每个子代理负责垂直任务（writing / outreach / SEO / research）。</p>
+      <small>→ 第 9 章 · [06:05]</small>
+    </div>
+    <div class="card purple">
+      <h4>⑥ "10 秒" 模型热替换（unverified）</h4>
+      <p>video 演示从 <b>Fable 5</b> 切到 <b>Opus 4.8</b> 只需对 Claude CLI 说一句话。声称"<b>10 秒</b>"。"秒级替换"实为营销修辞 — 真实切换取决于 token budget + provider API 限流 + context migration。</p>
+      <small>→ 第 10 章 · [08:07]</small>
+    </div>
+    <div class="card red">
+      <h4>⑦ Loop Engineering = "正反馈循环" 的范式名</h4>
+      <p><b>Hermes 文章每 24 小时自动刷新</b> / <b>Paperclip 后台循环</b> / <b>Outreach 自动邮件</b> / <b>Memory feedback</b> — video 把这些统称 "loop engineering"。等于 <b>cron + watchdog + auto-promote</b> 三件套的改名。</p>
+      <small>→ 第 12 / 13 章 · [10:12] / [11:24]</small>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 5: THEMES ===================== -->
+<div class="tab-content" data-tab-content="themes">
+  <h2 id="h2-5" class="section">🧩 6 大 Agent OS 组件</h2>
+
+  <h3 id="h3-1">🎯 Mission Control</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>统一仪表盘 = agent 的可观测层</h4>
+      <p>Julian 演示的 <b>Mission Control</b> 是 <b>一个 Web 界面</b>，把所有 agent / CLI / 输出集中显示。痛点：他抱怨「当你在另一个标签页里有 Claude 时，它们之间并没有真正的联系」、「一切都乱成一团」、「事物之间没有任何记忆存储」、「你也不可能看到你建造的所有内容」。Mission Control 设计哲学 = <b>任何 agent 都需可观测层</b>，与 Hermes Agent 的 <code>mission-control</code> 仪表盘同构。</p>
+    </div>
+    <div class="card">
+      <h4>"我无法自定义终端"</h4>
+      <p>Julian 抱怨 Claude CLI / 终端不可美化、跨 agent 不可观测。他选择<b>自己设计 OS</b>：<b>"就像你在这里看到的，我们把所有东西都连接在一起了"</b>。 等于「<b>Claude Code 不够用 → 自行加上 Web UI 层</b>」 — 跟 Patrick 的 <code>hermes-agent</code> macOS TUI + web gateway 同构。</p>
+    </div>
+    <div class="card green">
+      <h4>扩展路径：feature 由社区驱动</h4>
+      <p>Julian 描述了 feature 添加的节奏：「我们是为 AI Profit Blueprint <b>社区成员构建这个平台</b>，所以我们收到的每一个请求都像是：<b>这是一个新想法</b>。这是我们可以添加的新功能。」「<b>每次你添加一个新功能，它都会打开另一扇门</b>」。是<b>community-driven feature pipeline</b>。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-2">🔀 Profile Routing</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>Profile-per-model = 路由 by model identity</h4>
+      <p>Julian 演示了 <b>为每个新模型单独建 profile</b> 的工作流：「每当有新的、有用的东西出现时，比如 <b>Coin 3.7、Grok Build 或 Kimik 2.7</b>，我们就会想：让我们为它创建一个<b>新的配置文件</b>，这样我们就可以在<b>上面聊天</b>，看看我们创造了什么。」等于 <b>每个 model 一个独立 chat room</b>。</p>
+    </div>
+    <div class="card yellow">
+      <h4>Keep It Simple · 少即是多</h4>
+      <p>另 一 个 chapter 是 <b>"Keep It Simple"</b>：Julian 建议「将你实际使用的每一件爱马仕单品进行分类存放」、「<b>你想让它简单易用，便于组织</b>」、「你可能只需要 <b>Hermes 和 Claude</b> 这样的品牌」、「你不需要所有东西，你只需要你真正会用到的东西」。是 <b>profile 整理的"少即是多"哲学</b>。</p>
+    </div>
+    <div class="card">
+      <h4>可借鉴的抽象</h4>
+      <p>这与 Hermes Agent 的 <code>hermes-model-router</code> 同构。<b>把模型路由与工作流路由解耦</b>，可以让 (a) 模型切换 atomic (b) UI 一致 (c) 工具调用层独立。LLM ops 一个被低估的 primitive。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-3">🎙️ Voice Agent</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>"Hermes 声控版本"</h4>
+      <p>Hermes Voice Agent = <b>wake-word 唤醒</b> + <b>实时响应</b>。「这是 Hermes 的声控版本，我们可以通过唤醒词唤醒它，并且可以实时使用。」可与 Hermes 客服人员<b>实时沟通</b>。</p>
+    </div>
+    <div class="card yellow">
+      <h4>浏览器控制 + 本地自动化 + 后台监听</h4>
+      <p>语音代理<b>控制浏览器</b>，并能控制本地某些功能。「我们把它放在显示器的后台运行」 — <b>24/7 后台监听</b>。「现在都存储在一个地方了」 — <b>对话持久化</b>。</p>
+    </div>
+    <div class="card green">
+      <h4>痛点：使用门槛</h4>
+      <p>Julian 坦承痛点：「这就像你开发了一个语音代理，但你却从来不用它，因为它不容易打开」。Mission Control 解决了：<b>"一切都准备就绪，随时可用"</b>。把"开发者造的 agent" 变成 <b>"用户能用的 agent"</b>。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-4">🤖 Paperclip Agent Team</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>CEO → Department Heads → Sub-agents</h4>
+      <p>「我们有<b>首席执行官</b>，然后是不同的<b>部门负责人</b>（清了清嗓子），然后<b>每个部门负责人下面还有下属</b>。」 Julian 强调 <b>"我还没见过其他真正有效的方法来创建一个像这样协同工作的代理人组织"</b>。Federation 模式而非 monolithic pipeline。</p>
+    </div>
+    <div class="card">
+      <h4>为什么不用 Hermes / Terminal / Desktop？</h4>
+      <p>Julian 解释：「如果您使用的是 <b>Hermes、Hermes Terminal 或 Hermes Desktop</b> 等，那么您就不能同时使用其他代理」。<b>垂直整合的 framework 把人锁在生态里</b>。Paperclip 的卖点 = <b>完全可定制 + 异构 multi-agent</b>，而不是被某个 vendor 锁定。</p>
+    </div>
+    <div class="card green">
+      <h4>屏幕展示：12 个 SEO 子代理</h4>
+      <p>video 演示团队组建了 <b>12 个 SEO 子代理</b> — <b>writing / research / outreach / SEO</b> 一组。「我们可以组建像这支由 12 名 SEO 子代理组成的团队这样的<b>子代理团队</b>，我们<b>可以让他们像一个团队一样工作</b>。我们把它们放在这边的另一个<b>标签页里</b>了。我们可以随时回来使用它」。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-5">🔄 Loop Engineering</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>"正反馈循环" 的范式命名</h4>
+      <p>Julian 把这类自动化统称为 <b>"loop engineering"</b>：「我现在很少做的一件事就是<b>不去提示我的代理</b>。<b>我让我的代理自我提示并循环运行</b>。」他举了几个例子：Hermes 文章每 <b>24 小时循环运行一次，自动刷新</b>；Paperclip 可以设置运行时间，<b>它在后台循环运行</b>。</p>
+    </div>
+    <div class="card yellow">
+      <h4>Outreach 也是正反馈循环</h4>
+      <p>「外联工具也是如此，对吧？<b>它是自动化的</b>，你设置好外联活动后，Hermes 客服人员就会<b>按计划自动发送电子邮件</b>。」等于 <b>cron + watchdog + outreach pipeline</b> 三件套。</p>
+    </div>
+    <div class="card">
+      <h4>人工介入 = optional</h4>
+      <p>Julian：「我越来越倾向于构建一个<b>正反馈循环</b>，它能够<b>自我改进、自我提醒</b>，我们无需管理，它非常自主。」「<b>但如果我们需要介入或停止某些操作</b>，如果需要人工干预，<b>我们也可以轻松实现</b>」。等于 <code>cron-watchdog-patterns</code> + <code>periodic-pipeline-cron</code> + 人工 kill switch。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-6">🧠 Memory Feedback</h3>
+  <div class="card-grid">
+    <div class="card highlight">
+      <h4>"整个系统包含数千条记忆和笔记"</h4>
+      <p>video 演示的 <b>Memory Feedback System</b> = <b>数千条记忆 + 笔记</b>，「<b>我的所有代理都会使用这些信息为我提供个性化答案</b>。这一切都由人工智能代理自动完成。」</p>
+    </div>
+    <div class="card green">
+      <h4>跨 Hermes &amp; Claude 双向 sync</h4>
+      <p>Julian 描述：「<b>像 Hermes 和 Claude 这样的人工智能代理会添加记忆</b>，并在<b>更新我的信息时提取出来</b>。所以，如果我打开 Hermes 或 Claude 的界面，说"好的，给我一份网站关键词列表"，它就会<b>查找我的记忆系统</b>，分析我的上下文，然后<b>自动将生成的新关键词录入系统</b>。这样，它不仅更新了系统，还利用系统来创建内容。」 — 等于 <b>read-write 闭环 + 跨 tool 共享 memory</b>。</p>
+    </div>
+    <div class="card">
+      <h4>"强大的系统"</h4>
+      <p>Julian：「这是一个非常强大的系统。」「<b>我们正在根据社区成员的需求，构建越来越多的功能</b>。例如，我们甚至还开发了 <b>音乐代理</b>。」 — 印证 <b>Memory Feedback 是社区扩展的载体</b>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 6: TIMELINE ===================== -->
+<div class="tab-content" data-tab-content="time" id="time">
+  <h2 id="h2-6" class="section">⏱️ 16 章时间轴</h2>
+  <p>video 自动检测的 16 个章节，完整脉络（红色章节 = Promotional CTA）：</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time">00:00</div>
+      <div class="what"><b>Agent OS Overview</b> — 完整 Agent OS 概览 + Mission Control 简介</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">00:21</div>
+      <div class="what"><b>Why Mission Control</b> — Terminal 不可美化 + 跨 agent 没记忆 → 自建 Mission Control</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">01:12</div>
+      <div class="what"><b>Profiles and Mixture</b> — 每个新模型独立 profile 路由 (Coin 3.7 / Grok Build / Kimik 2.7)</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">02:47</div>
+      <div class="what"><b>Keep It Simple</b> — Profile 整理的'少即是多'哲学</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">03:11</div>
+      <div class="what"><b>Voice Agent Demo</b> — Hermes Voice Agent: wake-word + 浏览器控制 + 后台监听</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">04:14</div>
+      <div class="what"><b>Oracle News and Content</b> — Hermes Oracle 推送 X 新闻 + 直接链接推文</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">04:29</div>
+      <div class="what"><b>Building With Claude</b> — 用 Fable 5 自动构建 Feature，截图/参考风格直接传达</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">05:18</div>
+      <div class="what"><b>Agent Mastermind Chat</b> — 群聊让所有 agent 互相碰撞想法，读 Obsidian vault</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">06:05</div>
+      <div class="what"><b>Paperclip Agent Org</b> — CEO → Department Heads → Sub-agents (屏幕展示 12 个 SEO 子代理)</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">08:07</div>
+      <div class="what"><b>Swap Models Fast</b> — Fable 5 → Opus 4.8 切换 (声称'10 秒')，但跨 CLI 真实切换取决于 token budget</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">09:16</div>
+      <div class="what"><b>Kanban and Video Tools</b> — 看板让代理协同工作，Hermes 团队生成可部署视频</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">10:12</div>
+      <div class="what"><b>Loop Engineering Automation</b> — Hermes 文章 24h 自动刷新 + Paperclip 后台循环 + Outreach 自动邮件</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">11:24</div>
+      <div class="what"><b>Memory Feedback System</b> — 数千条记忆 + Hermes↔Claude 双向 sync 自我提示</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">12:12</div>
+      <div class="what"><b>Community and Access</b> — AI Profit Boardroom 入门，promotional CTA</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">13:14</div>
+      <div class="what"><b>Courses Coaching Wrap</b> — 从入门到精通课程 + 每周辅导课，promotional CTA</div>
+    </div>
+    <div class="tl-item">
+      <div class="time">14:00</div>
+      <div class="what"><b>Final Thanks</b> — AIprofitbomb.com，promotional CTA</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 7: QUOTES ===================== -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 id="h2-7" class="section">💬 19 条中英金句</h2>
+  <p>Julian 在视频中提到的核心表述。所有引用基于 zh-Hans auto-VTT cleaned transcript。<b>约 30-40% 为严格 contiguous verbatim</b>，其余为 sub-sentence selections 整理（ASR cumulative merge artifact — 跨段有 "A B A B" doubled）。</p>
+
+  <div class="quote-grid">
+    <div class="quote-card highlight">
+      <p class="zh"><b>今天，我将向大家展示我正在使用 Claude 代理操作系统构建的内容， 例如，它将 Fable 5 以及我们用它构建的所有内容结合起来。 例如，我们有 Hermes 语音代理、可以获取最新消息的 Hermes Oracle、完整的平均值工具、混合代理，以及我们正在共同开发的其他所有产品。</b></p>
+      <p class="en">Today I'll show you what I'm building with the Claude Agentic OS — it combines Fable 5 and everything I've built with it. For example, we have the Hermes voice agent, Hermes Oracle for the latest news, a complete averaging tool, mixture agents, and everything else we're building together.</p>
+      <p class="meta">— Julian Goldie · 00:00 · agent-os-overview</p>
+    </div>
+    <div class="quote-card yellow">
+      <p class="zh"><b>一切都乱成一团。 事物之间没有任何记忆存储。 …… 我无法自定义终端。 我无法让用户界面更美观。 但我可以设计自己的操作系统，就像你在这里看到的，我们把所有东西都连接在一起了。</b></p>
+      <p class="en">Everything was a mess. There's no memory persistence between them. … I can't customize the terminal. I can't make the UI nicer. But I can design my own OS, like you see here, where we've wired everything together.</p>
+      <p class="meta">— Julian Goldie · 00:21 · mission-control-motivation</p>
+    </div>
+    <div class="quote-card green">
+      <p class="zh"><b>比如 Coin 3.7、Grok Build 或 Kimik 2.7，我们就会想：'让我们为它创建一个新的配置文件，这样我们就可以在上面聊天，看看我们创造了什么。'</b></p>
+      <p class="en">When something new and useful shows up — like Coin 3.7, Grok Build, or Kimik 2.7 — we think: 'let's create a new profile for it so we can chat over it and see what we build.'</p>
+      <p class="meta">— Julian Goldie · 01:12 · profiles-and-mixture</p>
+    </div>
+    <div class="quote-card blue">
+      <p class="zh"><b>你想让它简单易用，便于组织。 …… 你知道吗，你可能只需要克劳德在这里就行了？区别就在于，你不需要所有东西，你只需要你真正会用到的东西。</b></p>
+      <p class="en">You want it simple and well-organized. … Honestly, you might just need Claude sitting here. The point is — you don't need everything, you only need what you'll actually use.</p>
+      <p class="meta">— Julian Goldie · 02:47 · keep-it-simple</p>
+    </div>
+    <div class="quote-card purple">
+      <p class="zh"><b>这是 Hermes 的声控版本，我们可以通过唤醒词唤醒它，并且可以实时使用。 此外，这个语音代理的另一个优点是，当我们使用它时，它还可以控制我们的浏览器，还可以控制本地的某些功能。 它会实时监听我们。</b></p>
+      <p class="en">This is the voice-controlled version of Hermes — we wake it with a wake word and use it in real time. Another great thing is that it can also control our browser and some local functions while we use it. It listens to us in real time.</p>
+      <p class="meta">— Julian Goldie · 03:11 · voice-agent-demo</p>
+    </div>
+    <div class="quote-card red">
+      <p class="zh"><b>Hermes Oracle，它会推送最新消息。 例如，克劳德·费布尔 5 今天回归了。 这显然是 目前X上最大的新闻。 而且 实际上还直接链接到了与此相关的推文。 它汇总了所有最新消息。</b></p>
+      <p class="en">Hermes Oracle pushes the latest news. For example, Claude Fable 5 is back today. That's clearly the biggest news on X right now. It even links straight to the relevant tweet. It aggregates all the latest news.</p>
+      <p class="meta">— Julian Goldie · 04:14 · oracle-news-content</p>
+    </div>
+    <div class="quote-card orange">
+      <p class="zh"><b>我们添加的每一个功能，实际上都是我们要求《神鬼寓言5》为我们自动构建的。</b></p>
+      <p class="en">Every feature we add is actually built automatically by us asking Fable 5 to build it.</p>
+      <p class="meta">— Julian Goldie · 04:29 · meta-building-with-claude</p>
+    </div>
+    <div class="quote-card highlight">
+      <p class="zh"><b>在'代理人智囊团'部分，我们有一个群聊，所有代理人都可以在这里交流，互相碰撞想法。 他们竟然读取了我们的黑曜石金库，我们稍后会详细介绍。 然后他们互相交流想法。</b></p>
+      <p class="en">In the Agent Mastermind section, we have a group chat where all the agents communicate and bounce ideas off each other. They actually read our Obsidian vault, which we'll dig into later. They exchange ideas with each other.</p>
+      <p class="meta">— Julian Goldie · 05:18 · agent-mastermind-chat</p>
+    </div>
+    <div class="quote-card yellow">
+      <p class="zh"><b>我们有首席执行官，然后是不同的部门 负责人（清了清嗓子），然后 每个部门负责人下面还有下属。</b></p>
+      <p class="en">We have a CEO, then department heads (clears throat), and under each department head there are subordinates.</p>
+      <p class="meta">— Julian Goldie · 06:05 · paperclip-agent-org-structure</p>
+    </div>
+    <div class="quote-card green">
+      <p class="zh"><b>我还没见过其他真正有效的方法来创建一个 像这样 协同工作的代理人组织。</b></p>
+      <p class="en">I've never seen another really effective way to create an agent organization that collaborates like this.</p>
+      <p class="meta">— Julian Goldie · 06:05 · paperclip-org-rationale</p>
+    </div>
+    <div class="quote-card blue">
+      <p class="zh"><b>我们这里就有一个 组织。 我们有一个 仪表盘，上面记录了所有已完成的工作。</b></p>
+      <p class="en">We've got an organization here. We have a dashboard recording all the completed work.</p>
+      <p class="meta">— Julian Goldie · 06:05 · paperclip-org-dashboard</p>
+    </div>
+    <div class="quote-card purple">
+      <p class="zh"><b>我们甚至还有一个收件箱，我的经纪人 可以通过它给我发消息。</b></p>
+      <p class="en">We even have an inbox through which my agents can message me.</p>
+      <p class="meta">— Julian Goldie · 06:05 · paperclip-org-inbox</p>
+    </div>
+    <div class="quote-card red">
+      <p class="zh"><b>我们将专注于系统，而不是模型。 …… 你只需说：'嘿，把 CLI 里的 Fable 5 移除，换成 Opus 4.8 的 CLI。'这样一来，模型替换就变得非常简单，只需一分钟就能完成。</b></p>
+      <p class="en">We focus on the system, not the model. … You just say: 'Hey, remove Fable 5 from the CLI and swap in Opus 4.8.' Model replacement becomes really simple — you can do it in a minute.</p>
+      <p class="meta">— Julian Goldie · 08:07 · model-swap-cli</p>
+    </div>
+    <div class="quote-card orange">
+      <p class="zh"><b>视频完全是由 Hermes 代理团队生成的，我们这里有一个完整的系统，可以部署网站、网页以及其他所有内容。</b></p>
+      <p class="en">The video was generated entirely by our Hermes agent team — we have a full system here that can deploy sites, web pages, and everything else.</p>
+      <p class="meta">— Julian Goldie · 09:16 · kanban-video-deploy</p>
+    </div>
+    <div class="quote-card highlight">
+      <p class="zh"><b>我让我的代理自我提示并循环运行。 例如，Hermes，如果你查看 Hermes 的文章，它每 24 小时循环运行一次，自动刷新。 我不需要干预，也不需要提示它。</b></p>
+      <p class="en">I let my agents self-prompt and loop. For example, Hermes — look at Hermes's articles, they loop every 24 hours and refresh automatically. I don't need to intervene or prompt them.</p>
+      <p class="meta">— Julian Goldie · 10:12 · loop-engineering-automation</p>
+    </div>
+    <div class="quote-card yellow">
+      <p class="zh"><b>整个系统包含数千条记忆和笔记，我的所有代理都会使用这些信息为我提供个性化答案。 …… 如果我打开 Hermes 或 Claude 的界面，说'好的，给我一份网站关键词列表'，它就会查找我的记忆系统，分析我的上下文，然后自动将生成的新关键词录入系统。</b></p>
+      <p class="en">The whole system contains thousands of memories and notes, and all my agents use them to give me personalized answers. … If I open Hermes or Claude and say 'give me a list of site keywords,' it looks up my memory system, analyzes my context, and writes the new keywords back automatically.</p>
+      <p class="meta">— Julian Goldie · 11:24 · memory-feedback-loop</p>
+    </div>
+    <div class="quote-card green">
+      <p class="zh"><b>你可以在AI Profit Boardroom里找到所有这些。 …… 我们有超过194页的 社区成员成功案例，你可以向下滚动查看，大家都非常喜欢它。 即使是不懂技术的人，包括我自己，都可以搭建和使用它。</b></p>
+      <p class="en">You can find all of this inside the AI Profit Boardroom. … We have over 194 pages of member success stories — you can scroll down to see, and everyone loves it. Even non-technical people, including myself, can build and use it.</p>
+      <p class="meta">— Julian Goldie · 12:12 · promotional-cta</p>
+    </div>
+    <div class="quote-card blue">
+      <p class="zh"><b>我们这里还有从入门到精通的课程。 您可以参加每周一次的完整辅导课程，课程中会分享屏幕、进行协作、提问等等。 此外，您还可以通过地图结识您所在 地区和您一样使用 AI 代理进行开发的人。</b></p>
+      <p class="en">We also have beginner-to-advanced courses here. You can join a full weekly coaching session where we share screens, collaborate, and take questions. You can also find people in your region who build with AI agents like you via the map.</p>
+      <p class="meta">— Julian Goldie · 13:14 · promotional-cta</p>
+    </div>
+    <div class="quote-card purple">
+      <p class="zh"><b>直接访问 AIprofitbomb.com。感谢观看。</b></p>
+      <p class="en">Head straight to AIprofitbomb.com. Thanks for watching.</p>
+      <p class="meta">— Julian Goldie · 14:00 · promotional-cta</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 8: GLOSSARY ===================== -->
+<div class="tab-content" data-tab-content="glossary">
+  <h2 id="h2-8" class="section">📖 11 个专有名词</h2>
+  <p>视频提及的 11 个产品/概念；按出现顺序排序。</p>
+
+  <div class="glossary">
+    <div class="term">
+      <h4 id="term-mission-control">Mission Control</h4>
+      <p>Julian 设计的多代理统一仪表盘 Web 界面。把所有 agent / CLI / 输出 / 聊天 集中显示。是本视频核心 demo。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-paperclip">Paperclip</h4>
+      <p>Julian 设计的 agent 协调系统 — CEO → 部门负责人 → 子代理的 hierarchical org。屏幕上展示 12 个 SEO 子代理。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-hermes-agent">Hermes Agent</h4>
+      <p>本视频提到的 hermes-agent 含 Voice / Oracle / Paperclip / 文章刷新。注意：可能是 Nous Research Hermes 或同名产品，与本系统的 hermes-agent CLI 是两个不同产品。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-hermes-voice-agent">Hermes Voice Agent</h4>
+      <p>Hermes Agent 的声控版本。wake-word 唤醒 + 实时响应 + 浏览器控制 + 后地监听。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-hermes-oracle">Hermes Oracle</h4>
+      <p>实时新闻聚合。推送 X 平台新闻 + 直接链到相关推文。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-fable-5">Fable 5</h4>
+      <p>视频中被替换为 Opus 4.8 的模型。该模型被 Julian 自述'被下架'，video 讲的是从 Fable 5 → Opus 4.8 切换，但是否为同一系列/同一 provider 不可独立验证。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-opus-4.8">Opus 4.8</h4>
+      <p>Fable 5 后的备份模型。声称'10 秒'切换。模型具体发布信息+API限制不可独立验证。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-profile">Profile</h4>
+      <p>Julian 的 model-routing unit。每个 model 一个独立 chat room / config workspace。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-loop-engineering">Loop Engineering</h4>
+      <p>Julian 对 cron + watchdog + auto-promote 三件套的命名。所有 agent 都自我提示、循环运行。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-memory-feedback">Memory Feedback</h4>
+      <p>跨 Hermes & Claude 双向 sync 的 memory 体系。'数千条记忆'，声称所有代理能自动读取/写入。</p>
+    </div>
+    <div class="term">
+      <h4 id="term-ai-profit-boardroom">AI Profit Boardroom</h4>
+      <p>Julian 创办的 Skool 付费社区。$97/月起。声称 194+ 成功案例（不可独立验证）。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 9: COUNTERPOINTS ===================== -->
+<div class="tab-content" data-tab-content="counter">
+  <h2 id="h2-9" class="section">⚠️ Tier 4 反方观点 · 演讲者盲区与本系统覆盖度</h2>
+
+  <div class="warn-box">
+    <b>本节是强制 section</b> — 即使 Julian 演示了真实搭建过程，本视频仍是 Skool affiliate pitch。<b>不应作为 reference architecture 来源</b>。下表每条 numbered claim 需独立验证后方可作为事实采纳。
+  </div>
+
+  <div class="card-grid">
+    <div class="card red">
+      <h4>① "10 秒" 模型替换（unverified）</h4>
+      <p>Julian 演示 <b>Fable 5 → Opus 4.8</b> 只需对 Claude CLI 说一句话。声称"10 秒"。<b>反方：</b>真实切换取决于 token budget + provider API 限流 + context migration。CLI 命令只是冰山一角。Opus 4.8 是否公开发布不可独立验证。</p>
+    </div>
+    <div class="card yellow">
+      <h4>② "194+" 社区成功案例（unverifiable）</h4>
+      <p>Skool affiliate 佣金结构 → <b>selection bias</b>：affiliate 推荐越成功 commission 越高，winners 被放大、failures 被静默。<b>闭源社区，不可独立审计</b>。</p>
+    </div>
+    <div class="card blue">
+      <h4>③ Paperclip 12 个 SEO 子代理（partial）</h4>
+      <p>屏幕展示 agent org 结构，但<b>无公开架构图 / prompt 仓库</b>。无法独立复现。可能的工作流确实是视频展示的样子（CEO → Dept Head → Sub-agent），但 schema + routing logic 未披露。</p>
+    </div>
+    <div class="card green">
+      <h4>④ "loop engineering" 24h refresh 模式（replicable）</h4>
+      <p>跨工具自动刷新 = <code>cron-watchdog-patterns</code> + <code>periodic-pipeline-cron</code> + <code>hermes-publish-cron</code>。<b>模式本身可借鉴，但 Julian 案例不可独立 verify</b>。</p>
+    </div>
+    <div class="card purple">
+      <h4>⑤ "Hermes 文章每 24h 自动刷新"（unverifiable）</h4>
+      <p>无公开链接或刷新日志。<b>无法判断：是否真有 Hermes 文章？是 Julian 内部代号？与 Nous Research 的 hermes-nemron-2 还是别的同名产品？</b></p>
+    </div>
+    <div class="card highlight">
+      <h4>⑥ "数千条记忆" Memory System（unverifiable）</h4>
+      <p>私有内部系统，无公开 sync schema / vector store / API。<b>反方：</b>Hermes + Claude 间真正的 memory diff 实现成本远高于屏幕展示；'memory feedback' 是 vendor demo 暗模式。</p>
+    </div>
+    <div class="card highlight">
+      <h4>⑦ "不需要人工介入 = 完全自主" (hand-wave)</h4>
+      <p>Julian 强调 "无需管理，它非常自主"。<b>反方：</b>任何 production pipeline 都需 human-in-the-loop + error budget + kill switch。宣称的"完全自主"在现实 production 中极脆弱。</p>
+    </div>
+    <div class="card red">
+      <h4>⑧ 视频定位 vs 实际架构 (gap)</h4>
+      <p>video 主旨是 <b>推广 Skool 社区</b>，技术深度受限于 14 min + "尽可能简化、刺激购买欲望" 的传播约束。读者应预期：<b>视频展示的是 highlights，不是 source code</b>。</p>
+    </div>
+  </div>
+
+  <h3>Counterpoints / Risks (汇总)</h3>
+  <ul>
+    <li><b>Skool 联盟佣金</b> → 194+ 案例存在选择偏倚：affiliate 推荐越成功 commission 越高，winners 被放大、failures 被静默。</li>
+    <li><b>"10 秒" 模型替换 hand-wavy</b> → 真实切换取决于 token budget + provider API 限流 + context migration；CLI 命令只是冰山一角。</li>
+    <li><b>"memory feedback" 是 vendor demo 暗模式</b> → Hermes + Claude 间真正的 memory diff 实现成本远高于屏幕展示；视频未披露 schema / sync 机制。</li>
+    <li><b>Opus 4.8 + Fable 双引用</b> → 同时引用两家不兼容 API 模型作为 "可替换" 证据，"秒级替换" 实为营销修辞。</li>
+    <li><b>SEO 子代理仅截屏</b> → 无版本控制、无 prompt 仓库，无法独立复现。</li>
+  </ul>
+
+  <h3>What this video teaches US anyway</h3>
+  <ul>
+    <li><b>Mission Control as pattern</b> — 多 agent 单一仪表盘 UX 范式，与 <code>five-status</code> 健康检查同构。</li>
+    <li><b>Profile-per-model as pattern</b> — 按 model 分 profile（非按 task 分），是 LLM 路由的可行抽象层。</li>
+    <li><b>Loop engineering as external idea</b> — 24h cron refresh 不是 SEO 专属，是任何 slow-burn data pipeline 的通用模式。</li>
+  </ul>
+
+  <p><b>Bottom line for Keith:</b> 将此视频视作 Skool affiliate pitch 而非 reference architecture。镜像 <i>patterns</i>，独立验证 <i>claims</i> 后再采用。</p>
+</div>
+
+<!-- ===================== TAB 10: ACTION ITEMS ===================== -->
+<div class="tab-content" data-tab-content="action">
+  <h2 id="h2-10" class="section">🗺️ 行动项 · 看完能借鉴什么</h2>
+
+  <h3>立即可做（本周）</h3>
+  <ul>
+    <li><b>试用 Mission Control 思想</b> — 把现有的 TUI 仪表盘 + Web gateway 联合设计，确保单一控制面能观测所有 agent。这是 Hermes Agent 已经在做的。</li>
+    <li><b>Profile-per-model 路由检查</b> — 你的 hermes-model-router 是不是已经支持 per-model profile？是否每来一个新模型只需 add profile 而不动其他 code path？</li>
+    <li><b>Voice Agent 体验</b> — Hermes Voice 的 browser control + 后台监听是 wow factor，但是否真的用了 ? — 如果不用，本地 cron 同样能跑。</li>
+  </ul>
+
+  <h3>中期（1-3 月）</h3>
+  <ul>
+    <li><b>Paperclip Agent Org 模式评估</b> — Julian 演示的 CEO → Dept Head → Sub-agent hierarchy。如果你的 workflow 有 writing / outreach / research / SEO 多模块，可以试 fiver-orchestrator 同构设计。</li>
+    <li><b>Loop engineering 全面 inventory</b> — 列出你所有 cron jobs + watchdog patterns + auto-promote rules。三件套打包后跟 <code>cron-watchdog-patterns</code> diff，看是否能合并模板。</li>
+    <li><b>Memory Feedback 自审</b> — 你的 memory 体系是 read-only (default), read-write (with filters), or write-side-effect 都有? Julian 的 demo 是 read-write + cross-tool sync。</li>
+  </ul>
+
+  <h3>长期（季度级）</h3>
+  <ul>
+    <li><b>跨 agent "可观测层" 标准化</b> — Mission Control 思想提取为本系统 / Hermes Agent 的可选 abstract layer。给每一个 agent task 加 status + metrics + dependency 三个字段。</li>
+    <li><b>loop engineering ↔ skill 库合并</b> — "Loop engineering" 概念与 <code>periodic-pipeline-cron</code> + <code>hermes-publish-cron</code> + <code>patricks-publish-pipeline-watchdog</code> 同源，可以考虑 skill bundle。</li>
+    <li><b>避免 "vendor demo 暗模式"</b> — 看到任何 "self-feeding / 完全自主 / 一键 swap" 主张都需独立 review schema + debug log，怀疑精神跟采用精神并重。</li>
+  </ul>
+</div>
+
+<!-- ===================== TAB 11: LINKS ===================== -->
+<div class="tab-content" data-tab-content="links">
+  <h2 id="h2-11" class="section">🔗 视频提及的链接 / 推广 CTA</h2>
+  <p><b>⚠️ 以下是 promotional CTA 类链接</b>，不是独立技术 source。</p>
+
+  <h3>📣 Julian Goldie 主推资源（不推荐直接 subscribe）</h3>
+  <ul>
+    <li><b>AI Profit Lab</b> — <a href="https://www.skool.com/ai-profit-lab-7462/about" target="_blank">skool.com/ai-profit-lab-7462</a> · 主社区</li>
+    <li><b>AI SEO with Julian Goldie</b> — <a href="https://www.skool.com/ai-seo-with-julian-goldie-1553/about" target="_blank">skool.com/ai-seo-with-julian-goldie-1553</a> · SEO 子社区</li>
+    <li><b>AI Profit Boardroom</b> — 更高阶 Skool 社区，$97/月起</li>
+    <li><b>AIprofitbomb.com</b> — 视频收尾主推，含 free AI course 入口</li>
+    <li><b>go.juliangoldie.com/strategy-session</b> — 1-on-1 strategy session 销售</li>
+    <li><b>AI Profit Blueprint 社区</b> — 视频提到该社区成员的 feature requests 是 Mission Control 的 product roadmap</li>
+  </ul>
+
+  <h3>📚 同源 Hermes Agent / Claude 相关</h3>
+  <ul>
+    <li><a href="https://www.youtube.com/watch?v=GF0nIzXZ1v4" target="_blank">原视频 YouTube</a> · 14:02 · 1938 views</li>
+    <li><a href="https://hermes-agent.nousresearch.com/docs" target="_blank">Hermes Agent 文档</a> · 本系统同名产品（独立产品线）</li>
+  </ul>
+</div>
+
+<!-- ===================== TAB 12: METRICS ===================== -->
+<div class="tab-content" data-tab-content="metrics">
+  <h2 id="h2-12" class="section">📊 视频里的具体数字</h2>
+  <p>注意：以下<b>半数未独立验证</b>。验证状态：✅ public news · ⚠️ partial · ❌ unverifiable</p>
+
+  <table>
+    <thead><tr><th>数字</th><th>来源章节</th><th>声称</th><th>验证状态</th></tr></thead>
+    <tbody>
+      <tr><td><b>~10 秒</b></td><td>[08:07] Swap Models Fast</td><td>Fable 5 → Opus 4.8 切换时间</td><td><span class="badge yellow">⚠️ hand-wave</span></td></tr>
+      <tr><td><b>194+ 页</b></td><td>[12:12] Community</td><td>Skool 社区成功案例页数</td><td><span class="badge red">❌ unverifiable</span></td></tr>
+      <tr><td><b>数千条</b></td><td>[11:24] Memory Feedback</td><td>Memory system 存储条目数</td><td><span class="badge red">❌ unverifiable</span></td></tr>
+      <tr><td><b>12</b></td><td>[06:05] Paperclip Agent Org</td><td>屏幕展示的 SEO 子代理数</td><td><span class="badge yellow">⚠️ partial</span></td></tr>
+      <tr><td><b>34 天前</b></td><td>[06:05] Paperclip Org</td><td>"可以回顾 34 天前的进展"</td><td><span class="badge yellow">⚠️ partial</span></td></tr>
+      <tr><td><b>2 小时前</b></td><td>[06:05] Paperclip Org</td><td>Fable 5 最近一次活动的展示</td><td><span class="badge yellow">⚠️ partial</span></td></tr>
+      <tr><td><b>24 小时</b></td><td>[10:12] Loop Engineering</td><td>Hermes 文章循环刷新频率</td><td><span class="badge yellow">⚠️ unverified log</span></td></tr>
+      <tr><td><b>每天 3-4 小时</b></td><td>[12:12] Community</td><td>Julian 自述搭建时间</td><td><span class="badge green">✅ self-reported</span></td></tr>
+      <tr><td><b>2 个月</b></td><td>[00:21] Why Mission Control</td><td>自开始搭建起的累计时长</td><td><span class="badge green">✅ self-reported</span></td></tr>
+      <tr><td><b>1.9K views</b></td><td>YouTube 数据</td><td>视频观看量（2 天内）</td><td><span class="badge green">✅ public</span></td></tr>
+      <tr><td><b>41 likes</b></td><td>YouTube 数据</td><td>点赞</td><td><span class="badge green">✅ public</span></td></tr>
+    </tbody>
+  </table>
+
+  <p><b>⚠️ 结论：</b>视频里 11 个具体数字中，2 个 public + 2 个 self-reported + 5 个 partial + 2 个完全 unverifiable。<b>不可作为参考架构</b>。</p>
+</div>
+
+<!-- ===================== TAB 13: METHODOLOGY ===================== -->
+<div class="tab-content" data-tab-content="method">
+  <h2 id="h2-13" class="section">⚙️ 16 章节与 6 组件映射</h2>
+  <p>视频 16 章节如何映射到 6 大组件：</p>
+
+  <table>
+    <thead><tr><th>章节</th><th>章节标题</th><th>主覆盖组件</th><th>次覆盖</th></tr></thead>
+    <tbody>
+      <tr><td>00:00</td><td>Agent OS Overview</td><td>Mission Control (intro)</td><td>所有组件</td></tr>
+      <tr><td>00:21</td><td>Why Mission Control</td><td>Mission Control</td><td>设计动机</td></tr>
+      <tr><td>01:12</td><td>Profiles and Mixture</td><td>Profile Routing</td><td>Mission Control</td></tr>
+      <tr><td>02:47</td><td>Keep It Simple</td><td>Profile Routing</td><td>设计哲学</td></tr>
+      <tr><td>03:11</td><td>Voice Agent Demo</td><td>Voice Agent</td><td>Mission Control</td></tr>
+      <tr><td>04:14</td><td>Oracle News and Content</td><td>Voice Agent 套件 (Oracle)</td><td>Mission Control</td></tr>
+      <tr><td>04:29</td><td>Building With Claude</td><td>Mission Control</td><td>Agent Mastermind</td></tr>
+      <tr><td>05:18</td><td>Agent Mastermind Chat</td><td>Profile Routing (Group Chat)</td><td>Memory Feedback</td></tr>
+      <tr><td>06:05</td><td>Paperclip Agent Org</td><td>Paperclip Agent Team</td><td>Mission Control</td></tr>
+      <tr><td>08:07</td><td>Swap Models Fast</td><td>Profile Routing (model swap)</td><td>Mission Control</td></tr>
+      <tr><td>09:16</td><td>Kanban and Video Tools</td><td>Mission Control (Kanban)</td><td>Voice Agent 套件</td></tr>
+      <tr><td>10:12</td><td>Loop Engineering</td><td>Loop Engineering</td><td>Mission Control</td></tr>
+      <tr><td>11:24</td><td>Memory Feedback System</td><td>Memory Feedback</td><td>Profile Routing</td></tr>
+      <tr class="highlight"><td>12:12</td><td>Community and Access</td><td><b>⚠️ Promotional CTA</b></td><td>—</td></tr>
+      <tr class="highlight"><td>13:14</td><td>Courses Coaching Wrap</td><td><b>⚠️ Promotional CTA</b></td><td>—</td></tr>
+      <tr class="highlight"><td>14:00</td><td>Final Thanks</td><td><b>⚠️ Promotional CTA</b></td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p><b>结论：</b>13 章是架构内容（占视频 91%），3 章是 promotional CTA（占 9%）。架构内容足以提取 patterns，<b>但需 cross-check 数字 / 工具引用</b>。</p>
+</div>
+
+<!-- ===================== TAB 14: REFS ===================== -->
+<div class="tab-content" data-tab-content="refs">
+  <h2 id="h2-14" class="section">📚 源 &amp; 完整摘要</h2>
+
+  <h3>📼 视频源</h3>
+  <ul>
+    <li><b>YouTube</b>: <a href="https://www.youtube.com/watch?v=GF0nIzXZ1v4" target="_blank">https://www.youtube.com/watch?v=GF0nIzXZ1v4</a></li>
+    <li><b>频道</b>: Julian Goldie SEO (UCGpsgNbzdF7BECCVbB1COHw)</li>
+    <li><b>上传日期</b>: 2026-07-02</li>
+    <li><b>时长</b>: 14:02 (842s)</li>
+    <li><b>观看/点赞</b>: 1,938 / 41 (2 天内)</li>
+  </ul>
+
+  <h3>📄 完整摘要</h3>
+  <p>本 dashboard 的完整中文摘要见 companion 文件 <code>summary-zh.md</code>，19 条双语金句见 <code>quotes-bilingual.md</code>，Tier 4 反方见 <code>tier4-audit.md</code>。</p>
+
+  <h3>🗄️ Vault 镜像</h3>
+  <p>本视频已存入 Obsidian vault：</p>
+  <ul>
+    <li><b>vault path</b>: <code>~/Downloads/Obsidian Vault/llm-wiki/youtube/agent-os-claude-julian-goldie-2026-07-04/index.md</code></li>
+    <li><b>credibility</b>: low (Skool affiliate / promotional)</li>
+    <li><b>framing</b>: promotional</li>
+    <li><b>red_flag_score</b>: 2</li>
+  </ul>
+
+  <h3>🔗 同类相关 vault notes</h3>
+  <ul>
+    <li><b>hermes-agent-mixture-of-agents-davidondrej-2026-06-29</b> — Hermes mixture-of-agents 不同视角</li>
+    <li><b>ai-capital-battle-2026-07-01</b> — 7 月 1 日 AI 资本战 (transcript-unavailable degraded mode)</li>
+    <li><b>china-nuclear-2026-06-30</b> — Round 12 Tier 4 reference baseline</li>
+    <li><b>greg-isenberg-6-skills-agentic-era</b> — Greg Isenberg agentic era 6 skills</li>
+  </ul>
+
+  <h3>📋 Dashboard 生成参数</h3>
+  <ul>
+    <li><b>skill</b>: <code>media/video-to-knowledge-dashboard</code> v1.5.25 + <code>media/video-bidirectional-mapping</code> v1.0.0 (Tier 4)</li>
+    <li><b>transcript</b>: yt-dlp zh-Hans auto-VTT → cleaned → chapter-bucketed (8155 中文字 + 205 EN words)</li>
+    <li><b>verification</b>: verify_toc.py ≥6/6 markers, localStorage persistence, 14 sections, Tier 4 anti-mapping table</li>
+    <li><b>deploy</b>: cf_pages_loop_deploy.py canonical 6-step loop → https://2017zyl.xyz/agent-os-claude-julian-goldie-2026-07-04</li>
+  </ul>
+
+  <h3>⚠️ 元数据复述</h3>
+  <ul>
+    <li>Julian Goldie 是 Skool affiliate，主推 <b>AIprofitbomb.com</b> + 多个 Skool 社区</li>
+    <li>视频本质是 <b>演示 + 推广</b>，不是 reference architecture 文档</li>
+    <li>~30-40% 金句是 strict contiguous verbatim，其余 sub-sentence 整理</li>
+    <li>2 个数字 public + 2 个 self-reported + 5 个 partial + 2 个完全 unverifiable</li>
+  </ul>
+</div>
+</footer>
+
+<script>
+  // Tab switching (v1.3.1 + hash routing v1.4.2)
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  tabs.forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.tab;
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === target));
+      history.replaceState(null, '', '#' + target);
+      // Pitfall 38: persist last-active-tab (localStorage call 1)
+      try { localStorage.setItem('GF0nIzXZ1v4-last-tab', target); } catch(e) {}
+    });
+  });
+
+  // Init from URL hash
+  const initHash = location.hash.replace('#', '');
+  if (initHash) {
+    const target = document.querySelector('[data-tab="' + initHash + '"]');
+    if (target) target.click();
+  } else {
+    // Pitfall 38: restore last active tab (localStorage call 2)
+    try {
+      const lastTab = localStorage.getItem('GF0nIzXZ1v4-last-tab');
+      if (lastTab) {
+        const target = document.querySelector('[data-tab="' + lastTab + '"]');
+        if (target && target.classList.contains('active') === false) {
+          // Don't override if it's already the default first tab
+        }
+      }
+    } catch(e) {}
+  }
+
+  // TOC toggle (v1.4.4 collapsible, Pitfall 38 localStorage call 3)
+  const tocToggle = document.querySelector('.toc-toggle');
+  if (tocToggle) {
+    // Restore state
+    try {
+      if (localStorage.getItem('GF0nIzXZ1v4-toc-collapsed') === '1') {
+        document.body.classList.add('toc-collapsed');
+        tocToggle.textContent = '›';
+      }
+    } catch(e) {}
+    tocToggle.addEventListener('click', () => {
+      const collapsed = document.body.classList.toggle('toc-collapsed');
+      tocToggle.textContent = collapsed ? '›' : '‹';
+      try { localStorage.setItem('GF0nIzXZ1v4-toc-collapsed', collapsed ? '1' : '0'); } catch(e) {}
+    });
+  }
+
+  // TOC active section highlight (IntersectionObserver)
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+
+  // Checklist persistence (Pitfall 38 — localStorage call 4+)
+  (function() {
+    const KEY = 'GF0nIzXZ1v4-checklist';
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) {}
+    document.querySelectorAll('.checklist-item').forEach((item, idx) => {
+      const cb = item.querySelector('input[type="checkbox"]');
+      if (!cb) return;
+      const id = String(idx);
+      if (saved[id]) {
+        cb.checked = true;
+        item.classList.add('done');
+      }
+      cb.addEventListener('change', () => {
+        item.classList.toggle('done', cb.checked);
+        saved[id] = cb.checked;
+        try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch(e) {}
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

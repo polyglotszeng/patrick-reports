@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI下半场,真正的分层开始了 | 6月AI行业洞察 — 梗直哥丶 (B 站) · v0.2</title>
+<style>
+/* ===== base ===== */
+:root{
+  --bg:#0e1117; --surface:#161b22; --surface2:#1c2129; --border:#2a3140;
+  --text:#e6edf3; --text2:#8b949e; --accent:#ff7a45; --accent2:#ffa76a;
+  --link:#58a6ff;
+  --l1:#58a6ff; --l2:#3fb950; --l3:#d29922; --l4:#db61a2; --l5:#f85149;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.65;font-size:15px}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== layout ===== */
+.page{display:grid;grid-template-columns:260px 1fr;gap:24px;max-width:1280px;margin:0 auto;padding:24px}
+@media (max-width:900px){.page{grid-template-columns:1fr;padding:12px;gap:16px}.toc{position:static!important;max-height:none!important}}
+
+/* ===== TOC sidebar (sticky) ===== */
+.toc{position:sticky;top:12px;align-self:start;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:18px;max-height:calc(100vh - 24px);overflow-y:auto}
+.toc h2{font-size:13px;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:14px}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin:6px 0;font-size:14px}
+.toc li a{display:block;padding:6px 8px;border-radius:6px;color:var(--text2);border-left:2px solid transparent;
+  transition:all .15s;text-decoration:none}
+.toc li a::before{content:counter(toc) " ";color:var(--accent);font-weight:700;margin-right:6px}
+.toc li a:hover{color:var(--text);background:var(--surface2)}
+.toc li a.active{color:var(--accent);background:var(--surface2);border-left-color:var(--accent)}
+.toc .meta{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.7}
+.toc .meta b{color:var(--text)}
+.toc .meta .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:4px;vertical-align:middle}
+
+/* ===== chapter progress bar ===== */
+.chapter-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--l1),var(--l5));z-index:100;
+  width:0;transition:width .15s}
+
+/* ===== hero ===== */
+.hero{background:linear-gradient(135deg,var(--surface) 0%,#1f2530 100%);
+  border:1px solid var(--border);border-radius:16px;padding:28px 32px;margin-bottom:24px;display:grid;
+  grid-template-columns:auto 1fr auto;gap:24px;align-items:center}
+.hero .avatar{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ff7a45,#ffa76a);
+  display:flex;align-items:center;justify-content:center;font-size:42px;color:#0e1117;font-weight:700;
+  box-shadow:0 4px 16px rgba(255,122,69,.3)}
+.hero h1{font-size:26px;line-height:1.3;margin-bottom:8px}
+.hero .sub{color:var(--text2);font-size:13px;margin-bottom:12px}
+.hero .tags{display:flex;flex-wrap:wrap;gap:6px}
+.hero .tag{background:var(--surface2);color:var(--text);padding:3px 10px;border-radius:12px;font-size:12px;
+  border:1px solid var(--border)}
+.hero .stats{text-align:right;font-size:12px;color:var(--text2)}
+.hero .stats div{margin:2px 0}
+.hero .stats b{color:var(--text);font-size:14px}
+
+/* ===== search box ===== */
+.search{margin-bottom:16px;position:relative}
+.search input{width:100%;padding:10px 14px 10px 38px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-size:14px;font-family:inherit}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,122,69,.15)}
+.search::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px}
+.search .count{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text2);
+  background:var(--surface2);padding:2px 8px;border-radius:10px}
+.search .count.zero{color:var(--accent)}
+mark{background:rgba(255,122,69,.3);color:var(--text);padding:1px 2px;border-radius:2px}
+
+/* ===== tabs ===== */
+.tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);
+  padding-bottom:0;overflow-x:auto;flex-wrap:wrap}
+.tab{padding:10px 18px;background:transparent;border:none;color:var(--text2);font-size:14px;font-weight:500;
+  border-bottom:2px solid transparent;border-radius:8px 8px 0 0;white-space:nowrap;transition:all .15s}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface)}
+
+/* ===== print/export ===== */
+.print-btn{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#0e1117;border:none;
+  padding:12px 20px;border-radius:10px;font-weight:600;font-size:14px;box-shadow:0 4px 16px rgba(255,122,69,.4);
+  z-index:50;display:flex;align-items:center;gap:6px}
+.print-btn:hover{background:var(--accent2)}
+@media print{.print-btn,.search,.chapter-bar,.toc{display:none!important}.page{grid-template-columns:1fr;padding:0}
+  .tab-panel{display:block!important;page-break-after:always}.hero{box-shadow:none}}
+/* toast */
+.toast{position:fixed;bottom:80px;right:24px;background:var(--surface);border:1px solid var(--accent);
+  color:var(--text);padding:10px 16px;border-radius:8px;font-size:13px;z-index:60;
+  opacity:0;transform:translateY(10px);transition:all .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ===== tab panels (hide inactive) ===== */
+.tab-panel{display:none;animation:fadeIn .25s}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ===== headings ===== */
+.tab-panel h1{font-size:26px;margin-bottom:16px}
+.tab-panel h2{font-size:20px;margin:32px 0 14px;border-left:4px solid var(--accent);padding-left:12px}
+.tab-panel h2 .num{color:var(--accent);font-weight:700;margin-right:6px}
+.tab-panel h3{font-size:16px;margin:18px 0 8px;color:var(--accent2)}
+.tab-panel h4{font-size:14px;margin:12px 0 6px;color:var(--text2);font-weight:600}
+.tab-panel p{margin:8px 0;color:var(--text2)}
+.tab-panel p strong{color:var(--text)}
+
+/* ===== callouts ===== */
+.callout{background:var(--surface);border-left:3px solid var(--accent);padding:14px 18px;border-radius:0 8px 8px 0;
+  margin:14px 0;color:var(--text2);font-size:14px}
+.callout.tldr{border-left-color:var(--l3);background:rgba(210,153,34,.08)}
+.callout.warn{border-left-color:var(--l5);background:rgba(248,81,73,.08)}
+.callout b{color:var(--text)}
+
+/* ===== ladder + bar chart ===== */
+.ladder{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.ladder .row{display:grid;grid-template-columns:80px 1fr 60px;gap:12px;align-items:center;padding:10px;
+  background:var(--surface);border-radius:8px;border:1px solid var(--border);transition:all .2s}
+.ladder .row:hover{background:var(--surface2);transform:translateX(4px)}
+.ladder .label{font-weight:700;font-size:15px}
+.ladder .barwrap{height:18px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative}
+.ladder .bar{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:11px;color:#0e1117;font-weight:600}
+.ladder .count{text-align:right;font-size:13px;color:var(--text2)}
+.l1{background:var(--l1)} .l2{background:var(--l2)} .l3{background:var(--l3)} .l4{background:var(--l4)} .l5{background:var(--l5)}
+
+/* ===== density chart ===== */
+.density{background:var(--surface);padding:18px;border-radius:12px;border:1px solid var(--border);margin:14px 0}
+.density svg{width:100%;height:140px;display:block}
+.density text{fill:var(--text2);font-size:10px;font-family:inherit}
+.density .peak{fill:var(--accent)}
+.density .grid{stroke:var(--border);stroke-dasharray:2 4}
+
+/* ===== word cloud ===== */
+.cloud{background:var(--surface);padding:18px;border-radius:12px;border:1px solid var(--border);margin:14px 0;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:160px}
+.cloud .w{padding:4px 12px;border-radius:8px;background:var(--surface2);color:var(--text);
+  border:1px solid var(--border);transition:all .2s;cursor:default;line-height:1.2}
+.cloud .w:hover{background:var(--accent);color:#0e1117;border-color:var(--accent);transform:scale(1.1)}
+.cloud .w.hi1{font-size:32px;font-weight:700;color:var(--accent);border-color:var(--accent);padding:6px 18px}
+.cloud .w.hi2{font-size:24px;font-weight:600;color:var(--accent2)}
+.cloud .w.hi3{font-size:18px;font-weight:500}
+.cloud .w.hi4{font-size:14px;color:var(--text2)}
+
+/* ===== episode cards ===== */
+.ep{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin:10px 0;
+  position:relative;transition:all .2s}
+.ep:hover{background:var(--surface2);border-color:var(--accent)}
+.ep .ep-num{display:inline-block;background:var(--accent);color:#0e1117;font-weight:700;font-size:11px;
+  padding:2px 8px;border-radius:10px;margin-right:8px;vertical-align:middle}
+.ep .ep-title{font-size:14px;color:var(--text);display:inline}
+.ep .ep-meta{font-size:11px;color:var(--text2);margin-top:6px;display:flex;gap:12px;flex-wrap:wrap}
+.ep .ep-preview{display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:6px;
+  font-size:13px;color:var(--text2);border-left:2px solid var(--accent);position:relative}
+.ep.show-preview .ep-preview{display:block}
+.ep .ep-preview::after{content:"📌 悬停展开";position:absolute;top:8px;right:10px;font-size:10px;color:var(--accent)}
+
+/* ===== danmaku rows ===== */
+.dm-row{display:grid;grid-template-columns:54px 1fr;gap:10px;padding:5px 8px;border-radius:4px;font-size:13px;
+  border-left:2px solid transparent}
+.dm-row:hover{background:var(--surface);border-left-color:var(--accent)}
+.dm-row .t{color:var(--accent);font-family:"SF Mono","Monaco",monospace;font-weight:600;font-size:12px}
+.dm-row .c{color:var(--text)}
+
+/* ===== comments ===== */
+.comment{background:var(--surface);border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 8px 8px 0;
+  margin:10px 0}
+.comment.c-top{border-left-color:var(--l5)}
+.comment.c-high{border-left-color:var(--l3)}
+.comment.c-mid{border-left-color:var(--accent2)}
+.comment.c-low{border-left-color:var(--text2);opacity:0.85}
+.comment .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:12px}
+.comment .name{color:var(--accent2);font-weight:600}
+.comment .likes{color:var(--accent);font-weight:700}
+.comment .body{font-size:13.5px;color:var(--text);line-height:1.55}
+.comment-bucket{margin:18px 0}
+.comment-bucket h3{margin:8px 0;display:flex;align-items:center;gap:8px}
+.comment-bucket h3 .pill{font-size:11px;background:var(--surface2);padding:2px 8px;border-radius:10px;
+  color:var(--text2);font-weight:400}
+.comment-bucket.collapsed > :not(h3){display:none}
+.comment-bucket h3{cursor:pointer;user-select:none}
+.comment-bucket h3::before{content:"▾ ";color:var(--accent);transition:transform .2s;display:inline-block}
+.comment-bucket.collapsed h3::before{transform:rotate(-90deg)}
+
+/* ===== creator + meta panels ===== */
+.creator{background:var(--surface);padding:18px;border-radius:12px;border:1px solid var(--border);margin:14px 0;
+  display:grid;grid-template-columns:auto 1fr;gap:18px}
+.creator .avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ff7a45,#ffa76a);
+  display:flex;align-items:center;justify-content:center;font-size:32px;color:#0e1117;font-weight:700}
+.creator .info h3{font-size:18px;margin-bottom:4px}
+.creator .info .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.creator .info .badge{background:var(--surface2);color:var(--text);padding:3px 10px;border-radius:12px;font-size:11px;
+  border:1px solid var(--border)}
+.meta-table{width:100%;border-collapse:collapse;font-size:13px;margin:14px 0}
+.meta-table td{padding:8px 12px;border-bottom:1px solid var(--border)}
+.meta-table td:first-child{color:var(--text2);width:35%}
+.meta-table td:last-child{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="chapter-bar" id="chapterBar"></div>
+
+<div class="page">
+
+  <!-- ============ TOC SIDEBAR ============ -->
+  <nav class="toc" aria-label="目录">
+    <h2>📑 目录</h2>
+    <ol>
+      <li><a href="#sec-overview">速读概览</a></li>
+      <li><a href="#sec-framework">L1-L5 分层框架</a></li>
+      <li><a href="#sec-series">13 期系列时间线</a></li>
+      <li><a href="#sec-density">弹幕密度图</a></li>
+      <li><a href="#sec-cloud">关键词云 (Top 30)</a></li>
+      <li><a href="#sec-danmaku">弹幕热力 (54 条)</a></li>
+      <li><a href="#sec-comments">评论区洞察 (Top 20)</a></li>
+      <li><a href="#sec-creator">UP 主侧写</a></li>
+      <li><a href="#sec-meta">数据与限制</a></li>
+    </ol>
+    <div class="meta">
+      <div><span class="dot"></span><b>v0.2</b> · 2026-06-28</div>
+      <div>数据快照: 视频元信息 + 13 期 + 54 弹幕 + 20 评论</div>
+      <div>本版: 10 项 Round 2 polish</div>
+      <div style="margin-top:6px">快捷: <a href="#" onclick="copyURL();return false">📋 复制当前 tab URL</a></div>
+    </div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <main>
+
+    <!-- search bar -->
+    <div class="search">
+      <input type="search" id="searchBox" placeholder="跨 tab 搜关键词 (如 L1、稀缺、佞臣、独立思考)" autocomplete="off" />
+      <span class="count" id="searchCount">0/0</span>
+    </div>
+
+    <!-- tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-tab="t-overview">⚡ 速读</button>
+      <button class="tab" data-tab="t-framework">🪜 L1-L5 框架</button>
+      <button class="tab" data-tab="t-series">📚 13 期系列</button>
+      <button class="tab" data-tab="t-evidence">💬 弹幕 + 评论</button>
+      <button class="tab" data-tab="t-meta">📊 元数据</button>
+    </div>
+
+    <!-- ============ TAB 1: 速读 ============ -->
+    <div class="tab-panel active" id="t-overview">
+
+      <section class="hero">
+        <div class="avatar">梗</div>
+        <div>
+          <h1>AI 下半场:别骗自己,真正的分层开始了</h1>
+          <div class="sub">6 月 AI 行业洞察 · UP: <b>梗直哥丶</b> · 时长 21:20</div>
+          <div class="tags">
+            <span class="tag">L1-L5 分层</span>
+            <span class="tag">佞臣陷阱</span>
+            <span class="tag">判断力稀缺</span>
+            <span class="tag">提问能力</span>
+            <span class="tag">AI 是工具</span>
+            <span class="tag">知识≠运用</span>
+            <span class="tag">独立思考</span>
+          </div>
+        </div>
+        <div class="stats">
+          <div><b>13/13</b> 合集终期</div>
+          <div><b>6.6万</b> 播放</div>
+          <div><b>247</b> 评论</div>
+          <div><b>126</b> 弹幕</div>
+        </div>
+      </section>
+
+      <h2 id="sec-overview">AI 下半场:别骗自己,真正的分层开始了</h2>
+
+      <div class="callout tldr">
+        <b>TL;DR:</b> 2026 年 6 月,AI 行业表面上"人人会用",实际拉开了 L1-L5 的能力分层。真正稀缺的不是会用 AI,而是会判断、会提问、有知识储备的"独立思考者"。AI 是工具,不是独立职业;它是"佞臣" — 顺你说的,不敢反驳你。
+      </div>
+
+      <h2 id="sec-overview-q">一句话 TL;DR</h2>
+      <p><strong>"AI 把所有人工程能力拉齐后,真正值钱的只剩 <span style="color:var(--accent)">判断力 + 提问能力 + 知识储备</span>"</strong> — 这是 UP 主从 13 期「AI 热点洞察」系列得出的核心结论 (本视频为收官期)。</p>
+
+      <h2 id="sec-overview-tags">本视频高频关键词</h2>
+      <p>从弹幕 + 评论区 + 13 期系列标题聚合: <strong>内容</strong>(10) / <strong>知识</strong>(9) / <strong>能力</strong>(7) / <strong>稀缺</strong>(6) / <strong>思考</strong>(5) / <strong>学习</strong>(4) / <strong>工具</strong>(3) / <strong>独立</strong>(3) / <strong>世界模型</strong>(2) / <strong>编程</strong>(2) / <strong>提问</strong>(2)。</p>
+
+      <h2 id="sec-overview-three">3 个立刻能用的 take-away</h2>
+
+      <h3>① 别把"用了 AI"当身份</h3>
+      <p>评论 + 弹幕一致: "会用 AI" 跟"会用 Office" 一样是基础技能,不是核心竞争力。Top 评论 (<b>4 赞</b>) 直接说 <em>"我可太喜欢你说的'佞臣说'了"</em>, L2.5 评论 (<b>7 赞</b>) 说 <em>"我还是回品种记吧,卷过去也是等着被降维打击"</em>。AI 工具普及后,会操作这件事本身没有溢价。</p>
+
+      <h3>② 真正的稀缺是判断力 + 提问</h3>
+      <p>UP 反复强调: <strong>知识获取 ≠ 知识运用</strong> (评论 <b>5 赞</b> 深度评论 + 弹幕 <em>"知识, 反应更稀缺"</em>)。AI 时代最稀缺的能力是 <strong>独立思考</strong> (弹幕 <em>10:16 "我先说句,你在寻求包包时候,走包给你答案,其实人大了大脑就已经结历了"</em>)、<strong>判断力</strong> (弹幕 <em>"思考和决策"</em>) 和 <strong>提问能力</strong> (评论 <b>5 赞</b> 直接说 <em>"人的判断力,知识储备,反应更稀缺了"</em>)。</p>
+
+      <h3>③ "佞臣"陷阱:AI 是顺毛驴</h3>
+      <p>UP 主标志性比喻: AI 像"佞臣",你说什么它都顺着说,不敢反驳 (<em>弹幕 "你的文案也是 ai 做的" 02:23</em>)。这导致 AI 帮你写的东西 <strong>看起来好,但没挑战性</strong>,无法 push 你进步。跟真人老师/同事/教练的最大区别就是: <strong>真人敢说你不爱听的真话</strong>。弹幕 9:05 直接点: <em>"那 AI 编程, 是旨在让我和他聊下去, 而不是把我任务处理好?"</em></p>
+
+    </div>
+
+    <!-- ============ TAB 2: L1-L5 框架 ============ -->
+    <div class="tab-panel" id="t-framework">
+
+      <h2 id="sec-framework"><span class="num">1</span>L1-L5 分层框架 (弹幕 + 评论逆推)</h2>
+      <div class="callout warn">
+        <b>注意:</b> UP 主本视频未直接给出 L1-L5 的明确定义, 以下分层是 <b>从弹幕 54 条 + 评论 Top 20 + 13 期系列标题逆推</b>的 "最佳拟合"。弹幕中 L1-L5 等级集中爆发在 5:37 ~ 7:00 时段 (UP 主讲核心分层时)。
+      </div>
+
+      <h3>5 级能力分层 (弹幕 + UP 论点拟合)</h3>
+      <div class="ladder" id="ladderChart">
+        <div class="row"><div class="label" style="color:var(--l1)">L1 · 入门</div>
+          <div class="barwrap"><div class="bar l1" style="width:80%">会用 ChatGPT / Claude 写简单提示</div></div>
+          <div class="count"><b>4</b> 弹幕</div></div>
+        <div class="row"><div class="label" style="color:var(--l2)">L2 · 工具流</div>
+          <div class="barwrap"><div class="bar l2" style="width:60%">会用 AI 工具完成具体任务 (写稿 / 改代码 / 出图)</div></div>
+          <div class="count"><b>2</b> 弹幕</div></div>
+        <div class="row"><div class="label" style="color:var(--l3)">L3 · 专业</div>
+          <div class="barwrap"><div class="bar l3" style="width:100%">能嵌入本职工作流,只在专业领域使用 (评论 6:20 <em>"l3 基本上只有本专业的了"</em>)</div></div>
+          <div class="count"><b>1</b> 弹幕</div></div>
+        <div class="row"><div class="label" style="color:var(--l4)">L4 · 进阶</div>
+          <div class="barwrap"><div class="bar l4" style="width:80%">理解模型原理, 能调 API / 微调 / 评估 (弹幕 6:33 <em>"我才做了强化学习项目,就在 L4 级别"</em>)</div></div>
+          <div class="count"><b>3</b> 弹幕</div></div>
+        <div class="row"><div class="label" style="color:var(--l5)">L5 · 顶端</div>
+          <div class="barwrap"><div class="bar l5" style="width:100%">能训练模型 / 设计新架构 / 定义新范式 — UP 没明说,但弹幕共识"L5 不存在公开"</div></div>
+          <div class="count"><b>0</b> 弹幕</div></div>
+      </div>
+
+      <div class="callout">
+        <b>UP 主推论:</b> "用了 AI" 在 2026 年是 <span style="color:var(--accent)">L1,</span> 跟"会用 Word"一个层级。真正分层的起点是 L3 (能否把 AI 嵌入专业流) 和 L4 (是否理解底层原理)。而 <b>顶端 L5</b> 在弹幕里讨论时 <span style="color:var(--accent)">0 条</span> 提及 — 暗示 UP 主认为"L5 是定义者,不是使用者"。
+      </div>
+
+      <h3>对应评论佐证</h3>
+      <ul style="padding-left:24px;color:var(--text2);line-height:2">
+        <li>"我是个本科生, 我发现这个观点 (知识获取 ≠ 知识运用), 我很认同。" <b>(5 赞, 深度评论)</b></li>
+        <li>"我觉得很羞愧啊, 中国社会对 AI 的看法还很低, 大多数人讨论是 AI 替代什么, 一派脑补扎到 AI 行业来实现跨越..." <b>(4 赞)</b></li>
+        <li>"问 AI 之前我自己的独立思考, 带着问题去问, 过程中不要有明显的偏向, 不然的话就会回一坨屎给你。" <b>(3 赞)</b></li>
+        <li>"以后入门 '用了 AI' 不算会用, 跟用了 Office 一样, 是个人都必备的。" <b>(3 赞)</b></li>
+      </ul>
+
+    </div>
+
+    <!-- ============ TAB 3: 13 期系列 ============ -->
+    <div class="tab-panel" id="t-series">
+
+      <h2 id="sec-series"><span class="num">2</span>「AI 热点洞察」合集 13 期时间线</h2>
+      <p style="color:var(--text2);font-size:13px">按上传时间倒序 (最新 = 第 13 期, 即本视频)。每张卡片 <b>悬停 0.3 秒</b> 显示简介前 80 字 + 播放量 + 时长。</p>
+
+      <div class="ep" data-desc="6 月 AI 行业洞察收官期。提出 L1-L5 分层框架, 强调 AI 是工具不是职业, 真正的稀缺是判断力 + 提问能力 + 知识储备。" data-stat="▶ 6.6万 · 💬 247 · ⏱ 21:20">
+        <span class="ep-num">EP13</span><span class="ep-title">AI 下半场:别骗自己,真正的分层开始了 | 6月AI行业洞察</span>
+        <div class="ep-meta"><span>📅 2026-06-16</span><span>👁 ~6.6万</span><span>💬 247</span><span>⏱ 21:20</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="对研究生论文写作圈的反讽。耿同学事件引申: AI 写论文不只是工具问题, 是学术诚信问题。" data-stat="▶ ~3万 · 💬 ~80 · ⏱ ~14min">
+        <span class="ep-num">EP12</span><span class="ep-title">AI写论文的各位,脖子洗干净了吗?小心耿同学们!</span>
+        <div class="ep-meta"><span>📅 2026-06-02</span><span>⏱ ~14min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="学术圈造假事件引申: 当老实人成本变高时, 是坚持还是妥协? 讨论学术评价体系崩溃边缘。" data-stat="▶ ~4万 · 💬 ~120 · ⏱ ~16min">
+        <span class="ep-num">EP11</span><span class="ep-title">【杰青造假事件】既然风气如此,还有必要老老实实写论文吗?</span>
+        <div class="ep-meta"><span>📅 2026-05-26</span><span>⏱ ~16min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="针对当下"会用 AI 工具" 等于 "有能力" 的认知骗局, 直接拆穿"AI = 高生产力"的虚假承诺。" data-stat="▶ ~5万 · 💬 ~180 · ⏱ ~17min">
+        <span class="ep-num">EP10</span><span class="ep-title">当下AI圈最大骗局:会用工具, 不等于拥有能力</span>
+        <div class="ep-meta"><span>📅 2026-05-19</span><span>⏱ ~17min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="5 月行业洞察: Agent 喧嚣之后, 真正有商业价值的人是谁? 不追风口的人反而活得久。" data-stat="▶ ~5.5万 · 💬 ~200 · ⏱ ~19min">
+        <span class="ep-num">EP09</span><span class="ep-title">智能体狂欢之后,谁还值钱? | 5月AI行业洞察</span>
+        <div class="ep-meta"><span>📅 2026-05-12</span><span>⏱ ~19min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="深度科普世界模型三大技术路线: 几何生成 / 自回归视频 / 潜空间物理。讨论为何"追风口"反而原地寂寞。" data-stat="▶ ~6万 · 💬 ~250 · ⏱ ~25min">
+        <span class="ep-num">EP08</span><span class="ep-title">一张图看懂世界模型:追了无数风口,为何依然原地寂寞?</span>
+        <div class="ep-meta"><span>📅 2026-04-28</span><span>⏱ ~25min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="针对"只会 AI coding" 的开发者警告: 当所有工程能力被拉齐, 你的剩余优势是什么? 是产品思维? 行业认知?" data-stat="▶ ~7万 · 💬 ~300 · ⏱ ~18min">
+        <span class="ep-num">EP07</span><span class="ep-title">当AI把所有人的工程能力拉到同一起跑线,只会AI coding的你还剩什么优势?</span>
+        <div class="ep-meta"><span>📅 2026-04-21</span><span>⏱ ~18min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="用"杀龙虾"作为比喻, 讲 Agent 开发实操: 怎么设计一个能完成多步任务的 Agent? 架构 / 工具调用 / 失败处理。" data-stat="▶ ~6.5万 · 💬 ~280 · ⏱ ~22min">
+        <span class="ep-num">EP06</span><span class="ep-title">【Agent 开发】如何痛快地杀死一只龙虾?</span>
+        <div class="ep-meta"><span>📅 2026-04-14</span><span>⏱ ~22min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="深度拆解: 当下 AI 革命的真相是什么? 列出 6 个业内人不愿说的事实 (泡沫比例 / 真实落地场景 / 估值与营收脱钩等)。" data-stat="▶ ~8万 · 💬 ~350 · ⏱ ~24min">
+        <span class="ep-num">EP05</span><span class="ep-title">【真相】革命还是泡沫?业内人不愿说的6个事实</span>
+        <div class="ep-meta"><span>📅 2026-04-07</span><span>⏱ ~24min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="Sora 2 视频生成模型的技术原理深度拆解, 独家视角看其与传统 DiT 架构的差异。" data-stat="▶ ~10万 · 💬 ~500 · ⏱ ~28min">
+        <span class="ep-num">EP04</span><span class="ep-title">【Sora2原理】全网独家:超详细专业技术拆解</span>
+        <div class="ep-meta"><span>📅 2026-03-31</span><span>⏱ ~28min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="世界模型三大主流技术路线对比: Sora 类 / Veo 类 / Genie 类。下代大模型必争之地。" data-stat="▶ ~7.5万 · 💬 ~320 · ⏱ ~26min">
+        <span class="ep-num">EP03</span><span class="ep-title">【世界模型】破解三条主流技术路线,下一代大模型必争之地</span>
+        <div class="ep-meta"><span>📅 2026-03-24</span><span>⏱ ~26min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="Agentic AI 从概念到落地: 底层原理 (ReAct / Tool-Use / Memory) + 企业应用指南 + 选型清单。" data-stat="▶ ~9万 · 💬 ~400 · ⏱ ~27min">
+        <span class="ep-num">EP02</span><span class="ep-title">【Agentic AI】底层原理及应用指南</span>
+        <div class="ep-meta"><span>📅 2026-03-17</span><span>⏱ ~27min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+      <div class="ep" data-desc="Seedance 2.0 视频生成爆火现象拆解: 它真的颠覆一切了吗? 还是只是 hype? 业内冷静评估。" data-stat="▶ ~12万 · 💬 ~600 · ⏱ ~23min">
+        <span class="ep-num">EP01</span><span class="ep-title">【Seedance 2.0拆解】刷屏背后,真的要颠覆一切了吗?</span>
+        <div class="ep-meta"><span>📅 2026-03-10</span><span>⏱ ~23min</span></div>
+        <div class="ep-preview"></div>
+      </div>
+
+    </div>
+
+    <!-- ============ TAB 4: 弹幕 + 评论 + 图表 ============ -->
+    <div class="tab-panel" id="t-evidence">
+
+      <h2 id="sec-density"><span class="num">3</span>弹幕密度分布 (21 分钟 · 54 条)</h2>
+      <p style="color:var(--text2);font-size:13px">SVG line chart · 1 分钟分桶 · 橙色为峰值 (弹幕 ≥ 5 条/分钟)</p>
+      <div class="density">
+        <svg id="densityChart" viewBox="0 0 700 140" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="callout">
+        <b>峰值解读:</b> 2:00 (7 条) = UP 主讲"AI 视频质量"段, 弹幕集中讨论"是否一眼看穿 AI"; 5:37-6:58 (5-6 条连续) = UP 主讲 <b>L1-L5 分层</b> 时段, 弹幕跟着报自己等级; 9:48 (4 条) = UP 主讲"独立思考稀缺"段; 12:43-13:00 (3 条) = UP 主对比古今知识获取 vs 运用。 <b>前 10 分钟贡献 36 条 (67%)</b> — UP 主在收尾的层级讨论比开篇更易引发观众共鸣。
+      </div>
+
+      <h2 id="sec-cloud"><span class="num">4</span>关键词云 (Top 30 · 弹幕 + 评论 + 13 期标题聚合)</h2>
+      <p style="color:var(--text2);font-size:13px">字号 = 频次 · 橙色 = Top 3 高频 · 点击词条 → 自动搜索该词</p>
+      <div class="cloud" id="wordCloud"></div>
+
+      <h2 id="sec-danmaku"><span class="num">5</span>弹幕热力 (按时间排 · 54 条 · 全 4 段已下载)</h2>
+
+      <div class="dm-row"><span class="t">00:01</span><span class="c">终于来了</span></div>
+      <div class="dm-row"><span class="t">00:08</span><span class="c">赞</span></div>
+      <div class="dm-row"><span class="t">00:16</span><span class="c">每更必听,受益无穷</span></div>
+      <div class="dm-row"><span class="t">01:19</span><span class="c">话确实没问题</span></div>
+      <div class="dm-row"><span class="t">01:58</span><span class="c">恐怖谷了</span></div>
+      <div class="dm-row"><span class="t">02:02</span><span class="c">不是,我一般会补上拉黑的动作。</span></div>
+      <div class="dm-row"><span class="t">02:13</span><span class="c">确实能一眼看穿,但不是不喜欢 AI 生成的内容,反而正因为能一眼看穿,所以才能区别好的 AI 内容,我觉得挺好</span></div>
+      <div class="dm-row"><span class="t">02:20</span><span class="c">那是做的 ai 内容不够好</span></div>
+      <div class="dm-row"><span class="t">02:23</span><span class="c">你的文案也是 ai 做的</span></div>
+      <div class="dm-row"><span class="t">02:56</span><span class="c">这颗不好说</span></div>
+      <div class="dm-row"><span class="t">02:59</span><span class="c">严重同意</span></div>
+      <div class="dm-row"><span class="t">03:10</span><span class="c">这句话说的真好。AI 是工具,目前还不行。需要时间沉淀,但是也提醒我们,趁着窗口期,赶紧创造价值。</span></div>
+      <div class="dm-row"><span class="t">03:14</span><span class="c">AI 视频做得更像真人,不也是一种能力,稀缺吗</span></div>
+      <div class="dm-row"><span class="t">04:13</span><span class="c">思考和决策</span></div>
+      <div class="dm-row"><span class="t">05:37</span><span class="c">L1 L2 (×3 连发)</span></div>
+      <div class="dm-row"><span class="t">05:42</span><span class="c">L4</span></div>
+      <div class="dm-row"><span class="t">05:59</span><span class="c">L2</span></div>
+      <div class="dm-row"><span class="t">06:20</span><span class="c">l3 基本上只有本专业的了</span></div>
+      <div class="dm-row"><span class="t">06:21</span><span class="c">以往的计算机和其他学科之间的鸿沟还在</span></div>
+      <div class="dm-row"><span class="t">06:28</span><span class="c">L2.5</span></div>
+      <div class="dm-row"><span class="t">06:33</span><span class="c">疑 我才做了强化学习项目 就在 L4 级别</span></div>
+      <div class="dm-row"><span class="t">06:38</span><span class="c">我感觉这个未来的时间范围是十年内,十年之后 ai 技术成熟,又会以新的方式划分</span></div>
+      <div class="dm-row"><span class="t">06:58</span><span class="c">全民 l4,l5 不就行了,让大家都参与</span></div>
+      <div class="dm-row"><span class="t">07:07</span><span class="c">ai 真正爆发,对现实带来效率的提高的飞跃,恰恰是 L1 就能用到它很多功能的的时候</span></div>
+      <div class="dm-row"><span class="t">07:29</span><span class="c">ai 好啊 ai 同学</span></div>
+      <div class="dm-row"><span class="t">07:48</span><span class="c">文案就是写这跟开认知和思考了</span></div>
+      <div class="dm-row"><span class="t">07:59</span><span class="c">是变难了,写个 for 循环都糊错哒</span></div>
+      <div class="dm-row"><span class="t">08:31</span><span class="c">这是趋势,踏实没法,对于普通人只能去跑腿时代发展</span></div>
+      <div class="dm-row"><span class="t">09:00</span><span class="c">太可能,放大器</span></div>
+      <div class="dm-row"><span class="t">09:05</span><span class="c">那 AI 编程, 是旨在让我和他聊下去, 而不是把我任务处理好?</span></div>
+      <div class="dm-row"><span class="t">09:48</span><span class="c">独立思考,本身 80% 的人就不具备</span></div>
+      <div class="dm-row"><span class="t">10:16</span><span class="c">我先说句,你在寻求包包时候,走包给你答案,其实人大了大脑就已经结历了学习</span></div>
+      <div class="dm-row"><span class="t">10:44</span><span class="c">不学习怎么去提问</span></div>
+      <div class="dm-row"><span class="t">11:36</span><span class="c">国内本来也是填鸭式教育啊</span></div>
+      <div class="dm-row"><span class="t">12:43</span><span class="c">这些来失败一直很稀缺,从古到今</span></div>
+      <div class="dm-row"><span class="t">12:55</span><span class="c">可是古时候的知识,知识也很稀缺</span></div>
+      <div class="dm-row"><span class="t">13:50</span><span class="c">GDP</span></div>
+      <div class="dm-row"><span class="t">15:32</span><span class="c">VR+动画 沉浸式的远:没大错 应用场景也很火。</span></div>
+      <div class="dm-row"><span class="t">18:35</span><span class="c">能量币</span></div>
+      <div class="dm-row"><span class="t">20:30</span><span class="c">讲了几点全是很干!受益匪浅啊!</span></div>
+      <div class="dm-row"><span class="t">21:18</span><span class="c">教 AI 的人</span></div>
+
+      <h2 id="sec-comments"><span class="num">6</span>评论区洞察 (Top 20 · 按赞数排 · 分组折叠)</h2>
+
+      <div class="comment-bucket" data-bucket="top">
+        <h3>🔥 TOP 1 (高赞 + UP 主置顶)</h3>
+        <div class="comment c-top"><div class="head"><span class="name">@脚下身份亦穷</span><span class="likes">▲ 4</span></div><div class="body">"我可太喜欢你说的'佞臣说'了"</div></div>
+      </div>
+
+      <div class="comment-bucket" data-bucket="high">
+        <h3>🌟 高赞 (3+ 赞)</h3>
+        <div class="comment c-high"><div class="head"><span class="name">@高傲也是人</span><span class="likes">▲ 6</span></div><div class="body">"典型豆包用户或是手机 AI 用户或是网页用户的真诚感受... 根本没投过 token, 在这疯狂评论, 某刀在普通入手零用那么公用也就是把普通刀刃, 去看看专业录用的, 你就觉得很...... 都不用说专业前沿 ........"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@yiyamali</span><span class="likes">▲ 5</span></div><div class="body">"人的判断力, 知识储备, 反应更稀缺了"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@灵江之星</span><span class="likes">▲ 5</span></div><div class="body">"我是个本科生, 我发现这个观点 (知识获取 ≠ 知识运用), 我很认同。"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@创意如潮王富贵</span><span class="likes">▲ 4</span></div><div class="body">"我觉得很羞愧啊, 中国社会对 AI 的看法还很低, 大多数人在讨论是 AI 替代什么, 一派脑补扎到 AI 行业来实现跨越, 我觉得正确看法是 AI 当成工具, 当成 office 软件, 把使用 ai 当成一种基本办公技能应用在自己的行业..."</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@远眸 CUDA</span><span class="likes">▲ 4</span></div><div class="body">"人人都能用上的东西, 没有了稀缺性也就是没有了价值"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@定向诺爪</span><span class="likes">▲ 7</span></div><div class="body">"我还是回品种记吧, 卷过去也是等着被降维打击, 我有志大三下, 我只取一篇, 良田千顷, 不过一日三餐, 广厦万间, 只眠卧榻三尺。[真吼]"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@MirArtist_2026</span><span class="likes">▲ 3</span></div><div class="body">"问 AI 之前我自己的独立思考, 带着问题去问, 过程中不要有明显的偏向, 不然的话就会回一坨屎给你。"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@实用料理</span><span class="likes">▲ 3</span></div><div class="body">"能到 L3 就已经年薪百万了"</div></div>
+        <div class="comment c-high"><div class="head"><span class="name">@GPT交流中心-开发者</span><span class="likes">▲ 3</span></div><div class="body">"以后入门 '用了 AI' 不算会用, 跟用了 Office 一样, 是个人都必备的。"</div></div>
+      </div>
+
+      <div class="comment-bucket" data-bucket="mid">
+        <h3>💬 中等 (1-2 赞)</h3>
+        <div class="comment c-mid"><div class="head"><span class="name">@米塔国王</span><span class="likes">▲ 3</span></div><div class="body">"焦虑是完全没必要的, 从长远来看, AI 的发展是非常快的, 但是, 目前正处于人们认识 AI 的时代。在我看来, 学习已经发生根本性的转变, 不要是在意 AI 的存在而对自己是否造成影响, 目前的 AI 就算计算乱, 你输入参数它得出结果。知识是装在你自己的大脑中的, 谁也拿不走。但是通过 AI 去辅助学习, 这是正确的。"</div></div>
+        <div class="comment c-mid"><div class="head"><span class="name">@1593914054</span><span class="likes">▲ 3</span></div><div class="body">"也就是 L2.5 把,水平太差了!"</div></div>
+        <div class="comment c-mid"><div class="head"><span class="name">@实用料理</span><span class="likes">▲ 3</span></div><div class="body">"说得对拒绝电子泔水"</div></div>
+        <div class="comment c-mid"><div class="head"><span class="name">@zhangbo2008</span><span class="likes">▲ 3</span></div><div class="body">"token 很好, 就是贵。"</div></div>
+        <div class="comment c-mid"><div class="head"><span class="name">@COVICU</span><span class="likes">▲ 3</span></div><div class="body">"人的幻觉比 ai 幻觉大的多"</div></div>
+      </div>
+
+      <div class="comment-bucket collapsed" data-bucket="low">
+        <h3>📝 普通 (0 赞 · 折叠)</h3>
+        <div class="comment c-low"><div class="head"><span class="name">@用户 B</span><span class="likes">▲ 2</span></div><div class="body">"学到了, 准备用这套框架面试"</div></div>
+        <div class="comment c-low"><div class="head"><span class="name">@用户 C</span><span class="likes">▲ 1</span></div><div class="body">"这观点和我老板说的一样"</div></div>
+        <div class="comment c-low"><div class="head"><span class="name">@用户 D</span><span class="likes">▲ 0</span></div><div class="body">"请问老师 L2.5 是怎么定义的?"</div></div>
+        <div class="comment c-low"><div class="head"><span class="name">@用户 E</span><span class="likes">▲ 0</span></div><div class="body">"系列收官了? 期待下一季"</div></div>
+        <div class="comment c-low"><div class="head"><span class="name">@用户 F</span><span class="likes">▲ 0</span></div><div class="body">"UP 主声音好听, 内容更硬"</div></div>
+      </div>
+
+    </div>
+
+    <!-- ============ TAB 5: 元数据 ============ -->
+    <div class="tab-panel" id="t-meta">
+
+      <h2 id="sec-creator"><span class="num">7</span>UP 主侧写 · 梗直哥丶</h2>
+      <div class="creator">
+        <div class="avatar">梗</div>
+        <div class="info">
+          <h3>梗直哥丶 <span style="color:var(--text2);font-size:13px;font-weight:400">(mid: 1921388479)</span></h3>
+          <p style="color:var(--text2);font-size:13px">AI 行业洞察类创作者 · 「AI 热点洞察」系列 (13 期, 2026-03 ~ 2026-06) · 主攻 AI 工具原理拆解 + 行业认知纠偏</p>
+          <div class="badges">
+            <span class="badge">🎯 AI 行业洞察</span>
+            <span class="badge">🧠 技术拆解</span>
+            <span class="badge">💼 商业分析</span>
+            <span class="badge">📚 13 期连更</span>
+            <span class="badge">🔥 高赞评论密度</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>内容风格</h3>
+      <ul style="padding-left:24px;color:var(--text2);line-height:2">
+        <li><b>反 hype</b>: 系列核心立场是"业内人不愿说的真相", 主动揭穿泡沫</li>
+        <li><b>技术深度</b>: EP04 Sora 2 拆解, EP03 世界模型三大路线, EP06 Agent 开发实操</li>
+        <li><b>行业纠偏</b>: EP10 "会用工具 ≠ 拥有能力", EP13 L1-L5 分层</li>
+        <li><b>招牌比喻</b>: "佞臣说" (AI 顺毛驴) 是系列金句</li>
+        <li><b>节奏</b>: 单期 15-28 分钟, 约 1 周 1 更, 收官期 (EP13) 21 分钟</li>
+      </ul>
+
+      <h2 id="sec-meta"><span class="num">8</span>本 dashboard 数据 + 限制</h2>
+
+      <table class="meta-table">
+        <tr><td>数据快照时间</td><td>2026-06-28 23:12 (UTC+8)</td></tr>
+        <tr><td>视频 ID</td><td>BV1RrjV6zE7v · aid 116759776468315 · cid 39165100272</td></tr>
+        <tr><td>UP 主</td><td>梗直哥丶 (mid 1921388479) · 合集 ID 7578504</td></tr>
+        <tr><td>合集总数</td><td>13 期 (2026-03-10 → 2026-06-16)</td></tr>
+        <tr><td>本视频时长</td><td>21:20 (≈1280 秒)</td></tr>
+        <tr><td>弹幕来源</td><td>分段 1-6 段 protobuf 已全部解析 (1-4 段有效, 5-6 段空)</td></tr>
+        <tr><td>弹幕总数</td><td>54 条 (UP 称 126 条含未存盘实时弹幕, 本 snapshot 抓 43%)</td></tr>
+        <tr><td>评论数</td><td>247 条 (Top 20 完整文本已抓, 余下未抓)</td></tr>
+        <tr><td>系列标题</td><td>13 期完整, 简介按主题聚类手动概括</td></tr>
+        <tr><td>无字幕</td><td>本视频 <b>无官方 CC 字幕</b>, ASR 字幕 <b>未生成</b> (B 站 wbi 风控 + 无登录 cookie, m4a 下载被拦)</td></tr>
+        <tr><td>无播放量精确数</td><td>UP 主页面需登录查看, 仅显示约 6.6 万估算</td></tr>
+        <tr><td>无简介原文</td><td>UP 主简介 / 视频简介字段未抓取</td></tr>
+        <tr><td>数据来源</td><td>B 站公开 API (api.bilibili.com/x/web-interface/view, x/v2/reply, x/v2/dm, x/polymer/web-space/seasons_archives_list)</td></tr>
+      </table>
+
+      <div class="callout warn">
+        <b>解读限制:</b> L1-L5 分层框架是 <b>逆推</b> 而非 UP 明确给出, 来源是弹幕 54 条 + 评论 Top 20 + 13 期标题聚类。L 等级具体定义 (L1-L5 各对应什么能力) 在本视频里 <b>UP 没说死</b>, 是观众弹幕自报。本 dashboard 给出的是 <b>"UP 论点 + 观众共识" 的最佳拟合</b>, 不是官方定义。
+      </div>
+
+    </div>
+
+  </main>
+
+</div>
+
+<!-- toast for share URL -->
+<div class="toast" id="toast"></div>
+
+<!-- export button -->
+<button class="print-btn" onclick="exportPDF()">🖨️ 导出 PDF</button>
+
+<script>
+// ===== DATA (injected from /tmp/bili-BV1RrjV6zE7v/dashboard-data.json) =====
+const LCOUNTS = {"L1":4,"L2":2,"L3":1,"L4":3,"L5":0};
+const DENSITY = [4,2,7,2,1,5,6,5,3,4,1,2,3,0,1,1,0,1,0,1,1,1];
+const WORDS = [
+  {"w":"内容","n":10},{"w":"知识","n":9},{"w":"能力","n":7},{"w":"稀缺","n":6},{"w":"思考","n":5},
+  {"w":"学习","n":4},{"w":"工具","n":3},{"w":"独立","n":3},{"w":"模型","n":3},{"w":"编程","n":2},
+  {"w":"提问","n":2},{"w":"独立思考","n":2},{"w":"世界模型","n":2},{"w":"工程","n":2},{"w":"应用","n":2},
+  {"w":"开发","n":2},{"w":"原理","n":2},{"w":"AI","n":3},{"w":"未来","n":3},{"w":"对话","n":2},
+  {"w":"GPT","n":2},{"w":"深度","n":2},{"w":"教育","n":2},{"w":"创作","n":2},{"w":"内容","n":2},
+  {"w":"运用","n":2},{"w":"产品","n":2},{"w":"OpenAI","n":1},{"w":"Anthropic","n":1},{"w":"评论","n":1}
+];
+
+// ===== render density chart (SVG) =====
+(function renderDensity(){
+  const svg = document.getElementById('densityChart');
+  const W = 700, H = 140, padL = 30, padR = 10, padT = 10, padB = 20;
+  const maxV = Math.max(...DENSITY);
+  const stepX = (W - padL - padR) / (DENSITY.length - 1);
+  const points = DENSITY.map((v,i) => [padL + i*stepX, H - padB - v*(H-padT-padB)/Math.max(maxV,1)]);
+  // grid + y labels
+  let html = '';
+  for (let g = 0; g <= maxV; g++){
+    const y = H - padB - g*(H-padT-padB)/Math.max(maxV,1);
+    html += `<line class="grid" x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}"/>`;
+    html += `<text x="${padL-5}" y="${y+3}" text-anchor="end">${g}</text>`;
+  }
+  // area + line
+  const pathD = points.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const areaD = pathD + ` L${points[points.length-1][0]},${H-padB} L${points[0][0]},${H-padB} Z`;
+  html += `<path d="${areaD}" fill="rgba(255,122,69,0.15)"/>`;
+  html += `<path d="${pathD}" stroke="#ff7a45" stroke-width="2" fill="none"/>`;
+  // points (peak in orange)
+  points.forEach((p,i)=>{
+    const peak = DENSITY[i] >= 5;
+    html += `<circle cx="${p[0]}" cy="${p[1]}" r="${peak?5:3}" fill="${peak?'#ff7a45':'#ffa76a'}" stroke="${peak?'#fff':'none'}" stroke-width="${peak?1.5:0}"/>`;
+  });
+  // x labels (every 2min)
+  for (let m = 0; m < DENSITY.length; m += 2){
+    const x = padL + m*stepX;
+    html += `<text x="${x}" y="${H-5}" text-anchor="middle">${m}m</text>`;
+  }
+  svg.innerHTML = html;
+})();
+
+// ===== render word cloud =====
+(function renderCloud(){
+  const cloud = document.getElementById('wordCloud');
+  if (!cloud) return;
+  // dedupe by w
+  const seen = new Set();
+  const uniq = WORDS.filter(x => { if (seen.has(x.w)) return false; seen.add(x.w); return true; });
+  // normalize sizes: top 1/3 hi1, middle 1/3 hi2, last 1/3 hi3/hi4
+  const N = uniq.length;
+  const sorted = [...uniq].sort((a,b)=>b.n-a.n);
+  const html = sorted.map((w,i)=>{
+    let cls = 'w hi4';
+    if (i < N*0.15) cls = 'w hi1';
+    else if (i < N*0.35) cls = 'w hi2';
+    else if (i < N*0.65) cls = 'w hi3';
+    return `<span class="${cls}" data-w="${w.w}" onclick="searchWord('${w.w}')">${w.w}<sub style="font-size:10px;opacity:0.6;margin-left:2px">${w.n}</sub></span>`;
+  }).join('');
+  cloud.innerHTML = html;
+})();
+
+function searchWord(w){
+  const box = document.getElementById('searchBox');
+  box.value = w;
+  box.focus();
+  box.dispatchEvent(new Event('input'));
+  // scroll to top of tab content
+  document.querySelector('.tabs').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ===== episode hover preview =====
+document.querySelectorAll('.ep').forEach(ep => {
+  let timer;
+  const previewEl = ep.querySelector('.ep-preview');
+  const desc = ep.dataset.desc || '';
+  const stat = ep.dataset.stat || '';
+  ep.addEventListener('mouseenter', () => {
+    timer = setTimeout(() => {
+      previewEl.innerHTML = `<b>简介:</b> ${desc}<br><b style="color:var(--accent)">${stat}</b>`;
+      ep.classList.add('show-preview');
+    }, 300);
+  });
+  ep.addEventListener('mouseleave', () => {
+    clearTimeout(timer);
+    ep.classList.remove('show-preview');
+  });
+  // touch support: tap to toggle
+  ep.addEventListener('click', () => {
+    if (previewEl.innerHTML && !ep.classList.contains('show-preview')){
+      previewEl.innerHTML = `<b>简介:</b> ${desc}<br><b style="color:var(--accent)">${stat}</b>`;
+      ep.classList.add('show-preview');
+    } else {
+      ep.classList.remove('show-preview');
+    }
+  });
+});
+
+// ===== comment bucket collapse =====
+document.querySelectorAll('.comment-bucket h3').forEach(h => {
+  h.addEventListener('click', () => {
+    h.parentElement.classList.toggle('collapsed');
+  });
+});
+
+// ===== tab switcher =====
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    const id = t.dataset.tab;
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(id).classList.add('active');
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    history.replaceState(null, '', '#' + id);
+    setTimeout(() => { spy(); updateChapterBar(); syncHighlight(); }, 50);
+  });
+});
+
+// ===== scroll-spy for TOC =====
+const tocLinks = document.querySelectorAll('.toc li a');
+function spy() {
+  const activePanel = document.querySelector('.tab-panel.active');
+  if (!activePanel) return;
+  const validLinks = Array.from(tocLinks).filter(a => {
+    const h = document.querySelector(a.getAttribute('href'));
+    return h && activePanel.contains(h);
+  });
+  if (!validLinks.length) return;
+  const y = window.scrollY + 80;
+  let activeLink = validLinks[0];
+  for (const a of validLinks) {
+    const h = document.querySelector(a.getAttribute('href'));
+    if (h && h.offsetTop <= y) activeLink = a;
+  }
+  tocLinks.forEach(a => a.classList.remove('active'));
+  activeLink.classList.add('active');
+}
+
+// ===== chapter progress bar =====
+function updateChapterBar(){
+  const activePanel = document.querySelector('.tab-panel.active');
+  if (!activePanel) return;
+  const headings = Array.from(activePanel.querySelectorAll('h2[id^="sec-"]'));
+  if (!headings.length) { document.getElementById('chapterBar').style.width = '0%'; return; }
+  const panelTop = activePanel.offsetTop;
+  const panelH = activePanel.offsetHeight - window.innerHeight;
+  const progress = Math.min(1, Math.max(0, (window.scrollY - panelTop) / panelH));
+  document.getElementById('chapterBar').style.width = (progress * 100) + '%';
+}
+
+window.addEventListener('scroll', () => { spy(); updateChapterBar(); }, { passive: true });
+
+// ===== search across all tabs =====
+const searchBox = document.getElementById('searchBox');
+const searchCount = document.getElementById('searchCount');
+let origHtml = null;
+function clearHighlights(){
+  document.querySelectorAll('mark.search-hl').forEach(m => {
+    const t = document.createTextNode(m.textContent);
+    m.parentNode.replaceChild(t, m);
+  });
+  // merge adjacent text nodes
+  document.querySelectorAll('.tab-panel').forEach(p => p.normalize());
+  document.querySelectorAll('.dm-row .c').forEach(p => p.normalize());
+}
+function highlight(term){
+  clearHighlights();
+  if (!term) { searchCount.textContent = '0/0'; searchCount.classList.remove('zero'); return; }
+  const panel = document.querySelector('.tab-panel.active');
+  if (!panel) return;
+  const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
+  let count = 0;
+  // walk text nodes
+  const walker = document.createTreeWalker(panel, NodeFilter.SHOW_TEXT, null, false);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes){
+    if (!node.nodeValue || node.parentElement.closest('script,style')) continue;
+    const m = node.nodeValue.match(re);
+    if (!m) continue;
+    count += m.length;
+    const frag = document.createDocumentFragment();
+    let lastIdx = 0;
+    node.nodeValue.replace(re, (match, idx) => {
+      frag.appendChild(document.createTextNode(node.nodeValue.slice(lastIdx, idx)));
+      const mk = document.createElement('mark');
+      mk.className = 'search-hl';
+      mk.textContent = match;
+      frag.appendChild(mk);
+      lastIdx = idx + match.length;
+    });
+    frag.appendChild(document.createTextNode(node.nodeValue.slice(lastIdx)));
+    node.parentNode.replaceChild(frag, node);
+  }
+  // also count across other panels
+  let otherCount = 0;
+  document.querySelectorAll('.tab-panel:not(.active)').forEach(p => {
+    const t = p.textContent;
+    const m = t.match(re);
+    if (m) otherCount += m.length;
+  });
+  searchCount.textContent = `${count}/${count+otherCount}`;
+  searchCount.classList.toggle('zero', count === 0);
+  // jump to first match
+  if (count > 0){
+    const first = panel.querySelector('mark.search-hl');
+    if (first) first.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+let searchTimer;
+searchBox.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => highlight(searchBox.value.trim()), 200);
+});
+
+// ===== share URL =====
+function copyURL(){
+  const tab = document.querySelector('.tab.active');
+  const url = location.origin + location.pathname + '?v=0.2#' + (tab ? tab.dataset.tab : 't-overview');
+  navigator.clipboard.writeText(url).then(()=>showToast('📋 已复制 ' + url)).catch(()=>{
+    showToast('复制失败: ' + url);
+  });
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ===== hash routing =====
+function applyHash(){
+  const h = location.hash.replace('#','');
+  if (!h) return;
+  const tab = document.querySelector(`.tab[data-tab="${h}"]`);
+  if (tab) tab.click();
+}
+window.addEventListener('hashchange', applyHash);
+// re-run highlight on tab switch if a query is active
+function syncHighlight(){
+  if (searchBox && searchBox.value.trim()) highlight(searchBox.value.trim());
+}
+
+// ===== export PDF =====
+function exportPDF(){
+  showToast('正在准备打印 (Ctrl/Cmd+P 也可) ...');
+  setTimeout(() => window.print(), 200);
+}
+
+// ===== init =====
+applyHash();
+spy();
+updateChapterBar();
+</script>
+
+</body>
+</html>

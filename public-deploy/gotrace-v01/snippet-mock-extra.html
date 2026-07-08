@@ -1,0 +1,660 @@
+<!--
+  snippet_mock_extra.html
+  ────────────────────────────────────────────────────────────────
+  驾迹 GoTrace v0.1 · 深度 mock 库存 · viewRoutes 函数
+  嵌入位置: 主 agent 在 L4 合并时，把 <style> 块粘贴到 gotrace_v0_1.html 的
+            <style> 末尾；把 <script> 块粘贴到 viewMe() 之后、render() 之前。
+  不依赖任何外部资源，纯 mock。可整体删除不影响 L1/L2/L3。
+  ────────────────────────────────────────────────────────────────
+-->
+
+<style>
+/* ── plaza-* · 路线广场 ─────────────────────────────────────── */
+.plaza-wrap{ display:block; width:100%; }
+.plaza-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin:6px 0 14px;
+}
+.plaza-head h1{
+  font-size:22px; font-weight:800; color:var(--navy);
+  margin:0; letter-spacing:.5px;
+}
+.plaza-back{
+  font-size:12px; color:var(--muted);
+  text-decoration:none; padding:6px 10px;
+  border:1px solid var(--line); border-radius:8px;
+  background:#fff;
+}
+.plaza-sub{ font-size:12px; color:var(--muted); margin:0 0 14px; }
+
+/* featured 横向滚动精选 */
+.plaza-featured{
+  display:flex; gap:10px; overflow-x:auto;
+  padding:4px 0 12px; margin-bottom:14px;
+  scrollbar-width:none;
+}
+.plaza-featured::-webkit-scrollbar{ display:none; }
+.plaza-feat-card{
+  flex:0 0 130px;
+  border-radius:14px;
+  height:160px; padding:10px;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  color:#fff; position:relative; overflow:hidden;
+  text-decoration:none;
+}
+.plaza-feat-card .ft-title{
+  font-size:12px; font-weight:800; line-height:1.3;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.plaza-feat-card .ft-reason{
+  font-size:9px; opacity:.85; margin-top:4px;
+  background:rgba(0,0,0,.25); padding:2px 6px; border-radius:6px;
+  align-self:flex-start;
+}
+
+/* topic 过滤 chip */
+.plaza-filter{
+  display:flex; gap:8px; flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.plaza-chip{
+  font-size:11px; padding:6px 12px;
+  background:#fff; border:1px solid var(--line);
+  border-radius:14px; color:var(--ink);
+  cursor:pointer; font-weight:600;
+}
+.plaza-chip.active{
+  background:var(--navy); color:#fff; border-color:var(--navy);
+}
+
+/* 路线卡（masonry-feel grid） */
+.plaza-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.plaza-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+  text-decoration:none; color:var(--ink);
+  display:flex; flex-direction:column;
+}
+.plaza-card .cover{
+  height:100px; position:relative; overflow:hidden;
+  display:flex; align-items:flex-end; justify-content:flex-start;
+  padding:8px;
+}
+.plaza-card .topic-tag{
+  font-size:9px; font-weight:700;
+  background:rgba(0,0,0,.35); color:#fff;
+  padding:2px 6px; border-radius:6px;
+  letter-spacing:.5px;
+}
+.plaza-card .body{ padding:8px 10px 10px; }
+.plaza-card .title{
+  font-size:12px; font-weight:800; color:var(--navy);
+  line-height:1.3; margin:0 0 6px;
+  display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+.plaza-card .meta{
+  font-size:10px; color:var(--muted);
+  display:flex; gap:6px; flex-wrap:wrap;
+  margin-bottom:6px;
+}
+.plaza-card .meta b{ color:var(--ink); font-weight:700; }
+.plaza-card .stats{
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:10px; color:var(--muted);
+  padding-top:6px; border-top:1px dashed var(--line);
+}
+.plaza-card .rating{ color:var(--terra); font-weight:800; }
+.plaza-card .author{
+  display:flex; align-items:center; gap:4px;
+}
+
+/* 分页器 */
+.plaza-pager{
+  display:flex; align-items:center; justify-content:center;
+  gap:6px; margin:8px 0 24px; flex-wrap:wrap;
+}
+.plaza-pager .pg-btn{
+  min-width:32px; height:32px; padding:0 8px;
+  background:#fff; border:1px solid var(--line);
+  border-radius:8px; font-size:12px; font-weight:700;
+  color:var(--ink); cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.plaza-pager .pg-btn.active{
+  background:var(--navy); color:#fff; border-color:var(--navy);
+}
+.plaza-pager .pg-btn:disabled{ opacity:.4; cursor:not-allowed; }
+.plaza-pager .pg-info{
+  font-size:11px; color:var(--muted); padding:0 8px;
+}
+.plaza-pager .pg-jump{
+  display:inline-flex; align-items:center; gap:4px;
+  margin-left:6px; font-size:11px; color:var(--muted);
+}
+.plaza-pager .pg-jump input{
+  width:42px; height:28px; border:1px solid var(--line);
+  border-radius:6px; text-align:center; font-size:11px;
+  font-family:inherit; font-weight:700; color:var(--navy);
+}
+
+/* ── books-* · 我的路书 ──────────────────────────────────────── */
+.books-wrap{ display:block; width:100%; }
+.books-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin:6px 0 14px;
+}
+.books-head h1{
+  font-size:22px; font-weight:800; color:var(--navy);
+  margin:0; letter-spacing:.5px;
+}
+.books-sub{ font-size:12px; color:var(--muted); margin:0 0 14px; }
+
+/* style 过滤 */
+.books-filter{
+  display:flex; gap:6px; flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.books-chip{
+  font-size:11px; padding:5px 10px;
+  background:#fff; border:1px solid var(--line);
+  border-radius:12px; color:var(--ink);
+  cursor:pointer; font-weight:600;
+}
+.books-chip.active{
+  background:var(--terra); color:#fff; border-color:var(--terra);
+}
+
+/* 卡片 grid */
+.books-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px; margin-bottom:18px;
+}
+.book-card{
+  background:#fff; border:1px solid var(--line);
+  border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.book-card .cover{
+  height:90px; position:relative;
+  display:flex; align-items:flex-end; justify-content:flex-start;
+  padding:8px;
+}
+.book-card .style-tag{
+  font-size:9px; font-weight:700;
+  background:rgba(0,0,0,.4); color:#fff;
+  padding:2px 6px; border-radius:6px;
+}
+.book-card .body{ padding:8px 10px 10px; flex:1; display:flex; flex-direction:column; }
+.book-card .title{
+  font-size:12px; font-weight:800; color:var(--navy);
+  line-height:1.3; margin:0 0 8px; min-height:30px;
+  display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+.book-card .platforms{
+  display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;
+}
+.book-card .pf-chip{
+  font-size:9px; padding:1px 6px;
+  background:var(--cream); color:var(--muted);
+  border-radius:6px; font-weight:700;
+}
+.book-card .stats{
+  display:flex; gap:10px;
+  font-size:10px; color:var(--muted);
+  padding-top:6px; border-top:1px dashed var(--line);
+  margin-top:auto;
+}
+.book-card .stats b{ color:var(--ink); font-weight:800; }
+.book-card .stats .views b{ color:var(--terra); }
+
+/* 空态 */
+.plaza-empty, .books-empty{
+  padding:32px 16px; text-align:center;
+  color:var(--muted); font-size:12px;
+  background:#fff; border:1px dashed var(--line);
+  border-radius:12px;
+}
+</style>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   深度 mock 库存 · 数据 + 视图函数
+   ────────────────────────────────────────────────────────────────
+   依赖: 已存在的 _state / state.profile / escapeHtml() / render()
+   输出: window.MOCK_ROUTES_EXTRA / window.MOCK_BOOKS_EXTRA / viewRoutes()
+   ════════════════════════════════════════════════════════════════ */
+
+(function(){
+  'use strict';
+
+  // ─── 1. 路线广场 1247 条（首屏仅展示 page1 的 24 条）─────────────
+  window.MOCK_ROUTES_EXTRA = {
+    total: 1247,
+    pageSize: 24,
+    pageCount: 52,
+    currentPage: 1,
+    currentTopic: '全部',
+    topicFilters: ['全部','长途进藏','川西小环','新疆自驾','海岛海边','江南皖南'],
+    pageData: {
+      page1: [
+        { id:"tibet-318-14d-v1", topic:"长途进藏", title:"318 川藏南线 14 日", author:"刘师傅游记", authorAvatar:"刘", days:14, km:2400, maxAltitude:5231, tags:["雪山","朝圣","摄影","挑战"], difficulty:"★★★★", bestSeason:"5-10月", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", verifiedBy:1247, rating:4.8, summary:"成都→康定→新都桥→稻城亚丁→芒康→林芝→拉萨，14 天跨越 4 座 5000+ 雪山垭口", poi:["折多山","新都桥","稻城亚丁","然乌湖","米堆冰川","林芝","布达拉宫"] },
+        { id:"tibet-317-12d-v1", topic:"长途进藏", title:"317 川藏北线 12 日", author:"高原老张", authorAvatar:"张", days:12, km:2100, maxAltitude:5050, tags:["越野","人文","小众"], difficulty:"★★★★★", bestSeason:"6-9月", coverGradient:"linear-gradient(135deg,#27221B,#1B2A41)", verifiedBy:632, rating:4.7, summary:"成都→映秀→马尔康→色达→甘孜→德格→那曲→拉萨，穿越藏北草原", poi:["色达佛学院","五明佛学院","甘孜寺","德格印经院","那曲草原"] },
+        { id:"tibet-219-10d-v1", topic:"长途进藏", title:"219 滇藏线 10 日", author:"云岭老吴", authorAvatar:"吴", days:10, km:1800, maxAltitude:4296, tags:["古镇","雪山","摄影"], difficulty:"★★★", bestSeason:"4-11月", coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", verifiedBy:854, rating:4.6, summary:"昆明→大理→丽江→香格里拉→飞来寺→盐井→芒康", poi:["大理古城","丽江古城","松赞林寺","飞来寺","盐井古盐田"] },
+        { id:"tibet-xinzang-16d-v1", topic:"长途进藏", title:"新藏线 16 日硬核穿越", author:"昆仑老兵", authorAvatar:"兵", days:16, km:4100, maxAltitude:5430, tags:["极限","无人区","挑战"], difficulty:"★★★★★", bestSeason:"6-8月", coverGradient:"linear-gradient(135deg,#1B2A41,#27221B)", verifiedBy:287, rating:4.9, summary:"喀什→叶城→三十里营房→阿里→日土→狮泉河→拉萨", poi:["乔戈里峰远眺","班公湖","古格王朝","冈仁波齐","玛旁雍错"] },
+        { id:"tibet-bingchacha-8d-v1", topic:"长途进藏", title:"丙察察 8 日越野线", author:"越野俱乐部老王", authorAvatar:"王", days:8, km:1200, maxAltitude:4723, tags:["越野","小众","森林"], difficulty:"★★★★★", bestSeason:"9-10月", coverGradient:"linear-gradient(135deg,#27221B,#3E7A4C)", verifiedBy:412, rating:4.7, summary:"大理→六库→福贡→丙中洛→察瓦龙→察隅→然乌", poi:["怒江大峡谷","丙中洛","老虎嘴","察瓦龙","来古冰川"] },
+        { id:"tibet-tangfan-9d-v1", topic:"长途进藏", title:"唐蕃古道 9 日人文线", author:"文成公主后人", authorAvatar:"公", days:9, km:2300, maxAltitude:4810, tags:["人文","历史","秘境"], difficulty:"★★★", bestSeason:"5-10月", coverGradient:"linear-gradient(135deg,#D9723F,#27221B)", verifiedBy:318, rating:4.5, summary:"西安→天水→兰州→西宁→玛多→玉树→类乌齐→拉萨", poi:["青海湖","玛多黄河源","唐蕃古道石碑","文成公主庙","玉树结古寺"] },
+        { id:"chuanxi-4d-loop-v1", topic:"川西小环", title:"川西 4 日小环线", author:"成都小胖", authorAvatar:"胖", days:4, km:880, maxAltitude:4718, tags:["短线","雪山","周末"], difficulty:"★★★", bestSeason:"全年", coverGradient:"linear-gradient(135deg,#E3B23C,#3E7A4C)", verifiedBy:2341, rating:4.7, summary:"成都→雅安→康定→新都桥→折多山→成都", poi:["折多山","新都桥","康定情歌","鱼子西","斯丁措"] },
+        { id:"chuanxi-5d-classic-v1", topic:"川西小环", title:"川西 5 日经典环线", author:"二师兄自驾", authorAvatar:"猪", days:5, km:1100, maxAltitude:4718, tags:["经典","雪山","摄影"], difficulty:"★★★★", bestSeason:"5-11月", coverGradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)", verifiedBy:1892, rating:4.8, summary:"成都→康定→新都桥→理塘→稻城→亚丁→新都桥→成都", poi:["新都桥","理塘","稻城亚丁","海子山","卡子拉山"] },
+        { id:"chuanxi-5d-deep-v1", topic:"川西小环", title:"川西 5 日深度摄影", author:"光影老炮", authorAvatar:"光", days:5, km:1250, maxAltitude:4718, tags:["深度","摄影","冷嘎措"], difficulty:"★★★★", bestSeason:"10-11月", coverGradient:"linear-gradient(135deg,#D9723F,#1B2A41)", verifiedBy:678, rating:4.6, summary:"成都→康定→甲根坝→冷嘎措→子梅垭口→新都桥→成都", poi:["冷嘎措","子梅垭口","泉华滩","甲根坝","鱼子西星空"] },
+        { id:"chuanxi-7d-grand-v1", topic:"川西小环", title:"川西 7 日大环线", author:"大环线老李", authorAvatar:"李", days:7, km:1900, maxAltitude:5050, tags:["大环","德格","色达"], difficulty:"★★★★", bestSeason:"6-10月", coverGradient:"linear-gradient(135deg,#1B2A41,#D9723F)", verifiedBy:542, rating:4.7, summary:"成都→毕棚沟→马尔康→色达→甘孜→德格→新都桥→成都", poi:["毕棚沟","色达","甘孜白塔","德格印经院","新都桥"] },
+        { id:"chuanxi-4d-daocheng-v1", topic:"川西小环", title:"稻城亚丁 4 日专线", author:"亚丁向导小洛", authorAvatar:"洛", days:4, km:1450, maxAltitude:6032, tags:["亚丁","三神山","短线"], difficulty:"★★★", bestSeason:"9-10月", coverGradient:"linear-gradient(135deg,#E3B23C,#1B2A41)", verifiedBy:3120, rating:4.9, summary:"成都→新都桥→理塘→稻城→亚丁村→冲古寺→成都", poi:["稻城亚丁","冲古寺","洛绒牛场","牛奶海","五色海"] },
+        { id:"chuanxi-3d-heishui-v1", topic:"川西小环", title:"黑水奶子沟 3 日彩林", author:"彩林爱好者", authorAvatar:"彩", days:3, km:720, maxAltitude:4400, tags:["彩林","秋季","小众"], difficulty:"★★", bestSeason:"10月中旬-11月初", coverGradient:"linear-gradient(135deg,#D9723F,#E3B23C)", verifiedBy:421, rating:4.6, summary:"成都→茂县→黑水→奶子沟→达古冰川→成都", poi:["奶子沟彩林","达古冰川","羊茸哈德","色尔古藏寨"] },
+        { id:"chuanxi-6d-danba-v1", topic:"川西小环", title:"丹巴 6 日藏羌风情", author:"嘉绒藏族向导", authorAvatar:"嘉", days:6, km:1380, maxAltitude:4523, tags:["藏寨","人文","梨花"], difficulty:"★★★", bestSeason:"3-4月、10-11月", coverGradient:"linear-gradient(135deg,#3E7A4C,#D9723F)", verifiedBy:376, rating:4.5, summary:"成都→四姑娘山→丹巴甲居藏寨→莫斯卡→党岭→成都", poi:["四姑娘山","甲居藏寨","中路藏寨","莫斯卡","党岭葫芦海"] },
+        { id:"xinjiang-beijiang-12d-v1", topic:"新疆自驾", title:"北疆大环 12 日", author:"老周自驾", authorAvatar:"周", days:12, km:3600, maxAltitude:3200, tags:["大环","喀纳斯","禾木"], difficulty:"★★★★", bestSeason:"6-10月", coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", verifiedBy:1432, rating:4.9, summary:"乌鲁木齐→天山天池→可可托海→喀纳斯→禾木→赛里木湖→那拉提→独库→乌鲁木齐", poi:["天山天池","可可托海","喀纳斯湖","禾木村","赛里木湖","那拉提"] },
+        { id:"xinjiang-yili-7d-v1", topic:"新疆自驾", title:"伊犁 7 日深度环线", author:"赛里木湖的鱼", authorAvatar:"鱼", days:7, km:2100, maxAltitude:3100, tags:["伊犁","薰衣草","草原"], difficulty:"★★★", bestSeason:"6-8月", coverGradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)", verifiedBy:2103, rating:4.9, summary:"乌鲁木齐→赛里木湖→果子沟→霍尔果斯→伊宁→那拉提→巴音布鲁克→独库→乌鲁木齐", poi:["赛里木湖","果子沟大桥","薰衣草庄园","那拉提草原","巴音布鲁克"] },
+        { id:"xinjiang-duku-4d-v1", topic:"新疆自驾", title:"独库公路 4 日穿越", author:"独库狂热粉", authorAvatar:"独", days:4, km:1280, maxAltitude:3390, tags:["独库","网红","公路片"], difficulty:"★★★★", bestSeason:"6-9月", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", verifiedBy:4380, rating:4.9, summary:"独山子→乔尔玛→那拉提→巴音布鲁克→库车", poi:["独山子大峡谷","乔尔玛烈士陵园","那拉提","巴音布鲁克","天山神秘大峡谷"] },
+        { id:"xinjiang-nanjiang-10d-v1", topic:"新疆自驾", title:"南疆 10 日人文环线", author:"丝路老徐", authorAvatar:"徐", days:10, km:3200, maxAltitude:3800, tags:["人文","丝路","沙漠"], difficulty:"★★★★", bestSeason:"4-10月", coverGradient:"linear-gradient(135deg,#D9723F,#27221B)", verifiedBy:612, rating:4.7, summary:"乌鲁木齐→库尔勒→库车→阿克苏→喀什→塔县→和田→民丰→库尔勒→乌鲁木齐", poi:["博斯腾湖","库车老城","喀什噶尔老城","塔什库尔干","和田大巴扎"] },
+        { id:"xinjiang-kashgar-6d-v1", topic:"新疆自驾", title:"喀什塔县 6 日深度", author:"帕米尔之鹰", authorAvatar:"鹰", days:6, km:1800, maxAltitude:4733, tags:["帕米尔","边境","小众"], difficulty:"★★★★", bestSeason:"5-10月", coverGradient:"linear-gradient(135deg,#27221B,#D9723F)", verifiedBy:487, rating:4.8, summary:"喀什→白沙湖→慕士塔格峰→塔县→红其拉甫→盘龙古道→喀什", poi:["白沙湖","慕士塔格峰","石头城","红其拉甫国门","盘龙古道"] },
+        { id:"hainan-island-8d-v1", topic:"海岛海边", title:"海南环岛 8 日", author:"海岛大表哥", authorAvatar:"海", days:8, km:1500, maxAltitude:1861, tags:["海岛","环岛","亲子"], difficulty:"★★", bestSeason:"11月-次年4月", coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", verifiedBy:1756, rating:4.6, summary:"海口→文昌→琼海→万宁→陵水→三亚→乐东→东方→昌江→儋州→海口", poi:["文昌卫星发射中心","万宁日月湾","三亚亚龙湾","蜈支洲岛","尖峰岭"] },
+        { id:"dongji-island-3d-v1", topic:"海岛海边", title:"东极岛 3 日文艺线", author:"后会无期粉", authorAvatar:"后", days:3, km:180, maxAltitude:248, tags:["文艺","海岛","日出"], difficulty:"★★", bestSeason:"5-10月", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", verifiedBy:982, rating:4.7, summary:"舟山沈家门→庙子湖→东福山，3 天中国最东岛屿文艺慢游", poi:["庙子湖灯塔","东福山日出","青浜岛","东海第一哨"] },
+        { id:"xiapu-4d-v1", topic:"海岛海边", title:"霞浦 4 日滩涂摄影", author:"滩涂摄影师大陈", authorAvatar:"陈", days:4, km:320, maxAltitude:80, tags:["摄影","滩涂","人文"], difficulty:"★★", bestSeason:"4-6月、9-11月", coverGradient:"linear-gradient(135deg,#D9723F,#E3B23C)", verifiedBy:1284, rating:4.8, summary:"福州→霞浦→北岐滩涂→小皓滩涂→东壁日落→杨家溪→福州", poi:["北岐滩涂","小皓滩涂","东壁日落","杨家溪榕枫","花竹日出"] },
+        { id:"jiangnan-huizhou-4d-v1", topic:"江南皖南", title:"徽州 4 日文化线", author:"徽州文化研究者", authorAvatar:"徽", days:4, km:480, maxAltitude:1100, tags:["徽派","古村","人文"], difficulty:"★★", bestSeason:"3-4月、10-11月", coverGradient:"linear-gradient(135deg,#27221B,#8A8272)", verifiedBy:1567, rating:4.7, summary:"黄山→宏村→西递→呈坎→徽州古城→屯溪老街→黄山", poi:["宏村月沼","西递胡文光刺史牌坊","呈坎八卦村","徽州古城","屯溪老街"] },
+        { id:"jiangnan-wuyuan-3d-v1", topic:"江南皖南", title:"婺源 3 日油菜花", author:"婺源通小江", authorAvatar:"江", days:3, km:280, maxAltitude:850, tags:["油菜花","古村","摄影"], difficulty:"★★", bestSeason:"3月中-4月初", coverGradient:"linear-gradient(135deg,#E3B23C,#3E7A4C)", verifiedBy:2210, rating:4.8, summary:"婺源→江岭→篁岭→庆源→虹关→婺源", poi:["江岭油菜花海","篁岭晒秋","庆源古村","虹关古樟","月亮湾"] },
+        { id:"jiangnan-wannan-3d-v1", topic:"江南皖南", title:"皖南川藏线 3 日", author:"皖南探路者", authorAvatar:"皖", days:3, km:420, maxAltitude:1280, tags:["川藏线","山路","小众"], difficulty:"★★★", bestSeason:"4-5月、9-11月", coverGradient:"linear-gradient(135deg,#1B2A41,#27221B)", verifiedBy:893, rating:4.6, summary:"宁国→皖南川藏线→桃岭公路→水墨汀溪→月亮湾→宁国", poi:["桃岭公路","水墨汀溪","月亮湾","储家滩","青龙湾"] }
+      ]
+    },
+    featured: [
+      { id:"tibet-318-14d-v1", reason:"本月播放量最高" },
+      { id:"xinjiang-yili-7d-v1", reason:"盛夏首推" },
+      { id:"chuanxi-5d-classic-v1", reason:"新手友好" },
+      { id:"hainan-island-8d-v1", reason:"亲子首选" },
+      { id:"jiangnan-wuyuan-3d-v1", reason:"春季限定" },
+      { id:"xinjiang-duku-4d-v1", reason:"网红打卡" },
+      { id:"tibet-317-12d-v1", reason:"硬核玩家" },
+      { id:"dongji-island-3d-v1", reason:"文艺治愈" },
+      { id:"chuanxi-4d-daocheng-v1", reason:"亚丁专线" },
+      { id:"xinjiang-kashgar-6d-v1", reason:"边境秘境" },
+      { id:"xiapu-4d-v1", reason:"摄影团最爱" },
+      { id:"jiangnan-huizhou-4d-v1", reason:"人文古韵" }
+    ]
+  };
+
+  // ─── 2. "我的" 素材库 12 组（组图） ─────────────────────────────
+  window.MOCK_MEDIA_GROUPS_EXTRA = [
+    { groupId:"g1", title:"Day 2 那拉提空中草原", tripId:"yili-7d", date:"2025-07-15", count:24, coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", tag:"视频", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)",emoji:"🌿"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🐎"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)",emoji:"🌲"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🐂"}, {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"🏔️"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🌅"}, {gradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)",emoji:"🌾"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌌"} ] },
+    { groupId:"g2", title:"Day 4 赛里木湖蓝冰", tripId:"yili-7d", date:"2025-07-17", count:36, coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", tag:"图文", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"💎"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"❄️"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🌊"}, {gradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)",emoji:"🦅"}, {gradient:"linear-gradient(135deg,#1B2A41,#5f6f7c)",emoji:"🌅"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🏔️"}, {gradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)",emoji:"🐟"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🚙"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌌"} ] },
+    { groupId:"g3", title:"Day 5 赛里木湖日落", tripId:"yili-7d", date:"2025-07-18", count:18, coverGradient:"linear-gradient(135deg,#D9723F,#E3B23C)", tag:"视频", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🌅"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🌊"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"🦆"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🚗"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)",emoji:"🌿"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🛶"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🎬"} ] },
+    { groupId:"g4", title:"Day 1 独库公路北段", tripId:"duku-4d", date:"2025-07-13", count:42, coverGradient:"linear-gradient(135deg,#1B2A41,#27221B)", tag:"视频", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"🛣️"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🏔️"}, {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"🌲"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🚙"}, {gradient:"linear-gradient(135deg,#1B2A41,#5f6f7c)",emoji:"🌌"}, {gradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)",emoji:"🐐"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"⛰️"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"📍"} ] },
+    { groupId:"g5", title:"Day 3 独库公路南段", tripId:"duku-4d", date:"2025-07-15", count:28, coverGradient:"linear-gradient(135deg,#D9723F,#27221B)", tag:"图文", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🌄"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🏜️"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🐪"}, {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"🚗"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🏔️"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🛤️"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🌅"} ] },
+    { groupId:"g6", title:"Day 6 巴音布鲁克九曲", tripId:"yili-7d", date:"2025-07-19", count:31, coverGradient:"linear-gradient(135deg,#E3B23C,#D9723F)", tag:"视频", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"🌅"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🦢"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🌾"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"🏔️"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🐎"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🌙"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🎬"} ] },
+    { groupId:"g7", title:"Day 2 果子沟大桥晨雾", tripId:"yili-7d", date:"2025-07-15", count:16, coverGradient:"linear-gradient(135deg,#5f6f7c,#27221B)", tag:"图文", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌫️"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🌉"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌲"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🚗"}, {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"🌅"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"☁️"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)",emoji:"🦌"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌌"} ] },
+    { groupId:"g8", title:"伊宁夜市手抓饭", tripId:"yili-7d", date:"2025-07-16", count:12, coverGradient:"linear-gradient(135deg,#D9723F,#E3B23C)", tag:"图文", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🍚"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🍢"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🍜"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"🥙"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🍖"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🥩"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🍻"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"🍇"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"📸"} ] },
+    { groupId:"g9", title:"独山子烤肉拌面", tripId:"duku-4d", date:"2025-07-13", count:8, coverGradient:"linear-gradient(135deg,#27221B,#D9723F)", tag:"视频", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#27221B,#D9723F)",emoji:"🍜"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🍢"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🥩"}, {gradient:"linear-gradient(135deg,#D9723F,#E3B23C)",emoji:"🍖"}, {gradient:"linear-gradient(135deg,#27221B,#D9723F)",emoji:"🍻"}, {gradient:"linear-gradient(135deg,#E3B23C,#D9723F)",emoji:"🥙"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🍚"}, {gradient:"linear-gradient(135deg,#27221B,#D9723F)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#D9723F,#27221B)",emoji:"🔥"} ] },
+    { groupId:"g10", title:"赛里木湖高白鲑", tripId:"yili-7d", date:"2025-07-17", count:10, coverGradient:"linear-gradient(135deg,#1B2A41,#5f6f7c)", tag:"图文", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#1B2A41,#5f6f7c)",emoji:"🐟"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🍽️"}, {gradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)",emoji:"🥗"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🍷"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🍲"}, {gradient:"linear-gradient(135deg,#1B2A41,#5f6f7c)",emoji:"🥂"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🍴"}, {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"🌊"} ] },
+    { groupId:"g11", title:"装备开箱：无人机+车载冰箱", tripId:"yili-7d", date:"2025-07-12", count:14, coverGradient:"linear-gradient(135deg,#27221B,#8A8272)", tag:"图文", favorite:false,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🛸"}, {gradient:"linear-gradient(135deg,#8A8272,#27221B)",emoji:"❄️"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🔋"}, {gradient:"linear-gradient(135deg,#5f6f7c,#27221B)",emoji:"📦"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🔧"}, {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"🎒"}, {gradient:"linear-gradient(135deg,#8A8272,#27221B)",emoji:"🥾"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"📸"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🪖"} ] },
+    { groupId:"g12", title:"露营装备：帐篷+睡袋", tripId:"duku-4d", date:"2025-07-14", count:9, coverGradient:"linear-gradient(135deg,#3E7A4C,#27221B)", tag:"图文", favorite:true,
+      thumbnails:[ {gradient:"linear-gradient(135deg,#3E7A4C,#27221B)",emoji:"⛺"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🛏️"}, {gradient:"linear-gradient(135deg,#3E7A4C,#5f6f7c)",emoji:"🔥"}, {gradient:"linear-gradient(135deg,#27221B,#8A8272)",emoji:"🥾"}, {gradient:"linear-gradient(135deg,#1B2A41,#27221B)",emoji:"🔦"}, {gradient:"linear-gradient(135deg,#3E7A4C,#27221B)",emoji:"🪵"}, {gradient:"linear-gradient(135deg,#27221B,#1B2A41)",emoji:"🍳"}, {gradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)",emoji:"🌌"}, {gradient:"linear-gradient(135deg,#27221B,#3E7A4C)",emoji:"📸"} ] }
+  ];
+
+  // ─── 3. 我的路书 20 条 ─────────────────────────────────────────
+  window.MOCK_BOOKS_EXTRA = [
+    { id:"b1", title:"伊犁 7 日最省心攻略（图文版）", tripId:"yili-7d", style:"硬核攻略", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", pages:12, publishedTo:["小红书","抖音"], views:12800, likes:836, createdAt:"2025-07-22T10:30:00Z" },
+    { id:"b2", title:"独库公路 4 日自驾手册", tripId:"duku-4d", style:"硬核攻略", coverGradient:"linear-gradient(135deg,#27221B,#1B2A41)", pages:8, publishedTo:["小红书","抖音","B站"], views:24500, likes:1892, createdAt:"2025-07-20T08:15:00Z" },
+    { id:"b3", title:"318 川藏南线 14 天游记", tripId:"tibet-318-14d", style:"文艺游记", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", pages:18, publishedTo:["小红书"], views:8900, likes:642, createdAt:"2025-06-12T20:00:00Z" },
+    { id:"b4", title:"伊犁河谷的一封情书", tripId:"yili-7d", style:"文艺游记", coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", pages:10, publishedTo:["小红书","马蜂窝"], views:5600, likes:423, createdAt:"2025-07-25T16:45:00Z" },
+    { id:"b5", title:"赛里木湖蓝冰拍摄机位图鉴", tripId:"yili-7d", style:"小红书爆款", coverGradient:"linear-gradient(135deg,#5f6f7c,#27221B)", pages:6, publishedTo:["小红书","抖音"], views:38200, likes:3104, createdAt:"2025-07-23T11:20:00Z" },
+    { id:"b6", title:"那拉提草原 6 大出片机位", tripId:"yili-7d", style:"小红书爆款", coverGradient:"linear-gradient(135deg,#E3B23C,#3E7A4C)", pages:5, publishedTo:["小红书"], views:19800, likes:1567, createdAt:"2025-07-19T09:00:00Z" },
+    { id:"b7", title:"30 秒看懂独库公路怎么走", tripId:"duku-4d", style:"短视频脚本", coverGradient:"linear-gradient(135deg,#1B2A41,#D9723F)", pages:2, publishedTo:["抖音","小红书"], views:156000, likes:12480, createdAt:"2025-07-21T14:30:00Z" },
+    { id:"b8", title:"伊犁 7 日 vlog 脚本（10 集）", tripId:"yili-7d", style:"短视频脚本", coverGradient:"linear-gradient(135deg,#D9723F,#27221B)", pages:20, publishedTo:["B站","抖音"], views:42300, likes:3876, createdAt:"2025-07-24T19:15:00Z" },
+    { id:"b9", title:"新疆 7 日高端定制招商书", tripId:"yili-7d", style:"招商合作", coverGradient:"linear-gradient(135deg,#27221B,#E3B23C)", pages:22, publishedTo:["马蜂窝"], views:1240, likes:87, createdAt:"2025-07-18T10:00:00Z" },
+    { id:"b10", title:"318 川藏线民宿招商图鉴", tripId:"tibet-318-14d", style:"招商合作", coverGradient:"linear-gradient(135deg,#1B2A41,#27221B)", pages:16, publishedTo:["马蜂窝"], views:880, likes:56, createdAt:"2025-06-08T15:30:00Z" },
+    { id:"b11", title:"伊犁 7 日·带父母版", tripId:"yili-7d", style:"硬核攻略", coverGradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)", pages:14, publishedTo:["小红书"], views:6700, likes:489, createdAt:"2025-07-26T08:00:00Z" },
+    { id:"b12", title:"北疆 12 日环线长图文", tripId:"xinjiang-beijiang-12d", style:"文艺游记", coverGradient:"linear-gradient(135deg,#3E7A4C,#1B2A41)", pages:24, publishedTo:["小红书","马蜂窝"], views:3200, likes:245, createdAt:"2025-06-30T17:45:00Z" },
+    { id:"b13", title:"东极岛 3 日逃离城市指南", tripId:"dongji-island-3d", style:"小红书爆款", coverGradient:"linear-gradient(135deg,#1B2A41,#3E7A4C)", pages:4, publishedTo:["小红书","抖音"], views:28700, likes:2450, createdAt:"2025-07-15T12:30:00Z" },
+    { id:"b14", title:"婺源油菜花 5 大机位", tripId:"jiangnan-wuyuan-3d", style:"短视频脚本", coverGradient:"linear-gradient(135deg,#E3B23C,#D9723F)", pages:3, publishedTo:["抖音","小红书","B站"], views:89500, likes:7820, createdAt:"2025-04-15T10:00:00Z" },
+    { id:"b15", title:"徽州 4 日古村慢游手册", tripId:"jiangnan-huizhou-4d", style:"文艺游记", coverGradient:"linear-gradient(135deg,#27221B,#8A8272)", pages:11, publishedTo:["马蜂窝"], views:980, likes:72, createdAt:"2025-05-20T09:30:00Z" },
+    { id:"b16", title:"海南环岛 8 日亲子版", tripId:"hainan-island-8d", style:"硬核攻略", coverGradient:"linear-gradient(135deg,#3E7A4C,#E3B23C)", pages:13, publishedTo:["小红书","马蜂窝"], views:4500, likes:312, createdAt:"2025-02-18T14:00:00Z" },
+    { id:"b17", title:"那拉提草原民宿招商画册", tripId:"yili-7d", style:"招商合作", coverGradient:"linear-gradient(135deg,#D9723F,#1B2A41)", pages:18, publishedTo:["马蜂窝"], views:460, likes:28, createdAt:"2025-07-10T11:00:00Z" },
+    { id:"b18", title:"独山子大峡谷一日打卡攻略", tripId:"duku-4d", style:"小红书爆款", coverGradient:"linear-gradient(135deg,#27221B,#D9723F)", pages:4, publishedTo:["小红书","抖音"], views:11200, likes:945, createdAt:"2025-07-14T13:20:00Z" },
+    { id:"b19", title:"伊犁自驾防坑指南 10 条", tripId:"yili-7d", style:"硬核攻略", coverGradient:"linear-gradient(135deg,#1B2A41,#27221B)", pages:7, publishedTo:["小红书"], views:18300, likes:1287, createdAt:"2025-07-23T20:00:00Z" },
+    { id:"b20", title:"巴音布鲁克九曲 18 弯机位地图", tripId:"yili-7d", style:"短视频脚本", coverGradient:"linear-gradient(135deg,#E3B23C,#D9723F)", pages:5, publishedTo:["B站","抖音"], views:54800, likes:4760, createdAt:"2025-07-25T18:45:00Z" }
+  ];
+
+  // ─── 4. viewRoutes(viewMode) — 路线广场 + 我的路书 ────────────
+  // 依赖全局: _state, escapeHtml(), render() (可选)
+  window.viewRoutes = function viewRoutes(viewMode, extra) {
+    viewMode = viewMode || 'plaza';
+    if (viewMode === 'books' || viewMode === 'mine') return renderBooksView();
+    return renderPlazaView(extra);
+  };
+
+  // ─── 4a. 路线广场视图 ──────────────────────────────────────────
+  function renderPlazaView(extra) {
+    var R = window.MOCK_ROUTES_EXTRA;
+    var page = (extra && extra.page) || R.currentPage || 1;
+    var topic = (extra && extra.topic) || R.currentTopic || '全部';
+    R.currentPage = page;
+    R.currentTopic = topic;
+    var list = R.pageData.page1;
+    if (topic && topic !== '全部') {
+      list = list.filter(function(r){ return r.topic === topic; });
+    }
+
+    var html = '';
+    html += '<section class="view view-plaza" data-tab="plaza">';
+    html += '  <div class="plaza-wrap">';
+    html += '    <header class="plaza-head">';
+    html += '      <h1>路线广场</h1>';
+    html += '      <a class="plaza-back" href="#home">‹ 返回</a>';
+    html += '    </header>';
+    html += '    <p class="plaza-sub">全站 ' + R.total + ' 条精选路线 · 第 ' + page + ' / ' + R.pageCount + ' 页</p>';
+
+    // 精选横滚
+    html += '    <div class="plaza-featured">';
+    for (var i = 0; i < R.featured.length; i++) {
+      var f = R.featured[i];
+      var fItem = findRouteById(f.id) || {};
+      html += '      <a class="plaza-feat-card" href="#trip?routeId=' + escapeHtml(f.id) + '" style="background:' + escapeHtml(fItem.coverGradient || 'linear-gradient(135deg,#1B2A41,#3E7A4C)') + '">';
+      html += '        <span class="ft-reason">' + escapeHtml(f.reason) + '</span>';
+      html += '        <span class="ft-title">' + escapeHtml(fItem.title || f.id) + '</span>';
+      html += '      </a>';
+    }
+    html += '    </div>';
+
+    // 主题过滤
+    html += '    <div class="plaza-filter">';
+    for (var t = 0; t < R.topicFilters.length; t++) {
+      var tf = R.topicFilters[t];
+      var active = (tf === topic) ? ' active' : '';
+      html += '      <span class="plaza-chip' + active + '" data-topic="' + escapeHtml(tf) + '">' + escapeHtml(tf) + '</span>';
+    }
+    html += '    </div>';
+
+    // 列表
+    if (!list.length) {
+      html += '    <div class="plaza-empty">该主题暂无路线</div>';
+    } else {
+      html += '    <div class="plaza-grid">';
+      for (var j = 0; j < list.length; j++) {
+        var r = list[j];
+        html += renderPlazaCard(r);
+      }
+      html += '    </div>';
+    }
+
+    // 分页器
+    html += renderPager(page, R.pageCount, R.total, R.pageSize);
+
+    html += '  </div>';
+    html += '</section>';
+
+    return html;
+  }
+
+  function renderPlazaCard(r) {
+    var s = '';
+    s += '<a class="plaza-card" href="#trip?routeId=' + escapeHtml(r.id) + '">';
+    s += '  <div class="cover" style="background:' + escapeHtml(r.coverGradient) + '">';
+    s += '    <span class="topic-tag">' + escapeHtml(r.topic) + '</span>';
+    s += '  </div>';
+    s += '  <div class="body">';
+    s += '    <h4 class="title">' + escapeHtml(r.title) + '</h4>';
+    s += '    <div class="meta"><b>' + r.days + '天</b> · <b>' + r.km + 'km</b> · 最高 ' + r.maxAltitude + 'm</div>';
+    s += '    <div class="meta">季节 ' + escapeHtml(r.bestSeason) + ' · ' + escapeHtml(r.difficulty) + '</div>';
+    s += '    <div class="stats">';
+    s += '      <span class="rating">★ ' + r.rating.toFixed(1) + '</span>';
+    s += '      <span class="author"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--terra);color:#fff;font-size:9px;font-weight:800;text-align:center;line-height:16px">' + escapeHtml(r.authorAvatar || '·') + '</span> ' + escapeHtml(r.author) + '</span>';
+    s += '    </div>';
+    s += '  </div>';
+    s += '</a>';
+    return s;
+  }
+
+  function renderPager(cur, total, totalItems, pageSize) {
+    var s = '';
+    s += '<div class="plaza-pager">';
+    s += '  <button class="pg-btn" data-page="1"' + (cur <= 1 ? ' disabled' : '') + '>« 首页</button>';
+    s += '  <button class="pg-btn" data-page="' + (cur - 1) + '"' + (cur <= 1 ? ' disabled' : '') + '>‹</button>';
+    // 显示窗口 ±2
+    var start = Math.max(1, cur - 2);
+    var end = Math.min(total, cur + 2);
+    if (start > 1) s += '  <span class="pg-info">…</span>';
+    for (var p = start; p <= end; p++) {
+      var cls = 'pg-btn' + (p === cur ? ' active' : '');
+      s += '  <button class="' + cls + '" data-page="' + p + '">' + p + '</button>';
+    }
+    if (end < total) s += '  <span class="pg-info">…</span>';
+    s += '  <button class="pg-btn" data-page="' + (cur + 1) + '"' + (cur >= total ? ' disabled' : '') + '>›</button>';
+    s += '  <button class="pg-btn" data-page="' + total + '"' + (cur >= total ? ' disabled' : '') + '>末页 »</button>';
+    s += '  <span class="pg-jump">跳到 <input type="number" min="1" max="' + total + '" value="' + cur + '" data-jump> 页</span>';
+    s += '</div>';
+    return s;
+  }
+
+  // ─── 4b. 我的路书视图 ──────────────────────────────────────────
+  function renderBooksView() {
+    var books = window.MOCK_BOOKS_EXTRA;
+    var R = window.MOCK_ROUTES_EXTRA;
+    var styles = ['全部','硬核攻略','文艺游记','小红书爆款','短视频脚本','招商合作'];
+    var curStyle = '全部';
+
+    var html = '';
+    html += '<section class="view view-books" data-tab="books">';
+    html += '  <div class="books-wrap">';
+    html += '    <header class="books-head">';
+    html += '      <h1>我的路书</h1>';
+    html += '      <a class="plaza-back" href="#me">‹ 我的</a>';
+    html += '    </header>';
+    html += '    <p class="books-sub">已生成 ' + books.length + ' 篇路书 · 已发布至 4 个平台</p>';
+
+    html += '    <div class="books-filter">';
+    for (var i = 0; i < styles.length; i++) {
+      var st = styles[i];
+      var active = (st === curStyle) ? ' active' : '';
+      html += '      <span class="books-chip' + active + '" data-style="' + escapeHtml(st) + '">' + escapeHtml(st) + '</span>';
+    }
+    html += '    </div>';
+
+    html += '    <div class="books-grid">';
+    for (var k = 0; k < books.length; k++) {
+      html += renderBookCard(books[k]);
+    }
+    html += '    </div>';
+
+    html += '  </div>';
+    html += '</section>';
+    return html;
+  }
+
+  function renderBookCard(b) {
+    var s = '';
+    s += '<div class="book-card">';
+    s += '  <div class="cover" style="background:' + escapeHtml(b.coverGradient) + '">';
+    s += '    <span class="style-tag">' + escapeHtml(b.style) + '</span>';
+    s += '  </div>';
+    s += '  <div class="body">';
+    s += '    <h4 class="title">' + escapeHtml(b.title) + '</h4>';
+    s += '    <div class="platforms">';
+    for (var i = 0; i < b.publishedTo.length; i++) {
+      s += '      <span class="pf-chip">' + escapeHtml(b.publishedTo[i]) + '</span>';
+    }
+    s += '    </div>';
+    s += '    <div class="stats">';
+    s += '      <span class="views"><b>' + formatCount(b.views) + '</b> 浏览</span>';
+    s += '      <span><b>' + formatCount(b.likes) + '</b> 赞</span>';
+    s += '      <span><b>' + b.pages + '</b> 页</span>';
+    s += '    </div>';
+    s += '  </div>';
+    s += '</div>';
+    return s;
+  }
+
+  function formatCount(n) {
+    if (n >= 10000) return (n / 10000).toFixed(1) + 'w';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return String(n);
+  }
+
+  function findRouteById(id) {
+    var list = window.MOCK_ROUTES_EXTRA.pageData.page1;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+
+  // ─── 5. 事件代理：plaza/books 交互 ─────────────────────────────
+  // 通过 window.GTR (GoTrace Routes) 暴露给主 agent 在 render() 后调用
+  window.GTR = {
+    // 解析 hash 参数 (?page=1&topic=长途进藏)
+    parseHash: function() {
+      var hash = (location.hash || '').replace(/^#/, '');
+      var qIdx = hash.indexOf('?');
+      var main = qIdx >= 0 ? hash.slice(0, qIdx) : hash;
+      var query = {};
+      if (qIdx >= 0) {
+        hash.slice(qIdx + 1).split('&').forEach(function(kv){
+          if (!kv) return;
+          var p = kv.split('=');
+          query[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || '');
+        });
+      }
+      return { tab: main, params: query };
+    },
+    // 渲染路线广场（绑定 hash 同步）
+    showPlaza: function(page, topic) {
+      if (typeof page === 'number') {
+        window.MOCK_ROUTES_EXTRA.currentPage = page;
+      }
+      if (topic) {
+        window.MOCK_ROUTES_EXTRA.currentTopic = topic;
+      }
+      var p = page || window.MOCK_ROUTES_EXTRA.currentPage || 1;
+      var t = topic || window.MOCK_ROUTES_EXTRA.currentTopic || '全部';
+      location.hash = '#plaza?page=' + p + (t !== '全部' ? '&topic=' + encodeURIComponent(t) : '');
+      bindPlazaHandlers();
+    },
+    // 渲染路书
+    showBooks: function() {
+      location.hash = '#books';
+      bindBooksHandlers();
+    },
+    // 绑定 plaza 的 chip + pager 事件（每次 render 后调用一次）
+    bindAll: function() {
+      bindPlazaHandlers();
+      bindBooksHandlers();
+    }
+  };
+
+  function bindPlazaHandlers() {
+    var main = document.getElementById('main-content');
+    if (!main) return;
+    // topic chip
+    var chips = main.querySelectorAll('.plaza-chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].onclick = function() {
+        var t = this.getAttribute('data-topic') || '全部';
+        window.MOCK_ROUTES_EXTRA.currentTopic = t;
+        window.MOCK_ROUTES_EXTRA.currentPage = 1;
+        if (typeof render === 'function') {
+          var html = window.viewRoutes('plaza', { page: 1, topic: t });
+          main.innerHTML = html;
+          bindPlazaHandlers();
+        }
+      };
+    }
+    // pager
+    var btns = main.querySelectorAll('.plaza-pager .pg-btn');
+    for (var b = 0; b < btns.length; b++) {
+      btns[b].onclick = function() {
+        if (this.disabled) return;
+        var p = parseInt(this.getAttribute('data-page'), 10);
+        if (!p || p < 1) return;
+        window.MOCK_ROUTES_EXTRA.currentPage = p;
+        if (typeof render === 'function') {
+          var html = window.viewRoutes('plaza', { page: p, topic: window.MOCK_ROUTES_EXTRA.currentTopic });
+          main.innerHTML = html;
+          bindPlazaHandlers();
+          window.scrollTo(0, 0);
+        }
+      };
+    }
+    // jump input
+    var jump = main.querySelector('.plaza-pager input[data-jump]');
+    if (jump) {
+      jump.onkeydown = function(e) {
+        if (e.key !== 'Enter') return;
+        var p = parseInt(this.value, 10);
+        var max = window.MOCK_ROUTES_EXTRA.pageCount;
+        if (!p || p < 1 || p > max) { this.value = window.MOCK_ROUTES_EXTRA.currentPage; return; }
+        window.MOCK_ROUTES_EXTRA.currentPage = p;
+        if (typeof render === 'function') {
+          var html = window.viewRoutes('plaza', { page: p, topic: window.MOCK_ROUTES_EXTRA.currentTopic });
+          main.innerHTML = html;
+          bindPlazaHandlers();
+          window.scrollTo(0, 0);
+        }
+      };
+    }
+  }
+
+  function bindBooksHandlers() {
+    var main = document.getElementById('main-content');
+    if (!main) return;
+    var chips = main.querySelectorAll('.books-chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].onclick = function() {
+        var st = this.getAttribute('data-style') || '全部';
+        // 简单过滤重渲
+        var books = window.MOCK_BOOKS_EXTRA.filter(function(b){
+          return st === '全部' ? true : b.style === st;
+        });
+        if (!books.length) {
+          main.innerHTML = '<div class="books-empty">该风格暂无路书</div>';
+          return;
+        }
+        var html = '<section class="view view-books" data-tab="books"><div class="books-wrap">';
+        html += '<header class="books-head"><h1>我的路书</h1><a class="plaza-back" href="#me">‹ 我的</a></header>';
+        html += '<p class="books-sub">' + books.length + ' 篇 · 风格：' + st + '</p>';
+        // 过滤条
+        var styles = ['全部','硬核攻略','文艺游记','小红书爆款','短视频脚本','招商合作'];
+        html += '<div class="books-filter">';
+        for (var s = 0; s < styles.length; s++) {
+          var act = (styles[s] === st) ? ' active' : '';
+          html += '<span class="books-chip' + act + '" data-style="' + styles[s] + '">' + styles[s] + '</span>';
+        }
+        html += '</div><div class="books-grid">';
+        for (var k = 0; k < books.length; k++) {
+          html += renderBookCard(books[k]);
+        }
+        html += '</div></div></section>';
+        main.innerHTML = html;
+        bindBooksHandlers();
+      };
+    }
+  }
+
+  // 暴露给主 agent 调试
+  window.MOCK_DEEP_LOADED = true;
+
+})();
+</script>

@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 三大报告:摘要 + 批判 + 整合判断(2026)</title>
+<style>
+  :root{
+    --ink:#15181d;
+    --ink-soft:#4a5260;
+    --paper:#f4f5f2;
+    --card:#ffffff;
+    --line:#dde0d8;
+    --teal:#0e7490;
+    --teal-deep:#0b3c4d;
+    --teal-soft:#e8f4f6;
+    --amber:#b45309;
+    --amber-soft:#fdf3e3;
+    --green:#3f6c3a;
+    --green-soft:#eef4ea;
+    --red:#b3261e;
+    --red-deep:#7a1410;
+    --red-soft:#fbeae8;
+    --slate:#2e3a45;
+    --slate-soft:#e9edf0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.85;
+    font-size:16px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px;}
+
+  /* ===== 页眉 ===== */
+  header{
+    background:linear-gradient(135deg,var(--teal-deep) 0%,#13384a 60%,#1f2937 100%);
+    color:#eef6f8;
+    padding:64px 0 50px;
+  }
+  .kicker{
+    letter-spacing:.35em;
+    font-size:13px;
+    color:#9ec9d4;
+    margin-bottom:18px;
+  }
+  h1{
+    font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;
+    font-size:42px;
+    font-weight:700;
+    line-height:1.35;
+    margin-bottom:18px;
+  }
+  header .lede{max-width:720px;color:#c4dde5;font-size:16.5px;line-height:1.8;}
+  .meta-row{margin-top:28px;display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:#9ec9d4;}
+  .meta-row span{border-left:2px solid #2c6478;padding-left:10px;}
+
+  /* ===== 目录 ===== */
+  nav.toc{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin:36px 0 48px;
+  }
+  nav.toc a{
+    display:block;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-top:4px solid var(--teal);
+    padding:16px 16px 14px;
+    text-decoration:none;
+    color:var(--ink);
+    border-radius:6px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  nav.toc a:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(11,60,77,.12);}
+  nav.toc a:nth-child(2){border-top-color:var(--amber);}
+  nav.toc a:nth-child(3){border-top-color:var(--green);}
+  nav.toc a:nth-child(4){border-top-color:var(--red);}
+  nav.toc .toc-no{font-size:11.5px;letter-spacing:.25em;color:var(--ink-soft);}
+  nav.toc .toc-title{font-family:"Noto Serif SC",serif;font-weight:700;font-size:15.5px;margin:5px 0 3px;line-height:1.4;}
+  nav.toc .toc-org{font-size:12px;color:var(--ink-soft);}
+
+  /* ===== 通用区块 ===== */
+  section.module{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin:0 0 48px;
+    overflow:hidden;
+  }
+  .mod-band{
+    padding:30px 36px 24px;
+    border-bottom:1px solid var(--line);
+  }
+  .mod-band .tag{
+    display:inline-block;font-size:12px;letter-spacing:.25em;
+    padding:3px 12px;border-radius:999px;margin-bottom:10px;color:#fff;
+  }
+  .mod-band h2{
+    font-family:"Noto Serif SC",serif;font-size:26px;line-height:1.4;margin-bottom:6px;
+  }
+  .mod-band .sub{font-size:14px;color:var(--ink-soft);font-style:italic;}
+  .mod-body{padding:28px 36px 38px;}
+
+  h3{
+    font-family:"Noto Serif SC",serif;
+    font-size:19px;
+    margin:32px 0 12px;
+    padding-left:12px;
+    border-left:4px solid var(--teal);
+  }
+  h3:first-child{margin-top:0;}
+
+  p{margin-bottom:13px;color:var(--ink-soft);}
+  p strong,li strong{color:var(--ink);}
+
+  /* ===== 速览卡 ===== */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 8px;}
+  .stat{
+    background:var(--paper);border:1px solid var(--line);border-radius:6px;
+    padding:14px 14px 12px;
+  }
+  .stat .num{
+    font-family:"Noto Serif SC",serif;font-size:23px;font-weight:700;
+    color:var(--teal-deep);line-height:1.2;
+  }
+  .stat .lbl{font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5;}
+
+  /* ===== 要点列表 ===== */
+  ul.points{list-style:none;margin:8px 0 16px;}
+  ul.points li{
+    position:relative;padding-left:26px;margin-bottom:10px;color:var(--ink-soft);
+  }
+  ul.points li::before{
+    content:"";position:absolute;left:2px;top:10px;width:8px;height:8px;
+    border-radius:2px;background:var(--teal);transform:rotate(45deg);
+  }
+
+  /* ===== 批判框 ===== */
+  .crit{
+    background:var(--red-soft);
+    border-left:4px solid var(--red);
+    padding:14px 18px;
+    margin:18px 0 14px;
+    border-radius:0 6px 6px 0;
+    font-size:14.5px;
+    color:#5a1a17;
+  }
+  .crit::before{content:"批注 ▸ ";font-weight:700;color:var(--red-deep);}
+  .crit strong{color:var(--red-deep);}
+
+  /* ===== 缺陷列表 ===== */
+  ul.flaws{list-style:none;margin:8px 0 16px;counter-reset:flaw;}
+  ul.flaws li{
+    position:relative;padding-left:40px;margin-bottom:14px;color:var(--ink-soft);
+    counter-increment:flaw;
+  }
+  ul.flaws li::before{
+    content:counter(flaw,decimal-leading-zero);
+    position:absolute;left:0;top:2px;
+    font-family:"Noto Serif SC",serif;font-weight:700;font-size:15px;
+    color:var(--red);border-bottom:2px solid var(--red);line-height:1.5;
+  }
+
+  /* ===== 整合判断框 ===== */
+  .verdict{
+    background:var(--slate);
+    color:#e2e7ec;
+    border-radius:8px;
+    padding:24px 28px;
+    margin:24px 0;
+    font-size:15px;
+    line-height:1.85;
+  }
+  .verdict .label{
+    font-family:"Noto Serif SC",serif;font-size:13px;letter-spacing:.25em;
+    color:#9ec9d4;margin-bottom:10px;display:block;
+  }
+  .verdict strong{color:#fff;}
+
+  /* ===== 表格 ===== */
+  table{width:100%;border-collapse:collapse;margin:14px 0 22px;font-size:14px;}
+  th{
+    text-align:left;background:var(--teal-deep);color:#eef6f8;
+    padding:10px 14px;font-weight:600;
+  }
+  td{padding:9px 14px;border-bottom:1px solid var(--line);color:var(--ink-soft);}
+  tr:nth-child(even) td{background:#fafbf8;}
+
+  /* ===== 毒舌区 ===== */
+  section.roast{
+    background:#14181d;border:1px solid #2a323b;border-radius:8px;
+    margin:0 0 48px;overflow:hidden;color:#cfd6dd;
+  }
+  .roast .mod-band{
+    background:#1c232b;border-bottom:1px solid #2a323b;
+  }
+  .roast .mod-band .tag{background:#3d8bfd;}
+  .roast .mod-band h2{color:#eef2f6;}
+  .roast .mod-band .sub{color:#8b98a5;}
+  .roast .mod-body{padding:28px 34px 36px;}
+  .roast h3{color:#eef2f6;border-left-color:#3d8bfd;}
+  .roast p{color:#aab5c0;}
+  .tweet{
+    background:#1c232b;border:1px solid #2a323b;border-radius:10px;
+    padding:16px 20px;margin:0 0 14px;font-size:15.5px;color:#dbe3ea;line-height:1.8;
+  }
+  .tweet .h{font-size:12.5px;color:#7c8894;margin-bottom:6px;letter-spacing:.05em;}
+  .tweet .fx{font-size:12px;color:#5d6873;margin-top:8px;}
+
+  /* ===== 分报告的色彩变体 ===== */
+  #r1 h3{border-left-color:var(--teal);}
+  #r2 h3{border-left-color:var(--amber);}
+  #r3 h3{border-left-color:var(--green);}
+  #r4 h3{border-left-color:var(--red);}
+
+  #r1 .mod-band{background:var(--teal-soft);}
+  #r2 .mod-band{background:var(--amber-soft);}
+  #r3 .mod-band{background:var(--green-soft);}
+  #r4 .mod-band{background:var(--red-soft);}
+
+  #r1 .mod-band .tag{background:var(--teal);}
+  #r2 .mod-band .tag{background:var(--amber);}
+  #r3 .mod-band .tag{background:var(--green);}
+  #r4 .mod-band .tag{background:var(--red);}
+
+  #r1 .stats .num{color:var(--teal-deep);}
+  #r2 .stats .num{color:var(--amber);}
+  #r3 .stats .num{color:var(--green);}
+
+  #r1 ul.points li::before{background:var(--teal);}
+  #r2 ul.points li::before{background:var(--amber);}
+  #r3 ul.points li::before{background:var(--green);}
+
+  footer{
+    padding:36px 0 60px;color:var(--ink-soft);font-size:13.5px;
+  }
+  footer .rule{height:1px;background:var(--line);margin-bottom:22px;}
+
+  @media (max-width:780px){
+    h1{font-size:30px;}
+    nav.toc{grid-template-columns:1fr 1fr;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .mod-body,.mod-band{padding-left:22px;padding-right:22px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker">摘 要 · 批 判 · 整 合 判 断 · 2 0 2 6</div>
+    <h1>三份 AI 重磅报告:<br>摘要 + 批判 + 整合判断</h1>
+    <p class="lede">IEA《能源与AI关键问题》、白宫 CEA《人工智能与大分流》、斯坦福 HAI《2026 人工智能指数报告》——三份报告分别从能源系统、宏观经济与全景数据三个视角勾勒 2025–2026 年人工智能发展的全貌。本文将三份内容整合为一份批判性审读:<strong>先呈摘要以立靶,再做方法论批判,最后给出一份贯穿三者的整合判断</strong>。原文件分别为约 34021 字节的中文摘要、约 21756 字节的批判性审读,本文为二者整合后的产物。</p>
+    <div class="meta-row">
+      <span>整合日期:2026 年 7 月</span>
+      <span>语言:简体中文</span>
+      <span>性质:批判性综合阅读</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#r1">
+      <div class="toc-no">报告一</div>
+      <div class="toc-title">IEA · 能源与 AI</div>
+      <div class="toc-org">摘要 + 批判</div>
+    </a>
+    <a href="#r2">
+      <div class="toc-no">报告二</div>
+      <div class="toc-title">白宫 CEA · 大分流</div>
+      <div class="toc-org">摘要 + 批判</div>
+    </a>
+    <a href="#r3">
+      <div class="toc-no">报告三</div>
+      <div class="toc-title">斯坦福 HAI · 指数</div>
+      <div class="toc-org">摘要 + 批判</div>
+    </a>
+    <a href="#r4">
+      <div class="toc-no">整合</div>
+      <div class="toc-title">三份共有的结构性病灶 + 毒舌</div>
+      <div class="toc-org">元层面判断</div>
+    </a>
+  </nav>
+
+  <!-- ============================================== -->
+  <!-- ============ 报告一:IEA ====================== -->
+  <!-- ============================================== -->
+  <section class="module" id="r1">
+    <div class="mod-band">
+      <span class="tag">报告一 · 能源视角 · 摘要</span>
+      <h2>《能源与 AI 关键问题》</h2>
+      <div class="sub">Key Questions on Energy and AI — World Energy Outlook Special Report · IEA</div>
+    </div>
+    <div class="mod-body">
+
+      <h3>报告定位</h3>
+      <p>IEA 继 2025 年 4 月里程碑式《能源与 AI》报告之后的更新之作,围绕十一个"关键问题"组织,分为三大部分:<strong>影响数据中心电力需求的因素、如何为数据中心供电、AI 对能源系统的反向影响</strong>。</p>
+
+      <h3>数据速览</h3>
+      <div class="stats">
+        <div class="stat"><div class="num">4000亿+</div><div class="lbl">2025 年大型科技公司资本开支(美元),已超过全球油气上游投资;2026 年预计再增 75% 至约 7150 亿美元</div></div>
+        <div class="stat"><div class="num">485→950 TWh</div><div class="lbl">数据中心用电:2025 年 485 TWh(占全球 1.5% 强),基准情景 2030 年翻倍至 950 TWh(占全球 3%)</div></div>
+        <div class="stat"><div class="num">+50%</div><div class="lbl">2025 年 AI 专用数据中心用电增速;整体数据中心增长 17%,与 IEA 此前预测一致</div></div>
+        <div class="stat"><div class="num">3.9 万亿</div><div class="lbl">2026–2030 年数据中心累计投资需求(美元),已无法仅靠科技公司自有资金支撑</div></div>
+        <div class="stat"><div class="num">11→4 倍</div><div class="lbl">AI 服务器功率密度:2020–2025 年提升 11 倍;至 2027 年再提升约 4 倍,机架迈向 1 兆瓦级</div></div>
+        <div class="stat"><div class="num">45 GW</div><div class="lbl">数据中心与 SMR 购电协议管线规模(2025 年底),一年内从 25 GW 猛增</div></div>
+      </div>
+
+      <h3>一、需求展望:短期有瓶颈,长期有上行空间</h3>
+      <ul class="points">
+        <li><strong>效率提升被新场景抵消。</strong>单次 AI 任务能耗每年至少下降一个数量级;简单文本查询耗电已低于同时长看电视。但视频生成、深度推理、智能体(Agentic)任务的单次能耗可达文本查询数百至上千倍,正快速普及。</li>
+        <li><strong>金融市场信号复杂。</strong>2025 年下半年起市场情绪由普遍乐观转向谨慎:超大规模云厂商 2026 年资本开支指引达 7150 亿美元,几乎吞噬全部经营现金流;"新云"(neo-clouds)股价已回吐 2025 年 3 月以来几乎全部涨幅,唯芯片制造商因存储芯片紧缺持续走强。</li>
+        <li><strong>物理瓶颈收紧。</strong>HBM 短缺预计至少持续至 2027 年底;变压器交货 2–3 年,燃气轮机约 5 年(2025 年订单激增 70%);多地并网排队长达 5–10 年。德州 ERCOT 大负荷并网排队从 2024 年 12 月 63 GW 暴增至 2026 年 1 月 230 GW+,但其中大量项目属投机性申请。</li>
+        <li><strong>政策普遍支持。</strong>美国至少 37 州提供数据中心税收优惠;中国 2025 年新登记 42 个万卡级 GPU 集群,但高层警示过度投资,近期大量项目被取消;欧盟提出 5–7 年内数据中心容量增至三倍;印度、马来西亚、新加坡、中东"吉瓦级工厂"管线接近 10 GW。</li>
+        <li><strong>2026 年中东冲突冲击。</strong>卡塔尔原供应全球约三分之一氦气(芯片制造关键投入),冲突致约 14% 年出口削减与不可抗力宣告;数据中心本身成为打击目标,"物理安全"首次成为选址考量。</li>
+      </ul>
+
+      <h3>二、选址:集群化趋势持续强化</h3>
+      <ul class="points">
+        <li>数据中心仅占全球用电 1.5%,但在其集聚的州或都市圈可占电力需求 20–30%。加拿大阿尔伯塔省曾收到 16 GW 并网申请(超全省峰值负荷),被迫设 1.2 GW 临时上限。</li>
+        <li>全球在建产能约 65% 位于既有集群;算入已宣布项目后,集群化比例将由约 60% 升至 70% 以上。</li>
+        <li>IEA 对美国 21 座大型 AI 数据中心(600 MW–5 GW)的卫星追踪显示:19 座位于距 10 万人口以上城市 65 公里内;18 个月内其建筑面积与估算容量增长三倍,累计超 6 GW。</li>
+      </ul>
+
+      <h3>三、"AI 工厂"改写数据中心设计</h3>
+      <ul class="points">
+        <li><strong>功率密度飙升:</strong>英伟达 Ampere(2020)约 13 kW/机架,Blackwell 已 130 kW/机架,已公布 Rubin 将达 600 kW/机架并迈向 1 MW——一台冰箱大小设备峰值用电相当于约 65 户家庭。</li>
+        <li><strong>负荷剧烈波动:</strong>AI 数据中心曾出现 1 秒内数十兆瓦振荡,可能引发电压不稳与谐波干扰。缓解手段包括电解电容(毫秒级)与锂电/钠电储能(更长时间尺度)。到 2030 年,数据中心内部或将部署 20–25 GW 电池储能,使其有望从"电网负荷"转变为"电网资源"。</li>
+        <li><strong>技术栈变革:</strong>电压从 400V 提至 800V 以上、由交流转向直流、固态变压器(材料占用少 70%)、碳化硅与氮化镓功率电子等。供应链高度集中于中国:精炼镓 99%、磷酸铁锂电池产能约 99%、高纯硅 95%、铁氧体磁芯约 60%、碳化硅约 50%。</li>
+      </ul>
+
+      <h3>四、供电与采购</h3>
+      <ul class="points">
+        <li><strong>可再生 PPA:</strong>科技行业占 2025 年全球企业可再生购电协议签约量约 40%;数据中心相关可再生 PPA 超 40 TWh。到 2027 年,合同电量预计相当于商业数据中心用电需求的 50%(2021 年不到 20%)。</li>
+        <li><strong>核电与地热:</strong>微软—Constellation 重启三里岛 1 号机组(约 835 MW,目标 2027);AWS 与 Talen 核电协议最高 1920 MW;SMR 承购管线 45 GW,首批项目预计 2030 年前后投产。</li>
+        <li><strong>现场燃气发电:</strong>美国开发商推进现场燃气项目,约五分之一已平整土地或施工。IEA 新分析显示要用现场燃气可靠满足关键且波动的负荷,装机须超出需求 30–70%。到 2030 年规模约 15–27 GW,主要在美国。</li>
+        <li><strong>电价问题:</strong>数据中心未必推高电价——供给富余系统中稳定基荷型新增负荷反而能摊薄固定成本;但其体量大、建设快、实际峰值负荷不确定,若不加管理确可能在部分地区推高电价。</li>
+      </ul>
+
+      <h3>五、AI 反哺能源与宏观影响</h3>
+      <ul class="points">
+        <li>有据可查的 AI 应用若突破推广障碍,到 2035 年可节能超 13 EJ,约合全球终端能耗 3%。</li>
+        <li>IEA 调查显示,<strong>数字技能缺乏</strong>是能源行业采用 AI 的最大单一障碍;全球仅 10% 的用电量被开放电力数据政策覆盖。</li>
+        <li>与 OECD 合作分析表明:AI 驱动生产率提升若兑现,将使 2035 年全球能源需求比无 AI 情景高出 1–4%——影响集中于发达经济体(尤其美国)。</li>
+        <li>数据中心相关排放在 IEA 预测中翻倍,2035 年约 3.5 亿吨,仍仅占全球电力部门排放约 2%。</li>
+      </ul>
+
+      <h3>六、IEA 三大政策原则</h3>
+      <ul class="points">
+        <li><strong>主动管理项目管线与电力投资:</strong>改革并网排队管理、精简许可流程、改进需求预测、公平分摊电网升级成本。</li>
+        <li><strong>促进电力系统灵活性:</strong>探索非固定容量并网、以更快并网换取需求响应、利用电池与燃气等让数据中心支撑电网运行。</li>
+        <li><strong>扫清能源行业采用 AI 障碍:</strong>建立覆盖数据可得性、网络安全、技能与互操作性的综合政策框架。</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- ============ 报告二:白宫 CEA ================ -->
+  <!-- ============================================== -->
+  <section class="module" id="r2">
+    <div class="mod-band">
+      <span class="tag">报告二 · 宏观经济视角 · 摘要</span>
+      <h2>《人工智能与大分流》</h2>
+      <div class="sub">Artificial Intelligence and the Great Divergence — CEA, January 2026</div>
+    </div>
+    <div class="mod-body">
+
+      <h3>核心命题</h3>
+      <p>工业革命曾引发"大分流"——率先工业化的国家增长骤然领先。报告发问:<strong>如果 AI 革命堪比工业革命,是否会引发"第二次大分流"?</strong>报告聚焦可观测、可度量的实证数据,梳理 AI 对 GDP 与劳动力的影响估计,提出追踪 AI 进展的关键指标体系,进行跨国比较,并总结特朗普政府确保美国 AI 领先的政策组合。</p>
+
+      <h3>数据速览</h3>
+      <div class="stats">
+        <div class="stat"><div class="num">1.3%</div><div class="lbl">2025 上半年 AI 相关投资对美国 GDP 的年化拉动,堪比工业革命时期铁路投资量级</div></div>
+        <div class="stat"><div class="num">1%–45%+</div><div class="lbl">各机构对 AI 提升 GDP 水平的估计区间;若 AI 完成全部人类任务,增长率可达每年 45%(Hanson, 2001)</div></div>
+        <div class="stat"><div class="num">≈4 倍/年</div><div class="lbl">2010 年以来前沿 AI 模型训练算力年均增速;2012 年以来累计增长逾 10 亿倍</div></div>
+        <div class="stat"><div class="num">7 个月</div><div class="lbl">AI 可成功完成的任务时长翻倍周期(已持续 6 年,METR 数据)</div></div>
+        <div class="stat"><div class="num">9–900 倍/年</div><div class="lbl">按模型不同,每 token 推理价格的年降幅</div></div>
+        <div class="stat"><div class="num">≈40%</div><div class="lbl">目前在工作中使用生成式 AI 的美国劳动者比例;企业 AI 使用率 2023 年 55%→2024 年 78%</div></div>
+      </div>
+
+      <h3>一、AI 对 GDP:估计悬殊,但下限正被排除</h3>
+      <table>
+        <tr><th>研究</th><th>对 GDP 水平的影响</th><th>时间跨度</th><th>范围</th></tr>
+        <tr><td>Acemoglu(2024)</td><td>0.9%–1.6%</td><td>10 年</td><td>美国</td></tr>
+        <tr><td>宾大沃顿预算模型(2025)</td><td>1.5%</td><td>10 年</td><td>美国</td></tr>
+        <tr><td>牛津经济研究院(2024)</td><td>1.8%–4%</td><td>8 年</td><td>美国</td></tr>
+        <tr><td>麦肯锡(2023)</td><td>2.4%–4.1%</td><td>长期</td><td>全球</td></tr>
+        <tr><td>Alonso 等(2022)</td><td>4.7%–19.5%</td><td>长期</td><td>美国</td></tr>
+        <tr><td>高盛(2023)</td><td>7%</td><td>10 年</td><td>全球</td></tr>
+        <tr><td>普华永道(2025)</td><td>1%–15%</td><td>10 年</td><td>全球</td></tr>
+        <tr><td>Aldasoro 等 / BIS(2024)</td><td>20%–45%</td><td>10 年</td><td>美国</td></tr>
+        <tr><td>Hanson(2001,假设 AGI)</td><td>增长率 ≥45%/年</td><td>—</td><td>全球</td></tr>
+      </table>
+      <p>报告指出富国增长主要依赖 TFP,但 TFP 是<strong>滞后指标</strong>(1990 年代红利源自 1970–80 年代技术投资),因此需以投资、性能、采用三类领先指标监测 AI。</p>
+
+      <h3>二、劳动力与"杰文斯悖论"</h3>
+      <ul class="points">
+        <li>证据呈混合图景:Brynjolfsson 等(2025)发现编程、客服等 AI 暴露度高的职业中<strong>初入职场者就业下滑</strong>;另一些研究未发现 AI 暴露与失业率的相关性;还有研究依赖 AI 能力任务的部门就业反而上升。2025 年 12 月美国失业率为 4.4%。</li>
+        <li><strong>杰文斯悖论</strong>(效率提升反而扩大总用量)成立需三个条件:AI 显著提升劳动生产率、成本节约传导为降价、降价刺激需求增长快于单位劳动需求下降。历史上煤炭、灌溉、照明、道路扩容均出现过该悖论;曾被预言将被 AI 取代的放射科医生如今就业率反创历史新高。</li>
+        <li>历史先例(蒸汽、电力、计算机、互联网)最终都带来更多就业与收入:1860 年美国 43% 就业在农业,2015 年仅 1.2%;当今多数岗位为 1940 年后新创。</li>
+      </ul>
+
+      <h3>三、跨国比较:美国第一、中国第二、欧盟第三</h3>
+      <ul class="points">
+        <li><strong>投资:</strong>2024 年美国私人 AI 投资约 1090 亿美元,第二名中国仅约 90 亿;美国占生成式 AI 创业公司风险投资的约 75%。2013–2024 年美国累计私人 AI 投资超 4700 亿美元,全欧盟合计约 500 亿。中国公共部门 AI 支出 2025 年估计 560 亿美元;沙特、阿联酋等主权基金大举入场。</li>
+        <li><strong>性能:</strong>2024 年全球 331 个 GPT-3 级以上大型 AI 系统中,美国占 154 个(约一半)。仅七国进入模型前 200 强,美国前沿与最末(以色列)的差距仅约 11 个月。</li>
+        <li><strong>算力与采用:</strong>截至 2025 年 5 月,美国拥有全球约 74% 的 AI 计算能力;几乎所有中国 AI 模型都在美国硬件上训练。使用端则更分散:以色列与新加坡人均使用 Claude 最高,美国仅占 ChatGPT 流量的 19%。</li>
+        <li><strong>欧洲相对衰落:</strong>欧盟占世界 GDP 份额(购买力平价)从 1980 年 27% 降至 2025 年 14%。"Pax Silica"(硅治)自 ChatGPT 发布至 2025 年三季度平均实际 GDP 增速 2.5%,是 G7 平均(1.1%)的两倍多。</li>
+      </ul>
+
+      <h3>四、"特朗普革命":政策组合</h3>
+      <ul class="points">
+        <li><strong>《大而美法案》(OBBB,2025-07-04):</strong>恢复并扩大 100% 即时费用化/奖励折旧,直接惠及 IT 基础设施与数据中心设备;CEA 估算法案将使投资增加 7–10%,四年内每年提升 GDP 增速逾 1 个百分点,实际工资每人增加 4000–7200 美元。</li>
+        <li><strong>《AI 行动计划》(2025 年 7 月):</strong>为数据中心设立 NEPA 新豁免类别以加速许可;联邦机构直接投资并设立 AI 卓越中心;联邦采购要求 AI 系统"客观、无自上而下的意识形态偏见"。</li>
+        <li><strong>放松管制:</strong>2025-07-23 行政令加速数据中心及配套能源与制造设施许可;12-11 行政令进一步削减州级壁垒。CEA 估算放松管制可使 GDP 增速每年额外提高 0.3–0.8 个百分点,持续二十年(到 2045 年累计提升约 6–17%)。</li>
+        <li><strong>能源主导:</strong>AI 数据中心用电占美国电力需求份额预计从 2023 年 4% 升至 2028 年 7–12%;能源部已确定 16 处联邦选址可供快速建设。</li>
+      </ul>
+
+      <h3>结论</h3>
+      <p>报告认为 AI 是堪比工业革命的经济拐点;至于是否会出现"第二次大分流",报告未下定论,但强调变化速度之快——许多指标每隔数月翻倍——意味着未来的 AI 将与今天大不相同。</p>
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- ============ 报告三:斯坦福 HAI ============== -->
+  <!-- ============================================== -->
+  <section class="module" id="r3">
+    <div class="mod-band">
+      <span class="tag">报告三 · 全景数据视角 · 摘要</span>
+      <h2>《2026 年人工智能指数报告》</h2>
+      <div class="sub">Artificial Intelligence Index Report 2026 — Stanford HAI · 第九版 · CC BY-ND 4.0</div>
+    </div>
+    <div class="mod-body">
+
+      <h3>报告定位</h3>
+      <p>第九版 AI 指数报告共九章:研发、技术性能、负责任 AI、经济、科学、医学、教育、政策与治理、公众舆论。联合主席在开篇指出,今年数据揭示的核心矛盾是:<strong>AI 的扩张速度已超过围绕它的各类制度体系(治理、评测、教育、数据基础设施)的适应速度</strong>。</p>
+
+      <h3>数据速览</h3>
+      <div class="stats">
+        <div class="stat"><div class="num">53%</div><div class="lbl">生成式 AI 三年内达到的人口渗透率——快于个人电脑与互联网;企业采用率达 88%,五分之四的大学生使用生成式 AI</div></div>
+        <div class="stat"><div class="num">2.7%</div><div class="lbl">截至 2026 年 3 月中美顶尖模型性能差距(Anthropic 旗舰模型领先);中美差距实质已弥合</div></div>
+        <div class="stat"><div class="num">2859亿 vs 124亿</div><div class="lbl">2025 年美中私人 AI 投资对比(美元),美国为中国的 23 倍以上(不含中国政府引导基金)</div></div>
+        <div class="stat"><div class="num">5427座</div><div class="lbl">美国数据中心数量,超过任何其他国家的 10 倍;几乎所有尖端 AI 芯片由台积电一家代工</div></div>
+        <div class="stat"><div class="num">−89%</div><div class="lbl">2017 年以来迁往美国的 AI 研究者与开发者数量降幅;仅过去一年就下降 80%</div></div>
+        <div class="stat"><div class="num">29.6 GW</div><div class="lbl">AI 数据中心电力容量(2025Q4),约相当于纽约州峰值需求;其中 AI 芯片本体约 11.8 GW</div></div>
+      </div>
+
+      <h3>一、十五大要点提要</h3>
+      <ul class="points">
+        <li><strong>能力仍在加速:</strong>业界产出 2025 年 90% 以上的重要前沿模型;多个模型在博士级科学问答、多模态推理、竞赛数学上达到或超过人类基线;编程基准 SWE-bench Verified 一年内从人类基线 60% 逼近 100%。</li>
+        <li><strong>"参差不齐的前沿":</strong>Gemini Deep Think 拿下 IMO 金牌,但顶级模型读模拟时钟正确率仅 50.1%;智能体在 OSWorld 真实电脑任务从 12% 跃升至约 66%,仍约三分之一失败。</li>
+        <li><strong>机器人差距:</strong>软件仿真操作成功率 89.4%(RLBench),真实家务任务成功率仅 12%。</li>
+        <li><strong>负责任 AI 掉队:</strong>能力基准几乎人人汇报,安全基准汇报零散;有记录的 AI 事件从 2024 年 233 起升至 362 起;提升某一负责任维度(如安全)可能损害另一维度(如准确性)。</li>
+        <li><strong>采用与消费者价值:</strong>各国渗透率与人均 GDP 强相关——新加坡 61%、阿联酋 54% 高于预期,美国 28.3% 仅列第 24 位;生成式 AI 对美国消费者估算年价值达 1720 亿美元,人均中位价值一年内增至三倍。</li>
+        <li><strong>生产率与就业同步信号:</strong>客服与软件开发领域实测生产率提升 14–26%;AI 智能体在几乎所有业务职能中部署率仍为个位数;美国 22–25 岁开发者就业自 2024 年下降近 20%,年长开发者仍在增长。</li>
+        <li><strong>环境足迹:</strong>Grok 4 训练排放估计 72,816 吨二氧化碳当量(2012 年 AlexNet 仅 0.01 吨);GPT-4o 推理年用水量最高估计约 158 万千升,超过 120 万人年饮用水需求。</li>
+        <li><strong>科学与医学:</strong>前沿模型在 ChemBench 上平均超过人类化学家,但天体物理复现题得分不足 20%;1.11 亿参数蛋白质模型 MSAPairformer 击败此前最强方法。AI 病历自动生成工具规模化落地,医生写病历时间最多减少 83%。</li>
+        <li><strong>教育:</strong>80% 以上美国中学生与大学生用 AI 完 成学业任务,但仅一半中学有 AI 政策、6% 教师认为政策清晰。</li>
+        <li><strong>主权 AI 与政策分化:</strong>欧盟 AI 法案首批禁令生效,美国转向放松管制;新采纳国家 AI 战略的经济体过半为发展中国家。</li>
+        <li><strong>专家与公众认知鸿沟:</strong>对 AI 改变工作方式,73% 专家预期积极影响,公众仅 23%(相差 50 个百分点);美国民众对本国政府监管 AI 的信任度在受调查国家中最低(31%);全球范围内欧盟被认为比美中更可信的 AI 监管者。</li>
+      </ul>
+
+      <h3>二、第一章"研发"核心数据</h3>
+      <ul class="points">
+        <li><strong>模型格局:</strong>2025 年美国发布 59 个重要模型、中国 35 个、韩国 8 个;业界占比 91.2%。机构榜:OpenAI(20)、谷歌(14)、阿里巴巴(11);2014 年以来累计:谷歌 193、Meta 87、OpenAI 60。</li>
+        <li><strong>透明度恶化:</strong>最强的模型最不透明——OpenAI、Anthropic、谷歌等已不再披露参数量、训练数据规模与训练时长;2025 年 102 个重要模型中 81 个未公开训练代码。</li>
+        <li><strong>算力:</strong>全球 AI 芯片算力自 2022 年以来年均增长 3.3 倍,达 1710 万块 H100 当量;英伟达占 60% 以上,谷歌、亚马逊供应其余大部,华为份额小而渐增。</li>
+        <li><strong>数据问题:</strong>Epoch AI 预计高质量数据耗尽窗口在 2026–2032 年;合成数据在后训练中日益有效;自 2025 年 1 月起,新发布网络内容中 AI 生成的比例已超 50%。</li>
+        <li><strong>论文与专利:</strong>2024 年 AI 论文约 25.8 万篇(占计算机科学论文 40.9%);中国占论文量 17.8%、引用 20.6%、全球 AI 授权专利 74.2%;美国专利量仅占 12.1%,但占前向引用 51.9%。</li>
+        <li><strong>人才:</strong>美国仍拥有最多 AI 人才(约 22 万),但新流入速率降至十余年最低;瑞士、新加坡人均 AI 人才密度全球领先;所有国家性别差距自 2010 年以来<strong>没有实质改善</strong>。</li>
+      </ul>
+
+      <h3>三、如何理解这份报告</h3>
+      <p>联合主席判断可概括为:<strong>"数据没有指向单一方向。它揭示的是一个扩张速度超过周边体系适应能力的领域。"</strong>一方面是历史上最快的技术普及、翻倍的企业投资、逼近饱和的能力基准;另一方面是趋同的模型、失灵的评测、下降的透明度、上升的事故数,以及在监管方向上背道而驰的各国政府。</p>
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- ============ 整合批判 ======================== -->
+  <!-- ============================================== -->
+  <section class="module" id="r4">
+    <div class="mod-band">
+      <span class="tag">整合 · 批判性审读</span>
+      <h2>三份报告共享同一套"信息食物链"</h2>
+      <div class="sub">在批判单份报告之前,先看它们共同站立的地基有多脆弱</div>
+    </div>
+    <div class="mod-body">
+
+      <h3>一、跨报告的共同病灶</h3>
+      <ul class="flaws">
+        <li><strong>数据源高度重叠,形成循环引用。</strong>三份报告大量依赖同一小撮机构的数据:Epoch AI(算力与模型)、METR(任务时长)、麦肯锡(企业采用调查)、公司财报与自愿披露。IEA 引它们,白宫引它们,斯坦福也引它们——然后三份报告再互相引用。表面上是"三方独立验证",实际上是<strong>同一口井打出来的三桶水</strong>。任何一个上游数据源的系统性偏差,会同时污染三份报告。</li>
+        <li><strong>都在用"已宣布"代替"已发生"。</strong>7150 亿美元资本开支是"指引",230 GW 并网排队 IEA 自己都承认"大量属投机性申请",45 GW 的 SMR 是"承购管线",1.4 万亿阿联酋投资是"承诺"。三份报告都在把新闻稿当成事实的前置形态处理,而科技行业的历史常态是:宣布容易、交付难、悄悄取消更容易。</li>
+        <li><strong>没有一份认真为"泡沫破裂"建模。</strong>IEA 提到 2025 下半年市场情绪转谨慎、"新云"股价回吐涨幅——然后照常给出基准情景;白宫把 1.3 个百分点的 GDP 拉动当政绩;斯坦福记录了 2859 亿美元投资。但如果这轮资本开支像 2000 年电信光纤那样过剩呢?GPU 三到五年就折旧殆尽,不像光纤埋下去能用三十年。<strong>三份报告都只有"继续涨"的情景树,没有严肃的下行分支。</strong></li>
+        <li><strong>指数外推的老毛病。</strong>"算力每年 4 倍""任务时长每 7 个月翻倍""token 价格每年降 9–900 倍"——每条曲线单独看都成立,但把近期指数直接外推,是技术预测史上错误率最高的操作。摩尔定律撑了几十年是特例,不是通则;HBM 短缺、电网排队、氦气断供,恰恰是三份报告自己记录下来的"指数撞墙"证据,却没有反过来修正各自的外推。</li>
+        <li><strong>透明度悖论:研究对象越来越黑箱,报告却越写越厚。</strong>斯坦福自己承认头部公司已不再披露参数、数据量与训练时长;IEA 承认依赖科技公司自愿披露;白宫用 ChatGPT 流量份额这类边角料做跨国比较。<strong>输入在变少,输出在变厚</strong>——多出来的页数靠什么填?靠估算、代理指标和第三方猜测。</li>
+      </ul>
+
+      <div class="verdict">
+        <span class="label">// 跨报告通病 · 一句话</span>
+        三份报告联手营造了一种"多方共识"的氛围,但它们其实是<strong>同一种乐观、同一个上游、同一组可疑外推</strong>的不同投影。任何引用"三方独立验证"的论断,都要先查这个"三方"是否真的独立。
+      </div>
+
+      <h3>二、IEA:预测机构的预测,先看它的前科</h3>
+      <ul class="flaws">
+        <li><strong>IEA 的预测前科不佳。</strong>IEA 的《世界能源展望》在长达十余年间系统性低估太阳能与电动车的增长——年年上调、年年追不上现实,这在能源研究界是公开的笑柄。现在这家机构要预测一个比光伏变化快得多的行业(AI),凭什么这次的"基准情景 950 TWh"就更可信?</li>
+        <li><strong>需求信号被投机严重污染,报告知道却照用。</strong>ERCOT 排队从 63 GW 涨到 230 GW,报告自己注明其中很多是同一项目多地重复申请的"占坑"行为。既然承认信号有大量噪音,却仍以管线数据作为需求叙事的主要支撑——这等于说"温度计坏了,但我们还是按它读数开药"。</li>
+        <li><strong>"AI 节能 13 EJ"是典型的潜力学。</strong>这个数字的前提是"若突破推广障碍"——而报告自己的调查显示能源行业最缺的恰恰是数字技能、开放数据覆盖率只有 10%。用"如果所有障碍都消失"的假设算收益,再用现实障碍解释为什么收益没出现,这套论证永远立于不败之地,也就永远没有信息量。</li>
+        <li><strong>回弹效应(杰文斯)只被点名,没被计入。</strong>报告承认单次查询能耗大降但总量猛增,却没有把回弹机制系统性纳入需求模型——效率每提升一个数量级,新场景(视频、智能体)就把省下的电吃掉还不够。这不是脚注级别的现象,这可能就是主曲线本身。</li>
+        <li><strong>"排放只占电力部门 2%"的框架性淡化。</strong>全球占比小,不代表问题小:数据中心排放与用水高度集中在少数地区,当地电网、水资源与电价承受的是 20–30% 级别的冲击。用全球分母稀释局部分子,是机构报告最常见的修辞术。</li>
+        <li><strong>政策建议是"正确的废话"。</strong>"改进预测""精简许可""促进灵活性""扫清障碍"——把主语换成任何行业都成立。IEA 作为成员国出资的机构,注定不能点名批评任何政府或公司,于是三大原则被打磨到不可能冒犯任何人,也就不可能指导任何人。</li>
+      </ul>
+      <div class="crit"><strong>数据整理一流,预测记录堪忧,政策建议无害也无用。读它的图表,别信它的情景。</strong></div>
+
+      <h3>三、白宫 CEA:这不是研究,这是政绩说明书</h3>
+      <ul class="flaws">
+        <li><strong>自己给自己的政策打分。</strong>"OBBB 法案四年内每年拉动 GDP 超 1 个百分点""放松管制每年额外 0.3–0.8 个百分点、持续二十年"——这些数字全部出自 CEA 自己的估算,没有同行评议,没有反事实检验。行政机构评估行政机构的政策,得出政策效果显著的结论,这在方法论上叫什么?叫<strong>裁判员兼运动员</strong>。二十年累计 6–17% 的 GDP 提升这种量级的断言,放在任何学术期刊都过不了第一轮审稿。</li>
+        <li><strong>1% 到 45% 的估计区间等于没有估计。</strong>报告罗列九项研究,区间横跨两个数量级。诚实的处理方式是解释为什么分歧如此之大;报告的处理方式是把表格摆出来,然后在叙事上悄悄向高端倾斜("下限正被排除")。<strong>把不可比的研究并列成表,是制造"共识在上移"错觉的经典手法。</strong></li>
+        <li><strong>"Pax Silica 增长 2.5% vs G7 的 1.1%"是教科书级的选择偏差。</strong>这个自命名联盟里塞进了海湾产油国——它们近年的高增长来自油价与主权基金支出,与美国 AI 芯片有多大关系?先按结果挑成员,再用成员的平均数证明联盟有效,这是用相关性表演因果性。</li>
+        <li><strong>劳动力章节是"报喜式平衡"。</strong>报告确实引用了 Brynjolfsson 关于初级岗位就业下滑的研究——然后立刻用杰文斯悖论、放射科医生就业新高、1860 年农业占比 43% 等安抚性论据把它包围。杰文斯悖论成立需要三个条件,报告列出了条件,却没有论证这三个条件在 AI 场景下是否满足——列条件不等于满足条件。</li>
+        <li><strong>1.3 个百分点的 GDP 拉动,成色没有拆解。</strong>AI 投资拉动 GDP,其中多少是进口芯片(反而计减 GDP 的部分如何处理)?多少是数据中心土建?多少最终形成生产性资本、多少会在三五年内随 GPU 折旧蒸发?报告需要这个数字与"铁路时代"类比,所以不拆。铁路用一百年,H100 用五年——这个类比的分母差了一个数量级。</li>
+        <li><strong>风险清单系统性缺席。</strong>市场集中度、系统性金融风险、安全事故、能源与社区成本、对盟友的出口管制反噬——一份以"确保美国主导"为结论的报告,对主导策略本身的代价只字不提。这不是疏忽,这是文体决定的:政绩说明书没有"风险提示"章节。</li>
+      </ul>
+      <div class="crit"><strong>当成"本届政府希望你如何理解 AI 经济"的一手政治文本来读,信息量很大;当成经济学研究来读,处处是坑。</strong></div>
+
+      <h3>四、斯坦福 HAI:四百页数据,零页判断</h3>
+      <ul class="flaws">
+        <li><strong>用自己宣布已失灵的尺子继续量身高。</strong>报告一边承认基准测试趋于饱和、污染严重、评测体系"跟不上",一边把整个"技术性能"章节和"中美差距 2.7%"这样的头条结论建立在这些基准之上。训练数据里混入基准题目(污染)、厂商针对榜单做优化(刷榜)——在这种环境下,榜单差距 2.7% 的测量误差可能远大于 2.7% 本身。<strong>如果尺子坏了,读数的小数点后一位就是噪音。</strong></li>
+        <li><strong>"美中投资 2859 亿 vs 124 亿"是苹果比橘子。</strong>这只统计"私人投资",而中国 AI 投入的主体是政府引导基金、国企与地方财政——恰好全部落在统计口径之外。报告在脚注里承认这一点,在正文标题里照样使用 23 倍的对比。一个自己知道会造成系统性误导的口径,为什么年年沿用?因为它产生的头条数字足够震撼。</li>
+        <li><strong>迁移与人才数据的地基是职业社交平台。</strong>"赴美 AI 人才下降 89%"这类结论,底层多依赖 LinkedIn 式的自报资料与档案变动——样本对中国、中东等市场的覆盖天然残缺,职位改签不等于人真的迁移。89% 这个精确到个位的降幅,配的是一个粗糙到十位的测量方法。</li>
+        <li><strong>消费者剩余 1720 亿美元是实验室数字。</strong>这类估算通常来自"你愿意接受多少钱放弃使用 AI 一个月"的意愿调查——假想问题得到假想答案,再乘以人口。把它与 GDP 并列呈现,给了它不该有的硬度。</li>
+        <li><strong>资助结构与研究对象重叠。</strong>HAI 及 AI 指数的资金与数据伙伴中包括多家头部 AI 企业与咨询公司。学术界被边缘化、透明度崩塌,在报告里是"趋势",而不是"问题"。</li>
+        <li><strong>"数据没有指向单一方向"是最安全也最廉价的结论。</strong>四百页的体量,配一个"请读者自行判断"的立场。指数报告当然可以只做温度计不做医生——但当它明知评测失灵、口径误导、估算粗糙时仍照常汇编,温度计本身就在参与制造它声称只是记录的那场狂热。<strong>规模是它的卖点,也是它的遮羞布:页数越多,单页承担的论证责任越少。</strong></li>
+      </ul>
+      <div class="crit"><strong>当年鉴用,极好;当证据用,每一章都要先查它的脚注和口径。它的问题不是说错,而是把"不可比、不可靠、不可验证"的数字排版得像"可比、可靠、可验证"。</strong></div>
+
+      <h3>五、贯穿三者的整合判断</h3>
+      <div class="verdict">
+        <span class="label">// 整合判断 · 一</span>
+        <strong>三份报告口径互补、立场互补,但价值取向同源。</strong>IEA 给出能源瓶颈的"物理底",白宫给出 GDP 叙事的"政治表",斯坦福给出技术进步的"数据面"。三者合在一起看似三视图,实则都建立在"<strong>AI 资本开支继续加速、效率红利继续外溢、产业政策继续加码</strong>"这一共同前提之上。一旦这个前提动摇——例如 2027 年 HBM 断供、氦气短缺扩散、或"新云"出现 2000 年式的连锁违约——三份报告的预测将<strong>同时</strong>失去精度,且都缺乏解释波动的工具。
+      </div>
+
+      <div class="verdict">
+        <span class="label">// 整合判断 · 二</span>
+        <strong>三份报告共同掩盖的核心事实:这是一场资本密度与折旧速度错配的实验。</strong>IEA 谈到 3.9 万亿累计投资需求、GPU 寿命 3–5 年;白宫谈 1.3 个百分点的 GDP 拉动、铁路类比;斯坦福谈训练排放与数据耗尽。三者单独看都成立,但合在一起才会浮现一个被回避的问题:<strong>当一波寿命只有三五年的资本品,撑起一个号称堪比铁路(寿命百年)的增长叙事,谁来支付折旧、再投资与失败的成本?</strong>这个成本在 IEA 是电费,在白宫是通胀与失业,在斯坦福是排行榜上的"训练算力"——三份报告都把它记下来了,但谁都没有把它作为分析的中心。
+      </div>
+
+      <div class="verdict">
+        <span class="label">// 整合判断 · 三</span>
+        <strong>三份报告的根本分歧不是事实,而是归因。</strong>对"美国领先"这一现象,白宫归因于"特朗普革命"的政策组合;斯坦福归因于资本、人才与生态的历史积累;IEA 把集群化与电网约束放在同等位置。<strong>三套解释共用同一组数据,但指向不同的处方</strong>——若读政策的人只看白宫、若读投资的人只看斯坦福、若读能源的人只看 IEA,会得到三套互不兼容的行动建议。这就是"信息食物链同源"的最大代价:看似分歧的叙事,实际上共享同一份乐观。
+      </div>
+
+      <div class="verdict">
+        <span class="label">// 整合判断 · 四(方法论)</span>
+        <strong>对这三份报告的合理使用方式:</strong>(1)IEA——读它的图表与数据清单,不要直接引用它的"基准情景"做未来推断;(2)白宫 CEA——当作美国本届政府 AI 经济政策的<strong>一手政治文本</strong>来读,而非经济学研究;(3)斯坦福 HAI——当作最权威的<strong>年鉴</strong>使用,每一处引用前先回到脚注看口径。三份合起来,可以勾出 2026 年 AI 的可信轮廓;但凡超出"现状描述"进入"未来推断"的部分,都要打折读。
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================== -->
+  <!-- ============ 毒舌模式 ======================== -->
+  <!-- ============================================== -->
+  <section class="roast">
+    <div class="mod-band">
+      <span class="tag">附录 · 第一性原理毒舌模式</span>
+      <h2>如果换成硅谷暴躁工程师的口吻</h2>
+      <div class="sub">风格戏仿,内容虚构,并非任何真实人物的言论——但每一条毒舌背后,都对应上文一条正经批判</div>
+    </div>
+    <div class="mod-body">
+
+      <h3>@ IEA</h3>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 1/3</div>
+        把太阳能预测连错十五年的机构,现在来预测 AI 用电了。建议报告封面加一行小字:本机构历史预测请勿用于任何决策。
+        <div class="fx">🔁 4.2万 · ❤ 31万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 2/3</div>
+        230 GW 的并网排队,一半是同一批人拿着同一份 PPT 在五个州占坑。用排队长度预测需求,等于用演唱会黄牛数量预测音乐产业规模。
+        <div class="fx">🔁 2.8万 · ❤ 19万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 3/3</div>
+        三大政策原则:改进预测、精简许可、扫清障碍。哇。下一份报告建议加上第四条:多喝热水。
+        <div class="fx">🔁 6.7万 · ❤ 52万</div>
+      </div>
+
+      <h3>@ 白宫 CEA</h3>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 1/3</div>
+        政府写报告论证政府的政策让 GDP 起飞,数据来源:政府。这不叫经济学,这叫年终述职。
+        <div class="fx">🔁 9.1万 · ❤ 74万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 2/3</div>
+        "AI 对 GDP 的影响在 1% 到 45% 之间。"谢谢,我预测明天气温在零下 40 度到零上 50 度之间,准确率 100%,请给我发经济顾问的工资。
+        <div class="fx">🔁 12万 · ❤ 98万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 3/3</div>
+        给自己的联盟取名"硅治",然后发现联盟 GDP 跑赢 G7 是因为里面塞了产油国。这操作相当于把姚明拉进班级,然后宣布本班平均身高全球领先。
+        <div class="fx">🔁 8.5万 · ❤ 63万</div>
+      </div>
+
+      <h3>@ 斯坦福 AI 指数</h3>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 1/3</div>
+        400 页,15 个"要点",0 个预测,0 个立场。结论是"数据没有指向单一方向"。兄弟,指方向是你唯一的工作。
+        <div class="fx">🔁 7.3万 · ❤ 58万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 2/3</div>
+        第 3 章:评测体系已经失灵。第 2 章:根据评测体系,中美差距 2.7%。同一本书里。相隔一章。
+        <div class="fx">🔁 11万 · ❤ 89万</div>
+      </div>
+      <div class="tweet">
+        <div class="h">戏仿 · 帖 3/3</div>
+        美国投资 2859 亿,中国 124 亿——口径不含中国政府的钱。这就像统计我和巴菲特的财富差距,但不含巴菲特的股票。
+        <div class="fx">🔁 15万 · ❤ 120万</div>
+      </div>
+
+      <h3>@ 三份一起</h3>
+      <div class="tweet">
+        <div class="h">戏仿 · 收尾帖</div>
+        三份报告,一千多页,引用的是同五家机构的数据,建的是同一个"永远向上"的情景,漏的是同一个问题:GPU 五年就成电子垃圾,谁来还这 3.9 万亿?<br>写报告的人不用还。这就是答案。
+        <div class="fx">🔁 22万 · ❤ 180万 · 📌 置顶</div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="rule"></div>
+    <p><strong>版权与使用说明:</strong>本文为对 IEA《能源与 AI 关键问题》、白宫 CEA《人工智能与大分流》与斯坦福 HAI《2026 人工智能指数报告》三份公开报告的批判性综合阅读。三份原报告版权归各自机构所有——IEA 报告采用 CC BY 4.0 许可;白宫 CEA 报告为美国政府出版物;斯坦福 AI 指数报告采用 CC BY-ND 4.0(署名—禁止演绎)许可。本文对其内容仅作要点归纳与批判性分析,而非全文翻译。</p>
+    <p><strong>关于"毒舌模式":</strong>为风格戏仿,全部语句系本文虚构创作,不代表马斯克或任何真实人物的观点。正文批判基于对三份报告公开内容的方法论分析,批评针对论证方式与数据口径,不构成对相关机构诚信的指控。批判之外应当承认:三份报告仍是当前理解 AI 能源、经济与技术格局最系统的公开材料——正因如此,才更值得用红笔读。</p>
+  </footer>
+
+</div>
+</body>
+</html>

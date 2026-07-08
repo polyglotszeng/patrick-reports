@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#06b6d4">
+<meta name="description" content="全球火箭发射数据库 v4 — LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + Cesium 3-mode globe + Watchlist 关注任务">
+<!-- DISABLED PWA: <link rel="manifest"> removed, no SW registration, no cache. Patrick v4.1.1 SW was stuck unregistering. -->
+<!-- Repro: see git log dd00b2c / dc921ce for v4 PWA-stack. Re-add after SW debugging complete. -->
+<script>
+// === v4.1.2 inline ultra-safe bootstrap: PWA DISABLED, fetch with 8s timeout per file, no external SW ===
+'use strict';
+async function loadJSON(path, timeoutMs=8000){
+  const ctl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const opts = ctl ? {cache:'no-store', signal:ctl.signal} : {cache:'no-store'};
+  const t = setTimeout(()=>{ try{ ctl && ctl.abort('timeout'); }catch(e){} }, timeoutMs);
+  try {
+    const r = await fetch(path, opts);
+    if(!r.ok) throw new Error(path+' '+r.status);
+    return await r.json();
+  } catch(e) {
+    try { ctl && ctl.abort(); } catch(_){}
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
+}
+window.__rl_db_state__ = {DB:null, dataMode:'加载中…'};
+async function fetchAll(){
+  // Hard cap 9s total
+  const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const hardT = setTimeout(()=>{ try{ctrl.abort();}catch(e){} }, 9000);
+  const safeJson = (path) => loadJSON(path, 7000).catch(e => ({_err:String(e), records:[], _path:path}));
+  try {
+    const [launches, objects, sources, stats, timeline, tles, pads, crew, agencies] = await Promise.all([
+      safeJson('./data/launches.json'),
+      safeJson('./data/objects.json'),
+      safeJson('./data/sources.json'),
+      safeJson('./data/stats.json'),
+      safeJson('./data/timeline.json'),
+      safeJson('./data/celestrak-satellites.json'),
+      safeJson('./data/pads.json'),
+      safeJson('./data/crew.json'),
+      safeJson('./data/agencies.json'),
+    ]);
+    return {launches, objects, sources, stats, timeline, tles, pads, crew, agencies};
+  } finally {
+    clearTimeout(hardT);
+  }
+}
+// Expose to inner main script via event
+window.dispatchEvent(new CustomEvent('rl_data_ready', {detail: { } }));
+console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '!');
+</script>
+<!-- END v4.1.2 inline bootstrap -->
+<!-- DISABLED PWA per v4.1.2. No external dependencies, no SW. Main script handles all fetch with 8s timeout. -->
+<!-- v4.1.4 early inline bootstrap: kick loadData() on DOMContentLoaded, fallback SEED. -->
+<script>
+(function(){
+  // Test if this very early bootstrap script runs in Patrick's browser by writing a marker to title
+  document.title = '[v4.1.5 XHR-boot OK] ' + (document.title || '');
+  // Don't do anything else here — main script (later <script> tag) handles actual work.
+  // This script just confirms v4.1.4 reached Patrick's browser.
+})();
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='72' text-anchor='middle' x='50'>🚀</text></svg>">
+<title>全球火箭发射数据库 · v4 (PWA disabled · direct fetch) · v4.1.4-boot-OK</title>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#121828; --panel2:#0f1522; --border:#1f2a44;
+    --text:#dbe4f5; --muted:#7d8bab; --accent:#4f8cff; --accent2:#39d0a4;
+    --warn:#ffb547; --bad:#ff5d6c; --chip:#1a2340; --orange:#ff9f43; --cyan:#06b6d4;
+    font-size:15px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.55}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px 20px 80px}
+
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:6px}
+  header h1{font-size:1.6rem;font-weight:700;display:flex;align-items:center;gap:10px}
+  .ver{color:var(--muted);font-size:.85rem}
+  .v-pill{display:inline-block;padding:2px 10px;border-radius:10px;background:linear-gradient(90deg,#a78bfa,#ec4899);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.05em;margin-left:8px}
+  .meta{color:var(--muted);font-size:.85rem;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+  .meta .src-mode{padding:2px 10px;border-radius:10px;background:var(--chip);font-size:.78rem}
+  .meta .fresh{display:flex;align-items:center;gap:6px}
+  .meta .fresh .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:22px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;cursor:pointer;transition:all .15s}
+  .card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .card .k{color:var(--muted);font-size:.85rem;margin-bottom:6px}
+  .card .v{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .card .sub{color:var(--muted);font-size:.75rem;margin-top:4px}
+  .card.kpi-flag .v{color:var(--accent2)}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:24px 0 18px;border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .tab{padding:10px 16px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;font-size:.92rem;font-weight:500;flex-shrink:0}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-pane{display:none}
+  .tab-pane.active{display:block}
+  .tab-badge{display:inline-block;background:var(--chip);color:var(--muted);font-size:.7rem;padding:1px 7px;border-radius:10px;margin-left:6px}
+
+  h2{font-size:1.05rem;margin:22px 0 12px;display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:4px;height:16px;background:var(--accent);border-radius:2px;display:inline-block}
+  h3{font-size:.92rem;margin:18px 0 10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+  .bars{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:grid;gap:10px}
+  .bar-row{display:grid;grid-template-columns:140px 1fr 70px;align-items:center;gap:12px;font-size:.88rem}
+  .bar-row .name{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-track{height:10px;background:var(--panel2);border-radius:6px;overflow:hidden}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:6px;transition:width .5s}
+  .bar-row .num{text-align:right;font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+
+  .tl-chart{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:18px}
+  .tl-canvas{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:140px;margin:8px 0}
+  .tl-bar{background:linear-gradient(180deg,#4f8cff,#2563eb);border-radius:4px 4px 0 0;position:relative;transition:all .3s;cursor:pointer;min-height:4px}
+  .tl-bar:hover{filter:brightness(1.2);transform:scaleY(1.04);transform-origin:bottom}
+  .tl-bar .lbl{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:.7rem;color:var(--muted)}
+  .tl-bar .top{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:.75rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;opacity:0;transition:opacity .2s}
+  .tl-bar:hover .top{opacity:1}
+  .tl-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px;font-size:.82rem;color:var(--muted)}
+  .tl-legend span{display:flex;align-items:center;gap:6px}
+  .tl-legend i{display:inline-block;width:10px;height:10px;border-radius:2px}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .filters input,.filters select{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:.88rem;outline:none}
+  .filters input:focus,.filters select:focus{border-color:var(--accent)}
+  .filters input{flex:1 1 220px;min-width:180px}
+  .filters button{background:var(--chip);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:.88rem}
+  .filters button:hover{color:var(--text);border-color:var(--accent)}
+  .count-line{color:var(--muted);font-size:.82rem;margin-bottom:10px}
+  .count-line b{color:var(--text)}
+
+  .list{display:grid;gap:8px}
+  .row{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;cursor:pointer;transition:border-color .15s}
+  .row:hover{border-color:var(--accent);background:#15203a}
+  .row .title{font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.94rem}
+  .row .title .live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 6px var(--accent2);animation:pulse 1.6s infinite}
+  .row .info{color:var(--muted);font-size:.8rem;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px}
+  .row .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;justify-content:center}
+  .pad-meta{font-size:.72rem;color:var(--accent);font-family:ui-monospace,monospace}
+  .watch-star{cursor:pointer;color:var(--muted);background:none;border:none;font-size:1.1rem;padding:0 4px;transition:all .15s}
+  .watch-star.active{color:var(--orange);text-shadow:0 0 8px rgba(255,159,67,.5)}
+
+  .pill{font-size:.72rem;padding:2px 10px;border-radius:10px;white-space:nowrap;font-weight:600}
+  .st-success{background:rgba(57,208,164,.15);color:var(--accent2)}
+  .st-upcoming{background:rgba(79,140,255,.15);color:var(--accent)}
+  .st-failure{background:rgba(255,93,108,.15);color:var(--bad)}
+  .st-partial_failure{background:rgba(255,181,71,.15);color:var(--warn)}
+  .chip{font-size:.7rem;padding:1px 8px;border-radius:8px;background:var(--chip);color:var(--muted)}
+  .conflict-flag{font-size:.72rem;color:var(--warn);border:1px solid rgba(255,181,71,.4);border-radius:8px;padding:1px 8px;background:rgba(255,181,71,.08)}
+  .empty{color:var(--muted);text-align:center;padding:40px 0;border:1px dashed var(--border);border-radius:12px}
+
+  /* drawer */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+  .overlay.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-560px;width:min(540px,94vw);height:100vh;background:var(--panel);border-left:1px solid var(--border);z-index:10;transition:right .25s;overflow-y:auto;padding:22px}
+  .drawer.open{right:0}
+  .drawer h3{font-size:1.1rem;margin-bottom:4px;padding-right:36px}
+  .drawer .close{position:absolute;top:14px;right:14px;background:var(--chip);border:none;color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:1rem}
+  .drawer .sec{margin-top:18px}
+  .drawer .sec h4{font-size:.82rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:.88rem}
+  .kv .k{color:var(--muted)}
+  .obj-item,.conf-item,.vid-item,.pad-ext-item{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.84rem;margin-bottom:6px}
+  .conf-item{border-color:rgba(255,181,71,.4)}
+  .conf-item .f{color:var(--warn);font-weight:600}
+  .verif{display:flex;gap:8px;flex-wrap:wrap}
+  .verif span{font-size:.78rem;padding:3px 10px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)}
+  .verif span.ok{color:var(--accent2);border-color:rgba(57,208,164,.4)}
+  .mission-desc{background:var(--panel2);border-radius:8px;padding:12px;font-size:.85rem;line-height:1.6;white-space:pre-wrap;color:var(--text);border-left:3px solid var(--accent);margin-bottom:8px}
+
+  .arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .arch .s{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:.84rem;display:flex;flex-direction:column}
+  .arch .s b{display:block;margin-bottom:4px}
+  .arch .s .role{color:var(--muted);flex:1}
+  .arch .s .lock{color:var(--warn);font-size:.75rem;margin-top:6px;display:block}
+  .arch .s .url-wrap{word-break:break-all;overflow-wrap:anywhere;font-size:.78rem;margin-top:6px}
+
+  .top-list{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .top-list .col{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+  .top-list h4{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+  .top-list .item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:.85rem}
+  .top-list .item:last-child{border-bottom:none}
+  .top-list .item .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+  .top-list .item .count{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700}
+
+  /* pads grid */
+  .pads-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+  .pad-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .15s}
+  .pad-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .pad-card .pad-top{display:flex;justify-content:space-between;align-items:start;margin-bottom:10px}
+  .pad-card .pad-name{font-weight:700;font-size:.95rem;color:var(--text);line-height:1.3}
+  .pad-card .pad-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-bottom:8px}
+  .pad-card .pad-stats b{color:var(--text)}
+  .pad-card .pad-stats .num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  .pad-card .spark{display:grid;gap:2px;height:24px;margin-top:4px}
+  .pad-card .spark .y{background:linear-gradient(180deg,var(--accent),#2563eb);border-radius:2px;min-height:2px;cursor:pointer}
+  .pad-card .pad-agencies{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;font-size:.72rem}
+  .pad-card .pad-agencies span{padding:1px 6px;background:rgba(79,140,255,.1);color:var(--accent);border-radius:6px}
+  .pad-card .ll2-ext{font-size:.74rem;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+
+  /* agencies tab */
+  .agencies-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+  .ag-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:start;cursor:pointer;transition:all .15s}
+  .ag-card:hover{border-color:var(--accent)}
+  .ag-card img{width:48px;height:48px;border-radius:8px;object-fit:contain;background:#1a2340;padding:4px;flex-shrink:0}
+  .ag-card .ag-info{flex:1;min-width:0}
+  .ag-card .ag-name{font-weight:700;font-size:.92rem;line-height:1.2;color:var(--text);margin-bottom:2px}
+  .ag-card .ag-meta{font-size:.74rem;color:var(--muted)}
+  .ag-card .ag-launch{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:.78rem;margin-top:4px}
+  .ag-card .ag-bar{grid-column:1/-1;height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:8px}
+  .ag-card .ag-bar .fill{height:100%;background:linear-gradient(90deg,#4f8cff,#39d0a4);border-radius:3px}
+
+  /* crew */
+  .crew-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .crew-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;transition:all .15s;cursor:pointer}
+  .crew-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .crew-card img{width:80px;height:80px;border-radius:50%;object-fit:cover;background:#1a2340;margin-bottom:8px;border:2px solid var(--border)}
+  .crew-card .cname{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:2px}
+  .crew-card .cagency{font-size:.74rem;color:var(--muted)}
+  .crew-card .cn{font-size:.78rem;color:var(--accent);margin-top:6px;font-weight:700;font-variant-numeric:tabular-nums}
+
+  #satTable{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  #satTable .row2{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem;align-items:center}
+  #satTable .row2:last-child{border-bottom:none}
+  #satTable .hdr{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  #satTable .lat-lon{font-family:ui-monospace,monospace;font-size:.82rem}
+  #satTable .alt{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+
+  #satMapWrap{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px}
+  #satMap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+  #satInfo{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:.85rem}
+  #satInfo .stat-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)}
+  #satInfo .stat-line:last-child{border-bottom:none}
+  #satInfo .stat-line .lbl{color:var(--muted)}
+  #satInfo .stat-line .val{font-variant-numeric:tabular-nums}
+
+  /* globe */
+  #globeWrap{position:relative;width:100%;height:520px;background:#0f1522;border-radius:12px;overflow:hidden}
+  #globe{width:100%;height:100%}
+  #globeLoading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,21,34,.92);z-index:5;color:var(--muted);font-size:.9rem}
+  #globeLoading.err{color:var(--bad)}
+  .globe-controls{position:absolute;top:14px;left:14px;z-index:6;display:flex;flex-direction:column;gap:6px;background:rgba(15,21,34,.85);padding:10px 12px;border-radius:10px;border:1px solid var(--border)}
+  .globe-controls button{background:var(--chip);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.74rem;text-align:left}
+  .globe-controls button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .globe-controls .lbl{color:var(--muted);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+  .globe-controls .range-row{display:flex;gap:4px;align-items:center;margin-bottom:6px}
+  .globe-controls input[type=range]{flex:1;accent-color:var(--cyan)}
+
+  /* watchlist */
+  .wl-grid{display:grid;gap:10px}
+  .wl-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+  .wl-card.upcoming-soon{border-color:var(--accent2);box-shadow:0 0 14px rgba(57,208,164,.2)}
+  .wl-card .wl-info .wl-name{font-weight:600;font-size:.92rem;margin-bottom:2px}
+  .wl-card .wl-meta{font-size:.78rem;color:var(--muted)}
+  .wl-countdown{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.1rem;color:var(--accent2)}
+  .wl-countdown.urgent{color:var(--orange);animation:pulse 1.2s infinite}
+  .wl-countdown.lived{color:var(--bad);font-weight:900;font-size:1.4rem;animation:pulse 0.8s infinite}
+
+  /* pads enriched */
+  .pad-ext-item{display:flex;flex-direction:column;gap:6px}
+  .pad-ext-item .k{color:var(--muted);font-size:.74rem}
+  .pad-ext-item .v{font-size:.88rem;color:var(--text)}
+
+  @media (max-width:780px){
+    #satMapWrap{grid-template-columns:1fr}
+    .tl-canvas{grid-template-columns:repeat(6,1fr);height:200px}
+    .kv{grid-template-columns:80px 1fr}
+    #satTable .row2{grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr;font-size:.78rem}
+    #globeWrap{height:380px}
+  }
+
+  /* callouts */
+  .callout{display:flex;gap:12px;align-items:flex-start;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:12px 14px;font-size:.85rem;color:var(--text);margin:10px 0}
+  .callout.warn{background:rgba(255,181,71,.05);border-color:rgba(255,181,71,.25)}
+  .callout.mag{background:linear-gradient(90deg,rgba(167,139,250,.06),rgba(236,72,153,.06));border-color:rgba(167,139,250,.3)}
+  .callout .ico{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+  .callout a{text-decoration:underline}
+
+  footer{margin-top:36px;color:var(--muted);font-size:.78rem;border-top:1px solid var(--border);padding-top:14px}
+  .sig{color:var(--accent);font-family:ui-monospace,monospace;font-size:.85rem}
+
+  #installBanner{display:none;align-items:center;gap:14px;background:linear-gradient(90deg,#06b6d4,#a78bfa);color:#0b0f1a;padding:10px 16px;border-radius:10px;margin-bottom:14px;font-weight:600;font-size:.88rem}
+  #installBanner.show{display:flex}
+  #installBanner button{background:#0b0f1a;color:#fff;border:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.78rem}
+  #installBanner button.x{background:transparent;color:#0b0f1a;opacity:.7;font-weight:400;padding:4px 8px}
+
+  .toggle{position:relative;display:inline-block;width:40px;height:22px}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle .slider{position:absolute;cursor:pointer;inset:0;background:var(--panel2);border-radius:22px;transition:.2s;border:1px solid var(--border)}
+  .toggle .slider::before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.2s}
+  .toggle input:checked + .slider{background:rgba(57,208,164,.2);border-color:var(--accent2)}
+  .toggle input:checked + .slider::before{left:21px;background:var(--accent2)}
+</style>
+</head>
+<body>
+<div id="v414boot" style="background:linear-gradient(90deg,#39d0a4,#4dd0e1);color:#0b0f1a;padding:14px 20px;font-weight:700;font-size:16px;text-align:center;letter-spacing:.02em">✅ v4.1.5 booted (XHR fallback) — Patrick this is FRESH HTML! If data still loading, watch console (F12) for `[v4.1.5 fetch resolved]` lines. Auto-fallback to SEED in 5s.</div>
+<div class="wrap">
+  <header>
+    <h1>🚀 全球火箭发射数据库 <span class="v-pill">v4</span></h1>
+    <span class="ver">LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + 3D globe + watchlist + 自动更新</span>
+  </header>
+
+  <!-- PWA install banner -->
+  <div id="installBanner">
+    <span>📥 安装为 PWA · 离线查询 + 首页快捷入口</span>
+    <button id="installBtn">安装</button>
+    <button class="x" id="installDismiss">×</button>
+  </div>
+
+  <div class="meta">
+    <span>📅 数据更新:<span id="generatedAt">—</span></span>
+    <span class="src-mode" id="dataMode">加载中…</span>
+    <span class="fresh"><span class="dot"></span><span id="freshLabel">fresh</span></span>
+    <span class="sig" id="recordCount">—</span>
+    <span id="nextBuildLabel" style="color:var(--muted);font-size:.74rem"></span>
+    <span id="swLabel" style="color:var(--muted);font-size:.74rem"></span>
+    <button id="refreshBtn" title="重新拉取 data/*.json" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 10px;font-size:.78rem;cursor:pointer;margin-left:auto">↻ 刷新</button>
+  </div>
+
+  <!-- KPI cards (each links to its data tab) -->
+  <div class="cards">
+    <div class="card" data-tab="launches"><div class="k">总发射数</div><div class="v" id="statTotal">—</div><div class="sub">LL2 实时合并去重</div></div>
+    <div class="card kpi-flag" data-tab="watchlist"><div class="k">未来 30 天</div><div class="v" id="statUpcoming">—</div><div class="sub">按关注排序</div></div>
+    <div class="card" data-tab="live"><div class="k">在轨实时卫星</div><div class="v" id="statSats">—</div><div class="sub">CelesTrak stations+weather+science</div></div>
+    <div class="card" data-tab="pads"><div class="k">发射工位</div><div class="v" id="statPads">—</div><div class="sub">本数据集 + LL2 native</div></div>
+    <div class="card" data-tab="crew"><div class="k">当前在轨人</div><div class="v" id="statCrewInSpace">—</div><div class="sub">Astronauts in space</div></div>
+    <div class="card" data-tab="agencies"><div class="k">活跃机构</div><div class="v" id="statAgencies">—</div><div class="sub">按 total_launch_count</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <div class="tab active" data-pane="launches" role="tab">📡 发射记录 <span class="tab-badge" id="tabBadgeLaunches">—</span></div>
+    <div class="tab" data-pane="timeline" role="tab">📊 时间线</div>
+    <div class="tab" data-pane="watchlist" role="tab">⭐ Watchlist <span class="tab-badge" id="tabBadgeWatchlist">0</span></div>
+    <div class="tab" data-pane="pads" role="tab">🏛 发射场 <span class="tab-badge" id="tabBadgePads">—</span></div>
+    <div class="tab" data-pane="agencies" role="tab">🏢 机构 <span class="tab-badge" id="tabBadgeAgencies">—</span></div>
+    <div class="tab" data-pane="crew" role="tab">👨‍🚀 宇航员 <span class="tab-badge" id="tabBadgeCrew">—</span></div>
+    <div class="tab" data-pane="live" role="tab">🛰️ 实时卫星 <span class="tab-badge">live</span></div>
+    <div class="tab" data-pane="globe" role="tab">🌍 3D Globe <span class="tab-badge">Cesium</span></div>
+    <div class="tab" data-pane="sources" role="tab">🗂️ 数据源</div>
+  </div>
+
+  <!-- TAB 1: launches -->
+  <div class="tab-pane active" id="pane-launches">
+    <div class="filters">
+      <input id="fSearch" type="search" placeholder="搜索任务 / 火箭 / 发射场…">
+      <select id="fProvider"><option value="">全部机构</option></select>
+      <select id="fCountry"><option value="">全部国家/地区</option></select>
+      <select id="fYear"><option value="">全部年份</option></select>
+      <select id="fStatus">
+        <option value="">全部状态</option>
+        <option value="upcoming">待发射</option>
+        <option value="success">成功</option>
+        <option value="partial_failure">部分失败</option>
+        <option value="failure">失败</option>
+      </select>
+      <select id="fSource"><option value="">全部来源</option></select>
+      <button id="fReset">重置</button>
+    </div>
+    <div class="count-line" id="countLine"></div>
+    <div class="list" id="launchList"></div>
+  </div>
+
+  <!-- TAB 2: timeline -->
+  <div class="tab-pane" id="pane-timeline">
+    <h2>📊 月度发射节奏</h2>
+    <div class="tl-chart">
+      <div class="tl-canvas" id="tlCanvas"></div>
+      <div class="tl-legend">
+        <span><i style="background:linear-gradient(180deg,#4f8cff,#2563eb)"></i>总发射数</span>
+        <span><i style="background:var(--accent2)"></i>成功</span>
+        <span><i style="background:var(--warn)"></i>部分失败</span>
+        <span><i style="background:var(--bad)"></i>失败</span>
+        <span><i style="background:rgba(79,140,255,.5)"></i>待发射</span>
+      </div>
+    </div>
+    <h2>🏆 TOP 机构 / 火箭 / 国家 (本数据集聚合)</h2>
+    <div class="top-list">
+      <div class="col"><h4>🚀 发射机构 TOP 15</h4><div id="topProviders"></div></div>
+      <div class="col"><h4>🛰️ 运载火箭 TOP 15</h4><div id="topRockets"></div></div>
+      <div class="col"><h4>🌍 国家 / 地区 TOP 15</h4><div id="topCountries"></div></div>
+    </div>
+    <div class="callout">
+      <span class="ico">💡</span>
+      <div><b>本图表数据来源</b>:LL2 The Space Devs API (<code>mode=detailed</code>,248 条)。TOP 列表仅展示 ≥1 次出现的非空字段。月度发射节奏按 net 时间聚合。</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: watchlist (新增 v4) -->
+  <div class="tab-pane" id="pane-watchlist">
+    <div class="callout mag">
+      <span class="ico">⭐</span>
+      <div><b>Watchlist Watchtower v4</b> · 点 ★ 关注任务 · 实时倒计时 (T-30d → T-now) · 关注任务进入 <strong>&lt;24h</strong> 时,KPI 卡 + 列表同时变红闪烁动画 · 数据走 localStorage,关闭浏览器也保留 · 也可 <code>+ Provider filter</code> 一键关注整个机构</div>
+    </div>
+    <div class="filters">
+      <input id="wSearch" type="search" placeholder="搜索关注项…">
+      <select id="wSort"><option value="countdown">按倒计时最近优先</option><option value="recent">按关注时间最新</option><option value="date">按 NET 时间</option></select>
+      <button id="wAddProvider">+ 关注机构</button>
+      <button id="wClear">清空关注</button>
+    </div>
+    <div class="count-line" id="watchCountLine"></div>
+    <div class="wl-grid" id="watchList"></div>
+    <div id="watchEmpty" style="display:none" class="empty" style="margin-top:14px">
+      🔭 还没有关注项。点击任意发射行右侧的 ★ 或 "+ 关注机构" 来添加。
+    </div>
+  </div>
+
+  <!-- TAB 4: pads -->
+  <div class="tab-pane" id="pane-pads">
+    <h2>🏛 全球发射场累计 TOP 30</h2>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">点击任意 pad card → drawer 显示 LL2 原生 total_launch_count / fastest_turnaround / description</p>
+    <div id="padsGrid" class="pads-grid"></div>
+  </div>
+
+  <!-- TAB 5: agencies (新增 v4) -->
+  <div class="tab-pane" id="pane-agencies">
+    <div class="filters">
+      <input id="aSearch" type="search" placeholder="搜索机构 / 国家…">
+      <select id="aCountry"><option value="">全部国家</option></select>
+      <select id="aType"><option value="">全部类型</option><option value="Government">Government</option><option value="Commercial">Commercial</option><option value="Multinational">Multinational</option></select>
+      <button id="aReset">重置</button>
+    </div>
+    <div class="count-line" id="agenciesCountLine"></div>
+    <div id="agenciesGrid" class="agencies-grid"></div>
+  </div>
+
+  <!-- TAB 6: crew -->
+  <div class="tab-pane" id="pane-crew">
+    <div class="filters">
+      <input id="cSearch" type="search" placeholder="搜索宇航员…">
+      <select id="cAgency"><option value="">全部机构</option></select>
+      <select id="cStatus"><option value="">全部状态</option><option value="Active">Active 在役</option><option value="Retired">Retired 退役</option><option value="Deceased">Deceased 已故</option></select>
+      <select id="cInSpace"><option value="">全部</option><option value="yes">🟢 当前在轨</option></select>
+      <button id="cReset">重置</button>
+    </div>
+    <div class="count-line" id="crewCountLine"></div>
+    <div id="crewGrid" class="crew-grid"></div>
+  </div>
+
+  <!-- TAB 7: live sats -->
+  <div class="tab-pane" id="pane-live">
+    <div class="callout">
+      <span class="ico">🛰️</span>
+      <div><b>实时在轨卫星追踪</b> · CelesTrak TLE → satellite.js · +7d 轨道预测 · SVG 等矩形投影 · 当地时间 <code id="satLocalTime">—</code></div>
+    </div>
+    <div id="satTable"></div>
+    <div id="satMapWrap">
+      <div id="satMap">
+        <h3 style="margin-bottom:8px">🌍 World Map (等矩形投影 · SVG)</h3>
+        <svg id="worldSvg" viewBox="0 0 720 360" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;background:#0f1522;border-radius:8px"></svg>
+      </div>
+      <div id="satInfo">
+        <h3 style="margin-bottom:8px">📡 已选卫星</h3>
+        <div class="stat-line"><span class="lbl">点击列表 / 地图</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 8: 3D globe (v4 升级 — 多 mode) -->
+  <div class="tab-pane" id="pane-globe">
+    <div class="callout">
+      <span class="ico">🌍</span>
+      <div><b>Cesium 3D Globe v4</b> · 3 个 imagery mode (dark map / highway / no-imagery) + ±N 天 propagation range slider · 首载 12MB · 9 颗卫星 groundtrack</div>
+    </div>
+    <div id="globeWrap">
+      <div id="globe"></div>
+      <div id="globeLoading">⏳ Loading Cesium 1.122 (~12MB)...</div>
+    </div>
+    <div style="margin-top:8px;font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:14px">
+      <span>🛰️ 绿色:ISS/CSS 载人</span>
+      <span>📡 蓝色:stations</span>
+      <span>🌦️ 橙色:weather</span>
+      <span>🔬 青色:science</span>
+    </div>
+  </div>
+
+  <!-- TAB 9: sources -->
+  <div class="tab-pane" id="pane-sources">
+    <h2>数据源贡献</h2>
+    <div class="bars" id="sourceBars"></div>
+    <h2>🗂 数据源架构</h2>
+    <div class="arch" id="archGrid"></div>
+    <div class="callout">
+      <span class="ico">📐</span>
+      <div><b>v4 数据 pipeline</b> — GitHub Actions <code>.github/workflows/update-data.yml</code> · UTC 03:17 daily 自动:① node <code>build-data.mjs</code> 拉 LL2 248 + CelesTrak 146 TLE ② Python 后处理聚合 pads/crew/agencies ③ commit + push → CF Pages webhook 自动 redeploy。</div>
+    </div>
+  </div>
+
+  <footer>
+    数据来源:The Space Devs Launch Library 2 · GCAT/LVDB · CelesTrak SATCAT + TLE · Space-Track（仅后端）· UNOOSA · Cesium.js 1.122 · satellite.js 5.0.0。
+    <br><br>
+    <span class="sig">rocket-launch-db v4 · 248 LL2 + 146 CelesTrak + 56 pads + 50 crew + 50 agencies · single HTML ~95KB · PWA offline · <a href="https://2017zyl.xyz/rocket-launch-db/">https://2017zyl.xyz/rocket-launch-db/</a></span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <button class="close" id="drawerClose">✕</button>
+  <div id="drawerBody"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+
+<script>
+const SEED = {
+  stats:{generated_at:"2026-07-06T16:30:00Z",total_launches:6,upcoming_30d:3,linked_objects:5,verification_coverage:1.0,celestrak_satellites:0,source_contributions:[{source:"LL2",count:3},{source:"GCAT",count:3}]},
+  sources:{sources:[
+    {id:"LL2",name:"The Space Devs Launch Library 2",role:"实时与未来发射排期、任务详情、发射状态、pad / crew / agency / location",url:"https://ll.thespacedevs.com/2.3.0/",auth_required:false},
+    {id:"GCAT",name:"Jonathan McDowell GCAT / LVDB",role:"历史发射基线与运载火箭目录完整性",url:"https://planet4589.org/space/gcat/",auth_required:false},
+    {id:"CELESTRAK",name:"CelesTrak SATCAT + TLE",role:"空间物体标识 + 实时轨道 / TLE 拉取",url:"https://celestrak.org/",auth_required:false},
+    {id:"SPACETRACK",name:"Space-Track",role:"权威轨道编目核验",url:"https://www.space-track.org/documentation",auth_required:true},
+    {id:"UNOOSA",name:"UNOOSA Online Index",role:"官方登记国核验",url:"https://www.unoosa.org/oosa/osoindex/search-ng.jspx",auth_required:false}
+  ]},
+  objects:{records:[
+    {intl_designator:"1957-001A",norad_id:2,name:"Sputnik 1",launch_id:"gcat:1957-001",type:"PAYLOAD",status:"DECAYED"},
+    {intl_designator:"1969-059A",norad_id:4039,name:"Apollo 11 CSM",launch_id:"gcat:1969-059",type:"PAYLOAD",status:"RECOVERED"},
+    {intl_designator:"2003-045A",norad_id:28043,name:"Shenzhou 5",launch_id:"gcat:2003-045",type:"PAYLOAD",status:"RECOVERED"}
+  ]},
+  launches:{generated_at:"2026-07-06T16:30:00Z",records:[
+    {launch_id:"ll2:demo-1",name:"Sputnik 1",provider:"OKB-1",vehicle:"Sputnik 8K71PS",country:"Russia",site:"Baikonur LC-1",net:"1957-10-04T19:28:00Z",status:"success",orbit:"LEO",sources:["GCAT"],source_conflicts:[],verification:{celestrak:true,spacetrack:true,unoosa:true},objects:["1957-001A"]},
+    {launch_id:"ll2:demo-2",name:"Apollo 11",provider:"NASA",vehicle:"Saturn V",country:"United States of America",site:"Kennedy LC-39A",net:"1969-07-16T13:32:00Z",status:"success",orbit:"TLI",sources:["GCAT"],source_conflicts:[],verification:{celestrak:true,spacetrack:true,unoosa:true},objects:["1969-059A"]},
+    {launch_id:"ll2:demo-3",name:"神舟五号",provider:"CASC",vehicle:"长征2F",country:"China",site:"酒泉 921",net:"2003-10-15T01:00:00Z",status:"success",orbit:"LEO",sources:["GCAT","CELESTRAK"],source_conflicts:[],verification:{celestrak:true,spacetrack:true,unoosa:true},objects:["2003-045A"]},
+    {launch_id:"ll2:demo-4",name:"Falcon Heavy | Europa Lander",provider:"SpaceX",vehicle:"Falcon Heavy",country:"United States of America",site:"Kennedy LC-39A",net:"2026-07-12T14:00:00Z",status:"upcoming",orbit:"深空",sources:["LL2"],source_conflicts:[],verification:{celestrak:false,spacetrack:false,unoosa:false},objects:[]},
+    {launch_id:"ll2:demo-5",name:"长征十号 | 载人月球任务演示",provider:"CASC",vehicle:"长征10",country:"China",site:"文昌",net:"2026-07-20T08:00:00Z",status:"upcoming",orbit:"TLI",sources:["LL2"],source_conflicts:[],verification:{celestrak:false,spacetrack:false,unoosa:false},objects:[]},
+    {launch_id:"ll2:demo-6",name:"Starship | Flight 21",provider:"SpaceX",vehicle:"Starship",country:"United States of America",site:"Starbase OLP-A",net:"2026-08-02T13:00:00Z",status:"upcoming",orbit:"LEO",sources:["LL2"],source_conflicts:[],verification:{celestrak:false,spacetrack:false,unoosa:false},objects:[]}
+  ]},
+  pads:{rankings:[],pad_year:{},year_count:{},enriched_top:[],generated_at:"2026-07-06T16:30:00Z"},
+  crew:{astronauts_total:0,astronauts:[],aggregates:{},generated_at:"2026-07-06T16:30:00Z"},
+  agencies:{agencies_total:0,agencies:[],generated_at:"2026-07-06T16:30:00Z"}
+};
+
+const STATUS_ZH = {success:"成功",failure:"失败",partial_failure:"部分失败",upcoming:"待发射",in_flight:"飞行中",attempted:"已尝试",scratch:"报废"};
+let DB = {launches:[],objects:[],sources:[],stats:null,timeline:null,tles:[],pads:null,crew:null,agencies:null,mode:"seed"};
+let TLE_BY_ID = {};
+let SAT_AT_TIME = null;
+let CESIUM_VIEWER = null;
+let GLOBE_MODE = "dark-map";
+let GLOBE_DAYS = 7;
+
+async function loadJSON(path, timeoutMs=8000, signal=null){
+  const opts = {cache:"no-store"};
+  if(signal) opts.signal = signal;
+  const ctl = new AbortController();
+  const intTimeout = setTimeout(()=>{try{ctl.abort('timeout');}catch(e){}}, timeoutMs);
+  // Chain signal to internal abort
+  if(signal){
+    if(signal.aborted){ ctl.abort('outer'); }
+    else signal.addEventListener('abort', ()=>{ try{ctl.abort('outer');}catch(e){} });
+  }
+  try{
+    const r = await Promise.race([
+      fetch(path, {...opts, signal:ctl.signal}).then(r => {
+        if(!r.ok) throw new Error(path+' '+r.status);
+        return r.json();
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error(path+' timeout '+timeoutMs+'ms')), timeoutMs))
+    ]);
+    return r;
+  }finally{
+    clearTimeout(intTimeout);
+  }
+}
+// v4.1.5: ultimate-simple loader using XHR (synchronous fallback)
+// Works on every browser, every network condition. No fetch, no AbortController, no SW.
+function xhrJSON(path, timeoutMs=5000){
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      try { xhr.abort(); } catch(e){}
+      reject(new Error(path+' timeout '+timeoutMs+'ms'));
+    }, timeoutMs);
+    xhr.onload = () => {
+      if(timedOut) return;
+      clearTimeout(timer);
+      if(xhr.status >= 200 && xhr.status < 300){
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch(e){ reject(new Error(path+' JSON parse: '+e.message)); }
+      } else {
+        reject(new Error(path+' '+xhr.status));
+      }
+    };
+    xhr.onerror = () => {
+      if(timedOut) return;
+      clearTimeout(timer);
+      reject(new Error(path+' XHR network error'));
+    };
+    xhr.ontimeout = () => {
+      if(timedOut) return;
+      clearTimeout(timer);
+      reject(new Error(path+' XHR native timeout'));
+    };
+    xhr.open('GET', path + '?cb=v414-' + Date.now(), true);
+    xhr.timeout = timeoutMs;
+    xhr.send();
+  });
+}
+
+// Hybrid: try fetch first, fallback to XHR
+async function hybridJSON(path, timeoutMs=5000){
+  try {
+    const r = await fetch(path + '?cb=v414-' + Date.now(), {cache:'no-store'});
+    if(r.ok) return await r.json();
+    throw new Error('status '+r.status);
+  } catch(e) {
+    return xhrJSON(path, timeoutMs);
+  }
+}
+
+async function loadData(){
+  console.log('[v4.1.5 loadData start]', new Date().toISOString());
+  let liveOK = false;
+  let errMsg = null;
+  try{
+    // CORE 5 files now (added sats so statSats KPI fills immediately)
+    const [launches, objects, sources, stats, sats] = await Promise.all([
+      hybridJSON('./data/launches.json', 5000).catch(e => {console.error('launches err',e.message);errMsg='launches:'+e.message; return null;}),
+      hybridJSON('./data/objects.json', 5000).catch(e => {console.error('objects err',e.message);return null;}),
+      hybridJSON('./data/sources.json', 5000).catch(e => {console.error('sources err',e.message);return null;}),
+      hybridJSON('./data/stats.json', 5000).catch(e => {console.error('stats err',e.message);errMsg='stats:'+e.message; return null;}),
+      hybridJSON('./data/celestrak-satellites.json', 5000).catch(e => {console.error('sats err',e.message);return null;})
+    ]);
+    console.log('[v4.1.5 fetch resolved]', {launches:!!launches, stats:!!stats, sats:!!sats, errMsg});
+    if(launches && stats) {
+      DB = {
+        launches: launches.records||[],
+        objects: objects?.records||[],
+        sources: sources?.sources||[],
+        stats,
+        timeline: null,
+        tles: sats?.records || [],
+        pads: null,
+        crew: null,
+        agencies: null,
+        mode: 'json'
+      };
+      // Build TLE lookup
+      if(sats && sats.records){
+        for(const t of sats.records) TLE_BY_ID[t.norad_id] = t;
+      }
+      liveOK = true;
+    } else {
+      throw new Error('core fetch incomplete: ' + errMsg);
+    }
+  } catch(e) {
+    console.warn('[v4.1.5 SEED fallback]', e.message);
+    DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+  }
+  // ALWAYS update UI, no matter what
+  try { refreshFreshness(liveOK); } catch(e){console.error('refreshFreshness err',e);}
+  try { render(); } catch(e){console.error('render err',e);}
+  console.log('[v4.1.5 loadData done]', 'liveOK='+liveOK, 'DB.launches='+DB.launches?.length, 'tles='+DB.tles?.length);
+  try { startWatchCountdownLoop(); } catch(e){console.error('watch err',e);}
+  return liveOK;
+}
+
+// v4.1.5: progressive tabs loader — fetch only when tab clicked
+async function loadTabData(key){
+  if(key==='pads' && !DB.pads) {
+    try {
+      const d = await hybridJSON('./data/pads.json', 5000);
+      DB.pads = d; refreshFreshness(true);
+      renderPads();
+    } catch(e){console.warn('pads load failed', e);}
+  }
+  if(key==='crew' && !DB.crew) {
+    try {
+      const d = await hybridJSON('./data/crew.json', 5000);
+      DB.crew = d; refreshFreshness(true);
+      renderCrew();
+    } catch(e){console.warn('crew load failed', e);}
+  }
+  if(key==='agencies' && !DB.agencies) {
+    try {
+      const d = await hybridJSON('./data/agencies.json', 5000);
+      DB.agencies = d; refreshFreshness(true);
+      renderAgencies();
+    } catch(e){console.warn('agencies load failed', e);}
+  }
+  if(key==='timeline' && !DB.timeline) {
+    try {
+      const d = await hybridJSON('./data/timeline.json', 5000);
+      DB.timeline = d;
+      renderTimeline();
+    } catch(e){console.warn('timeline load failed', e);}
+  }
+}
+
+// HARD HARD fallback: every 4s, force-update UI with whatever we have
+setInterval(() => {
+  if(DB.launches && DB.launches.length) return;  // already have data
+  // No data yet — show SEED + refresh
+  if(!DB.mode || DB.mode === 'init') {
+    DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+    try { refreshFreshness(false); render(); } catch(e){}
+  }
+}, 4000);
+
+function refreshFreshness(liveOK){
+  const ts=DB.stats?.generated_at;
+  $("#generatedAt").textContent = ts?fmtDateTime(ts):"—";
+  const m=$("#dataMode");
+  m.textContent = DB.mode==="json"?"数据源：data/*.json (live)":"数据源：内嵌种子 (兜底)";
+  m.style.color = DB.mode==="json"?"var(--accent2)":"var(--warn)";
+  $("#recordCount").textContent = (liveOK?"✓ ":"⚠ ")+DB.launches.length+" launches";
+  $("#statSats").textContent = DB.tles.length||"—";
+  $("#statPads").textContent = (DB.pads?.rankings?.length||0)+(DB.pads?.enriched_top?.length?"+"+DB.pads.enriched_top.length+" LL2 enriched":"");
+  $("#statCrewInSpace").textContent = (DB.crew?.astronauts||[]).filter(a=>a.in_space).length||"—";
+  $("#statAgencies").textContent = DB.agencies?.agencies?.length||"—";
+  $("#freshLabel").textContent = liveOK?"fresh":"seed-fallback";
+  // Update upcoming count
+  const now = new Date(); const in30 = new Date(now.getTime()+30*864e5);
+  const upcoming30 = DB.launches.filter(l=>{ const t=new Date(l.net); return t>=now&&t<=in30; }).length;
+  $("#statUpcoming").textContent = upcoming30;
+  // Next build label
+  const nextUtc = new Date(); nextUtc.setUTCHours(3,17,0,0);
+  if(nextUtc < now) nextUtc.setUTCDate(nextUtc.getUTCDate()+1);
+  $("#nextBuildLabel").textContent = "⏰ next auto-update: "+nextUtc.toISOString().slice(0,16)+"Z";
+}
+
+const $=sel=>document.querySelector(sel); /* v4.1.5 FIX: was getElementById — every $("#id") call returned null, so refreshFreshness/render threw and KPI stayed "—" forever */
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $$=(sel,root=document)=>root.querySelectorAll(sel);
+
+function fmtDate(iso){const d=new Date(iso);if(isNaN(d))return iso;return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0")+" "+String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0")+" UTC";}
+function fmtDateTime(iso){return fmtDate(iso);}
+
+function formatRelativeT(iso){
+  try{
+    const d=new Date(iso),now=new Date();
+    const diff=d-now,abs=Math.abs(diff);
+    if(abs<60000) return "🟢 NOW";
+    if(abs<3600000) return `${diff>0?"T-":"T+"}${(abs/60000).toFixed(0)}m`;
+    if(abs<86400000) return `${diff>0?"T-":"T+"}${(abs/3600000).toFixed(1)}h`;
+    if(abs<90*86400000) return `${diff>0?"T-":"T+"}${(abs/86400000).toFixed(0)}d`;
+    return null;
+  }catch(e){return null;}
+}
+
+/* ========== WATCHLIST (NEW v4) ========== */
+const WATCH_KEY = "rl-db-watchlist-v4";
+function loadWatchlist(){
+  try{return JSON.parse(localStorage.getItem(WATCH_KEY)||"[]");}catch{return [];}
+}
+function saveWatchlist(wl){
+  localStorage.setItem(WATCH_KEY, JSON.stringify(wl));
+  $("#tabBadgeWatchlist").textContent = wl.length;
+}
+function wlAdd(item){const wl=loadWatchlist(); if(!wl.find(x=>x.id===item.id)){wl.push({...item,addedAt:Date.now()}); saveWatchlist(wl);} renderWatchlist();}
+function wlRemove(id){saveWatchlist(loadWatchlist().filter(x=>x.id!==id)); renderWatchlist();}
+function wlToggleItem(launch){
+  const wl=loadWatchlist();
+  const ex=wl.find(x=>x.id===launch.launch_id);
+  if(ex) wlRemove(launch.launch_id);
+  else wlAdd({
+    id: launch.launch_id,
+    type: "launch",
+    name: launch.name,
+    provider: launch.provider,
+    site: launch.site,
+    net: launch.net,
+    status: launch.status,
+  });
+}
+function wlAddProvider(provider){
+  const wl=loadWatchlist();
+  if(!wl.find(x=>x.id==="prov:"+provider)){wl.push({id:"prov:"+provider,type:"provider",name:provider,addedAt:Date.now()}); saveWatchlist(wl);}
+  renderWatchlist();
+}
+
+function countdownLabel(iso, now){
+  if(!iso) return "—";
+  const d = new Date(iso); const diff = d-now;
+  if(Math.abs(diff)<60000) return "🟢 NOW / LIVE";
+  const future = diff>0;
+  const abs = Math.abs(diff);
+  if(abs<3600000){const m=Math.round(abs/60000); return future?`T-${m}m`:`T+${m}m`;}
+  if(abs<86400000){const h=Math.round(abs/3600000); return future?`T-${h}h`:`T+${h}h ago`;}
+  if(abs<90*86400000){const days=Math.floor(abs/86400000),h=Math.round((abs%86400000)/3600000); return future?`T-${days}d ${h}h`:`T+${days}d ago`;}
+  return future?`T-${Math.floor(abs/86400000)}d`:`+${Math.floor(abs/86400000)}d`;
+}
+
+function renderWatchlist(){
+  const wl = loadWatchlist();
+  $("#tabBadgeWatchlist").textContent = wl.length;
+  const sortBy = $("#wSort")?.value || "countdown";
+  const q = ($("#wSearch")?.value||"").trim().toLowerCase();
+  if(!wl.length){ $("#watchEmpty").style.display="block"; $("#watchList").innerHTML=""; $("#watchCountLine").textContent="关注 0 项"; return; }
+  $("#watchEmpty").style.display="none";
+
+  // Resolve launch/provider items
+  const launchesById = Object.fromEntries(DB.launches.map(l=>[l.launch_id,l]));
+  const items = wl.map(w=>{
+    if(w.type==="launch"){
+      const L = launchesById[w.id];
+      return {...w, net: L?.net||w.net, status: L?.status||w.status, _resolved:!!L};
+    }
+    return {...w, net: null};
+  }).filter(w => !q || w.name.toLowerCase().includes(q) || (w.provider||"").toLowerCase().includes(q));
+
+  // Sort
+  const now = new Date();
+  items.sort((a,b)=>{
+    if(sortBy==="countdown"){
+      const an=a.net?new Date(a.net).getTime():Infinity;
+      const bn=b.net?new Date(b.net).getTime():Infinity;
+      return an-bn;
+    }
+    if(sortBy==="recent") return (b.addedAt||0)-(a.addedAt||0);
+    if(sortBy==="date"){
+      const an=a.net?new Date(a.net).getTime():Infinity;
+      const bn=b.net?new Date(b.net).getTime():Infinity;
+      return an-bn;
+    }
+    return 0;
+  });
+
+  $("#watchCountLine").innerHTML = `关注 <b>${items.length}</b> 项${q?` (匹配 "${esc(q)}")`:""} · 实时倒计时每 30s 更新`;
+  $("#watchList").innerHTML = items.map(w=>{
+    const cd = w.net?countdownLabel(w.net, now):"—";
+    const urgentCls = w.net && (new Date(w.net).getTime()-now.getTime() < 24*3600*1000) && (new Date(w.net).getTime()-now.getTime()>0) ? "urgent" : "";
+    const liveCls = w.net && Math.abs(new Date(w.net).getTime()-now.getTime()) < 60*1000 ? "lived" : "";
+    return `
+      <div class="wl-card ${urgentCls} ${liveCls}">
+        <div class="wl-info">
+          <div class="wl-name">${w.type==="provider"?"🏢 ":"🚀 "}${esc(w.name)}${w.type==="provider"?` <span class="chip">provider</span>`:""}</div>
+          <div class="wl-meta">${esc(w.provider||"")}${w.site?` · ${esc(w.site)}`:""}${w.net?` · ${fmtDate(w.net)}`:""}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${w.net?`<div class="wl-countdown ${urgentCls} ${liveCls}" data-net="${esc(w.net)}">${esc(cd)}</div>`:'<span class="chip">provider</span>'}
+          <button class="watch-btn-rm" data-id="${esc(w.id)}" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:5px 12px;cursor:pointer;font-size:.78rem">✕ 取消</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  $$(".watch-btn-rm").forEach(b=>b.onclick=()=>wlRemove(b.dataset.id));
+}
+
+function startWatchCountdownLoop(){
+  setInterval(()=>{
+    const now = new Date();
+    $$(".wl-countdown").forEach(el=>{
+      const iso = el.dataset.net;
+      if(!iso) return;
+      const cd = countdownLabel(iso, now);
+      el.textContent = cd;
+      const diff = new Date(iso)-now;
+      const card = el.closest(".wl-card");
+      if(card){
+        card.classList.toggle("urgent", diff>0 && diff<24*3600*1000);
+        card.classList.toggle("lived", Math.abs(diff)<60*1000);
+        el.classList.toggle("urgent", diff>0 && diff<24*3600*1000);
+        el.classList.toggle("lived", Math.abs(diff)<60*1000);
+      }
+    });
+  }, 30*1000);
+}
+
+/* ========== Launches tab ========== */
+function fillLaunchFilters(){
+  const uniq=arr=>[...new Set(arr)].sort();
+  const opt=v=>`<option value="${esc(v)}">${esc(v)}</option>`;
+  $("#fProvider").insertAdjacentHTML("beforeend",uniq(DB.launches.map(l=>l.provider)).map(opt).join(""));
+  $("#fCountry").insertAdjacentHTML("beforeend",uniq(DB.launches.map(l=>l.country)).map(opt).join(""));
+  $("#fYear").insertAdjacentHTML("beforeend",uniq(DB.launches.map(l=>String(new Date(l.net).getUTCFullYear()))).sort((a,b)=>b-a).map(opt).join(""));
+  $("#fSource").insertAdjacentHTML("beforeend",uniq(DB.launches.flatMap(l=>l.sources||[])).map(opt).join(""));
+}
+function filterLaunches(){
+  const get = id => { const el = $(id); return el ? (el.value ?? "") : ""; };
+  const f={q:get("#fSearch").trim().toLowerCase(),provider:get("#fProvider"),country:get("#fCountry"),year:get("#fYear"),status:get("#fStatus"),source:get("#fSource")};
+  return DB.launches.filter(l=>{
+    if(f.provider&&l.provider!==f.provider) return false;
+    if(f.country&&l.country!==f.country) return false;
+    if(f.year&&String(new Date(l.net).getUTCFullYear())!==f.year) return false;
+    if(f.status&&l.status!==f.status) return false;
+    if(f.source&&!(l.sources||[]).includes(f.source)) return false;
+    if(f.q){const hay=[l.name,l.provider,l.vehicle,l.site,l.country,l.launch_id].join(" ").toLowerCase(); if(!hay.includes(f.q)) return false;}
+    return true;
+  }).sort((a,b)=>new Date(b.net)-new Date(a.net));
+}
+function renderList(){
+  const rows = filterLaunches();
+  const wl = loadWatchlist().map(x=>x.id);
+  $("#countLine").innerHTML = `显示 <b>${rows.length}</b> / ${DB.launches.length} 条`;
+  $("#launchList").innerHTML = rows.slice(0,100).map(l=>{
+    const isLive = l.status==="upcoming"||l.status==="in_flight";
+    const t = formatRelativeT(l.net);
+    const watched = wl.includes(l.launch_id);
+    return `
+    <div class="row" data-id="${esc(l.launch_id)}">
+      <div class="title">
+        <button class="watch-star ${watched?"active":""}" data-action="watch" data-launch='${esc(l.launch_id)}' title="${watched?"取消关注":"关注"}">★</button>
+        ${isLive?'<span class="live-dot"></span>':''}
+        ${esc(l.name)}
+        ${(l.source_conflicts||[]).length?`<span class="conflict-flag">⚠ ${l.source_conflicts.length}</span>`:''}
+      </div>
+      <div class="right">
+        <span class="pill st-${esc(l.status)}">${STATUS_ZH[l.status]||esc(l.status)}</span>
+        <span style="color:var(--muted);font-size:.74rem">${fmtDate(l.net)}</span>
+      </div>
+      <div class="info">
+        <span>${esc(l.provider)}</span><span>${esc(l.vehicle)}</span><span>${esc(l.country)}</span>
+        <span>${esc(l.site)}</span><span>轨道 ${esc(l.orbit)}</span>
+        ${l.agency_attempt_count?`<span class="pad-meta">机构 #${l.agency_attempt_count}</span>`:''}
+        ${t?`<span style="color:var(--accent2);font-weight:600">${esc(t)}</span>`:''}
+        ${l.website?`<a href="${esc(l.website)}" target="_blank" rel="noopener">官网 ↗</a>`:''}
+        <span>${(l.sources||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join(" ")}</span>
+      </div>
+    </div>`;
+  }).join("") || '<div class="empty">没有符合筛选条件的发射记录</div>';
+
+  $$('button[data-action="watch"]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const launch = DB.launches.find(x=>x.launch_id===b.dataset.launch);
+    if(launch) wlToggleItem(launch);
+  });
+}
+function computeStats(){
+  const now=new Date(),in30=new Date(now.getTime()+30*864e5);
+  return {
+    total:DB.launches.length,
+    upcoming30:DB.launches.filter(l=>{const t=new Date(l.net); return t>=now&&t<=in30;}).length,
+    objects:DB.objects.length,
+    coverage:DB.launches.length?DB.launches.filter(l=>{const v=l.verification||{}; return v.celestrak||v.spacetrack||v.unoosa;}).length/DB.launches.length:0
+  };
+}
+function renderStats(){
+  const s=computeStats();
+  $("#statTotal").textContent=s.total;
+  $("#tabBadgeLaunches").textContent=s.total;
+}
+function renderBars(){
+  const contrib = DB.stats?.source_contributions||[];
+  const max = Math.max(1,...contrib.map(c=>c.count));
+  $("#sourceBars").innerHTML=contrib.map(c=>`
+    <div class="bar-row">
+      <span class="name">${esc(c.source)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(c.count/max*100).toFixed(1)}%"></div></div>
+      <span class="num">${c.count.toLocaleString()}</span>
+    </div>`).join("")||'<div class="empty">暂无来源统计</div>';
+}
+
+/* ========== Drawer ========== */
+function openDrawer(id){
+  const l = DB.launches.find(x=>x.launch_id===id);
+  if(!l) return;
+  const v = l.verification||{};
+  const showDesc = l.mission_description && l.mission_description.length>100;
+  const refs = l.references||[];
+  $("#drawerBody").innerHTML = `
+    <h3>${esc(l.name)}</h3>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0">
+      <span class="pill st-${esc(l.status)}">${STATUS_ZH[l.status]||esc(l.status)}</span>
+      <span style="color:var(--muted);font-size:.84rem">${fmtDate(l.net)}</span>
+      ${l.updated_at?`<span style="color:var(--muted);font-size:.74rem">↻ ${esc((l.updated_at||"").slice(0,16))}Z</span>`:''}
+      <button class="watch-star" id="drawerWatch" data-launch="${esc(l.launch_id)}" style="background:none;border:1px solid var(--border);border-radius:6px;padding:2px 10px;font-size:.74rem;cursor:pointer;color:var(--muted)">⭐ 关注</button>
+    </div>
+    <div class="sec"><h4>基本信息</h4>
+      <div class="kv">
+        <span class="k">机构</span><span>${esc(l.provider)}</span>
+        <span class="k">火箭</span><span>${esc(l.vehicle)}</span>
+        <span class="k">国家 / 地区</span><span>${esc(l.country)}</span>
+        <span class="k">发射场</span><span>${esc(l.site)}</span>
+        ${l.latitude?`<span class="k">坐标</span><span>${l.latitude.toFixed(3)}, ${l.longitude.toFixed(3)}</span>`:''}
+        <span class="k">目标轨道</span><span>${esc(l.orbit)}</span>
+        ${l.website?`<span class="k">官方网址</span><span><a href="${esc(l.website)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(l.website)}</a></span>`:''}
+        ${l.agency_attempt_count?`<span class="k">机构累计</span><span>${l.agency_attempt_count} 次</span>`:''}
+        ${l.pad_attempt_count?`<span class="k">发射工位累计</span><span>${l.pad_attempt_count} 次</span>`:''}
+        ${l.launch_probability!=null?`<span class="k">气象概率</span><span><b style="color:var(--accent2)">${l.launch_probability}% GO</b></span>`:''}
+        <span class="k">记录 ID</span><span style="font-family:monospace;font-size:.78rem">${esc(l.launch_id)}</span>
+      </div>
+    </div>
+    ${showDesc?`<div class="sec"><h4>📋 任务说明 (LL2)</h4><div class="mission-desc">${esc(l.mission_description)}</div></div>`:''}
+    <div class="sec"><h4>来源与溯源</h4>
+      <div>${(l.sources||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join(" ")}</div>
+      ${refs.map(r=>`<div class="vid-item"><span class="chip">${esc(r.kind)}</span> <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title)}</a></div>`).join("")}
+    </div>
+    <div class="sec"><h4>权威核验</h4>
+      <div class="verif">
+        <span class="${v.celestrak?'ok':''}">${v.celestrak?'✓':'○'} CelesTrak</span>
+        <span class="${v.spacetrack?'ok':''}">${v.spacetrack?'✓':'○'} Space-Track</span>
+        <span class="${v.unoosa?'ok':''}">${v.unoosa?'✓':'○'} UNOOSA</span>
+      </div>
+    </div>`;
+  $("#drawer").classList.add("open");
+  $("#overlay").classList.add("open");
+  $("#drawerWatch")?.addEventListener("click", ()=>{wlToggleItem(l);});
+}
+function closeDrawer(){$("#drawer").classList.remove("open");$("#overlay").classList.remove("open");}
+
+/* ========== Timeline tab ========== */
+function renderTimeline(){
+  if(!DB.timeline){
+    const c = $("#tlCanvas");
+    if(c) c.innerHTML = '<div class="empty" style="grid-column:1/-1">⏳ Timeline loading...</div>';
+    return;
+  }
+  const tl=DB.timeline, monthly=(tl.monthly||[]).slice(-12);
+  const max=Math.max(1,...monthly.map(m=>m.count));
+  const now=new Date(), curMonth=now.getUTCFullYear()+"-"+String(now.getUTCMonth()+1).padStart(2,"0");
+  if(!monthly.length) {
+    const c = $("#tlCanvas");
+    if(c) c.innerHTML = '<div class="empty" style="grid-column:1/-1">暂无数据</div>';
+  }
+  $("#tlCanvas").innerHTML=monthly.map(m=>{
+    const isCur=m.month===curMonth;
+    const title=`${m.month} · 总 ${m.count} (✓${Math.round(m.success/m.count*100)||0}% ⌛${Math.round(m.upcoming/m.count*100)||0}%)`;
+    return `<div class="tl-bar" title="${title}" style="height:${(m.count/max*100).toFixed(1)}%; ${isCur?'box-shadow:0 0 12px var(--accent);border:1px solid var(--accent);':''}">
+      <div class="lbl">${m.month.slice(5)}</div>
+      <div class="top" style="display:block">${m.count}</div>
+    </div>`;
+  }).join("");
+  function rTop(arr,elId){
+    const total = monthly.reduce((s,m)=>s+m.count,0);
+    $(elId).innerHTML=(arr||[]).map((x,i)=>{
+      const pct=total?(x.count/total*100).toFixed(1):0;
+      return `<div class="item"><span class="name">${i+1}. ${esc(x.name)}</span><span class="count">${x.count} · ${pct}%</span></div>`;
+    }).join("")||'<div style="color:var(--muted)">无数据</div>';
+  }
+  rTop(tl.by_provider,"topProviders"); rTop(tl.by_rocket,"topRockets"); rTop(tl.by_country,"topCountries");
+}
+
+/* ========== Pads tab (v4 — fetch LL2 detail on demand + drawer) ========== */
+function renderPads(){
+  if(!DB.pads || !DB.pads.rankings){
+    const padGrid = $("#padsGrid");
+    if(padGrid) padGrid.innerHTML = '<div class="empty">⏳ Pad 数据加载中… 切换到其他 tab 后再回来</div>';
+    return;
+  }
+  const pads = DB.pads.rankings;
+  $("#tabBadgePads").textContent = pads.length;
+  const allYears = new Set();
+  pads.forEach(p=>Object.keys(p.years||{}).forEach(y=>allYears.add(y)));
+  const yearList = [...allYears].sort().slice(-12);
+  $("#padsGrid").innerHTML = pads.map(p=>{
+    const lat = p.latitude?p.latitude.toFixed(2):'—';
+    const lon = p.longitude?p.longitude.toFixed(2):'—';
+    const sparkYrs = yearList.map(y=>p.years?.[y]||0);
+    const maxSpark = Math.max(1,...sparkYrs);
+    const sparkHTML = yearList.map((y,i)=>{
+      const v=sparkYrs[i], h=v?Math.max(8,v/maxSpark*100):2;
+      return `<div class="y" style="height:${h}%" title="${y}: ${v} 发射"></div>`;
+    }).join("");
+    return `<div class="pad-card" data-pad-id="${p.pad_id}">
+      <div class="pad-top">
+        <div class="pad-name">🏛 ${esc(p.site)}</div>
+        <span class="chip">PAD #${p.pad_id}</span>
+      </div>
+      <div class="pad-stats">
+        <span><b>${esc(p.country)}</b></span>
+        <span>累计 <b class="num">${p.total}</b></span>
+        <span style="color:var(--accent2)">✓ ${p.success||0}</span>
+        <span style="color:var(--warn)">部分 ${p.partial_failure||0}</span>
+        <span style="color:var(--bad)">✗ ${p.failure||0}</span>
+        <span>📍 ${lat}, ${lon}</span>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px">近 ${yearList.length} 年节奏</div>
+      <div class="spark" style="grid-template-columns:repeat(${yearList.length},1fr)">${sparkHTML}</div>
+      <div class="pad-agencies">${(p.agencies||[]).slice(0,4).map(a=>`<span>${esc(a)}</span>`).join("")}${(p.agencies||[]).length>4?`<span>+${p.agencies.length-4}</span>`:''}</div>
+    </div>`;
+  }).join("");
+  $$(".pad-card").forEach(el=>el.onclick=()=>openPadDrawer(parseInt(el.dataset.padId)));
+}
+
+async function openPadDrawer(padId){
+  // try enriched_top first (cached from build)
+  const enriched = (DB.pads?.enriched_top||[]).find(p=>p.pad_id===padId);
+  let detail = enriched;
+  if(!detail){
+    // fetch on demand
+    try{
+      const d = await loadJSON(`https://ll.thespacedevs.com/2.3.0/pads/${padId}/?format=json`);
+      detail = {pad_id: padId, total_launch_count: d.total_launch_count, fastest_turnaround: d.fastest_turnaround, description: (d.description||"").slice(0,400), wiki_url: d.wiki_url, map_url: d.map_url, agencies: (d.agencies||[]).map(a=>a.name).slice(0,3)};
+    }catch(e){detail={pad_id:padId,error:e.message};}
+  }
+  // build drawer
+  const local = DB.pads.rankings.find(p=>p.pad_id===padId)||{};
+  $("#drawerBody").innerHTML = `
+    <h3>🏛 ${esc(detail.pad_id===padId?(local.site||`PAD #${pad_id}`):(local.site||""))}</h3>
+    <div style="color:var(--muted);font-size:.78rem;margin-bottom:6px">${esc(local.country||"")}</div>
+    ${detail.error?`<div class="callout warn"><span class="ico">⚠️</span><div>无法连接 LL2 API (请求超限 15req/h): ${esc(detail.error)}</div></div>`:''}
+    <div class="sec"><h4>📊 数据源聚合 (本数据集)</h4>
+      <div class="kv">
+        <span class="k">累计发射</span><span><b style="color:var(--accent)">${local.total||"—"}</b></span>
+        <span class="k">成功</span><span style="color:var(--accent2)">${local.success||0}</span>
+        <span class="k">部分失败</span><span style="color:var(--warn)">${local.partial_failure||0}</span>
+        <span class="k">失败</span><span style="color:var(--bad)">${local.failure||0}</span>
+        <span class="k">关联机构</span><span>${(local.agencies||[]).join(", ")||"—"}</span>
+        <span class="k">坐标</span><span>${local.latitude?local.latitude.toFixed(3):"—"}, ${local.longitude?local.longitude.toFixed(3):"—"}</span>
+      </div>
+    </div>
+    ${detail.total_launch_count?`
+    <div class="sec"><h4>🚀 LL2 原生数据</h4>
+      <div class="kv">
+        <span class="k">LL2 total_launch_count</span><span><b style="color:var(--cyan)">${detail.total_launch_count}</b></span>
+        <span class="k">orbital attempt</span><span>${detail.orbital_launch_attempt_count||"—"}</span>
+        <span class="k">最快复用</span><span>${esc(detail.fastest_turnaround||"—")}</span>
+        ${detail.wiki_url?`<span class="k">Wiki</span><span><a href="${esc(detail.wiki_url)}" target="_blank" rel="noopener">${esc(detail.wiki_url)}</a></span>`:''}
+      </div>
+      ${detail.description?`<div class="pad-ext-item"><span class="k">📖 描述</span><span>${esc(detail.description)}</span></div>`:''}
+    </div>`:''}
+    <div style="margin-top:14px;font-size:.74rem;color:var(--muted)">点击时优先用缓存的 enriched_top (LL2 每小时 15req,hits cache after first launch);fallback on-demand fetch 仅在缓存 miss 时消耗 1 req。</div>
+  `;
+  $("#drawer").classList.add("open");
+  $("#overlay").classList.add("open");
+}
+
+/* ========== Agencies tab (NEW v4) ========== */
+function renderAgencies(){
+  const all = DB.agencies?.agencies || [];
+  $("#tabBadgeAgencies").textContent = all.length;
+  // fill country/type filters
+  const countries = [...new Set(all.map(a=>a.country).filter(Boolean))].sort();
+  $("#aCountry").insertAdjacentHTML("beforeend", countries.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join(""));
+  function draw(){
+    const q = ($("#aSearch").value||"").trim().toLowerCase();
+    const co = $("#aCountry").value, tp = $("#aType").value;
+    const filt = all.filter(a=>{
+      if(co && a.country!==co) return false;
+      if(tp && a.type!==tp) return false;
+      if(q){const hay=[a.name,a.country,a.abbrev].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
+      return true;
+    });
+    const max = Math.max(1,...filt.map(a=>a.total_launch_count||0));
+    $("#agenciesCountLine").innerHTML = `显示 <b>${filt.length}</b> / ${all.length} 机构 (LL2 total ${DB.agencies?.agencies_total || "—"})`;
+    $("#agenciesGrid").innerHTML = filt.map(a=>`
+      <div class="ag-card" data-id="${a.id}">
+        ${a.logo?`<img src="${esc(a.logo)}" alt="${esc(a.name)}" onerror="this.style.display='none'">`:`<img alt="${esc(a.name)}" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--muted);font-weight:700">${esc((a.abbrev||a.name||"?").slice(0,2))}</img>`}
+        <div class="ag-info">
+          <div class="ag-name">${esc(a.name)}</div>
+          <div class="ag-meta">${esc(a.country||"")} · ${esc(a.type||"")} · since ${a.founding_year||"—"}</div>
+          <div class="ag-launch">${a.total_launch_count||0} launches · ${a.successful_launches||0}✓ · ${a.failed_launches||0}✗</div>
+        </div>
+        <div class="ag-bar" style="grid-column:1/-1"><div class="fill" style="width:${((a.total_launch_count||0)/max*100).toFixed(1)}%"></div></div>
+      </div>`).join("") || '<div class="empty" style="grid-column:1/-1">没有匹配的机构</div>';
+    $$(".ag-card").forEach(el=>el.onclick=()=>openAgencyDrawer(parseInt(el.dataset.id)));
+  }
+  draw();
+  $("#aSearch").oninput = draw;
+  $("#aCountry").onchange = draw;
+  $("#aType").onchange = draw;
+  $("#aReset").onclick = ()=>{$("#aSearch").value=""; $("#aCountry").value=""; $("#aType").value=""; draw();};
+}
+
+function openAgencyDrawer(id){
+  const a = (DB.agencies?.agencies||[]).find(x=>x.id===id);
+  if(!a) return;
+  const liveLaunches = DB.launches.filter(l => l.provider === a.name);
+  const upcoming = liveLaunches.filter(l => l.status==="upcoming");
+  const success = liveLaunches.filter(l => l.status==="success").length;
+  $("#drawerBody").innerHTML = `
+    <div style="display:flex;gap:14px;align-items:start">
+      ${a.logo?`<img src="${esc(a.logo)}" style="width:84px;height:84px;border-radius:8px;object-fit:contain;background:#1a2340;padding:6px">`:`<div style="width:84px;height:84px;background:var(--panel2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.6rem;color:var(--muted)">${esc((a.abbrev||a.name||"?").slice(0,2))}</div>`}
+      <div style="flex:1">
+        <h3 style="margin-bottom:2px">${esc(a.name)}</h3>
+        <div style="color:var(--muted);font-size:.84rem">${esc(a.country||"")} · ${esc(a.type||"")} · founding ${a.founding_year||"—"}</div>
+        ${a.parent?`<div style="font-size:.78rem;color:var(--accent);margin-top:4px">↳ parent: ${esc(a.parent)}</div>`:''}
+      </div>
+    </div>
+    <div class="sec"><h4>📊 LL2 全局统计</h4>
+      <div class="kv">
+        <span class="k">total launches</span><span><b style="color:var(--accent)">${a.total_launch_count||0}</b></span>
+        <span class="k">successful</span><span style="color:var(--accent2)">${a.successful_launches||0}</span>
+        <span class="k">failed</span><span style="color:var(--bad)">${a.failed_launches||0}</span>
+        ${a.attempted_landings!=null?`<span class="k">attempted landings</span><span>${a.attempted_landings}</span>`:''}
+        <span class="k">successful landings</span><span>${a.successful_landings||0}</span>
+        <span class="k">failed landings</span><span>${a.failed_landings||0}</span>
+        ${a.pending_launches!=null?`<span class="k">pending</span><span>${a.pending_launches}</span>`:''}
+      </div>
+    </div>
+    <div class="sec"><h4>🚧 本数据集的发射记录</h4>
+      <div class="kv">
+        <span class="k">本数据集</span><span><b style="color:var(--cyan)">${liveLaunches.length}</b> 条 (覆盖 ${success} 成功)</span>
+        <span class="k">即将发射</span><span>${upcoming.length} 条 (${upcoming.map(x=>x.name).slice(0,2).join(", ")}${upcoming.length>2?"…":""})</span>
+      </div>
+      ${a.info_url?`<div style="margin-top:8px"><a href="${esc(a.info_url)}" target="_blank" rel="noopener" class="pill st-upcoming">官网 ↗</a>${a.wiki_url?` <a href="${esc(a.wiki_url)}" target="_blank" rel="noopener" class="pill st-upcoming">Wikipedia ↗</a>`:''}</div>`:''}
+    </div>
+    <div class="sec"><h4>🚨 一键关注</h4>
+      <button id="agencyWatchBtn" style="background:var(--orange);color:#0b0f1a;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:700">⭐ 关注 ${esc(a.name)} 全部发射</button>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:6px">关注后,该机构每次发射到 watchlist tab 显示,该机构发射进入 &lt;24h 时直播间会高亮。</div>
+    </div>
+  `;
+  $("#drawer").classList.add("open");
+  $("#overlay").classList.add("open");
+  $("#agencyWatchBtn")?.addEventListener("click", ()=>{wlAddProvider(a.name); $("#agencyWatchBtn").textContent="✓ 已关注";});
+}
+
+/* ========== Crew tab ========== */
+function renderCrew(){
+  const all = DB.crew?.astronauts||[];
+  $("#tabBadgeCrew").textContent = all.length;
+  const agencies = [...new Set(all.map(a=>a.agency).filter(Boolean))].sort();
+  $("#cAgency").insertAdjacentHTML("beforeend", agencies.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join(""));
+  function draw(){
+    const q = ($("#cSearch").value||"").trim().toLowerCase();
+    const ag=$("#cAgency").value, st=$("#cStatus").value, ins=$("#cInSpace").value;
+    const filt = all.filter(a=>{
+      if(ag && a.agency!==ag) return false;
+      if(st && a.status!==st) return false;
+      if(ins==="yes" && !a.in_space) return false;
+      if(q){const hay=[a.name,a.nationality,a.agency].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
+      return true;
+    });
+    $("#crewCountLine").innerHTML = `显示 <b>${filt.length}</b> / ${all.length} 位 · 当前在轨 <b style="color:var(--accent2)">${all.filter(a=>a.in_space).length}</b>`;
+    $("#crewGrid").innerHTML = filt.map(a=>`
+      <div class="crew-card" data-id="${a.id}">
+        ${a.image?`<img src="${esc(a.image)}" alt="${esc(a.name)}" loading="lazy" onerror="this.style.display='none'">`:`<div style="width:80px;height:80px;border-radius:50%;background:#1a2340;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:2rem">🧑‍🚀</div>`}
+        <div class="cname">${esc(a.name)}</div>
+        <div class="cagency">${esc(a.nationality||"")} · ${esc(a.agency||"")}</div>
+        <div class="cn">${a.flights_count||0} flights · ${a.spacewalks_count||0} EVAs${a.in_space?' · 🟢 NOW':''}</div>
+      </div>`).join("") || '<div class="empty" style="grid-column:1/-1">没有匹配的宇航员</div>';
+    $$(".crew-card").forEach(el=>el.onclick=()=>openCrewDrawer(parseInt(el.dataset.id)));
+  }
+  draw();
+  $("#cSearch").oninput = draw; $("#cAgency").onchange = draw; $("#cStatus").onchange = draw; $("#cInSpace").onchange = draw;
+  $("#cReset").onclick = ()=>{$("#cSearch").value=""; $("#cAgency").value=""; $("#cStatus").value=""; $("#cInSpace").value=""; draw();};
+}
+
+function openCrewDrawer(id){
+  const a = (DB.crew?.astronauts||[]).find(x=>x.id===id);
+  if(!a) return;
+  const lifeSpan = (a.date_of_birth||"—")+(a.date_of_death?` → ${a.date_of_death}`:" · still alive");
+  $("#drawerBody").innerHTML=`
+    <div style="display:flex;gap:14px;align-items:start">
+      ${a.image?`<img src="${esc(a.image)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;background:#1a2340">`:`<div style="width:96px;height:96px;border-radius:50%;background:#1a2340;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🧑‍🚀</div>`}
+      <div style="flex:1">
+        <h3 style="margin-bottom:2px">${esc(a.name)}</h3>
+        <div style="color:var(--muted);font-size:.84rem">${esc(a.nationality||"")} · ${esc(a.agency||"")}</div>
+        <div style="margin-top:6px">${a.in_space?'<span class="pill st-upcoming">🟢 当前在轨</span>':`<span class="chip">${esc(a.status||'—')}</span>`}</div>
+      </div>
+    </div>
+    <div class="sec"><h4>📊 生涯数据</h4>
+      <div class="kv">
+        <span class="k">类型</span><span>${esc(a.type||'—')}</span>
+        <span class="k">Flights</span><span><b style="color:var(--accent)">${a.flights_count||0}</b></span>
+        <span class="k">EVAs</span><span><b style="color:var(--accent2)">${a.spacewalks_count||0}</b></span>
+        <span class="k">总时长</span><span>${esc(a.time_in_space||'—')}</span>
+        <span class="k">EVA 总时长</span><span>${esc(a.eva_time||'—')}</span>
+        <span class="k">首飞</span><span>${a.first_flight||'—'}</span>
+        <span class="k">末飞</span><span>${a.last_flight||'—'}</span>
+        <span class="k">生卒</span><span>${esc(lifeSpan)}</span>
+      </div>
+    </div>
+    ${a.bio_short?`<div class="sec"><h4>📖 简介</h4><div class="mission-desc">${esc(a.bio_short)}…</div></div>`:''}
+    ${a.wiki||a.url?`<div class="sec"><h4>🔗 外链</h4>
+      ${a.wiki?`<div class="vid-item"><a href="${esc(a.wiki)}" target="_blank" rel="noopener">Wikipedia</a></div>`:''}
+      ${a.url?`<div class="vid-item"><a href="${esc(a.url)}" target="_blank" rel="noopener">LL2 详情页</a></div>`:''}
+    </div>`:''}
+    <div class="sec"><h4>🚨 一键关注</h4>
+      <button id="crewWatchBtn" style="background:var(--orange);color:#0b0f1a;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:700">⭐ 关注 ${esc(a.agency||"")} 全部发射</button>
+    </div>
+  `;
+  $("#drawer").classList.add("open"); $("#overlay").classList.add("open");
+  $("#crewWatchBtn")?.addEventListener("click", ()=>{if(a.agency) wlAddProvider(a.agency); $("#crewWatchBtn").textContent="✓ 已关注";});
+}
+
+/* ========== Live sats tab ========== */
+function renderSatsTable(){
+  if(!window.satellite){$("#satTable").innerHTML='<div class="empty">satellite.js 未加载</div>'; return;}
+  SAT_AT_TIME = new Date();
+  $("#satLocalTime").textContent = SAT_AT_TIME.toISOString().replace("T"," ").slice(0,19)+" UTC";
+  const ref = new Date(SAT_AT_TIME.getTime()+7*86400*1000);
+  const rows=[];
+  for(const tle of DB.tles){
+    if(!tle.line1||!tle.line2) continue;
+    try{
+      const sr = satellite.twoline2satrec(tle.line1,tle.line2);
+      const pv = satellite.propagate(sr,ref);
+      if(!pv.position) continue;
+      const gmst = satellite.gstime(ref);
+      const geo = satellite.eciToGeodetic(pv.position,gmst);
+      const speed = Math.sqrt(pv.velocity.x**2+pv.velocity.y**2+pv.velocity.z**2);
+      rows.push({...tle, lat:satellite.degreesLat(geo.latitude), lon:satellite.degreesLong(geo.longitude), alt:geo.height, speed:speed.toFixed(2)});
+    }catch(e){continue;}
+  }
+  if(!rows.length){$("#satTable").innerHTML='<div class="empty">无 TLE</div>'; return;}
+  rows.sort((a,b)=>b.alt-a.alt);
+  $("#satTable").innerHTML=`
+    <div class="row2 hdr"><div>Name</div><div>NORAD</div><div>Lat / Lon (T+7d)</div><div>Altitude (km)</div><div>Speed (km/s)</div></div>
+    ${rows.slice(0,30).map(r=>`<div class="row2 clickable" data-norad="${r.norad_id}" style="cursor:pointer">
+      <div><span style="color:var(--accent)">${esc(r.name)}</span> <span class="chip">${esc(r.category)}</span></div>
+      <div style="font-family:ui-monospace,monospace">${r.norad_id}</div>
+      <div style="font-family:ui-monospace,monospace;font-size:.82rem">${r.lat.toFixed(2)}°, ${r.lon.toFixed(2)}°</div>
+      <div class="alt" style="font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600">${r.alt.toFixed(1)} km</div>
+      <div style="font-variant-numeric:tabular-nums">${r.speed}</div>
+    </div>`).join("")}
+  `;
+  $$("#satTable .row2.clickable").forEach(el=>el.addEventListener("click",()=>{
+    const id=parseInt(el.dataset.norad), r=rows.find(x=>x.norad_id===id);
+    if(r) showSatDetail(r);
+  }));
+  const iss = rows.find(r=>/ISS|天宫|CSS/i.test(r.name));
+  showSatDetail(iss||rows[0]);
+  renderWorldMap(rows);
+}
+function renderWorldMap(rows){
+  const W=720,H=360,proj=(lon,lat)=>[(lon+180)/360*W,(90-lat)/180*H];
+  const cont=`
+    <path d="M 80 90 L 130 70 L 180 80 L 220 95 L 250 110 L 240 140 L 210 170 L 170 195 L 130 215 L 100 210 L 80 180 L 70 140 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>
+    <path d="M 230 130 L 280 115 L 310 130 L 305 175 L 290 220 L 270 240 L 250 220 L 235 175 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>
+    <path d="M 340 80 L 410 65 L 480 80 L 530 95 L 510 130 L 470 155 L 420 140 L 360 130 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>
+    <path d="M 360 130 L 460 130 L 510 165 L 530 220 L 500 250 L 460 260 L 420 235 L 390 200 L 370 165 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>
+    <path d="M 470 95 L 555 90 L 645 105 L 690 120 L 680 155 L 640 180 L 600 170 L 540 160 L 485 145 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>
+    <path d="M 615 200 L 670 195 L 690 230 L 670 260 L 640 250 Z" fill="#1a2340" stroke="#2a3554" stroke-width="0.5"/>`;
+  const dots = rows.map(r=>{
+    const [x,y]=proj(r.lon,r.lat);
+    const color = /station|ISS|天宫|CSS/i.test(r.name)?"var(--accent2)":/weather/i.test(r.category)?"var(--warn)":/science/i.test(r.category)?"var(--accent)":"var(--muted)";
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="0.5" data-norad="${r.norad_id}" style="cursor:pointer"><title>${r.name} (${r.lat.toFixed(1)}°, ${r.lon.toFixed(1)}°) · v4.1.4-boot-OK</title></circle>`;
+  }).join("");
+  const grid=[];
+  for(let lon=-180;lon<=180;lon+=30){const[x,y1]=proj(lon,90),[,y2]=proj(lon,-90); grid.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="rgba(42,53,84,.3)" stroke-width="0.3"/>`);}
+  for(let lat=-60;lat<=60;lat+=30){const[x1,y]=proj(-180,lat),[x2,]=proj(180,lat); grid.push(`<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="rgba(42,53,84,.3)" stroke-width="0.3"/>`);}
+  $("#worldSvg").innerHTML=grid.join("")+cont+dots;
+  $$("#worldSvg circle[data-norad]").forEach(c=>c.onclick=()=>{
+    const r=rows.find(x=>x.norad_id===parseInt(c.dataset.norad)); if(r) showSatDetail(r);
+  });
+}
+function showSatDetail(r){
+  $("#satInfo").innerHTML=`
+    <h3 style="margin-bottom:8px">${esc(r.name)}</h3>
+    <div class="stat-line"><span class="lbl">NORAD</span><span class="val">${r.norad_id}</span></div>
+    <div class="stat-line"><span class="lbl">CelesTrak 组</span><span class="val">${esc(r.category)}</span></div>
+    <div class="stat-line"><span class="lbl">+7d 位置</span><span class="val">${r.lat.toFixed(3)}°, ${r.lon.toFixed(3)}°</span></div>
+    <div class="stat-line"><span class="lbl">轨道高度</span><span class="val">${r.alt.toFixed(1)} km</span></div>
+    <div class="stat-line"><span class="lbl">速度</span><span class="val">${r.speed} km/s</span></div>
+    <div class="stat-line"><span class="lbl">周期</span><span class="val">约 ${(Math.sqrt(Math.pow(6378+Number(r.alt),3)/398600)*2*Math.PI/60).toFixed(0)} 分钟</span></div>`;
+}
+
+/* ========== Globe (Cesium) tab — v4 with mode + range ========== */
+let cesiumLoaded = false;
+async function initGlobe(){
+  const loadingEl = $("#globeLoading");
+  if(loadingEl.classList.contains("err")) return;
+  try{
+    if(!cesiumLoaded){
+      loadingEl.textContent = "⏳ Loading Cesium 1.122 (~12MB)...";
+      await new Promise((res,rej)=>{
+        const css=document.createElement("link"); css.rel="stylesheet"; css.href="https://cdn.jsdelivr.net/npm/cesium@1.122.0/Build/Cesium/Widgets/widgets.css"; document.head.appendChild(css);
+        const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/cesium@1.122.0/Build/Cesium/Cesium.js"; s.onload=res; s.onerror=rej; document.head.appendChild(s);
+      });
+      window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.122.0/Build/Cesium/";
+      cesiumLoaded = true;
+    }
+    loadingEl.textContent = "🛰️ Propagating TLE → 3D globe...";
+    if(!CESIUM_VIEWER){
+      CESIUM_VIEWER = new Cesium.Viewer("globe", {
+        baseLayer: makeImageryLayer(GLOBE_MODE),
+        baseLayerPicker: false, geocoder: false, homeButton: false,
+        sceneModePicker: false, timeline: false, animation: false, fullscreenButton: false, infoBox: false, selectionIndicator: false,
+        terrain: undefined, shouldAnimate: true
+      });
+      CESIUM_VIEWER.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0f1522");
+    }
+    setGlobeMode(GLOBE_MODE, false);
+    rebuildGlobeSats();
+    renderGlobeControls();
+    CESIUM_VIEWER.scene.camera.flyHome(0);
+    loadingEl.style.display = "none";
+  }catch(e){
+    loadingEl.textContent = "❌ Cesium failed: " + e.message;
+    loadingEl.classList.add("err");
+  }
+}
+
+function makeImageryLayer(mode){
+  if(mode==="highway") return Cesium.ImageryLayer.fromProviderAsync(Cesium.TileMapServiceImageryProvider.fromUrl("https://a.tile.openstreetmap.org/"));
+  if(mode==="no-imagery") return false;
+  // default: dark map
+  return Cesium.ImageryLayer.fromProviderAsync(Cesium.TileMapServiceImageryProvider.fromUrl("https://a.tile.openstreetmap.org/"));
+}
+
+function setGlobeMode(mode, rebuild){
+  if(!CESIUM_VIEWER) return;
+  GLOBE_MODE = mode;
+  const layers = CESIUM_VIEWER.imageryLayers;
+  layers.removeAll();
+  if(mode==="dark-map"){
+    const lyr = Cesium.ImageryLayer.fromProviderAsync(Cesium.TileMapServiceImageryProvider.fromUrl("https://a.tile.openstreetmap.org/"));
+    lyr.alpha = 0.35;
+    layers.add(lyr);
+    CESIUM_VIEWER.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0f1522");
+    CESIUM_VIEWER.scene.skyAtmosphere.show = true;
+  } else if(mode==="highway"){
+    layers.add(Cesium.ImageryLayer.fromProviderAsync(Cesium.TileMapServiceImageryProvider.fromUrl("https://a.tile.openstreetmap.org/")));
+    CESIUM_VIEWER.scene.globe.baseColor = Cesium.Color.fromCssColorString("#0a0e18");
+  } else if(mode==="no-imagery"){
+    CESIUM_VIEWER.scene.globe.baseColor = Cesium.Color.fromCssColorString("#06b6d4");
+    CESIUM_VIEWER.scene.skyAtmosphere.show = false;
+  }
+  if(rebuild) rebuildGlobeSats();
+}
+
+function rebuildGlobeSats(){
+  if(!CESIUM_VIEWER || !window.satellite) return;
+  // Clear existing sat entities
+  const toRemove = [];
+  for(let i=0; i<CESIUM_VIEWER.entities.values.length; i++){
+    const e = CESIUM_VIEWER.entities.values[i];
+    if(e._rl_sat) toRemove.push(e);
+  }
+  toRemove.forEach(e=>CESIUM_VIEWER.entities.remove(e));
+
+  const now = new Date();
+  let count = 0;
+  for(const tle of DB.tles){
+    if(count >= 9) break;
+    if(!tle.line1||!tle.line2) continue;
+    try{
+      const satrec = satellite.twoline2satrec(tle.line1,tle.line2);
+      const samples=[];
+      // v4: sample both past and future relative to "now"
+      for(let h=-GLOBE_DAYS*24; h<=GLOBE_DAYS*24; h+=2){
+        const t = new Date(now.getTime()+h*3600*1000);
+        const pv = satellite.propagate(satrec, t);
+        if(!pv.position) continue;
+        const gmst = satellite.gstime(t);
+        const geo = satellite.eciToGeodetic(pv.position, gmst);
+        samples.push(Cesium.Cartesian3.fromDegrees(satellite.degreesLong(geo.longitude), satellite.degreesLat(geo.latitude), geo.height*1000));
+      }
+      if(!samples.length) continue;
+      const cat = tle.category;
+      const color = /station|ISS|天宫|CSS/i.test(tle.name)?Cesium.Color.fromCssColorString("#39d0a4"):
+                    /weather/i.test(cat)?Cesium.Color.fromCssColorString("#ffb547"):
+                    /science/i.test(cat)?Cesium.Color.fromCssColorString("#06b6d4"):
+                    Cesium.Color.fromCssColorString("#7d8bab");
+      const ent = CESIUM_VIEWER.entities.add({
+        name: tle.name,
+        polyline: { positions: samples, width: 1.6, material: color },
+        point: { position: samples[samples.length-1], pixelSize: 7, color: color, outlineColor: Cesium.Color.WHITE, outlineWidth: 1 }
+      });
+      ent._rl_sat = true;
+      count++;
+    }catch(e){continue;}
+  }
+}
+
+function renderGlobeControls(){
+  // remove any existing control
+  const old = $("#globeControls");
+  if(old) old.remove();
+  const controls = document.createElement("div");
+  controls.id = "globeControls";
+  controls.className = "globe-controls";
+  controls.innerHTML = `
+    <div class="lbl">🗺 imagery</div>
+    <button data-mode="dark-map" class="${GLOBE_MODE==='dark-map'?'on':''}">🌑 dark map</button>
+    <button data-mode="highway" class="${GLOBE_MODE==='highway'?'on':''}">🛣 highway</button>
+    <button data-mode="no-imagery" class="${GLOBE_MODE==='no-imagery'?'on':''}">🚫 no imagery</button>
+    <div class="lbl" style="margin-top:8px">📅 ± days</div>
+    <div class="range-row"><input type="range" id="globeRange" min="1" max="14" value="${GLOBE_DAYS}"><span id="globeRangeVal" style="font-variant-numeric:tabular-nums;color:var(--cyan);font-weight:600">${GLOBE_DAYS}d</span></div>
+    <button id="globeReset" style="margin-top:6px">↻ reset view</button>
+  `;
+  const wrap = $("#globeWrap");
+  wrap.insertBefore(controls, wrap.firstChild);
+  $$(".globe-controls button[data-mode]").forEach(b=>b.onclick=()=>{
+    setGlobeMode(b.dataset.mode, true);
+    renderGlobeControls();
+  });
+  $("#globeRange").oninput = e=>{
+    GLOBE_DAYS = parseInt(e.target.value);
+    $("#globeRangeVal").textContent = GLOBE_DAYS+"d";
+    rebuildGlobeSats();
+  };
+  $("#globeReset").onclick = ()=> CESIUM_VIEWER?.scene.camera.flyHome(0);
+}
+
+/* ========== Sources tab ========== */
+function renderArch(){
+  $("#archGrid").innerHTML = DB.sources.map(s=>`
+    <div class="s"><b>${esc(s.id)} · ${esc(s.name)}</b><span class="role">${esc(s.role)}</span>${s.auth_required?'<span class="lock">🔒 需认证 · 仅后端</span>':''}<div class="url-wrap"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></div></div>`).join("");
+}
+
+/* ========== tabs ========== */
+function setupTabs(){
+  $$(".tab").forEach(t=>t.addEventListener("click",()=>{
+    $$(".tab").forEach(x=>x.classList.remove("active"));
+    $$(".tab-pane").forEach(p=>p.classList.remove("active"));
+    t.classList.add("active");
+    const pane=t.dataset.pane, paneEl=$("#pane-"+pane);
+    paneEl.classList.add("active");
+    if(pane==="live"&&!paneEl.dataset.loaded){renderSatsTable(); paneEl.dataset.loaded="1";}
+    if(pane==="pads"&&!paneEl.dataset.loaded){loadTabData('pads').then(()=>renderPads()); paneEl.dataset.loaded="1";}
+    if(pane==="crew"&&!paneEl.dataset.loaded){loadTabData('crew').then(()=>renderCrew()); paneEl.dataset.loaded="1";}
+    if(pane==="agencies"&&!paneEl.dataset.loaded){loadTabData('agencies').then(()=>renderAgencies()); paneEl.dataset.loaded="1";}
+    if(pane==="timeline"&&!paneEl.dataset.loaded){loadTabData('timeline').then(()=>renderTimeline()); paneEl.dataset.loaded="1";}
+    if(pane==="watchlist"&&!paneEl.dataset.loaded){renderWatchlist(); paneEl.dataset.loaded="1";}
+    if(pane==="globe"&&!paneEl.dataset.loaded){initGlobe(); paneEl.dataset.loaded="1";}
+  }));
+  // KPI cards → switch to relevant tab
+  $$(".cards .card[data-tab]").forEach(c=>c.onclick=()=>{
+    const t = $$(".tab").find(x=>x.dataset.pane===c.dataset.tab);
+    if(t) t.click();
+  });
+}
+
+/* ========== events ========== */
+function bindEvents(){
+  ["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$(id).addEventListener("change",renderList));
+  $("#fSearch").addEventListener("input",renderList);
+  $("#fReset").addEventListener("click",()=>{$("#fSearch").value="";["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$(id).value="");renderList();});
+  $("#launchList").addEventListener("click",e=>{if(e.target.closest("a")) return; const row=e.target.closest(".row"); if(row) openDrawer(row.dataset.id);});
+  $("#drawerClose").addEventListener("click",closeDrawer); $("#overlay").addEventListener("click",closeDrawer);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape") closeDrawer();});
+  $("#refreshBtn").addEventListener("click",()=>{$("#refreshBtn").textContent="↻ 加载中…"; loadData().then(()=>$("#refreshBtn").textContent="↻ 刷新");});
+  $("#wSearch").addEventListener("input", renderWatchlist);
+  $("#wSort").addEventListener("change", renderWatchlist);
+  $("#wAddProvider").onclick = ()=>{
+    const prov = prompt("输入机构名称 (来自 launches.provider 字段):");
+    if(prov && prov.trim()) wlAddProvider(prov.trim());
+  };
+  $("#wClear").onclick = ()=>{if(confirm("清空全部关注项?")) {saveWatchlist([]); renderWatchlist();}};
+}
+
+function render(){
+  fillLaunchFilters();
+  renderStats();
+  renderBars();
+  renderList();
+  renderArch();
+  renderTimeline();
+  bindEvents();
+}
+
+/* ========== PWA install + service worker ========== */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e=>{e.preventDefault(); deferredPrompt=e; $("#installBanner").classList.add("show");});
+$("#installDismiss")?.addEventListener("click", ()=> $("#installBanner").classList.remove("show"));
+$("#installBtn")?.addEventListener("click", ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null; $("#installBanner").classList.remove("show");});
+});
+if("serviceWorker" in navigator){
+  // v4.1.5 — PWA permanently disabled. The v4.1.2 unregister was inside `if(false && ...)`
+  // so it NEVER ran: the old v4 SW kept serving stale cached HTML on /rocket-launch-db/.
+  // Now: always unregister every SW + purge all CacheStorage.
+  try{
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+    if(window.caches && caches.keys) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  }catch(e){ console.warn('sw cleanup', e); }
+}
+
+// v4.1.5: minimal init — render first then loadData (XHR fallback inside)
+try { setupTabs(); } catch(e){console.error('setupTabs err:',e);}
+try { render(); } catch(e){console.error('init render err:',e);}
+loadData().catch(e=>console.error('loadData unhandled',e));
+console.log('[v4.1.5 init complete]', new Date().toISOString());
+</script>
+</body>
+</html>

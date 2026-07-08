@@ -1,0 +1,796 @@
+<style>
+/* trip-specific CSS — prefixed .trip- to avoid collision with skeleton/viewHome/viewMe */
+/* Re-uses design tokens from prototype:
+   --navy:#1B2A41; --navy-dk:#13202F; --terra:#D9723F; --gold:#E3B23C;
+   --cream:#F6F3EC; --ink:#27221B; --muted:#8A8272; --line:#E7E1D4; --green:#3E7A4C
+*/
+
+.trip-wrap{
+  display:block;
+  width:100%;
+  padding-bottom:8px;
+}
+
+/* ───── Top hero ───── */
+.trip-hero{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:linear-gradient(135deg,#1B2A41 0%,#2C4363 100%);
+  color:#fff;
+  border-radius:18px;
+  padding:14px 16px;
+  margin:4px 0 14px;
+  position:relative;
+  overflow:hidden;
+}
+.trip-hero::after{
+  content:"";
+  position:absolute;
+  right:-30px;top:-30px;
+  width:120px;height:120px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(227,178,60,0.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+.trip-hero .name{
+  font-size:18px;
+  font-weight:800;
+  letter-spacing:.5px;
+  line-height:1.25;
+  flex:1;
+  min-width:0;
+}
+.trip-hero .name .sub{
+  display:block;
+  font-size:10.5px;
+  font-weight:600;
+  color:var(--gold);
+  margin-top:4px;
+  letter-spacing:.8px;
+}
+.trip-hero .day-pill{
+  flex-shrink:0;
+  background:rgba(255,255,255,0.14);
+  color:#fff;
+  font-size:11px;
+  font-weight:800;
+  padding:6px 11px;
+  border-radius:20px;
+  letter-spacing:.5px;
+  border:1px solid rgba(255,255,255,0.18);
+}
+.trip-hero .day-pill b{ color:var(--gold); }
+.trip-hero .weather{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);
+  color:#fff;
+  box-shadow:0 3px 8px rgba(217,114,63,0.32);
+}
+
+/* ───── Stats row (4 boxes) ───── */
+.trip-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.trip-stat{
+  background:#fff;
+  border-radius:12px;
+  padding:10px 4px 9px;
+  text-align:center;
+  box-shadow:0 3px 10px rgba(27,42,65,0.05);
+  border:1px solid transparent;
+  transition:transform .15s ease, border-color .15s ease;
+}
+.trip-stat:active{
+  transform:scale(.97);
+  border-color:var(--line);
+}
+.trip-stat .num{
+  font-size:15px;
+  font-weight:800;
+  color:var(--navy);
+  line-height:1.2;
+  letter-spacing:.2px;
+}
+.trip-stat .num.terra{ color:var(--terra); }
+.trip-stat .num.green{ color:var(--green); }
+.trip-stat .num.gold{  color:#9C7A1A; }
+.trip-stat .lbl{
+  font-size:9.5px;
+  color:var(--muted);
+  margin-top:3px;
+  font-weight:700;
+  letter-spacing:.5px;
+}
+
+/* ───── Section label ───── */
+.trip-section{
+  font-size:12.5px;
+  font-weight:800;
+  color:var(--navy);
+  margin:14px 0 10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.trip-section small{
+  font-size:10px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+/* ───── Day timeline (horizontal scroll chips) ───── */
+.trip-days-row{
+  position:relative;
+  margin:0 -16px 8px;
+  padding:0 16px;
+}
+.trip-days{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  padding:4px 0 8px;
+  scrollbar-width:none;
+}
+.trip-days::-webkit-scrollbar{ display:none; }
+.trip-day{
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  min-width:120px;
+  max-width:160px;
+  background:#fff;
+  border:1.2px solid var(--line);
+  border-radius:12px;
+  padding:9px 12px 10px;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+  transition:all .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.trip-day:hover{
+  border-color:var(--terra);
+  transform:translateY(-1px);
+}
+.trip-day.is-active{
+  background:var(--navy);
+  border-color:var(--navy);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(27,42,65,0.18);
+}
+.trip-day.is-done .trip-day-label{ color:var(--green); }
+.trip-day.is-active .trip-day-label{ color:var(--gold); }
+.trip-day-label{
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.8px;
+  color:var(--muted);
+  margin-bottom:3px;
+}
+.trip-day-route{
+  font-size:12px;
+  font-weight:700;
+  line-height:1.3;
+  color:var(--navy);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+.trip-day.is-active .trip-day-route{ color:#fff; }
+.trip-day-dot{
+  display:inline-block;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--muted);
+  margin-right:4px;
+  vertical-align:middle;
+}
+.trip-day.is-done .trip-day-dot{ background:var(--green); }
+.trip-day.is-active .trip-day-dot{ background:var(--gold); box-shadow:0 0 0 3px rgba(227,178,60,0.25); }
+.trip-day.is-planned .trip-day-dot{ background:var(--line); }
+
+/* ───── Today's plan list ───── */
+.trip-places{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:6px;
+}
+.trip-place{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px 14px;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+  box-shadow:0 3px 10px rgba(27,42,65,0.04);
+  transition:transform .15s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.trip-place:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(27,42,65,0.08);
+}
+.trip-place:active{ transform:scale(.99); }
+.trip-place .time{
+  flex-shrink:0;
+  font-size:11px;
+  font-weight:800;
+  color:var(--terra);
+  background:#FBE9DF;
+  padding:4px 8px;
+  border-radius:8px;
+  letter-spacing:.3px;
+  min-width:50px;
+  text-align:center;
+  line-height:1.2;
+  margin-top:1px;
+}
+.trip-place.is-done .time{ background:#E5EFE6; color:var(--green); }
+.trip-place.is-active .time{ background:#FAEFCF; color:#9C7A1A; }
+.trip-place.is-planned .time{ background:#EEEAE0; color:var(--muted); }
+.trip-place .body{
+  flex:1;min-width:0;
+}
+.trip-place .t{
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  line-height:1.3;
+}
+.trip-place .m{
+  font-size:10.5px;
+  color:var(--muted);
+  margin-top:3px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px 10px;
+  align-items:center;
+}
+.trip-place .m .dot{
+  width:3px;height:3px;
+  border-radius:50%;
+  background:var(--muted);
+}
+.trip-place .status{
+  font-size:10px;
+  font-weight:700;
+  padding:2px 7px;
+  border-radius:10px;
+  white-space:nowrap;
+}
+.trip-place.is-done .status{
+  background:#E5EFE6; color:var(--green);
+}
+.trip-place.is-active .status{
+  background:#FAEFCF; color:#9C7A1A;
+}
+.trip-place.is-planned .status{
+  background:#EEEAE0; color:var(--muted);
+}
+.trip-place .arrow{
+  font-size:14px;
+  color:var(--muted);
+  margin-top:2px;
+  font-weight:800;
+  flex-shrink:0;
+}
+
+/* ───── Map placeholder (large gradient card) ───── */
+.trip-map-stub{
+  position:relative;
+  height:140px;
+  margin:14px 0 6px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#1B2A41 0%,#2C4363 45%,#D9723F 100%);
+  color:#fff;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  padding:14px 16px;
+  box-shadow:0 4px 14px rgba(27,42,65,0.18);
+}
+.trip-map-stub::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 25% 35%, rgba(227,178,60,0.25) 0%, transparent 38%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08) 0%, transparent 32%);
+  pointer-events:none;
+}
+.trip-map-stub::after{
+  /* fake road polyline */
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;bottom:0;
+  background:
+    linear-gradient(115deg, transparent 49.5%, rgba(255,255,255,0.5) 50%, transparent 50.5%) 0 60%/100% 2px no-repeat,
+    linear-gradient(105deg, transparent 49.5%, rgba(255,255,255,0.32) 50%, transparent 50.5%) 0 38%/100% 2px no-repeat;
+  pointer-events:none;
+  opacity:.55;
+}
+.trip-map-stub .lock{
+  position:absolute;
+  top:10px;right:10px;
+  font-size:9.5px;
+  font-weight:800;
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.32);
+  color:#fff;
+  padding:3px 8px;
+  border-radius:10px;
+  letter-spacing:.5px;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.trip-map-stub .pin{
+  position:absolute;
+  left:46%;top:32%;
+  width:18px;height:18px;
+  border-radius:50% 50% 50% 0;
+  background:var(--gold);
+  transform:rotate(-45deg);
+  box-shadow:0 3px 8px rgba(0,0,0,0.35);
+}
+.trip-map-stub .pin::after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:6px;height:6px;
+  margin:-3px 0 0 -3px;
+  background:#fff;
+  border-radius:50%;
+}
+.trip-map-stub .t{
+  font-size:14px;
+  font-weight:800;
+  position:relative;
+  letter-spacing:.3px;
+  line-height:1.3;
+  text-shadow:0 1px 3px rgba(0,0,0,0.3);
+}
+.trip-map-stub .coords{
+  font-size:10.5px;
+  color:#C9D2E0;
+  margin-top:5px;
+  position:relative;
+  font-family:"SF Mono","Menlo",monospace;
+  letter-spacing:.3px;
+}
+
+/* ───── Quick action bar ───── */
+.trip-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed var(--line);
+}
+.trip-actions button{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  background:#fff;
+  border:1.2px solid var(--line);
+  border-radius:14px;
+  padding:11px 6px 10px;
+  font-family:inherit;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--navy);
+  cursor:pointer;
+  transition:all .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.trip-actions button:hover{
+  border-color:var(--terra);
+  background:#FFF7F1;
+  color:var(--terra);
+  transform:translateY(-1px);
+}
+.trip-actions button:active{
+  transform:scale(.97);
+}
+.trip-actions button .ico{
+  font-size:18px;
+  line-height:1;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .trip-stat,.trip-day,.trip-place,.trip-actions button,.trip-map-stub{transition:none;}
+}
+</style>
+
+<script>
+/* ================================================================
+ * viewTrip — 驾迹 GoTrace v0.1 「行程」tab
+ * OWNER: Loop L3 (only viewTrip in this file)
+ * Returns HTML string; skeleton handles DOM injection + re-render
+ * No GPS / network calls — all data is mock below
+ *
+ * State contract (per MERGE_GUIDE.md):
+ *   state.trip.active               object  {tripId, currentDay, stats, today}
+ *     .tripId                       string  default 'tibet-318'
+ *     .currentDay                   number  default 3
+ *     .stats                        object  {drivenKm, remainKm, photos, altitude}
+ *     .today                        array   [{time, name, distance, status}, ...]
+ *
+ * URL hash: #trip?day=N   (overrides state.trip.active.currentDay)
+ * saveState() + state Proxy defined in skeleton (L1).
+ *
+ * Day chip click → updates URL hash + window.GT.render() if exposed
+ * Quick action buttons → alert stubs (v0.2 stub per spec)
+ * ================================================================ */
+
+/* ── Mock day timeline (14-day 318 trip) ── */
+const MOCK_DAYS = [
+  { day:1,  label:'Day 1',  from:'成都',         to:'雅安',            status:'done'    },
+  { day:2,  label:'Day 2',  from:'雅安',         to:'康定',            status:'done'    },
+  { day:3,  label:'Day 3',  from:'康定',         to:'新都桥',          status:'done'    },
+  { day:4,  label:'Day 4',  from:'新都桥',       to:'理塘',            status:'active'  },
+  { day:5,  label:'Day 5',  from:'理塘',         to:'稻城',            status:'planned' },
+  { day:6,  label:'Day 6',  from:'稻城',         to:'亚丁',            status:'planned' },
+  { day:7,  label:'Day 7',  from:'亚丁',         to:'芒康',            status:'planned' },
+  { day:8,  label:'Day 8',  from:'芒康',         to:'然乌湖',          status:'planned' },
+  { day:9,  label:'Day 9',  from:'然乌湖',       to:'林芝',            status:'planned' },
+  { day:10, label:'Day 10', from:'林芝',         to:'巴松措',          status:'planned' },
+  { day:11, label:'Day 11', from:'巴松措',       to:'拉萨',            status:'planned' },
+  { day:12, label:'Day 12', from:'拉萨',         to:'羊卓雍措',        status:'planned' },
+  { day:13, label:'Day 13', from:'羊卓雍措',     to:'日喀则',          status:'planned' },
+  { day:14, label:'Day 14', from:'日喀则',       to:'返程',            status:'planned' }
+];
+
+/* ── Mock today's plan (Day 4 example — 新都桥 → 理塘) ──
+ * Each: { time, name, distance, status }
+ *   status ∈ 'done' | 'active' | 'planned'
+ */
+const MOCK_PLACES_BY_DAY = {
+  1: [
+    { time:'08:00', name:'成都出发 · 集合点', distance:'成都 → 雅安',         status:'done'    },
+    { time:'12:30', name:'雅安鱼椒午餐',         distance:'雅安市区',           status:'done'    },
+    { time:'15:00', name:'平乐古镇',             distance:'雅安 → 平乐 30 km', status:'done'    },
+    { time:'19:00', name:'雅安酒店入住',         distance:'平乐 → 雅安 25 km', status:'done'    }
+  ],
+  2: [
+    { time:'08:30', name:'雅安出发',             distance:'雅安 → 康定 230 km',status:'done'    },
+    { time:'13:00', name:'泸定桥 · 红色教育',    distance:'泸定县',            status:'done'    },
+    { time:'16:30', name:'折多山垭口 (4,298m)',  distance:'折多山观景',        status:'done'    },
+    { time:'19:30', name:'康定酒店 · 藏式晚餐',  distance:'康定城',            status:'done'    }
+  ],
+  3: [
+    { time:'07:30', name:'康定出发 (晨雾)',      distance:'康定 → 新都桥 75 km',status:'done'    },
+    { time:'10:00', name:'新都桥观景台 (海拔 3,460m)', distance:'新都桥摄影',     status:'done'    },
+    { time:'14:30', name:'鱼子西星空营地',       distance:'新都桥 → 鱼子西 28 km', status:'done'   },
+    { time:'18:00', name:'新都桥酒店 · 藏餐',    distance:'新都桥镇',          status:'done'    }
+  ],
+  4: [
+    { time:'08:00', name:'新都桥出发',           distance:'新都桥 → 理塘 145 km',status:'done'    },
+    { time:'11:30', name:'理塘千户藏寨',         distance:'理塘城',            status:'active'  },
+    { time:'14:30', name:'姊妹湖',               distance:'理塘 → 姊妹湖 50 km',status:'planned' },
+    { time:'18:00', name:'巴塘温泉 (休整)',      distance:'姊妹湖 → 巴塘 110 km',status:'planned'},
+    { time:'20:30', name:'巴塘酒店入住',         distance:'巴塘城',            status:'planned' }
+  ],
+  5: [
+    { time:'07:30', name:'巴塘出发',             distance:'巴塘 → 芒康',       status:'planned' },
+    { time:'12:00', name:'金沙江大桥 (川藏界)',  distance:'川滇藏交界',        status:'planned' },
+    { time:'17:00', name:'芒康酒店',             distance:'芒康城',            status:'planned' }
+  ]
+};
+
+/* Fallback place set used when active day has no mock (Day 6+) */
+const MOCK_PLACES_FALLBACK = [
+  { time:'08:00', name:'出发 · 早餐打包',       distance:'约 220 km',         status:'planned' },
+  { time:'11:30', name:'观景台 (海拔 4,200m)',  distance:'途经点',            status:'planned' },
+  { time:'14:30', name:'午餐 · 当地藏餐',       distance:'途经县城',          status:'planned' },
+  { time:'17:00', name:'沿途 5 大机位',         distance:'摄影路线',          status:'planned' },
+  { time:'20:00', name:'目的地酒店入住',         distance:'今晚住宿',          status:'planned' }
+];
+
+/* ── Tiny helpers ── */
+function _tripEsc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+function _tripNum(s, dflt){
+  /* Coerce string/number → int safely; returns dflt on NaN/invalid */
+  var n = parseInt(s, 10);
+  return isNaN(n) || n < 1 ? dflt : n;
+}
+
+/* ── Read state.trip.active with safe defaults ──
+ * Skeleton exposes window.state (Proxy) + window._state (raw).
+ * Contract: state.trip.active = {tripId, currentDay, stats, today}
+ * If skeleton hasn't initialized "active" yet (L4 default uses trip.currentId),
+ * fall back to a hard-coded default so v0.1 is always usable.
+ */
+function _tripActive(){
+  try {
+    var raw = (window.state && window.state.trip && window.state.trip.active) || null;
+    var total = (typeof MOCK_DAYS !== 'undefined') ? MOCK_DAYS.length : 14;
+    if (!raw || typeof raw !== 'object') {
+      return {
+        tripId: 'tibet-318',
+        currentDay: 3,
+        totalDays: total,
+        stats: { drivenKm: 487, remainKm: 1913, photos: 23, altitude: 3820 },
+        today: (MOCK_PLACES_BY_DAY[3] || MOCK_PLACES_FALLBACK).slice()
+      };
+    }
+    return {
+      tripId:    raw.tripId    != null ? String(raw.tripId) : 'tibet-318',
+      currentDay: typeof raw.currentDay === 'number' ? raw.currentDay : 3,
+      totalDays:  typeof raw.totalDays === 'number' ? raw.totalDays : total,
+      stats: {
+        drivenKm:  typeof raw.stats === 'object' && raw.stats && typeof raw.stats.drivenKm  === 'number' ? raw.stats.drivenKm  : 487,
+        remainKm:  typeof raw.stats === 'object' && raw.stats && typeof raw.stats.remainKm  === 'number' ? raw.stats.remainKm  : 1913,
+        photos:    typeof raw.stats === 'object' && raw.stats && typeof raw.stats.photos    === 'number' ? raw.stats.photos    : 23,
+        altitude:  typeof raw.stats === 'object' && raw.stats && typeof raw.stats.altitude  === 'number' ? raw.stats.altitude  : 3820
+      },
+      today: Array.isArray(raw.today) && raw.today.length ? raw.today.slice() : (MOCK_PLACES_BY_DAY[3] || MOCK_PLACES_FALLBACK).slice()
+    };
+  } catch (e) {
+    /* Never throw from a view function */
+    return { tripId:'tibet-318', currentDay:3, totalDays:14,
+             stats:{drivenKm:487,remainKm:1913,photos:23,altitude:3820},
+             today: (MOCK_PLACES_BY_DAY[3] || MOCK_PLACES_FALLBACK).slice() };
+  }
+}
+
+/* ── Find day mock by index (1-based) ── */
+function _tripDayMock(d){
+  for (var i = 0; i < MOCK_DAYS.length; i++) {
+    if (MOCK_DAYS[i].day === d) return MOCK_DAYS[i];
+  }
+  /* Clamp to last day if out of range */
+  return MOCK_DAYS[MOCK_DAYS.length - 1];
+}
+
+/* ── Get places for given day, with fallback ── */
+function _tripPlacesFor(d){
+  var list = MOCK_PLACES_BY_DAY[d];
+  if (list && list.length) return list;
+  return MOCK_PLACES_FALLBACK;
+}
+
+/* ── Day chip click handler ──
+ * Updates window.location.hash → '#trip?day=N'
+ * Then asks the skeleton (window.GT.render) to re-render.
+ * Falls back silently if no GT.render.
+ */
+function _tripGoDay(day, ev){
+  if (ev) {
+    try { ev.preventDefault(); ev.stopPropagation(); } catch(_){}
+  }
+  try {
+    if (typeof location !== 'undefined') {
+      location.hash = '#trip?day=' + encodeURIComponent(String(day));
+    }
+  } catch(_){}
+  try {
+    if (window.GT && typeof window.GT.render === 'function') {
+      window.GT.render();
+    }
+  } catch(_){}
+}
+
+/* ── Quick action button stubs ──
+ * Per spec: alert stub. v0.2 will replace with real camera/mic/addStop.
+ */
+function _tripAction(kind, ev){
+  if (ev) {
+    try { ev.preventDefault(); ev.stopPropagation(); } catch(_){}
+  }
+  var label = ({
+    photo: '📷 拍一张',
+    voice: '🎤 录音',
+    stop:  '📍 添加途经点'
+  })[kind] || ('v0.2 上线: ' + kind);
+  try {
+    if (window.GT && typeof window.GT.toast === 'function') {
+      window.GT.toast('v0.2 上线: ' + label);
+      return;
+    }
+  } catch(_){}
+  try { alert('v0.2 上线: ' + label + '\n(行程记录功能待实现)'); } catch(_){}
+}
+
+/* ── viewTrip() — main entry. Returns HTML string. ──
+ * Optionally takes p.params.day (string from URL) which overrides active.currentDay.
+ */
+function viewTrip(p){
+  p = p || {};
+  var pp = (p.params && typeof p.params === 'object') ? p.params : {};
+  var dayParam = _tripNum(pp.day, -1);
+
+  var active = _tripActive();
+  /* URL param ?day=N wins over state */
+  var day = dayParam > 0 ? dayParam : active.currentDay;
+  /* Clamp day to valid range */
+  if (day < 1) day = 1;
+  if (day > active.totalDays) day = active.totalDays;
+
+  var dayInfo   = _tripDayMock(day);
+  var places    = _tripPlacesFor(day);
+  var tripName  = '318 川藏南线';
+  var totalDays = active.totalDays || MOCK_DAYS.length;
+  var stats     = active.stats;
+
+  /* Persist day selection back to state (so deep-link works across tab switches) */
+  try {
+    if (window.state && typeof window.state.trip === 'object') {
+      window.state.trip.active = Object.assign({}, active, { currentDay: day });
+    }
+  } catch(_){}
+
+  /* ── Top hero ── */
+  var hero = `
+    <section class="trip-hero" aria-label="当前行程">
+      <div class="name">
+        ${_tripEsc(tripName)}
+        <span class="sub">SELF-DRIVE · IN PROGRESS</span>
+      </div>
+      <span class="day-pill" aria-label="第几天 / 总天数"><b>Day ${day}</b> / ${totalDays}</span>
+      <span class="weather" aria-label="天气">☀️ 晴 18℃</span>
+    </section>
+  `;
+
+  /* ── Stats row (4 boxes) ── */
+  var statsRow = `
+    <div class="trip-stats" role="list" aria-label="行程数据">
+      <div class="trip-stat" role="listitem">
+        <div class="num terra">${_tripEsc(stats.drivenKm.toLocaleString('zh-CN'))}</div>
+        <div class="lbl">已行驶 km</div>
+      </div>
+      <div class="trip-stat" role="listitem">
+        <div class="num">${_tripEsc(stats.remainKm.toLocaleString('zh-CN'))}</div>
+        <div class="lbl">剩余 km</div>
+      </div>
+      <div class="trip-stat" role="listitem">
+        <div class="num green">${_tripEsc(String(stats.photos))}</div>
+        <div class="lbl">拍摄 张</div>
+      </div>
+      <div class="trip-stat" role="listitem">
+        <div class="num gold">${_tripEsc(String(stats.altitude))}m</div>
+        <div class="lbl">海拔 m</div>
+      </div>
+    </div>
+  `;
+
+  /* ── Day timeline (horizontal scroll chips) ── */
+  var dayChips = MOCK_DAYS.map(function(d){
+    var cls = 'trip-day is-' + d.status +
+              (d.day === day ? ' is-active' : '');
+    var route = d.day === 9 ? '然乌湖 → 林芝' :
+                d.day === 14 ? '日喀则 → 返程' :
+                (d.from + ' → ' + d.to);
+    var label = d.label;
+    /* Day 4-7 compressed "拉萨段" could be added; we keep per-day for clarity */
+    return `
+      <a class="${cls}"
+         href="#trip?day=${d.day}"
+         onclick="_tripGoDay(${d.day}, event);return false;"
+         aria-label="切换到 ${label} ${_tripEsc(d.from + ' 到 ' + d.to)}">
+        <span class="trip-day-label">
+          <span class="trip-day-dot" aria-hidden="true"></span>${label}
+        </span>
+        <span class="trip-day-route">${_tripEsc(route)}</span>
+      </a>
+    `;
+  }).join('');
+  var daysSection = `
+    <div class="trip-section">
+      <span>行程时间轴</span>
+      <small>左右滑动 · 点按切换</small>
+    </div>
+    <div class="trip-days-row">
+      <div class="trip-days" role="tablist" aria-label="行程日期">${dayChips}</div>
+    </div>
+  `;
+
+  /* ── Today's plan list ── */
+  var placeCards = places.map(function(ph){
+    var cls = 'trip-place is-' + (ph.status || 'planned');
+    var statusLabel = ph.status === 'done'    ? '✅ 完成'
+                    : ph.status === 'active'  ? '🟡 进行中'
+                    :                            '⚪ 计划中';
+    return `
+      <a class="${cls}"
+         href="javascript:void(0)"
+         onclick="_tripAction('photo', event);return false;"
+         aria-label="${_tripEsc(ph.name)}">
+        <span class="time">${_tripEsc(ph.time)}</span>
+        <div class="body">
+          <div class="t">${_tripEsc(ph.name)}</div>
+          <div class="m">
+            <span>${_tripEsc(ph.distance)}</span>
+            <span class="dot" aria-hidden="true"></span>
+            <span class="status">${statusLabel}</span>
+          </div>
+        </div>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+    `;
+  }).join('');
+  var placesSection = `
+    <div class="trip-section">
+      <span>Day ${day} 行程</span>
+      <small>${_tripEsc(dayInfo.from + ' → ' + dayInfo.to)}</small>
+    </div>
+    <div class="trip-places" role="list" aria-label="当日计划">${placeCards}</div>
+  `;
+
+  /* ── Map placeholder (large gradient card) ── */
+  var mapSection = `
+    <div class="trip-map-stub" aria-label="实时轨迹 · 占位">
+      <span class="lock">v0.2 · 上线</span>
+      <span class="pin" aria-hidden="true"></span>
+      <div class="t">🗺️ 实时轨迹 · v0.2 上线</div>
+      <div class="coords">当前坐标: 30.04°N 101.87°E</div>
+    </div>
+  `;
+
+  /* ── Quick action bar (3 buttons) ── */
+  var actionsSection = `
+    <div class="trip-actions" role="group" aria-label="快捷操作">
+      <button type="button" onclick="_tripAction('photo', event)" aria-label="拍一张">
+        <span class="ico" aria-hidden="true">📷</span><span>拍一张</span>
+      </button>
+      <button type="button" onclick="_tripAction('voice', event)" aria-label="录音">
+        <span class="ico" aria-hidden="true">🎤</span><span>录音</span>
+      </button>
+      <button type="button" onclick="_tripAction('stop', event)" aria-label="添加途经点">
+        <span class="ico" aria-hidden="true">📍</span><span>添加途经点</span>
+      </button>
+    </div>
+  `;
+
+  return `
+    <div class="trip-wrap" data-tab="trip" data-day="${day}">
+      ${hero}
+      ${statsRow}
+      ${daysSection}
+      ${placesSection}
+      ${mapSection}
+      ${actionsSection}
+    </div>
+  `.trim();
+}
+
+/* ── Expose for headless test / iframe verify ── */
+window.MOCK_DAYS             = MOCK_DAYS;
+window.MOCK_PLACES_BY_DAY    = MOCK_PLACES_BY_DAY;
+window.MOCK_PLACES_FALLBACK  = MOCK_PLACES_FALLBACK;
+window.viewTrip              = viewTrip;
+window._tripGoDay            = _tripGoDay;
+window._tripAction           = _tripAction;
+</script>

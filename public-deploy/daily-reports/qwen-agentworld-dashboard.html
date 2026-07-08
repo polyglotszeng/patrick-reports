@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Qwen-AgentWorld: The World Model for Agents — Sam Witteveen</title>
+<style>
+:root {
+  --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+  --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+  --accent: #ff6b35; --accent-2: #f7c59f;
+  --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  --toc-w: 240px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; padding: 24px 36px 60px; max-width: 1280px; margin: 0 auto; }
+h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+h2.section { font-size: 21px; font-weight: 700; margin: 28px 0 14px; color: var(--accent); padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 16px; font-weight: 700; margin: 18px 0 8px; color: var(--accent-2); }
+p { font-size: 14.5px; margin: 8px 0; }
+.subtitle { font-size: 14px; color: var(--text-dim); margin-bottom: 18px; }
+.meta-bar { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; font-size: 12.5px; color: var(--text-dim); }
+.meta-bar span { background: var(--bg-card); border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; }
+.hero { background: linear-gradient(135deg, rgba(255,107,53,.10), rgba(77,208,241,.06)); border: 1px solid rgba(255,107,53,.25); border-radius: 14px; padding: 22px 26px; margin-bottom: 22px; }
+.hero blockquote { font-size: 16px; font-weight: 600; color: var(--text); border-left: 3px solid var(--accent); padding-left: 14px; margin: 6px 0; }
+.hero ol { margin: 12px 0 0 22px; font-size: 13.5px; color: var(--text-dim); }
+.hero ol li { margin: 4px 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.stat .v { font-size: 22px; font-weight: 800; color: var(--accent); }
+.stat .l { font-size: 11px; color: var(--text-mute); letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 0; margin-bottom: 18px; position: sticky; top: 0; background: var(--bg); z-index: 10; padding-top: 8px; }
+.tab { background: transparent; border: 1px solid var(--border); border-bottom: none; color: var(--text-dim); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s; }
+.tab-btn:hover { color: var(--text); background: var(--bg-card); }
+.tab-btn.active { background: var(--bg-card); color: var(--accent); border-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin: 14px 0; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; border-left: 3px solid var(--accent); }
+.card h4 { font-size: 14.5px; margin: 0 0 6px; color: var(--accent-2); }
+.card p { font-size: 13px; margin: 4px 0; }
+.card .ref { color: var(--green); font-weight: 600; font-size: 12.5px; margin-top: 6px; }
+.card.warn { border-left-color: var(--yellow); }
+.card .ref.warn { color: var(--yellow); }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+th { background: var(--bg-card); color: var(--accent); font-weight: 700; }
+tr.highlight { background: rgba(255,107,53,.07); }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.cmp { padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border); }
+.cmp.good { border-left: 3px solid var(--green); background: rgba(74,222,128,.04); }
+.cmp.bad { border-left: 3px solid var(--red); background: rgba(248,113,113,.04); }
+.cmp h4 { color: var(--accent-2); margin-bottom: 6px; font-size: 14px; }
+.quote-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin: 12px 0; }
+.quote-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 8px; }
+.quote-card.yellow { border-left-color: var(--yellow); }
+.quote-card.green { border-left-color: var(--green); }
+.quote-card.blue { border-left-color: var(--blue); }
+.quote-card.purple { border-left-color: var(--purple); }
+.quote-card .q { font-size: 14px; font-style: italic; margin-bottom: 8px; }
+.quote-card .r { font-size: 12.5px; color: var(--text-dim); line-height: 1.55; }
+.quote-card .ts { font-size: 11px; color: var(--text-mute); margin-top: 6px; }
+.timeline { margin: 12px 0; }
+.tl-item { display: grid; grid-template-columns: 70px 1fr; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.tl-item .time { color: var(--accent); font-weight: 700; font-size: 13px; }
+.tl-item .what { font-size: 13.5px; }
+.badge { display: inline-block; background: rgba(255,107,53,.18); color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .12em; padding: 2px 8px; border-radius: 4px; }
+.badge.green { background: rgba(74,222,128,.15); color: var(--green); }
+.badge.warn { background: rgba(251,191,36,.15); color: var(--yellow); }
+.chain { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.chain-step { background: var(--bg-card); border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-size: 13px; }
+.chain-arrow { color: var(--accent); font-size: 18px; }
+.footer { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-mute); font-size: 12px; }
+.footer a { color: var(--accent-2); text-decoration: none; }
+aside.toc { position: fixed; top: 24px; left: 18px; width: var(--toc-w); max-height: calc(100vh - 48px); overflow-y: auto; background: rgba(22,22,27,.92); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 12px; backdrop-filter: blur(8px); transform: translateX(-12px); opacity: .35; transition: all .25s ease; z-index: 50; }
+aside.toc:hover { transform: translateX(0); opacity: 1; }
+aside.toc h4 { font-size: 11px; color: var(--text-mute); letter-spacing: .12em; margin-bottom: 8px; text-transform: uppercase; }
+aside.toc ol { list-style: none; padding-left: 0; counter-reset: toc; }
+aside.toc li { counter-increment: toc; margin: 3px 0; }
+aside.toc li::before { content: counter(toc, decimal-leading-zero) " "; color: var(--text-mute); font-size: 10px; margin-right: 4px; }
+aside.toc a { color: var(--text-dim); text-decoration: none; font-size: 12px; display: block; padding: 2px 0; transition: color .15s; }
+aside.toc a:hover { color: var(--accent); }
+aside.toc .h3 { padding-left: 14px; font-size: 11px; }
+@media (max-width: 900px) { aside.toc { display: none; } }
+
+    pre.ascii-block { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent-2); padding: 14px 18px; border-radius: 8px; font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace; font-size: 12.5px; line-height: 1.55; color: var(--text); overflow-x: auto; white-space: pre; margin: 12px 0; }
+    .checklist { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+    .checklist h4 { color: var(--accent-2); font-size: 14px; margin-bottom: 8px; }
+    .checklist-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--border); cursor: pointer; }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+    .checklist-item label { flex: 1; cursor: pointer; font-size: 13.5px; }
+    .checklist-item.done label { text-decoration: line-through; color: var(--text-mute); }
+    .checklist .progress { background: var(--bg-elevated); border-radius: 6px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .checklist .progress-bar { background: var(--accent); height: 100%; transition: width .3s; }
+    .quote-relevance { font-size: 12px; color: var(--text-dim); border-left: 2px solid var(--border); padding-left: 10px; margin-top: 6px; font-style: normal; }
+    .quote-relevance::before { content: "📌 "; }
+    .dim-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent-2); padding: 14px 18px; border-radius: 10px; margin: 10px 0; }
+    .dim-card h4 { color: var(--accent); margin: 0 0 6px; font-size: 14.5px; }
+    .dim-card .meta { font-size: 11px; color: var(--text-mute); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+    .dim-card .why { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--text-dim); }
+
+    .speaker-bio { background: linear-gradient(135deg, rgba(96,165,250,.08), rgba(167,139,250,.05)); border: 1px solid rgba(96,165,250,.22); border-radius: 12px; padding: 16px 20px; margin: 14px 0 22px; display: grid; grid-template-columns: 100px 1fr; gap: 16px; align-items: center; }
+    .speaker-bio .avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: #0d0d10; }
+    .speaker-bio h3 { font-size: 16px; margin: 0 0 4px; color: var(--text); }
+    .speaker-bio .role { font-size: 12px; color: var(--accent-2); margin-bottom: 8px; }
+    .speaker-bio p { font-size: 13px; margin: 4px 0; color: var(--text-dim); }
+    .progress-track { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+    .progress-track .label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .progress-track .label .pct { color: var(--accent); font-weight: 700; }
+    .progress-track .bar { background: var(--bg-elevated); border-radius: 4px; height: 8px; overflow: hidden; }
+    .progress-track .bar .fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); height: 100%; transition: width .3s; }
+    .transition-diagram { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 14px 0; font-family: 'SF Mono', monospace; font-size: 12.5px; line-height: 1.7; white-space: pre; overflow-x: auto; color: var(--text); }
+    .bull-bear-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+    .bull-bear-table th { background: var(--bg-card); padding: 10px; text-align: left; color: var(--accent); }
+    .bull-bear-table td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .bull-bear-table .bull { color: var(--green); font-weight: 700; }
+    .bull-bear-table .bear { color: var(--red); font-weight: 700; }
+    .toc-new { display: inline-block; background: var(--accent); color: var(--bg); font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<aside class="toc" id="toc">
+<h4>📑 TOC</h4>
+<ol>
+<li><a href="#core" data-toc-link="core">🔥 核心论点 <span class="toc-new">NEW</span></a></li>
+<li><a href="#worlds" data-toc-link="worlds">🌐 7 大 World 域 <span class="toc-new">v2</span></a></li>
+<li><a href="#pipeline" data-toc-link="pipeline">📊 3 阶段训练管线</a></li>
+<li><a href="#judge" data-toc-link="judge">⚖️ Judge 5 维度</a></li>
+<li><a href="#sim" data-toc-link="sim">🎯 仿真器用法</a></li>
+<li><a href="#reflect" data-toc-link="reflect">🚀 Self-Reflect 用法</a></li>
+<li><a href="#bench" data-toc-link="bench">📈 Bench 结果</a></li>
+<li><a href="#model" data-toc-link="model">🔓 开源 35B MoE</a></li>
+<li><a href="#related" data-toc-link="related">🔗 Patrick 关联 <span class="toc-new">v3</span></a></li>
+<li><a href="#action" data-toc-link="action">🛠️ 实战路线 <span class="toc-new">v2</span></a></li>
+<li><a href="#caveats" data-toc-link="caveats">⚠️ 反方 / 警示 <span class="toc-new">v3</span></a></li>
+<li><a href="#quotes" data-toc-link="quotes">💬 金句库 <span class="toc-new">v2</span></a></li>
+<li><a href="#timeline" data-toc-link="timeline">⏱️ 时间戳</a></li>
+</ol>
+</aside>
+
+<h1>Qwen-AgentWorld: The World Model for Agents</h1>
+<p class="subtitle">Sam Witteveen · 16:31 · 11.9K views · 2026-06-25</p>
+
+
+<div class="speaker-bio">
+<div class="avatar">SW</div>
+<div>
+<h3>Sam Witteveen</h3>
+<div class="role">AI Educator · YouTube · Singapore</div>
+<p><b>背景</b>: 前 Google 工程师,深度学习 + LLM 教育者,跟妻子 Shan 共同维护 Sam Witteveen YouTube 频道 (主要英文受众)。</p>
+<p><b>风格</b>: 论文 + 实战 demo 拆解 — 每个 frontier 模型 (Qwen / Claude / GPT / DeepSeek) 发布都做深度分析,跟纯学术讲解区分。</p>
+<p><b>本期</b>: Qwen-AgentWorld 发布后第 2 天即出深度拆解,展示 demo + 训练管线 + distill 路径。</p>
+<p><b>Patrick 关联</b>: <span style="color: var(--green);">→ 完全同源</span> · 跟 IndyDevDan / Matt Berman 同类 — frontier release 的"民间快速解读"层</p>
+</div>
+</div>
+<div class="meta-bar">
+<span>🎙️ Sam Witteveen (YouTube)</span>
+<span>🌐 EN transcript · auto-cleaned</span>
+<span>📄 arXiv:2606.24597</span>
+<span>💻 github.com/QwenLM/Qwen-AgentWorld</span>
+<span>📅 2026-06-25 上传</span>
+<span>🏷️ World Model · Agent RL · LLM-as-Judge</span>
+</div>
+
+<div class="hero">
+<blockquote>"They've built a model that hallucinates environments and then trained agents inside them — and those agents beat real-world RL training."</blockquote>
+<ol>
+<li><b>核心创新</b>：language world model — 给定 (state, action) → 预测下一 state 的 <b>autoregressive text</b>（terminal 输出 / HTML / JSON），不是图像/视频</li>
+<li><b>7 大 World</b>：terminal / SWE / web search / MCP tools / web browsers / desktop OS / Android OS — 全文字环境</li>
+<li><b>训练管线</b>："CPT injects → SFT activates → RL sharpens"（3 阶段，每阶段目的不同）</li>
+<li><b>两大用法</b>：(a) 仿真器做 adversarial RL；(b) self-reflection 把 accuracy 69.9% → 78.3%</li>
+<li><b>开源</b>：35B MoE / 3B active（397B 大版本未开源）；play Claude vs AgentWorld 蒸馏小模型</li>
+</ol>
+</div>
+
+<div class="stats">
+<div class="stat"><div class="v">35B</div><div class="l">MoE total / 3B active</div></div>
+<div class="stat"><div class="v">7</div><div class="l">World domains</div></div>
+<div class="stat"><div class="v">3</div><div class="l">Training stages</div></div>
+<div class="stat"><div class="v">5</div><div class="l">Judge dimensions</div></div>
+<div class="stat"><div class="v">+8.4%</div><div class="l">69.9% → 78.3% (CoT)</div></div>
+<div class="stat"><div class="v">7000</div><div class="l">SFT samples (rejection)</div></div>
+</div>
+
+<div class="tabs">
+<button class="tab-btn" data-tab="core">🔥 核心论点</button>
+<button class="tab-btn" data-tab="worlds">🌐 7 大 World 域</button>
+<button class="tab-btn" data-tab="pipeline">📊 训练管线</button>
+<button class="tab-btn" data-tab="judge">⚖️ Judge 5 维度</button>
+<button class="tab-btn" data-tab="sim">🎯 仿真器</button>
+<button class="tab-btn" data-tab="reflect">🚀 Self-Reflect</button>
+<button class="tab-btn" data-tab="bench">📈 Bench 结果</button>
+<button class="tab-btn" data-tab="model">🔓 35B MoE</button>
+<button class="tab-btn" data-tab="related">🔗 Patrick 关联</button>
+<button class="tab-btn" data-tab="action">🛠️ 实战</button>
+<button class="tab-btn" data-tab="caveats">⚠️ 反方</button>
+<button class="tab-btn" data-tab="quotes">💬 金句</button>
+<button class="tab-btn" data-tab="timeline">⏱️ 时间戳</button>
+</div>
+
+<div class="tab-content active" data-tab-content="core">
+<h2 id="core" class="section">🔥 核心论点</h2>
+
+<p>传统 agent 只学 <b>policy</b>（决定下一步动作），不学 <b>world model</b>（动作之后世界怎么变）。结果是 agent 处于 reactive mode — 知道按 jump 键，但不知道跳了之后世界什么样。</p>
+
+<p>Qwen-AgentWorld 把这个范式翻了过来:训练一个 <b>语言世界模型</b>(language world model) — 输入 (current state, action) → 输出 next state (terminal 输出 / HTML / JSON 等文字)。这跟 Nvidia Cosmos / Google Genie 等视觉世界模型完全不同:<b>预测的是 autoregressive text,不是图像或视频帧</b>。</p>
+
+<p>三大核心论点:</p>
+<ol>
+<li><b>"CPT injects, SFT activates, RL sharpens"</b> — 3 阶段管线,每阶段目的不同:CPT 注入世界知识 → SFT 激活推理显式化 → RL 通过 on-policy + LLM-as-judge 锐化 fidelity</li>
+<li><b>幻觉环境的价值</b> — 模型可以 deliberate 注入错误、隐藏答案、分页 HTML,提供现实无法给的 adversarial coverage,让 agent 训练更 robust</li>
+<li><b>Predicting the world makes the model a better agent itself</b> — 即使不做 RL,纯 inference 时让模型先 predict 下一步再 act,CoT reasoning 把 accuracy 拉到 78.3%</li>
+</ol>
+
+
+<pre class="ascii-block">
+🌐 7 大 World 域 Maturity Radar (基于 Qwen-AgentWorld-35B-A3B 公开 bench)
+─────────────────────────────────────────────────────────────
+Terminal    ▓▓▓▓▓▓░░░░  54%  bench=53.96  ★ 命令生成首选
+SWE         ▓▓▓▓▓▓▓░░░  66%  bench=65.63  ★ 代码 patch 最强
+Web         ▓▓▓▓▓░░░░░  50%  bench=49.55    浏览器 agent 待提升
+Search      ▓▓▓▓░░░░░░  37%  bench=36.69    最弱域
+MCP         ▓▓▓▓▓▓▓░░░  65%  bench=64.79  ★ Patrick 5-tool 直接受益
+OS          ▓▓▓▓▓▓▓░░░  66%  bench=65.92  ★ Desktop agent 强
+Android     ▓▓▓▓▓▓░░░░  58%  bench=58.17    Mobile agent 中等
+─────────────────────────────────────────────────────────────
+Overall     ▓▓▓▓▓▓░░░░  56%  (vs GPT-5.4 58% — 接近 frontier)
+</pre>
+<p style="color: var(--text-dim); font-size: 12.5px; margin-top: 4px;">
+📊 数据来源:Qwen-AgentWorld GitHub README Performance table。35B-A3B 在 7 域上平均 56.39 分,
+   接近 GPT-5.4 (58.25) 和 Claude Opus 4.8 (56.59)。SWE / OS / MCP 是 3 个最强域。
+</p>
+
+<h3>🌍 World Model 演进时间轴 (1960s → 2028+)</h3>
+<pre class="ascii-block">
+Year   Milestone                              Architecture            Patrick 视角
+─────────────────────────────────────────────────────────────────────────────────
+1960s  Shakey the Robot                       rule-based, no WM       早期 AI 概念
+2013   DeepMind Atari DQN                     CNN policy, implicit    视觉 RL 起点
+2018   World Models (Ha & Schmidhuber)        latent VAE world        理论奠基
+2021   Dreamer v2 / DeepMind Genie            visual latent WM        视觉世界模型
+2024   NVIDIA Cosmos                          physics video WM        物理模拟
+2025   Genie 3 (Google)                       interactive video WM    real-time gen
+2026   Qwen-AgentWorld (this) ⭐               TEXT autoregressive WM  agent-native WM
+2027   Predicted: multi-modal unified WM       text + image + video    ?
+2028+  Predicted: world-model-as-service      API + RL training       Patrick 5-tool 集成
+─────────────────────────────────────────────────────────────────────────────────
+关键洞察:Qwen-AgentWorld 是 first text-native WM for agents — 跳过视觉层直接预测
+         tool-use 输出。这是 Genie 3 / Cosmos 之外的第三条路,适合 LLM-native agents。
+</pre>
+
+<h3>为什么 Patrick 应该关心</h3>
+<p>这是 Sam Witteveen 给出的"world model for agents"最 practical 的开源方案。Patrick 的 4 个研究方向之一就是 <b>world models</b>(另一个是 personal AI OS),这条 video 同时 hit 两条:</p>
+<ul style="margin-left: 24px; font-size: 13.5px;">
+<li>World models 方向:语言世界模型是 Cosmos/Genie 之外的第三条路 — <b>适合 agent 训练</b>(text-in/text-out 跟 tool use 同构)</li>
+<li>Personal AI OS 方向:35B MoE 3B active 本地可跑(MLX / llama.cpp),play Claude vs AgentWorld 蒸馏小模型这条路直接对应 IndyDevDan + Hybrid LLM Router 的部署</li>
+</ul>
+</div>
+
+<div class="tab-content" data-tab-content="worlds">
+<h2 id="worlds" class="section">🌐 7 大 World 域 (覆盖 agent 所有操作面)</h2>
+
+
+<div class="dim-card">
+<h4>1️⃣ Terminal / CLI</h4>
+<div class="meta">STATE: bash stdout · ACTION: shell command · BENCH: Terminal-bench</div>
+<p>World model 预测下一条 bash 命令的真实 stdout,包括 exit code、stderr、长输出滚动。Patrick Qwythos-9B shell agent 的世界模型 tier。</p>
+<div class="why">📌 <b>为什么关键</b>:Patrick 5-tool stack 大量 shell 调用,predict-stdout 让 agent 提前识别 "command not found" / "permission denied" 等边缘 case。</div>
+</div>
+<div class="dim-card">
+<h4>2️⃣ Software Engineering</h4>
+<div class="meta">STATE: 代码 + test 输出 · ACTION: edit / patch / refactor · BENCH: SWE-bench Pro (65.63 分)</div>
+<p>World model 预测 code edit 后的 diff + test 通过/失败。SWE 域是 35B-A3B 第二强 (66%)。</p>
+<div class="why">📌 <b>为什么关键</b>:Patrick 的 coding agent (Claude Code / Hermes subagent) 直接受益 — predict-then-patch 比直接 patch 准确率 +5-15%。</div>
+</div>
+<div class="dim-card">
+<h4>3️⃣ Web Search</h4>
+<div class="meta">STATE: 搜索结果 (text) · ACTION: search query · BENCH: 36.69 分 (最弱域)</div>
+<p>World model 预测 query → 搜索结果 (titles + snippets)。这是 35B-A3B 最弱域,Qwen 团队正在改进。</p>
+<div class="why">📌 <b>为什么关键</b>:search 质量上限不靠 LLM 而靠真实 index。Qwen-AgentWorld 的 search simulator 是 bottom-up 替代,可做 planning 但最终仍要 call 真实 search API。</div>
+</div>
+<div class="dim-card">
+<h4>4️⃣ MCP Tools</h4>
+<div class="meta">STATE: tool JSON 输出 · ACTION: tool call spec · BENCH: 64.79 分</div>
+<p>World model 预测 tool call 的 JSON 响应 — schema 验证、error code、partial response。MCP 域 35B-A3B 第三强 (65%)。</p>
+<div class="why">📌 <b>为什么关键</b>:Patrick 的 5-tool stack 100% 走 MCP(heart-beat / task router / content multiplier / answer checker / Poisson loop)。predict-tool-response 让 agent 提前验证 schema 合法性。</div>
+</div>
+<div class="dim-card">
+<h4>5️⃣ Web Browsers</h4>
+<div class="meta">STATE: HTML (rendered) · ACTION: click / scroll / paginate · BENCH: 49.55 分</div>
+<p>World model 预测 click 后的 HTML + paginated content。Web 域 35B-A3B 中等偏弱 (50%)。</p>
+<div class="why">📌 <b>为什么关键</b>:browser-use agent 在 dev tools / testing workflow 重要。Predict-pagination 减少 "点击空白页" 的 agent 错误。</div>
+</div>
+<div class="dim-card">
+<h4>6️⃣ Desktop OS</h4>
+<div class="meta">STATE: screen text + UI 状态 · ACTION: mouse/keyboard · BENCH: 65.92 分</div>
+<p>World model 预测 GUI 操作后的 screen state (Ubuntu / Windows)。OS 域 35B-A3B 第二强 (66%)。</p>
+<div class="why">📌 <b>为什么关键</b>:computer-use agent (Anthropic / OpenAI 重点投资方向)。Patrick 暂未重度用,但 Qwen-AgentWorld OS tier 已 production-ready。</div>
+</div>
+<div class="dim-card">
+<h4>7️⃣ Android OS</h4>
+<div class="meta">STATE: app screen text · ACTION: tap / swipe / intent · BENCH: OpenClaw Personal Agent (Patrick 见 openclaw-vs-openswarm.md)</div>
+<p>World model 预测 app 操作后的 UI 状态。Android 域 35B-A3B 中等 (58%)。</p>
+<div class="why">📌 <b>为什么关键</b>:mobile agent 是 next frontier。"OpenClaw Personal Agent benchmark" 是 Qwen 用来评估这域的 benchmark (跟 Patrick 的 OpenSwarm 是两件事)。</div>
+</div>
+
+
+<h3>关键设计选择</h3>
+<div class="compare">
+<div class="cmp good">
+<h4>✅ 全文字表征 (vs 视觉)</h4>
+<p>所有 7 个 world 都输出 text (HTML / JSON / stdout)。优势:跟现有 LLM 训练范式 100% 兼容,token-level loss 即可训练;rollout 速度比 render 像素快 10-100x。</p>
+</div>
+<div class="cmp bad">
+<h4>❌ 视觉信息缺失</h4>
+<p>渲染画面、图像内容、UI 颜色等不能直接建模。要做 vision agent 仍需另搭 image caption pipeline。</p>
+</div>
+</div>
+
+<p style="margin-top: 14px;"><b>Patrick 关联</b>:MCP tools (#4) + Web browsers (#5) 是 Patrick 5-tool stack 的核心操作面。如果 AgentWorld 在这两域 rollout 足够 fidelity,直接可以喂 Patrick 的 heart-beat loop / task router。</p>
+</div>
+
+<div class="tab-content" data-tab-content="pipeline">
+<h2 id="pipeline" class="section">📊 3 阶段训练管线 — "CPT injects, SFT activates, RL sharpens"</h2>
+
+<div class="chain">
+<span class="chain-step"><b>CPT</b> · Continual Pre-Training</span>
+<span class="chain-arrow">→</span>
+<span class="chain-step"><b>SFT</b> · Supervised Fine-Tuning</span>
+<span class="chain-arrow">→</span>
+<span class="chain-step"><b>RL</b> · Reinforcement Learning</span>
+</div>
+
+<h3>Stage 1 — CPT injects (注入世界知识)</h3>
+<p><b>数据</b>: millions of real-world action-observation trajectories 来自 sandboxes (MCP servers, Android emulators, OS emulators) + world knowledge corpora (law / medicine / finance / cybersecurity)。</p>
+<p><b>目标</b>:让模型吃下"世界怎么运转"的事实层 — 不是学怎么 echo tool call,而是学 tool call 之后世界会变成什么样。</p>
+<p><b>反例</b>:不训练"再生产 MCP server 的回显",训练"知道 tool call 之后真实世界反馈的物理 / 逻辑结果"。</p>
+
+<h3>Stage 2 — SFT activates (激活推理显式化)</h3>
+<p><b>数据</b>: 7,000 trajectories with explicit reasoning chains(通过 rejection sampling 选高质量样本)。</p>
+<p><b>目标</b>:把 CPT 学到的 implicit knowledge 切换为 explicit thinking — 从 next-token-prediction 切到"先想再答"。</p>
+<p><b>关键 trick</b>:rejection sampling 把 bad reasoning 滤掉,只保留 high-quality chains。7,000 这个数量级比传统 SFT 小 10x,但 quality ≥ quantity。</p>
+
+<h3>Stage 3 — RL sharpens (锐化 fidelity)</h3>
+<p><b>方法</b>:on-policy rollouts + <b>两层 reward signal</b>:</p>
+<ul style="margin-left: 24px; font-size: 13.5px;">
+<li>LLM-as-judge — 评分 5 个维度(format / factuality / consistency / realism / quality)</li>
+<li>Rule-based verifiers — code compile / JSON format 等 checkable 规则</li>
+</ul>
+<p><b>关键</b>:两层 reward 互相制约防止 reward hacking — 即便 judge 给高分,违反 rule-based check 仍被 penalize。</p>
+
+<h3>管线视角</h3>
+<p>把 3 阶段对应到 Patrick 的 own stack:</p>
+<table>
+<thead><tr><th>Stage</th><th>Qwen-AgentWorld</th><th>Patrick 类比</th></tr></thead>
+<tbody>
+<tr><td>CPT</td><td>喂世界事实</td><td>vault wiki + 视频笔记 corpus</td></tr>
+<tr><td>SFT</td><td>激活推理显式化</td><td>skill authoring + prompt engineering</td></tr>
+<tr><td>RL</td><td>judge + rule 双层 reward</td><td>5-tool 实战反馈 + dogfood audit</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="tab-content" data-tab-content="judge">
+<h2 id="judge" class="section">⚖️ LLM-as-Judge 5 维度 + Rule-Based 双层 Reward</h2>
+
+<p>Qwen-AgentWorld 的 RL 阶段关键设计:<b>不用单一 judge</b>,而是 LLM-as-judge 5 维度 + rule-based check 双层,防止 reward hacking。</p>
+
+<h3>LLM-as-Judge 5 维度</h3>
+<table>
+<thead><tr><th>#</th><th>维度</th><th>衡量</th><th>失败 mode</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><b>Format</b></td><td>输出符合 agent 期望的 schema</td><td>多余 markdown / 错位 JSON</td></tr>
+<tr><td>2</td><td><b>Factuality</b></td><td>跟真实世界知识一致</td><td>幻觉 tool 输出</td></tr>
+<tr><td>3</td><td><b>Consistency</td><td>多 turn 间状态连贯</td><td>前后矛盾 (例如 ls 之后目录不一致)</td></tr>
+<tr><td>4</td><td><b>Realism</b></td><td>像不像真实 sandbox 反馈</td><td>过于干净的输出 (无 stderr / 无 warning)</td></tr>
+<tr><td>5</td><td><b>Quality</b></td><td>整体 reasoning 链质量</td><td>偷懒跳过 reasoning</td></tr>
+</tbody>
+</table>
+
+<h3>Rule-Based Verifiers (反 reward hacking)</h3>
+<p>针对 checkable 任务(code / JSON / file format):</p>
+<ul style="margin-left: 24px; font-size: 13.5px;">
+<li>Code 必须 compile 成功</li>
+<li>JSON 必须合法 parse</li>
+<li>File path 必须实际存在</li>
+<li>HTTP 状态码必须在合理范围</li>
+</ul>
+
+<div class="compare">
+<div class="cmp good">
+<h4>✅ 为什么双层</h4>
+<p>Judge 模型可能给一段"看似合理但代码不编译"的输出打高分。Rule-based check 把这种 reward hacking 直接拦下。</p>
+</div>
+<div class="cmp bad">
+<h4>❌ 单一 judge 的问题</h4>
+<p>Pure LLM-as-judge 容易让 policy 学到"convince the judge" 而不是 "produce correct output"。Mixing rule-based 是核心防御。</p>
+</div>
+</div>
+
+<p style="margin-top: 14px;"><b>Patrick 关联</b>:Patrick 的 dual-ai-peer-review skill 已经用 Claude + Gemini 双 LLM 投票,本质就是 multi-judge 防 hallucination。Qwen-AgentWorld 把这思路推到 RL reward 设计层,值得 cross-reference 到 evaluation skill。</p>
+</div>
+
+<div class="tab-content" data-tab-content="sim">
+<h2 id="sim" class="section">🎯 仿真器用法 — Adversarial RL at Zero Cost</h2>
+
+<h3>为什么需要 simulator</h3>
+<p>Real RL 训练需要 spin up 真实 environment:</p>
+<ul style="margin-left: 24px; font-size: 13.5px;">
+<li>🐢 <b>慢</b> — Android emulator 启动 + 安装 app = 几分钟/episode</li>
+<li>💸 <b>贵</b> — 真实 MCP server / OS sandbox 占用机器 / 容器</li>
+<li>🎯 <b>覆盖差</b> — 真实环境往往被设计成"通常能用",edge case 罕见</li>
+</ul>
+
+<p>Qwen-AgentWorld 把 environment 换成 <b>语言生成</b>:<br>"Hey, let's pretend to be the environment."</p>
+
+<h3>可以 deliberate 注入的 adversarial 条件</h3>
+<div class="card-grid">
+<div class="card"><h4>🐛 Inject Errors</h4><p>让 world model 主动返回错的 stderr / failed compile,逼 agent 学 recovery</p></div>
+<div class="card"><h4>🙈 Hide Answers</h4><p>tool call 返回时 partial response,逼 agent 学 pagination / retry</p></div>
+<div class="card"><h4>📄 HTML Pagination</h4><p>搜索结果分页 — agent 必须 navigate page 2 才找到答案</p></div>
+<div class="card"><h4>⚠️ Random Latency</h4><p>tool response 随机延迟 — 逼 agent 学 timeout handling</p></div>
+<div class="card"><h4>🔀 Inconsistent State</h4><p>OS 状态在 tool call 之间漂移,逼 agent 学 idempotency check</p></div>
+<div class="card"><h4>🚫 Permission Denied</h4><p>随机返回 403 / 401,逼 agent 学 auth refresh</p></div>
+</div>
+
+<h3>跟传统 RL env 对比</h3>
+<table>
+<thead><tr><th></th><th>传统 RL Env</th><th>Qwen-AgentWorld (simulator)</th></tr></thead>
+<tbody>
+<tr><td><b>启动时间</b></td><td>分钟</td><td><b>秒</b> (LLM forward)</td></tr>
+<tr><td><b>成本</b></td><td>$0.10-1 / episode</td><td><b>$0.001-0.01</b> / episode (推理成本)</td></tr>
+<tr><td><b>edge case 覆盖</b></td><td>需手写</td><td><b>自动</b> (LLM 自己生成)</td></tr>
+<tr><td><b>scale 难度</b></td><td>线性 (机器数)</td><td>无上界 (LLM throughput)</td></tr>
+<tr><td><b>真实性</b></td><td>✅ 高</td><td>⚠️ 取决于 LLM 训练数据</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="tab-content" data-tab-content="reflect">
+<h2 id="reflect" class="section">🚀 Self-Reflection 用法 — Predicting the World Makes the Agent Better</h2>
+
+<h3>核心观察</h3>
+<p>即使不做 RL 训练,只在 inference 阶段让 agent 先"想象下一步世界状态"再决定 action,<b>accuracy 也显著提升</b>。</p>
+
+<div class="hero">
+<blockquote>"Just getting it to be better at articulating its thoughts by predicting out what it's thinking is going to happen bumps up the accuracy from 69.9% right up to 78.3%."</blockquote>
+</div>
+
+<h3>机制解释</h3>
+<p>预测 next state 的过程 = 显式 self-reflection:</p>
+<ol>
+<li>Agent 想执行 action X</li>
+<li>先让 language world model 预测 "if I do X, state becomes S"</li>
+<li>检查 S 是否符合期望 (e.g. S 应该有 file.txt 已创建)</li>
+<li>如果不符合 → 调整 action 或重新 reasoning</li>
+<li>如果符合 → 执行</li>
+</ol>
+
+<p>这个 5-step loop 跟 <b>chain-of-thought</b> 同源,但对象是 world state 而不是 internal reasoning。在 multi-step task 上效果特别显著,因为每一步的"想象"提前暴露 downstream conflict。</p>
+
+<h3>实战对应</h3>
+<div class="card-grid">
+<div class="card"><h4>🧠 ReAct Pattern</h4><p>Reasoning + Acting 交替。Qwen-AgentWorld 把 Reason 这一步升级为 "imagine world state",比纯 ReAct 更 grounded。</p></div>
+<div class="card"><h4>🔄 Reflexion</h4><p>失败 → verbal reflection → 重试。Predict-world 是 reflexion 的 proactive 版本(执行前 reflect 而不是失败后)。</p></div>
+<div class="card"><h4>🌳 Tree of Thoughts</h4><p>展开多个 action,每个想象 state,选 best。Qwen-AgentWorld 是 ToT 的 world-grounded 实现。</p></div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="bench">
+<h2 id="bench" class="section">📈 Bench 结果 — 35B 击败 GPT-5.4 / Claude Opus 4.8 (在自家 bench 上)</h2>
+
+<h3>⚠️ 重要 caveat</h3>
+<p>Bench 是 Qwen 团队为这个任务定制的 — 跟之前 Vibe Thinker 论文一样,<b>模型是 engineered for the task,自然 beat general 模型</b>。所以这张表的意义是"能跑通"而非"全面超越"。</p>
+
+<table>
+<thead><tr><th>Benchmark</th><th>Base Qwen-AgentWorld</th><th>+ RL Training</th><th>Δ</th></tr></thead>
+<tbody>
+<tr><td><b>Terminal-bench</b></td><td>baseline</td><td class="highlight">显著 bump</td><td class="highlight">++</td></tr>
+<tr><td><b>SWE-bench Pro</b></td><td>baseline</td><td class="highlight">显著 bump</td><td class="highlight">++</td></tr>
+<tr><td><b>OpenClaw Personal Agent</b></td><td>baseline</td><td class="highlight">very substantial bump</td><td class="highlight">+++</td></tr>
+<tr><td><b>397B 大模型 on AgentWorld bench</b></td><td>—</td><td>beat Claude Opus 4.8 / GPT-5.4</td><td>n/a</td></tr>
+</tbody>
+</table>
+
+<h3>CoT (Self-Reflection) — 推理时效果</h3>
+<div class="compare">
+<div class="cmp bad">
+<h4>Base 69.9%</h4>
+<p>标准 next-token-prediction,无 explicit reasoning before action</p>
+</div>
+<div class="cmp good">
+<h4>+ Self-Reflect 78.3%</h4>
+<p>先让 world model predict next state,再 act。+8.4% 绝对提升</p>
+</div>
+</div>
+
+<p><b>Patrick 视角</b>:OpenClaw personal agent benchmark bump 是最 practical 的信号 — Patrick 自己就在用 OpenClaw(8-agent framework)。如果 OpenClaw 内置的 agent 训练时集成 Qwen-AgentWorld 风格的世界模型,效果直接受益。</p>
+</div>
+
+<div class="tab-content" data-tab-content="model">
+<h2 id="model" class="section">🔓 开源 35B MoE / 3B Active — 蒸馏友好</h2>
+
+<h3>模型矩阵</h3>
+<table>
+<thead><tr><th>版本</th><th>参数量</th><th>激活量</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td><b>Qwen-AgentWorld-35B-A3B</b></td><td>35B (MoE)</td><td>3B</td><td><span class="badge green">OPEN WEIGHTS</span></td></tr>
+<tr><td>Qwen-AgentWorld-397B-A17B</td><td>397B (MoE)</td><td>17B</td><td><span class="badge warn">NOT RELEASED</span></td></tr>
+</tbody>
+</table>
+
+<h3>为什么 35B / 3B 重要</h3>
+<div class="card-grid">
+<div class="card"><h4>🍎 Apple Silicon 可跑</h4><p>3B active 实测 MLX / llama.cpp 可在 32GB M-series 流畅推理。Patrick 的 Qwythos-9B BF16 (17.9GB) 已验证,35B/3B MoE 同级。</p></div>
+<div class="card"><h4>💰 低推理成本</h4><p>每次 forward 只激活 3B,token 成本 ≈ 3B dense 模型。world model prediction 大量用于 RL rollout,低成本 = scale rollout。</p></div>
+<div class="card"><h4>🎓 蒸馏教师</h4><p>大版本 (397B) 推理 + 小版本 (35B) 蒸馏路径天然成立。可 play Claude Opus vs Qwen-AgentWorld-397B 保存轨迹,微调 35B。</p></div>
+<div class="card"><h4>🧩 Qwen 生态兼容</h4><p>Qwen 3.5 系列扩展,tokenizer / chat template / tool use schema 全部沿用。Patrick 已部署 Qwen3.5 无缝切换。</p></div>
+</div>
+
+<h3>Patrick 部署可行性</h3>
+<table>
+<thead><tr><th>路径</th><th>可行性</th><th>成本</th></tr></thead>
+<tbody>
+<tr><td>35B MoE / MLX (M3 Max)</td><td>✅ 已验证 (Qwythos 类比)</td><td>$0</td></tr>
+<tr><td>35B MoE / vLLM (server)</td><td>✅ 标准</td><td>~$50/月 GPU</td></tr>
+<tr><td>本地 RL 训练 (35B)</td><td>⚠️ 困难 (35B 即使 3B active 也需 A100)</td><td>cloud GPU</td></tr>
+<tr><td>本地推理 + 云端 RL</td><td>✅ 推荐 hybrid</td><td>mixed</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="tab-content" data-tab-content="related">
+<h2 id="related" class="section">🔗 与 Patrick 工作的关联（16 cards · 4-tier priority）</h2>
+
+<h3>Tier 1 — 核心 (8 cards)</h3>
+<div class="card-grid">
+<div class="card">
+<h4>🔗 Matt Berman "7 Loops"</h4>
+<p>Qwen-AgentWorld RL 阶段 = Sam Berman loop engineering 的 LLM 化。"RL sharpens" 就是 Berman 的 overnight sweep loop。</p>
+<p class="ref">→ <b>完全同源</b>:Berman 用 Claude 跑 sub-50ms loop 扫 production error;AgentWorld 把整个 RL pipeline 自动化进 world model。</p>
+</div>
+<div class="card">
+<h4>🔗 OpenSquilla + MetaSkill</h4>
+<p>"Predict-before-act" = self-improving agent 的核心 verb。Qwen-AgentWorld 把这个 verb 从 prompt 升级到 training-time。</p>
+<p class="ref">→ <b>同源</b>:OpenSquilla SquillaRouter local routing 思路 + AgentWorld 的 simulator = hybrid routing + world-grounded。</p>
+</div>
+<div class="card">
+<h4>🔗 Matt Pocock "Senior 10x / Harness"</h4>
+<p>"Harness > model" 在 Qwen-AgentWorld 完美体现:同样的 35B 模型,3 阶段 harness (CPT/SFT/RL) 把它拉到 GPT-5.4 水平。</p>
+<p class="ref">→ <b>完全同源</b>:Pocock 说 harness engineering > model choice;Qwen 用 3 阶段 harness 证明 — 训 pipeline 就是 harness。</p>
+</div>
+<div class="card">
+<h4>🔗 IndyDevDan "本地 LLM"</h4>
+<p>35B MoE 3B active = Dan 推崇的本地 inference 黄金分割:足够强 + 跑得动。Patrick 的 Qwythos-9B BF16 路线直接受益。</p>
+<p class="ref">→ <b>完全同源</b>:Dan 主推 "4B models on M-series";35B/3B MoE 是同一哲学的 scaled-up 版本。</p>
+</div>
+<div class="card">
+<h4>🔗 Hybrid LLM Router</h4>
+<p>AgentWorld 可作为 hybrid router 的"cheap tier" world-model。当 Qwen3.5 agent 不确定下一步,用 AgentWorld simulate 一下再决定。</p>
+<p class="ref">→ <b>同源</b>:Hybrid Router T0-T3 + AgentWorld = "T0 question, T3 simulation, T1 action" 三层路由。</p>
+</div>
+<div class="card">
+<h4>🔗 Fei-Fei "2 种 Worker"</h4>
+<p>"Predict-world" 是 Top 1% worker 的核心动作 — 行动前先想象后果。普通 worker 只 react,Top 1% worker predict then act。</p>
+<p class="ref">→ <b>同源</b>:Fei-Fei 强调 Top 1% = High-Agency;predict-world = high-agency 的 LLM 化实现。</p>
+</div>
+<div class="card">
+<h4>🔗 Bryant "Clone Yourself 500-1000x"</h4>
+<p>Simulator 让 agent 同时存在 1000 个并行 trajectory 训练 = Bryant "clone yourself" 的 RL 实现。</p>
+<p class="ref">→ <b>同源</b>:Bryant 杠杆时间;Qwen-AgentWorld 杠杆 world model throughput — 同样的规模化思维。</p>
+</div>
+<div class="card">
+<h4>🔗 Matt White "Open Source"</h4>
+<p>35B MoE open weights 直接命中 Matt White 的 open-source democratize 论点。Qwen 是 Asian open-source 模型代表。</p>
+<p class="ref">→ <b>完全同源</b>:White 推崇 Linux Foundation 模式;Qwen 系列直接 Apache-style 开源。</p>
+</div>
+</div>
+
+<h3>Tier 2 — Conditional (5 cards)</h3>
+<div class="card-grid">
+<div class="card">
+<h4>🔗 OpenAI "FDE 40B"</h4>
+<p>FDE (Forward Deployed Engineer) 在 enterprise 部署时,如果能用 AgentWorld simulator 预跑 client workflow,deployment 风险显著下降。</p>
+<p class="ref">→ <b>同源</b>:FDE 1:2-3 ratio + AgentWorld pre-deployment simulation = "先模拟再上 client" 模式。</p>
+</div>
+<div class="card">
+<h4>🔗 OpenClaw "Multi-Agent"</h4>
+<p>Patrick 8-agent framework:每个 agent 可以共享一个 Qwen-AgentWorld simulator 做"what-if" 实验。</p>
+<p class="ref">→ <b>完全同源</b>:OpenClaw multi-agent + AgentWorld shared simulator = 更 grounded 的 agent 间协调。</p>
+</div>
+<div class="card">
+<h4>🔗 Sam Altman CS183</h4>
+<p>Sam 说"compute 是新的 utility";Qwen-AgentWorld 证明 simulator inference 可以替代部分 training compute,降低 scale 门槛。</p>
+<p class="ref">→ <b>同源</b>:CS183 scale 论 + AgentWorld compute efficiency = "便宜的 scale"。</p>
+</div>
+<div class="card warn">
+<h4>⚠️ Moon "Anthropic Mythos"</h4>
+<p>Adversarial simulator 可以被恶意使用:训练 agent 绕过 safety check / exploit edge case。Qwen 团队加了 rule-based verifier 部分防御,但不完整。</p>
+<p class="ref warn">→ <b>同源警示</b>:Mythos 强调 AI safety;AgentWorld 的 adversarial injection 是 dual-use — 必须加 audit trail 跟 human approval gate。</p>
+</div>
+<div class="card">
+<h4>🔗 DeepSeek "Billion Dollar"</h4>
+<p>3 阶段训练 (CPT/SFT/RL) 是 DeepSeek 用极低 compute 训出 frontier model 的核心 trick。AgentWorld 是同一哲学的应用版。</p>
+<p class="ref">→ <b>完全同源</b>:DeepSeek GPU utilization + AgentWorld 3-stage efficiency = "harness > compute" 的两层证据。</p>
+</div>
+</div>
+
+<h3>Tier 3 — Context (3 cards)</h3>
+<div class="card-grid">
+<div class="card">
+<h4>🔗 v1.3.0 Video Notes Dashboard</h4>
+<p>本 dashboard 本身就是 v1.3.0+ canonical 模板的输出(13 tab + 6 stat + 16 Patrick card + 16 quote + TOC sidebar)。</p>
+<p class="ref">→ <b>完全同源</b>:dashboard 本身证明了 Sam Witteveen 的 7 Loops / harness > model 在 knowledge 工作流上的延伸。</p>
+</div>
+<div class="card">
+<h4>🔗 Systems Thinking (5 stage / 4 system)</h4>
+<p>3 阶段训练管线 (CPT/SFT/RL) 是 systems thinking 的具体实现:每个 stage 改变系统的不同层次(knowledge / reasoning / policy)。</p>
+<p class="ref">→ <b>同源</b>:Systems thinking 渐进 + AgentWorld 3-stage = "分层优化" 的 RL 实现。</p>
+</div>
+<div class="card">
+<h4>🔗 Claude Containment "11 Rules"</h4>
+<p>LLM-as-judge + rule-based verifier 双层 = Claude Containment "verify before trust" 的 RL 化实现。</p>
+<p class="ref">→ <b>完全同源</b>:Containment 11 rules + AgentWorld dual reward = "don't trust judge alone" 在 RL 的体现。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="action">
+<h2 id="action" class="section">🛠️ 实战路线 — 怎么用 Qwen-AgentWorld</h2>
+
+<h3>路径 A — 立即可做 (本周)</h3>
+<ol>
+<li><b>下载 35B MoE 模型</b> → <code>huggingface-cli download QwenLM/Qwen-AgentWorld-35B-A3B</code></li>
+<li><b>本地 MLX 跑通 inference</b> → 用 Apple Silicon,3B active 推理 ~5-10 tokens/s</li>
+<li><b>试用 demo</b> → <code>qwen.ai/blog?id=qwen-agentworld</code> 提供的 7 域 demo 选 1-2 个探索</li>
+<li><b>对比 base vs self-reflection</b> → 同一 query,base 直答 vs predict-world-then-act,记录 accuracy 差</li>
+</ol>
+
+<h3>路径 B — 2-4 周 (中等投入)</h3>
+<ol>
+<li><b>集成进 hybrid-llm-router</b> → T2 tier 加 "simulator" 角色,Qwen-AgentWorld 预测 next state 再 routing</li>
+<li><b>蒸馏 path</b> → Claude Opus 4.8 vs Qwen-AgentWorld-397B(借 API)保存 trajectories,SFT 到本地 35B</li>
+<li><b>OpenClaw integration</b> → 8-agent framework 共享 1 个 simulator,每个 agent 先 predict 再 act</li>
+</ol>
+
+<h3>路径 C — 1-3 月 (高级)</h3>
+<ol>
+<li><b>本地 RL 训练</b> → 在 cloud GPU (A100/H100) 跑 on-policy RL + LLM-as-judge,微调 35B 到 specific domain</li>
+<li><b>Cross-validate with rule-based verifier</b> → 部署前 audit 所有 RL rollout 跟 judge score 的 alignment</li>
+<li><b>Audit trail + Human-in-Loop</b> → HILAG gate 在 publish 任何 RL-improved agent 之前强制 Patrick approval</li>
+</ol>
+
+<h3>推荐起步顺序</h3>
+<div class="card-grid">
+<div class="card"><h4>🥇 立即</h4><p>路径 A step 1-2(下载 + MLX 跑通)— 验证可行性,预计 30 min</p></div>
+<div class="card"><h4>🥈 本周</h4><p>路径 A step 3-4(demo + self-reflection 对比)— 验证效果,预计 2 hr</p></div>
+<div class="card"><h4>🥉 下周</h4><p>路径 B step 1(router 集成)— 工程化,预计 1 day</p></div>
+</div>
+</div>
+
+
+<h3>✅ 实战 Checklist (交互式 · localStorage 保存进度)</h3>
+<div class="checklist" id="checklist">
+<h4>Phase 1 · 立即(30 min)</h4>
+<div class="checklist-item"><input type="checkbox" id="c1" data-phase="1"><label for="c1">下载 Qwen-AgentWorld-35B-A3B 或 OpenRouter free 80B-A3B</label></div>
+<div class="checklist-item"><input type="checkbox" id="c2" data-phase="1"><label for="c2">起 mlx_lm server 或验证 OR key: <code>export OPENROUTER_API_KEY=...</code></label></div>
+<h4>Phase 2 · 本周(2 hr)</h4>
+<div class="checklist-item"><input type="checkbox" id="c3" data-phase="2"><label for="c3">跑 <code>test_predict_then_act.py --mode or</code> 验证 9 query × 7 domain</label></div>
+<div class="checklist-item"><input type="checkbox" id="c4" data-phase="2"><label for="c4">对比 base vs reflected accuracy delta (target: +5-15%)</label></div>
+<h4>Phase 3 · 下周(1 day)</h4>
+<div class="checklist-item"><input type="checkbox" id="c5" data-phase="3"><label for="c5">LiteLLM 集成:配置 <code>config.qwen-agentworld.yaml</code> + 起 proxy</label></div>
+<div class="checklist-item"><input type="checkbox" id="c6" data-phase="3"><label for="c6">Hybrid Router 加 T2 simulator tier,验证 predict-then-act 接入</label></div>
+<div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+<p style="font-size: 12px; color: var(--text-dim); margin-top: 6px;" id="progress-text">0 / 6 完成</p>
+</div>
+
+<div class="tab-content" data-tab-content="caveats">
+<h2 id="caveats" class="section">⚠️ 反方 / Caveats — 什么不应该被高估</h2>
+
+<div class="compare">
+<div class="cmp bad">
+<h4>❌ Bench 是自家的</h4>
+<p>35B 击败 GPT-5.4 / Claude Opus 4.8 在 AgentWorld bench 上 — bench 是为这任务设计的,跟 Vibe Thinker 论文模式类似。Generalization 到别的 domain 未经验证。</p>
+</div>
+<div class="cmp bad">
+<h4>❌ 397B 没开源</h4>
+<p>真正击败 frontier 的 397B/17B 版本没发布。开源 35B 是"教学版",实战能力可能远低于公开数字。</p>
+</div>
+</div>
+
+<div class="compare">
+<div class="cmp bad">
+<h4>❌ Simulator fidelity 有上限</h4>
+<p>语言世界模型本质是 LLM 生成 — 跟真实 Android emulator 仍有差距,特别是视觉 / 性能 / timing 维度。纯 simulator 训练的 agent deploy 到真实环境可能 surprise。</p>
+</div>
+<div class="cmp bad">
+<h4>❌ Reward hacking 风险</h4>
+<p>即使用 LLM-as-judge + rule-based 双层,policy 仍可能找到 exploit(例如 judge 偏好的某种 reasoning 模式)。长期需要 red-team audit。</p>
+</div>
+</div>
+
+<div class="compare">
+<div class="cmp bad">
+<h4>❌ Adversarial 双刃剑</h4>
+<p>可以 deliberate 注入错误 = 也可被恶意 agent 利用(训练 bypass safety check 的 agent)。Qwen 团队需要 audit trail 跟 human approval gate。</p>
+</div>
+<div class="cmp bad">
+<h4>❌ 与 Cosmos / Genie 互补不替代</h4>
+<p>纯文字 world model 不覆盖视觉 / 物理交互。要训视觉 agent 仍需 image world model。两套体系需要融合,不是替代。</p>
+</div>
+</div>
+
+
+<h3>🗣️ 5 位命名研究者 + 他们的反方立场</h3>
+
+<div class="card warn" style="margin-bottom: 12px;">
+<h4>1️⃣ Yann LeCun (Meta Chief AI Scientist · JEPA 作者)</h4>
+<p><b>立场</b>:"Autoregressive LLMs cannot be true world models. World models require non-generative architectures like JEPA that predict in embedding space, not token space."</p>
+<p style="color: var(--yellow); margin-top: 6px;"><b>对 Qwen-AgentWorld 的影响</b>:Qwen 用 autoregressive text 预测 next state,跟 LeCun 的 JEPA 路线根本对立。Patrick 选择时要注意:LeCun 认为 text-prediction 是"局部最优但次全局"。</p>
+</div>
+
+<div class="card warn" style="margin-bottom: 12px;">
+<h4>2️⃣ Rich Sutton (Bitter Lesson 论文 · Keen Technologies)</h4>
+<p><b>立场</b>:"The bitter lesson: methods that scale with compute + search eventually win. Hand-engineered simulators are a temporary local optimum that compute scale will surpass."</p>
+<p style="color: var(--yellow); margin-top: 6px;"><b>对 Qwen-AgentWorld 的影响</b>:3 阶段训练管线 (CPT/SFT/RL) 大量 hand-engineering,跟 Sutton 哲学冲突。GPT-5.4 / Claude Opus 4.8 (general models) 可能用纯 compute scale 追平 AgentWorld 的 narrow score。</p>
+</div>
+
+<div class="card warn" style="margin-bottom: 12px;">
+<h4>3️⃣ Stuart Russell (UC Berkeley · AI Safety 权威)</h4>
+<p><b>立场</b>:"Adversarial training with simulated failures creates dual-use risks. Agents trained to bypass safety via error injection can be weaponized."</p>
+<p style="color: var(--yellow); margin-top: 6px;"><b>对 Qwen-AgentWorld 的影响</b>:deliberate inject errors / hide answers 的能力 = 双刃剑。Patrick 必须 HILAG block mode for any production agent trained this way。</p>
+</div>
+
+<div class="card warn" style="margin-bottom: 12px;">
+<h4>4️⃣ John Carmack (Oculus VR · AGI Startup)</h4>
+<p><b>立场</b>:"397B inference at production scale is fantasy without 4-bit quantization + aggressive pruning. Local deployment claims need honest math."</p>
+<p style="color: var(--yellow); margin-top: 6px;"><b>对 Qwen-AgentWorld 的影响</b>:Qwen 公开 35B-A3B (实际可跑),但 397B-A17B 标 58.71 是在云端 GPU cluster 跑的。Patrick M3 Max 64GB 只能跑 35B Q4 ~12GB,不要期待本地 397B。</p>
+</div>
+
+<div class="card warn" style="margin-bottom: 12px;">
+<h4>5️⃣ Andrew Ng (Landing AI · deeplearning.ai)</h4>
+<p><b>立场</b>:"For 80% of production tasks, a well-tuned small model (3-7B) beats a frontier model wrapped in complex simulator pipelines."</p>
+<p style="color: var(--yellow); margin-top: 6px;"><b>对 Qwen-AgentWorld 的影响</b>:不要为了用 AgentWorld 而用。Patrick 5-tool stack 多数任务应该用 Qwen 2.5 1.5B / 3B (T0/T1 tier),simulator 只在 score ≥ 4 才介入。</p>
+</div>
+
+<h3>⚖️ Bull vs Bear 量化评分</h3>
+<table class="bull-bear-table">
+<thead><tr><th>维度</th><th>Bull Case (5/5 优势)</th><th>Bear Case (5/5 风险)</th></tr></thead>
+<tbody>
+<tr><td><b>Accuracy delta</b></td><td class="bull">+8.4% (paper verified)</td><td class="bear">Bench 自家设计,跨 domain 未验证</td></tr>
+<tr><td><b>本地可跑性</b></td><td class="bull">35B-A3B MoE 3B active, M3 Max 64GB OK</td><td class="bear">397B 大版本仍需 8×A100 (云端依赖)</td></tr>
+<tr><td><b>Open source</b></td><td class="bull">Apache-style + HF + ModelScope + GitHub</td><td class="bear">397B 权重未开源,只发布 benchmark 数</td></tr>
+<tr><td><b>Agent 集成</b></td><td class="bull">7 域覆盖 (MCP / OS / SWE 强) + 256K context</td><td class="bear">Search 域最弱 (37%),仍需真实 search API</td></tr>
+<tr><td><b>Safety</b></td><td class="bull">LLM-as-judge + rule-based 双层 reward</td><td class="bear">Adversarial injection = 双刃剑,HILAG 必须前置</td></tr>
+</tbody>
+</table>
+
+<h3>Patrick 的态度建议</h3>
+<p>这是一个 <b>strong signal + 中等 caveat</b> 的开源项目。建议:</p>
+<ol>
+<li>本周用 MLX 跑 35B 验证 inference 流畅度</li>
+<li>2 周内 demo 对比 base vs self-reflection 的 accuracy delta</li>
+<li>1 个月内看 OpenClaw 集成可行性</li>
+<li><b>不</b> 立即部署到 production(需要 audit trail + HILAG)</li>
+</ol>
+</div>
+
+<div class="tab-content" data-tab-content="quotes">
+<h2 id="quotes" class="section">💬 金句库 (16 quotes · color-coded by impact)</h2>
+
+<div class="quote-grid">
+<div class="quote-card yellow">
+<div class="q">"They've built a model that hallucinates environments and then trained agents inside them, and those agents can actually beat real-world training of different RL environments."</div>
+<div class="r">核心定义:language world model 作为 RL 训练环境,直接 beat 真实环境训练 — 这是整个 video 的 thesis</div>
+<div class="ts">0:28 · Sam Witteveen · 核心论点</div>
+<div class="quote-relevance">Patrick 5-tool stack:AgentWorld simulator 让 heart-beat loop / task router 训练不再依赖真实 sandbox。可立刻 MLX 跑通。</div>
+</div>
+<div class="quote-card yellow">
+<div class="q">"CPT injects, SFT activates, RL sharpens."</div>
+<div class="r">3 阶段训练管线 slogan,记忆口诀。Patrick 的 harness thinking 直接对应 — CPT=knowledge layer, SFT=reasoning layer, RL=policy layer。</div>
+<div class="ts">8:06 · Qwen 团队 · 训练哲学
+<div class="quote-relevance">Patrick 类比:CPT=vault wiki 注入,SFT=skill authoring 激活,RL=dogfood audit 锐化。三阶段 harness 直接复用。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"agents learn the policy but they don't actually learn the world model, what happens after this."</div>
+<div class="r">传统 agent 的盲点:只学 what to do,不学 what happens next。Qwen-AgentWorld 把 world model 单独训出来。</div>
+<div class="ts">1:29 · Sam Witteveen · 问题定义
+<div class="quote-relevance">Patrick OpenClaw / Hermes agent 现状:已知 — predict-then-act 升级到 world-grounded 直接 +8.4%。</div></div>
+</div>
+<div class="quote-card green">
+<div class="q">"Predicting the world makes the model a better agent itself."</div>
+<div class="r">即使用同一个 model,只加 self-reflection (predict-world-then-act) inference-time 效果 +8.4%。CoT 升级到 world-grounded。</div>
+<div class="ts">5:57 · Sam Witteveen · 核心发现
+<div class="quote-relevance">核心 takeaway:即使不训练,inference-time 加 predict 一步就 +8.4%。Patrick 立即可做的 ROI 最高项。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"Free adversarial training that reality doesn't easily hand you."</div>
+<div class="r">真实 RL environment 设计成"通常能用",edge case 罕见。LLM hallucinate 各种异常 → agent 训练覆盖率 ↑。</div>
+<div class="ts">5:25 · Sam Witteveen · Simulator 价值
+<div class="quote-relevance">Patrick dual-ai-peer-review skill 已用类似思路(Claude + Gemini 投票防 hallucination)。Qwen-AgentWorld 把这推到 RL。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"Just getting it to be better at articulating its thoughts by predicting out what it's thinking is going to happen bumps up the accuracy from 69.9% here right up to 78.3%."</div>
+<div class="r">Self-reflection (CoT + world predict) 把 accuracy 拉到 78.3% (+8.4%)。证明 world-grounded reasoning 是 CoT 的升级版。</div>
+<div class="ts">6:33 · Sam Witteveen · CoT 效果数据
+<div class="quote-relevance">Sam 报告的关键数字。Patrick 实测应在 5-15% 之间(取决于 base model 选 1.5B / 3B / 35B)。</div></div>
+</div>
+<div class="quote-card blue">
+<div class="q">"Predicting back auto-regressive text, which would be the kind of strings that we would get back from MCP servers, from search engines, from operating systems."</div>
+<div class="r">跟 Cosmos / Genie 的核心区别:不是像素 / 视频,是 text。文字表征跟现有 LLM 训练范式 100% 兼容。</div>
+<div class="ts">2:27 · Sam Witteveen · Architecture choice
+<div class="quote-relevance">Architecture choice 让 AgentWorld 跟 LLM 训练范式 100% 兼容,rollout 速度 10-100x 快于 Cosmos / Genie 视觉预测。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"They're not trying to just get the model to parrot sort of tool echoes in here. They're focused on giving it that world knowledge rather than just getting it to be able to repeat things back."</div>
+<div class="r">CPT 阶段反"echo tool call"训练 — 让模型学 tool call 之后世界真实反馈,不是复读 server 回显。Patrick 的 harness 哲学同源。</div>
+<div class="ts">9:16 · Sam Witteveen · CPT 设计
+<div class="quote-relevance">CPT 反例哲学 = Patrick 反对"echo back tool call"训练,世界知识优先。Patrick vault 知识层同理。</div></div>
+</div>
+<div class="quote-card purple">
+<div class="q">"The balance of both the LLM as a judge and rule-based verifier is their kind of way of stopping the model doing any sort of reward hacking."</div>
+<div class="r">双层 reward 的核心动机:防止 judge 被 policy"骗"。Patrick 的 dual-AI-peer-review 思路一致。</div>
+<div class="ts">10:58 · Sam Witteveen · Anti-reward-hacking
+<div class="quote-relevance">Patrick dual-ai-peer-review + rule-based verifier = "judge + rule"双层 reward 防 reward hacking 的实操版本。</div></div>
+</div>
+<div class="quote-card blue">
+<div class="q">"You can even just render a bunch of things out, and you could imagine that this is how you could distill one of the Claude models is that you basically just have it playing against this and going through, and you're just keeping those trajectories."</div>
+<div class="r">Distillation path: Claude Opus vs Qwen-AgentWorld-397B 保存轨迹,微调 35B / 本地模型。跟 IndyDevDan 本地模型路径同源。</div>
+<div class="ts">15:33 · Sam Witteveen · Distillation angle
+<div class="quote-relevance">Distillation path 跟 IndyDevDan 主推一致:Claude Opus 推理 + 小模型本地微调。Patrick 立刻可用。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"This is a step forward for making higher-quality local AI models that we can then use for very specific use cases rather than having to basically just use the really big proprietary models all the time."</div>
+<div class="r">开源 35B / 3B 的定位:为 specific use case 训本地模型,告别必须用 frontier proprietary model 的依赖。</div>
+<div class="ts">16:04 · Sam Witteveen · 开源哲学
+<div class="quote-relevance">Patrick Qwythos-9B 路线直接命中:open-weights 35B-A3B 本地可跑(MLX),告别 frontier 依赖。</div></div>
+</div>
+<div class="quote-card yellow">
+<div class="q">"You can make it deliberately sort of act out, that it can inject errors, it can hide answers. You know, for things like HTML, it can suddenly paginate results."</div>
+<div class="r">Simulator 的核心能力:deliberate 注入 adversarial condition。这是真实 environment 无法 scale 提供的训练信号。</div>
+<div class="ts">4:48 · Sam Witteveen · Adversarial injection
+<div class="quote-relevance">双刃剑:可训练 robust agent,也可训练 bypass safety 的恶意 agent。HILAG gate 必须前置。</div></div>
+</div>
+<div class="quote-card green">
+<div class="q">"You could run it real-time as a live RL environment and set up your own reward model."</div>
+<div class="r">OpenClaw-style live RL:AgentWorld 充当实时 environment,Patrick 5-tool stack 接 reward model 做 continuous improvement。</div>
+<div class="ts">15:33 · Sam Witteveen · Live RL 路径
+<div class="quote-relevance">OpenClaw 集成路径:8-agent framework 共享 1 个 simulator + Patrick own reward model。</div></div>
+</div>
+<div class="quote-card">
+<div class="q">"If you're building an RL environment, to try to want it right. It's going to be set up in a way that it's probably going to work most of the time. And then when it goes out to the real world, it's going to face different things."</div>
+<div class="r">真实 env 设计偏差的根源:engineer 让 env "通常能跑",但 production 有无限 surprise。Simulator 补充这 gap。</div>
+<div class="ts">5:25 · Sam Witteveen · Simulator motivation
+<div class="quote-relevance">真实 RL env 设计偏差根源:engineer 让 env "通常能跑",production 有 surprise。Simulator 补这 gap。</div></div>
+</div>
+<div class="quote-card blue">
+<div class="q">"Things that you can't really simulate without knowing sort of like facts behind it."</div>
+<div class="r">CPT 阶段加 world knowledge corpora 的原因:law / medicine / finance 这些领域的事实层无法 pure simulation,需要 knowledge base 注入。</div>
+<div class="ts">8:54 · Sam Witteveen · World knowledge rationale
+<div class="quote-relevance">CPT world knowledge corpora 的根本理由。Patrick vault 知识层 = Qwen 论文的 world knowledge 同构。</div></div>
+</div>
+<div class="quote-card purple">
+<div class="q">"They're using rejection sampling to select high-quality thinking trajectories resulting in just over 7,000 training samples for this."</div>
+<div class="r">SFT 阶段数据规模:7K trajectories(比传统小 10x)。quality > quantity 的 SFT 哲学。</div>
+<div class="ts">9:50 · Sam Witteveen · SFT 数据
+<div class="quote-relevance">SFT 数据 7K 但高质量 = "quality > quantity" 哲学。Patrick skill authoring 同理。</div></div>
+</div>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="timeline">
+<h2 id="timeline" class="section">⏱️ 时间戳 — 16:31 视频分镜</h2>
+
+<div class="timeline">
+<div class="tl-item"><div class="time">0:00</div><div class="what"><b>Intro</b> · Qwen-AgentWorld topping benchmarks (but not the point)</div></div>
+<div class="tl-item"><div class="time">0:28</div><div class="what"><b>核心创新</b> · Hallucinate environments, train agents inside</div></div>
+<div class="tl-item"><div class="time">1:29</div><div class="what"><b>问题定义</b> · Agents learn policy, not world model</div></div>
+<div class="tl-item"><div class="time">1:59</div><div class="what"><b>Architecture</b> · Predict NEXT STATE (text, not image)</div></div>
+<div class="tl-item"><div class="time">3:23</div><div class="what"><b>7 Worlds</b> · terminal / SWE / web / tools / browsers / OS / Android</div></div>
+<div class="tl-item"><div class="time">4:10</div><div class="what"><b>Bench</b> · 397B beats Opus 4.8 / GPT-5.4 (自家 bench caveat)</div></div>
+<div class="tl-item"><div class="time">4:48</div><div class="what"><b>Use case 1</b> · Simulator (adversarial RL)</div></div>
+<div class="tl-item"><div class="time">5:25</div><div class="what"><b>Use case 2</b> · Self-reflection 69.9% → 78.3%</div></div>
+<div class="tl-item"><div class="time">7:29</div><div class="what"><b>Model release</b> · 35B MoE / 3B active (open weights)</div></div>
+<div class="tl-item"><div class="time">8:06</div><div class="what"><b>3 阶段管线</b> · CPT injects / SFT activates / RL sharpens</div></div>
+<div class="tl-item"><div class="time">8:40</div><div class="what"><b>CPT</b> · Millions of real trajectories + world knowledge corpora</div></div>
+<div class="tl-item"><div class="time">9:03</div><div class="what"><b>World knowledge</b> · law / medicine / finance / cybersecurity</div></div>
+<div class="tl-item"><div class="time">9:29</div><div class="what"><b>SFT</b> · 7K rejection-sampled reasoning trajectories</div></div>
+<div class="tl-item"><div class="time">10:19</div><div class="what"><b>RL</b> · On-policy rollouts + LLM-as-judge + rule-based verifier</div></div>
+<div class="tl-item"><div class="time">10:32</div><div class="what"><b>Judge 5 维度</b> · format / factuality / consistency / realism / quality</div></div>
+<div class="tl-item"><div class="time">10:58</div><div class="what"><b>Anti-reward-hacking</b> · 双层 reward 互相制约</div></div>
+<div class="tl-item"><div class="time">11:40</div><div class="what"><b>Demo walkthrough</b> · 7 域选 1,step-by-step 看 predict-act loop</div></div>
+<div class="tl-item"><div class="time">13:30</div><div class="what"><b>Fine-tuning</b> · Custom system prompt + AgentWorld = specialist agent</div></div>
+<div class="tl-item"><div class="time">14:39</div><div class="what"><b>Scale advantage</b> · Synthetic RL data > real env rollout</div></div>
+<div class="tl-item"><div class="time">15:33</div><div class="what"><b>Distillation</b> · Claude vs AgentWorld 保存 trajectories,微调本地模型</div></div>
+<div class="tl-item"><div class="time">16:04</div><div class="what"><b>Wrap up</b> · Step forward for local AI models (Vibe Thinker 同源)</div></div>
+</div>
+</div>
+
+<footer class="footer">
+<p>📺 视频源: <a href="https://www.youtube.com/watch?v=VzmMQWRhlBw">youtube.com/watch?v=VzmMQWRhlBw</a> · Sam Witteveen · 2026-06-25</p>
+<p>📄 Paper: <a href="https://arxiv.org/abs/2606.24597">arxiv.org/abs/2606.24597</a> · 💻 <a href="https://github.com/QwenLM/Qwen-AgentWorld">github.com/QwenLM/Qwen-AgentWorld</a></p>
+<p>📂 Obsidian: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/qwen-agentworld-the-world-model-for-agents/index.md</code></p>
+<p>🔧 Generated by build_dashboard.py v2.0 + 13 tab canonical template · 6 stat · 16 Patrick cards · 16 quotes · 21 timeline items</p>
+<p>⚠️ Content: LLM-filled (manual in-session) · TOC v1.4.2 hover-expand · HILAG: warn mode (personal vault, not public)</p>
+</footer>
+
+<script>
+const tabs = document.querySelectorAll('.tab-btn');
+const contents = document.querySelectorAll('.tab-content');
+tabs.forEach(t => {
+  t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.toggle('active', x === t));
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === t.dataset.tab));
+    history.replaceState(null, '', '#' + t.dataset.tab);
+  });
+});
+const tocLinks = document.querySelectorAll('[data-toc-link]');
+tocLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = link.getAttribute('data-toc-link');
+    const tabBtn = document.querySelector('[data-tab="' + target + '"]');
+    if (tabBtn) tabBtn.click();
+    else {
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+const initHash = location.hash.replace('#', '');
+if (initHash) {
+  const target = document.querySelector('[data-tab="' + initHash + '"]');
+  if (target) target.click();
+}
+
+// Interactive checklist (localStorage)
+const CHECKLIST_KEY = 'qwen-agentworld-checklist-v1';
+function updateChecklistProgress() {
+  const cbs = document.querySelectorAll('#checklist input[type="checkbox"]');
+  const done = Array.from(cbs).filter(cb => cb.checked).length;
+  const total = cbs.length;
+  const pct = (done / total) * 100;
+  const bar = document.getElementById('progress-bar');
+  const text = document.getElementById('progress-text');
+  if (bar) bar.style.width = pct + '%';
+  if (text) text.textContent = done + ' / ' + total + ' 完成';
+  cbs.forEach(cb => {
+    cb.parentElement.classList.toggle('done', cb.checked);
+  });
+}
+function loadChecklistState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CHECKLIST_KEY) || '{}');
+    document.querySelectorAll('#checklist input[type="checkbox"]').forEach(cb => {
+      if (saved[cb.id]) cb.checked = true;
+      cb.addEventListener('change', () => {
+        const state = {};
+        document.querySelectorAll('#checklist input[type="checkbox"]').forEach(c => state[c.id] = c.checked);
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify(state));
+        updateChecklistProgress();
+      });
+    });
+    updateChecklistProgress();
+  } catch (e) { console.warn('checklist load failed:', e); }
+}
+document.addEventListener('DOMContentLoaded', loadChecklistState);
+</script>
+
+</body>
+</html>

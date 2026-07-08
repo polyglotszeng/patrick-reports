@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patrick · Agentic OS Dashboard</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2333;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC",sans-serif;line-height:1.55;padding:24px 16px;}
+.wrap{max-width:1200px;margin:0 auto;}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+h1{font-size:22px;}
+#mode{font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid var(--border);color:var(--dim);}
+#mode.live{color:var(--green);border-color:var(--green);}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.kpi .n{font-size:22px;font-weight:700;}
+.kpi .l{font-size:11.5px;color:var(--dim);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.card h3{font-size:15.5px;display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.loopname{font-size:11.5px;color:var(--dim);margin-bottom:8px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.dot.green{background:var(--green);}.dot.red{background:var(--red);}.dot.amber{background:var(--amber);}
+.note{font-size:12.5px;color:var(--dim);border-left:2px solid var(--border);padding-left:9px;margin:8px 0;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.chip{font-size:11.5px;background:#21262d;color:#a5d6ff;padding:2px 9px;border-radius:999px;cursor:pointer;border:1px solid transparent;}
+.chip:hover{border-color:var(--acc);}
+.auto{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 0;border-top:1px solid #21262d;}
+.auto .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.auto .sc{color:var(--dim);font-size:11px;font-family:Menlo,monospace;}
+.st{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;}
+.st.ok{background:rgba(63,185,80,.15);color:var(--green);}
+.st.error{background:rgba(248,81,73,.15);color:var(--red);}
+.st.new,.st.proposed{background:rgba(188,140,255,.15);color:var(--purple);}
+.run{font-size:11px;background:#21262d;border:1px solid var(--border);color:var(--txt);border-radius:6px;padding:2px 9px;cursor:pointer;}
+.run:hover{border-color:var(--acc);color:var(--acc);}
+.run:disabled{opacity:.4;cursor:default;}
+.sect{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;margin-top:10px;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--acc);border-radius:8px;padding:10px 18px;font-size:13px;display:none;max-width:90vw;}
+.mc{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:18px;}
+@media(max-width:820px){.mc{grid-template-columns:1fr;}}
+.mc h3{font-size:14px;margin-bottom:8px;}
+#ticker{max-height:290px;overflow-y:auto;font-size:12px;font-family:Menlo,monospace;}
+.tk{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #21262d;align-items:baseline;}
+.tk .t{color:var(--dim);flex-shrink:0;font-size:10.5px;}
+.tk .s{flex-shrink:0;font-weight:700;}
+.tk .s.ok{color:var(--green);} .tk .s.error{color:var(--red);} .tk .s.info{color:var(--acc);}
+.tk .m{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#goals{font-size:12.5px;color:var(--dim);} #goals b{color:var(--txt);display:block;margin-top:7px;font-size:12px;}
+.jrow{display:flex;gap:8px;margin-top:6px;}
+#jin{flex:1;background:#0d1117;border:1px solid var(--border);border-radius:7px;color:var(--txt);padding:7px 10px;font-size:13px;}
+.jbtn{background:#1f6feb;border:none;color:#fff;border-radius:7px;padding:7px 14px;font-size:12.5px;cursor:pointer;}
+.st.error{cursor:pointer;text-decoration:underline dotted;}
+#errmodal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;}
+#errmodal .box{max-width:640px;margin:12vh auto;background:var(--panel);border:1px solid var(--red);border-radius:12px;padding:20px;}
+#errmodal pre{white-space:pre-wrap;font-size:12px;color:var(--dim);max-height:40vh;overflow-y:auto;margin-top:10px;font-family:Menlo,monospace;}
+.footer{margin-top:22px;color:var(--dim);font-size:11.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🧠 Patrick · Agentic OS <a href="mission-control.html" style="font-size:12px;color:var(--acc);font-weight:400;margin-left:10px;text-decoration:none">⬢ Mission Control →</a></h1>
+  <span id="mode">静态快照 · 2026-07-04（跑 <code>python3 server.py</code> 变 live）</span>
+</header>
+<div class="kpis" id="kpis"></div>
+<div class="mc">
+  <div class="card"><h3>📡 Mission Control · 实时 Ticker <span class="sub" id="tkmode"></span></h3><div id="ticker"></div></div>
+  <div>
+    <div class="card"><h3>🎯 Goals · TELOS（life-wiki/00-Human）</h3><div id="goals"></div></div>
+    <div class="card" style="margin-top:14px"><h3>📓 Journal · 一行入环（修 Loop 3）</h3>
+      <div class="jrow"><input id="jin" placeholder="今天一行字就够…" onkeydown="if(event.key==='Enter')journal()"><button class="jbtn" onclick="journal()">记入</button></div>
+      <div class="sub" id="jmsg" style="margin-top:6px">live 模式直接写进 life-wiki/daily/今天.md；静态模式复制等效命令</div>
+    </div>
+  </div>
+</div>
+<div class="grid" id="domains"></div>
+<div id="errmodal" onclick="this.style.display='none'"><div class="box" onclick="event.stopPropagation()"><h3 id="errtitle"></h3><pre id="errbody"></pre><p class="sub">点击遮罩关闭 · live 模式显示完整 last_error（600 字符）</p></div></div>
+<div class="footer">
+架构：agentic-os SKILL.md（Domains→Skills→Automations）· 数据：registry.json + ~/.hermes/cron/jobs.json · 点 skill 芯片复制其 SKILL.md 路径；点 ▶ 在 live 模式执行、静态模式复制命令。
+</div>
+</div>
+<div id="toast"></div>
+
+<script>
+const REGISTRY_URL='registry.json';
+const EMBEDDED_REGISTRY={"$schema":"agentic-os-registry/v1","generated":"2026-07-04","generator":"Claude Cowork · scanned ~/.hermes (334 SKILL.md, 18 cron jobs) + Obsidian Vault (1653 md)","framework":"agentic-os SKILL.md v1.0.0 — Domains → Tasks → Skills → Automations","stats":{"skills_total":334,"automations_total":21,"automations_error":7,"domains":7,"mission_control":"v2 · ticker + goals + journal + error-inspect (2026-07-04)"},"domains":[{"id":"ai-research","name":"AI 研究 / 内容摄入","icon":"🔬","loop":"Loop 1 · 摄入循环","status":"green","note":"产能过剩：3 周 184 个新文件进 llm-wiki。审计建议：冻结新增摄入 cron（Fix#6）。","vault_dirs":["llm-wiki","hardtech-weekly","youtube"],"skills":[{"name":"video-to-obsidian","path":"media/video-to-obsidian"},{"name":"actor-paper-reader","path":"agentic-os/actor-paper-reader"},{"name":"satellite-data-sources","path":"data-science/satellite-data-sources"},{"name":"external-loop-catalog-matcher","path":"autonomous-ai-agents/external-loop-catalog-matcher"},{"name":"extract-youtube-video","path":"extract-youtube-video"}],"automations":[{"id":"dfc3f9b6c0e1","name":"ai-trending-daily","schedule":"0 8 * * *","script":"ai-trending-daily.sh","last_status":"error"},{"id":"2bba5c6ab695","name":"ai-trending-weekly","schedule":"0 23 * * 0","script":"ai-trending-weekly.sh","last_status":"ok"},{"id":"c2ac2cc8d821","name":"hardtech-daily","schedule":"0 9 * * *","script":"hardtech-daily.sh","last_status":"ok"},{"id":"1e9ef71a8459","name":"hardtech-weekly","schedule":"30 23 * * 0","script":"hardtech-weekly.sh","last_status":"ok"},{"id":"66a7b473dcca","name":"worldmonitor-china-feeds-daily","schedule":"0 7 * * *","script":null,"last_status":"ok"},{"id":"baf7634deffa","name":"web3-protocols-daily-recheck","schedule":"0 9 * * *","script":"web3-protocols-daily-recheck.py","last_status":"ok"},{"id":"5fa08fdcc192","name":"ai-capital-battle-transcript-retry","schedule":"every 6h","script":"ai-capital-battle-transcript-retry.py","last_status":"ok"}]},{"id":"publishing","name":"发布链 / CF Pages","icon":"🚀","loop":"Loop 2 · 发布循环","status":"amber","note":"2026-07-04 修复：4 个 error 根因 = 空 token + 中国网络窗口。已上 lib-github-push（预检/token 自愈/正确 rc）+ github-push-retry 每 2h 补推。明日运行验证。","vault_dirs":["notes-site","dashboard","bilibili-dashboard"],"skills":[{"name":"hermes-publish-cron","path":"devops/hermes-publish-cron"},{"name":"patricks-publish-pipeline-watchdog","path":"devops/patricks-publish-pipeline-watchdog"},{"name":"periodic-pipeline-cron","path":"devops/periodic-pipeline-cron"},{"name":"toc-sidebar-batch","path":"creative/toc-sidebar-batch"},{"name":"rich-html-output","path":"creative/rich-html-output"},{"name":"vault-to-public-pipeline","path":"vault-to-public-pipeline"}],"automations":[{"id":"74e847b2cfb9","name":"hardtech-publish","schedule":"15 9 * * *","script":"publish-hardtech.sh","last_status":"error"},{"id":"89565f5f644d","name":"sync-daily-index","schedule":"30 9 * * *","script":"sync-daily-index.sh","last_status":"error"},{"id":"05e19cac158d","name":"publish-youtube-dashboards","schedule":"0 21 * * *","script":"publish-youtube-dashboards.sh","last_status":"ok"},{"id":"29e6bd19110b","name":"round-n-dashboards-generator","schedule":"0 9 */3 * *","script":null,"last_status":"ok"},{"id":"3a7c8a2c4eba","name":"daily-reports-sync-verify","schedule":"30 9 */3 * *","script":"daily-reports-sync-verify.sh","last_status":"error"},{"id":"30394c3b6ec7","name":"cf-pages-drift-check","schedule":"0 */6 * * *","script":"cf-pages-drift-check.py","last_status":"error"},{"id":"PROPOSED-judge-hardtech","name":"judge-hardtech-publish（独立模型 Judge·两周试点）","schedule":"30 10 * * *","script":"judge-hardtech-publish.py","last_status":"proposed"},{"id":"bed1464ac611","name":"github-push-retry（新·补推积压 commit）","schedule":"15 */2 * * *","script":"github-push-retry.sh","last_status":"new"}]},{"id":"knowledge-synthesis","name":"知识综合 / 链接","icon":"🔗","loop":"Loop 4 · 综合循环","status":"red","note":"审计红区：93.5% llm-wiki 笔记零链接。graphify skill 已存在但无对应 automation——这是本域的头号缺口（Fix#2）。","vault_dirs":["llm-wiki","knowledge","memory"],"skills":[{"name":"graphify","path":"knowledge-synthesis/graphify"},{"name":"graphify-obsidian-baseline","path":"knowledge-synthesis/graphify-obsidian-baseline"},{"name":"understand-anything","path":"knowledge-synthesis/understand-anything"},{"name":"notebooklm","path":"notebooklm"},{"name":"context-summarizer","path":"context-summarizer"},{"name":"memory-three-layer","path":"autonomous-ai-agents/memory-three-layer"}],"automations":[{"id":"3e4954bf6a6a","name":"open-notebooklm-cron","schedule":"every 6h","script":null,"last_status":"ok"},{"id":"634ac20b5dee","name":"memory-audit","schedule":"0 */6 * * *","script":"memory-audit-cron.py","last_status":"error"},{"id":"PROPOSED-graphify-weekly","name":"graphify-weekly（提案·Fix#2）","schedule":"0 10 * * 6","script":null,"last_status":"proposed"}]},{"id":"life-os","name":"生活 OS / EMAI / 回顾","icon":"🧭","loop":"Loop 3 · 人类回顾循环","status":"red","note":"daily note 停更于 6/13（21 天）。全系统唯一没有 watchdog 的关键 loop → 已补 human-loop-watchdog.sh（Fix#1，本次交付）。","vault_dirs":["life-wiki","biography","daily","emai-os"],"skills":[{"name":"emai-today","path":"note-taking/emai-today"},{"name":"emai-closeday","path":"note-taking/emai-closeday"},{"name":"life-wiki","path":"note-taking/life-wiki"},{"name":"patricks-vault-os","path":"patricks-vault-os"},{"name":"bazi-ziwei","path":"bazi-ziwei"}],"automations":[{"id":"evtk7d3f9b6c01","name":"daily-eventkit-bridge","schedule":"30 7 * * *","script":"daily-eventkit-bridge.sh","last_status":"ok"},{"id":"90913cfdf176","name":"human-loop-watchdog（Fix#1·已注册，重启调度器生效）","schedule":"0 10,20 * * *","script":"human-loop-watchdog.sh","last_status":"new"}]},{"id":"meta","name":"Agentic OS 元系统","icon":"🧠","loop":"自进化循环（Gene self-evolution）","status":"amber","note":"skillspector 79 个 red flag 未 triage（Fix#4）；agentic-os-skill-weekly-review 上次运行 error。","vault_dirs":["ai-tools","audit","strategy","loop-library"],"skills":[{"name":"loop-engineering（umbrella）","path":"loop-engineering"},{"name":"loop-fit-checklist","path":"autonomous-ai-agents/loop-fit-checklist"},{"name":"gene-capsule-protocol","path":"agentic-os/gene-capsule-protocol"},{"name":"skill-gotchas-engine","path":"autonomous-ai-agents/skill-gotchas-engine"},{"name":"judgment-log","path":"autonomous-ai-agents/judgment-log"},{"name":"taste-test-8020-decide","path":"automation-pipeline/taste-test-8020-decide"},{"name":"cron-watchdog-patterns","path":"cron-watchdog-patterns"}],"automations":[{"id":"848b0c02927c","name":"agentic-os-skill-weekly-review","schedule":"0 9 * * 0","script":null,"last_status":"error"},{"id":"c7b049ab3420","name":"project-memory-slack-digest","schedule":"0 9 * * *","script":"project-memory-slack-digest.sh","last_status":"ok"}]},{"id":"creative","name":"创作 / 内容输出","icon":"🎨","loop":"Act 阶段（OODA）","status":"green","note":"无定时任务，全部按需触发——符合 skill 的判断：'Not everything should be automated'。","vault_dirs":["notes-site","課代表立正"],"skills":[{"name":"content-multiplier","path":"creative/content-multiplier"},{"name":"frontend-design + front-end-taste","path":"creative/frontend-design"},{"name":"baoyu-infographic / comic / illustrator","path":"creative/baoyu-infographic"},{"name":"humanizer","path":"creative/humanizer"},{"name":"html-to-printable-pdf","path":"creative/html-to-printable-pdf"},{"name":"manim-video / p5js / pixel-art","path":"creative/manim-video"}],"automations":[]},{"id":"projects","name":"项目：旅行 / 投资 / 应用","icon":"🗺️","loop":"按需项目循环","status":"amber","note":"活跃：Travel(新疆/上海)、gotrace、roadbook-ai。冷冻：NASDAQ100、fund-rankings、quantum-wiki、game-design-books（建议标 status: frozen，Fix#5）。","vault_dirs":["Travel","gotrace_v0_1","roadbook-ai","fund-rankings","NASDAQ100 ESG投资分析"],"skills":[{"name":"trip-video-to-obsidian","path":"autonomous-ai-agents/trip-video-to-obsidian"},{"name":"travel-itinerary-design","path":"travel-itinerary-design"},{"name":"china-app-deep-link","path":"china-app-deep-link"},{"name":"finance 域技能组","path":"finance"},{"name":"swiftui-ios-modern-stack","path":"swiftui-ios-modern-stack"}],"automations":[]}]};
+let LIVE=false, JOBS={}, REG=null;
+
+// —— 静态快照兜底（生成于 2026-07-04，live 模式会被覆盖）——
+const SNAPSHOT_STATUS={"dfc3f9b6c0e1":"error","2bba5c6ab695":"ok","c2ac2cc8d821":"ok","74e847b2cfb9":"error","1e9ef71a8459":"ok","89565f5f644d":"error","848b0c02927c":"error","3e4954bf6a6a":"ok","66a7b473dcca":"ok","evtk7d3f9b6c01":"ok","05e19cac158d":"ok","29e6bd19110b":"ok","3a7c8a2c4eba":"error","30394c3b6ec7":"error","5fa08fdcc192":"ok","baf7634deffa":"ok","634ac20b5dee":"error","c7b049ab3420":"ok"};
+const SNAPSHOT_ERRORS={"dfc3f9b6c0e1":"Script exited with code 1\nstderr: [hn] front_page_24h: 2 items / [hn] broad_7d: +33 / [gh] trending: +10 …（完整信息开 live 模式看）","74e847b2cfb9":"Script exited with code 1\nstdout: [publish-hardtech 09:15:31] ✓ 目录就绪: /Users/zl/patricks-reports/har…","89565f5f644d":"Script exited with code 1\nstderr: [strip] removed 2 existing 2017zyl.xyz fcards | [insert] 2 new cards…","848b0c02927c":"RuntimeError: HTTP 429: Insufficient balance or no resource package. Please recharge.（minimax 余额）","3a7c8a2c4eba":"Script exited with code 2\nstderr: daily-reports-sync-verify.sh: line 76 附近…","30394c3b6ec7":"Script exited with code 2\nstdout: CF Pages drift check — Project: patr…","634ac20b5dee":"Script exited with code 1\nstderr: === memory audit cron start ===…"};
+const SNAPSHOT_TICKER=[{t:"07-04 16:21",src:"open-notebooklm-cron",st:"ok",msg:"run ok"},{t:"07-04 12:00",src:"cf-pages-drift-check",st:"error",msg:"exit 2 · drift 检出"},{t:"07-04 12:00",src:"memory-audit",st:"error",msg:"exit 1"},{t:"07-04 11:26",src:"ai-capital-battle-transcript-retry",st:"ok",msg:"run ok"},{t:"07-04 09:33",src:"sync-daily-index",st:"error",msg:"exit 1 · fcards 插入失败"},{t:"07-04 09:33",src:"daily-reports-sync-verify",st:"error",msg:"exit 2 · line 76"},{t:"07-04 09:18",src:"hardtech-publish",st:"error",msg:"exit 1 · 发布中断"},{t:"07-04 09:11",src:"round-n-dashboards-generator",st:"ok",msg:"run ok"},{t:"07-04 09:11",src:"project-memory-slack-digest",st:"ok",msg:"run ok"},{t:"07-04 09:02",src:"hardtech-daily",st:"ok",msg:"run ok"},{t:"07-04 09:00",src:"web3-protocols-daily-recheck",st:"ok",msg:"run ok"},{t:"07-04 08:01",src:"ai-trending-daily",st:"error",msg:"exit 1 · JSON 写入后失败"},{t:"07-04 07:30",src:"daily-eventkit-bridge",st:"ok",msg:"run ok"},{t:"07-04 07:00",src:"worldmonitor-china-feeds-daily",st:"ok",msg:"run ok"}];
+const SNAPSHOT_GOALS={"Current Mission":"Give my family a better life.","Core Goal":"Find sustainable passive income opportunities.","Current Projects":"arcraiders-shop（游戏化电商）· Vision3D（visionOS 3D 打印）· life-wiki（自传系统）","Challenges Right Now":"技术/资本/方向均不明朗；以 AI Agent 为杠杆点"};
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3200);}
+function copy(txt,msg){navigator.clipboard?.writeText(txt).then(()=>toast(msg||('已复制: '+txt))).catch(()=>toast(txt));}
+
+function statusOf(a){ if(LIVE&&JOBS[a.id])return JOBS[a.id].last_status||'ok'; return SNAPSHOT_STATUS[a.id]||a.last_status||'ok'; }
+
+async function runJob(a,btn){
+  if(!LIVE){
+    const cmd=a.script?`bash ~/.hermes/scripts/${a.script}`:`# ${a.name} 是 agent-cron（无 script），在 hermes TUI 里手动触发`;
+    if(a.id==='NEW-human-loop-watchdog')return copy(`bash "$HOME/Downloads/Obsidian Vault/agentic-os/automations/human-loop-watchdog.sh"`,'已复制 watchdog 执行命令（静态模式不能直接跑）');
+    return copy(cmd,'静态模式：命令已复制，去终端执行');
+  }
+  btn.disabled=true;btn.textContent='…';
+  const id=a.id==='NEW-human-loop-watchdog'?'watchdog':a.id;
+  try{
+    const r=await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const j=await r.json();
+    toast(j.ok?`▶ 已启动 ${j.script}`:`✗ ${j.error}`);
+  }catch(e){toast('✗ '+e);}
+  setTimeout(()=>{btn.disabled=false;btn.textContent='▶';refresh();},2500);
+}
+
+function render(){
+  if(!REG)return;
+  // KPI
+  const autos=REG.domains.flatMap(d=>d.automations).filter(a=>!String(a.id).startsWith('PROPOSED'));
+  const errs=autos.filter(a=>statusOf(a)==='error').length;
+  const reds=REG.domains.filter(d=>d.status==='red').length;
+  document.getElementById('kpis').innerHTML=[
+    ['7','Domains',''],[REG.stats.skills_total,'Skills（~/.hermes/skills）',''],
+    [autos.length,'Automations',''],[errs,'当前 error','color:var(--red)'],
+    [reds,'红色 loop','color:var(--red)'],
+    [LIVE?'LIVE':'快照','数据模式',LIVE?'color:var(--green)':'']
+  ].map(([n,l,s])=>`<div class="kpi"><div class="n" style="${s}">${n}</div><div class="l">${l}</div></div>`).join('');
+  // Domains
+  document.getElementById('domains').innerHTML=REG.domains.map(d=>`
+    <div class="card">
+      <h3><span class="dot ${d.status}"></span>${d.icon} ${d.name}</h3>
+      <div class="loopname">${d.loop}</div>
+      <div class="note">${d.note}</div>
+      <div class="sect">Skills</div>
+      <div class="chips">${d.skills.map(s=>`<span class="chip" onclick="copy('~/.hermes/skills/${s.path}/SKILL.md','已复制 skill 路径')">${s.name}</span>`).join('')}</div>
+      ${d.automations.length?`<div class="sect">Automations</div>`+d.automations.map(a=>{
+        const st=statusOf(a);
+        const badge=st==='error'?`<span class="st error" onclick="showErr('${a.id}','${a.name}')" title="点击看 last_error">error</span>`:`<span class="st ${st}">${st}</span>`;
+        return `<div class="auto">${badge}<span class="nm">${a.name}</span><span class="sc">${a.schedule}</span><button class="run" onclick="runJob(${JSON.stringify(a).replace(/"/g,'&quot;')},this)">▶</button></div>`;
+      }).join(''):`<div class="sect">Automations</div><div class="note" style="margin-top:6px">无（按需触发，符合设计）</div>`}
+    </div>`).join('');
+}
+
+function showErr(id,name){
+  const e=(LIVE&&JOBS[id]&&JOBS[id].last_error)||SNAPSHOT_ERRORS[id]||'（无 last_error 记录）';
+  document.getElementById('errtitle').textContent='✗ '+name;
+  document.getElementById('errbody').textContent=e;
+  document.getElementById('errmodal').style.display='block';
+}
+
+function renderTicker(evts,live){
+  document.getElementById('tkmode').textContent=live?'· live':'· 快照 07-04';
+  document.getElementById('ticker').innerHTML=evts.map(e=>
+    `<div class="tk"><span class="t">${e.t.replace('2026-','').replace('T',' ')}</span><span class="s ${e.st}">${e.st==='ok'?'✓':e.st==='error'?'✗':'·'}</span><span class="m"><b style="color:var(--txt)">${e.src}</b> ${e.msg||''}</span></div>`).join('');
+}
+
+function renderGoals(g){
+  document.getElementById('goals').innerHTML=Object.entries(g).filter(([k])=>['Current Mission','Core Goal','Current Projects','Challenges Right Now','Key Beliefs'].includes(k)).map(([k,v])=>`<b>${k}</b>${String(v).replace(/\n/g,'<br>')}`).join('');
+}
+
+async function journal(){
+  const inp=document.getElementById('jin'),msg=document.getElementById('jmsg'),text=inp.value.trim();
+  if(!text)return;
+  if(LIVE){
+    try{const r=await fetch('/api/journal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+      const j=await r.json();
+      if(j.ok){msg.textContent='✓ 已写入 '+j.file.split('/').slice(-3).join('/');inp.value='';toast('📓 入环成功');}
+      else msg.textContent='✗ '+j.error;
+    }catch(e){msg.textContent='✗ '+e;}
+  }else{
+    copy(`printf -- "- $(date +%H:%M) ${text.replace(/"/g,'\\"')}\\n" >> "$HOME/Downloads/Obsidian Vault/life-wiki/daily/$(date +%F).md"`,'静态模式：追加命令已复制，去终端执行');
+  }
+}
+
+async function refresh(){
+  try{
+    const r=await fetch('/api/jobs',{cache:'no-store'});
+    if(r.ok){const j=await r.json();JOBS=Object.fromEntries(j.jobs.map(x=>[x.id,x]));LIVE=true;
+      const m=document.getElementById('mode');m.className='live';m.textContent='● LIVE · 实时读取 jobs.json';}
+  }catch(e){LIVE=false;}
+  if(LIVE){
+    try{renderTicker((await (await fetch('/api/ticker')).json()).events,true);}catch(e){renderTicker(SNAPSHOT_TICKER,false);}
+    try{renderGoals(await (await fetch('/api/goals')).json());}catch(e){renderGoals(SNAPSHOT_GOALS);}
+  }else{renderTicker(SNAPSHOT_TICKER,false);renderGoals(SNAPSHOT_GOALS);}
+  render();
+}
+
+(async()=>{
+  try{REG=await (await fetch(REGISTRY_URL,{cache:'no-store'})).json();}
+  catch(e){REG=EMBEDDED_REGISTRY;} // file:// 下 fetch 被禁 → 用内嵌快照
+  await refresh();
+  setInterval(()=>{if(LIVE)refresh();},30000);
+})();
+</script>
+</body>
+</html>

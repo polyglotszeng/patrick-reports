@@ -1,0 +1,592 @@
+<style>
+/* me-specific CSS — prefixed .me- to avoid collision with skeleton/viewHome */
+/* Re-uses design tokens from prototype:
+   --navy:#1B2A41; --navy-dk:#13202F; --terra:#D9723F; --gold:#E3B23C;
+   --cream:#F6F3EC; --ink:#27221B; --muted:#8A8272; --line:#E7E1D4; --green:#3E7A4C
+*/
+
+.me-wrap{
+  display:block;
+  width:100%;
+  padding-bottom:8px;
+}
+
+/* ---------- Profile header ---------- */
+.me-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  background:linear-gradient(135deg,#FFF6EC 0%,#FBE9DF 100%);
+  border:1.4px solid #F2D8C4;
+  border-radius:18px;
+  padding:16px;
+  margin:4px 0 16px;
+  position:relative;
+  overflow:hidden;
+}
+.me-head::before{
+  content:"";
+  position:absolute;
+  right:-30px;top:-30px;
+  width:100px;height:100px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(217,114,63,0.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+.me-avatar{
+  width:56px;height:56px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;color:#fff;
+  font-family:"PingFang SC","Hiragino Sans GB",sans-serif;
+  flex-shrink:0;
+  box-shadow:0 4px 10px rgba(217,114,63,0.25);
+  position:relative;
+  z-index:1;
+}
+.me-profile{
+  flex:1;min-width:0;
+  position:relative;
+  z-index:1;
+}
+.me-name-row{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.me-name{
+  font-size:18px;font-weight:800;color:var(--navy);
+  letter-spacing:.3px;
+  line-height:1.25;
+  cursor:text;
+  padding:2px 4px;
+  border-radius:6px;
+  max-width:200px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  transition:background .15s ease;
+}
+.me-name:hover{background:rgba(255,255,255,0.5);}
+.me-name-edit{
+  font-size:14px;
+  border:1.4px solid var(--terra);
+  border-radius:6px;
+  padding:3px 8px;
+  outline:none;
+  font-family:inherit;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  width:180px;
+  max-width:100%;
+}
+.me-edit-hint{
+  display:inline-flex;
+  align-items:center;gap:2px;
+  font-size:10px;color:var(--muted);
+  margin-top:4px;
+  font-weight:600;
+}
+.me-edit-hint svg{
+  width:10px;height:10px;stroke:var(--muted);fill:none;stroke-width:2;
+}
+.me-bio{
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:5px;
+  line-height:1.4;
+  letter-spacing:.2px;
+}
+
+/* ---------- Stats row (4 boxes) ---------- */
+.me-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:18px;
+}
+.me-stat{
+  background:#fff;
+  border-radius:12px;
+  padding:10px 4px 9px;
+  text-align:center;
+  box-shadow:0 3px 10px rgba(27,42,65,0.05);
+  border:1px solid transparent;
+  transition:transform .15s ease, border-color .15s ease;
+}
+.me-stat:active{
+  transform:scale(.97);
+  border-color:var(--line);
+}
+.me-stat .num{
+  font-size:16px;
+  font-weight:800;
+  color:var(--navy);
+  line-height:1.2;
+  letter-spacing:.3px;
+}
+.me-stat .num.terra{color:var(--terra);}
+.me-stat .num.green{color:var(--green);}
+.me-stat .num.gold{color:#9C7A1A;}
+.me-stat .lbl{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:3px;
+  font-weight:600;
+  letter-spacing:.5px;
+}
+
+/* ---------- Section label (re-uses prototype pattern) ---------- */
+.me-section{
+  font-size:12.5px;
+  font-weight:800;
+  color:var(--navy);
+  margin:14px 0 10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.me-section small{
+  font-size:10px;
+  color:var(--muted);
+  font-weight:600;
+}
+.me-section small a{
+  color:var(--muted);
+  text-decoration:none;
+  cursor:pointer;
+}
+.me-section small a:hover{color:var(--terra);}
+
+/* ---------- 8-grid media library ---------- */
+.me-media{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  margin-bottom:14px;
+}
+.me-media-tile{
+  position:relative;
+  aspect-ratio:1;
+  border-radius:10px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;justify-content:center;
+  font-size:26px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(27,42,65,0.08);
+  transition:transform .15s ease;
+  -webkit-tap-highlight-color:transparent;
+  text-decoration:none;
+}
+.me-media-tile:active{transform:scale(.94);}
+.me-media-tile::after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,0.32));
+  pointer-events:none;
+}
+.me-media-tile .emoji{
+  position:relative;
+  z-index:1;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+}
+
+/* ---------- 4 menu rows ---------- */
+.me-menus{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-bottom:18px;
+}
+.me-menu-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#fff;
+  border-radius:14px;
+  padding:13px 14px;
+  text-decoration:none;
+  color:inherit;
+  cursor:pointer;
+  box-shadow:0 3px 10px rgba(27,42,65,0.05);
+  transition:transform .15s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.me-menu-row:active{
+  transform:scale(.99);
+  box-shadow:0 2px 6px rgba(27,42,65,0.08);
+}
+.me-menu-icon{
+  width:34px;height:34px;
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.me-menu-icon.terra{background:#FBE9DF;color:var(--terra);}
+.me-menu-icon.green{background:#E5EFE6;color:var(--green);}
+.me-menu-icon.gold{background:#FAEFCF;color:#9C7A1A;}
+.me-menu-icon.navy{background:#E2E8EF;color:var(--navy);}
+.me-menu-body{flex:1;min-width:0;}
+.me-menu-t{
+  font-size:13px;
+  font-weight:700;
+  color:var(--ink);
+  line-height:1.3;
+}
+.me-menu-m{
+  font-size:10.5px;
+  color:var(--muted);
+  margin-top:2px;
+  line-height:1.4;
+}
+.me-menu-arrow{
+  width:18px;height:18px;
+  color:var(--muted);
+  flex-shrink:0;
+  font-size:14px;
+  font-weight:700;
+}
+.me-menu-badge{
+  background:var(--terra);
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  padding:3px 7px;
+  border-radius:10px;
+  margin-right:4px;
+  flex-shrink:0;
+}
+
+/* ---------- Bottom actions ---------- */
+.me-foot{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+  padding-top:14px;
+  border-top:1px dashed var(--line);
+}
+.me-foot a{
+  flex:1;
+  text-align:center;
+  padding:11px 0;
+  border-radius:12px;
+  font-size:12.5px;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.me-foot a:active{transform:scale(.98);}
+.me-foot .me-set{
+  background:#fff;
+  color:var(--navy);
+  border:1.2px solid var(--line);
+}
+.me-foot .me-set:hover{border-color:var(--navy);}
+.me-foot .me-logout{
+  background:#fff;
+  color:#c4302b;
+  border:1.2px solid #F2D8D6;
+}
+.me-foot .me-logout:hover{background:#FFF5F4;}
+
+/* ---------- Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .me-stat,.me-media-tile,.me-menu-row,.me-foot a{transition:none;}
+}
+</style>
+<script>
+/* ================================================================
+ * viewMe — 驾迹 GoTrace v0.1 「我的」tab
+ * OWNER: Loop L3 (only viewMe in this file)
+ * Returns HTML string; skeleton handles DOM injection + re-render
+ * No AI / network calls — all data is mock below
+ *
+ * State contract (per MERGE_GUIDE.md):
+ *   state.profile.nickname      string   "GoTrace 用户"
+ *   state.profile.avatarLetter  string   "驾"
+ *   state.profile.bio           string   "记录每一次出发 · 拍成片 · 留路书"
+ *   state.profile.routes        number   mock 12
+ *   state.profile.media         number   mock 86
+ *   state.profile.books         number   mock 8
+ *   state.profile.followers     number   mock 1200
+ * saveState() + state Proxy defined in skeleton (L1).
+ * ================================================================ */
+
+/* Mock 8-grid media library (per MERGE_GUIDE contract) */
+const MOCK_MEDIA_GRID = [
+  { id:'m1', gradient:'linear-gradient(135deg,#1B2A41,#3E7A4C)',  emoji:'🏔️' },
+  { id:'m2', gradient:'linear-gradient(135deg,#D9723F,#E3B23C)',  emoji:'🌅' },
+  { id:'m3', gradient:'linear-gradient(135deg,#27221B,#8A8272)',  emoji:'🚙' },
+  { id:'m4', gradient:'linear-gradient(135deg,#3E7A4C,#1B2A41)',  emoji:'🌲' },
+  { id:'m5', gradient:'linear-gradient(135deg,#E3B23C,#D9723F)',  emoji:'🏕️' },
+  { id:'m6', gradient:'linear-gradient(135deg,#5f6f7c,#27221B)',  emoji:'🌌' },
+  { id:'m7', gradient:'linear-gradient(135deg,#D9723F,#27221B)',  emoji:'🍜' },
+  { id:'m8', gradient:'linear-gradient(135deg,#1B2A41,#E3B23C)',  emoji:'📸' }
+];
+
+/* 4 menu rows (icon + title + sub) — single source for both render & handler */
+const ME_MENUS = [
+  { id:'trips',   icon:'🗺️', kind:'green', t:'我的行程',  m:'已规划 · 进行中 · 历史',  alert:'v0.2 上线: 我的行程' },
+  { id:'books',   icon:'📖', kind:'gold',  t:'我的路书',  m:'已生成 · 草稿 · 收藏',    alert:'v0.2 上线: 我的路书' },
+  { id:'market',  icon:'🤝', kind:'terra', t:'任务市场',  m:'品牌任务 · 创作邀约',    alert:'v0.2 上线: 任务市场' },
+  { id:'member',  icon:'💎', kind:'navy',  t:'会员中心',  m:'Pro · 钱包 · 权益',      alert:'v0.2 上线: 会员中心' }
+];
+
+/* Tiny helpers (escaped so user input never breaks markup) */
+function _meEsc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+/* Read state.profile with safe defaults — never throws if state.profile is undefined */
+function _meProfile(){
+  try {
+    var p = (window.state && window.state.profile) || {};
+    return {
+      nickname:     (p.nickname     != null && p.nickname     !== '') ? p.nickname     : 'GoTrace 用户',
+      avatarLetter: (p.avatarLetter != null && p.avatarLetter !== '') ? p.avatarLetter : '驾',
+      bio:          (p.bio          != null && p.bio          !== '') ? p.bio          : '记录每一次出发 · 拍成片 · 留路书',
+      routes:    (typeof p.routes    === 'number') ? p.routes    : 12,
+      media:     (typeof p.media     === 'number') ? p.media     : 86,
+      books:     (typeof p.books     === 'number') ? p.books     : 8,
+      followers: (typeof p.followers === 'number') ? p.followers : 1200
+    };
+  } catch (e) {
+    return { nickname:'GoTrace 用户', avatarLetter:'驾', bio:'记录每一次出发 · 拍成片 · 留路书',
+             routes:12, media:86, books:8, followers:1200 };
+  }
+}
+
+/* Format followers: 1200 → "1.2k", 3480 → "3.5k" */
+function _meFmtFollowers(n){
+  if (n >= 10000) return (n / 10000).toFixed(1).replace(/\.0$/,'') + 'w';
+  if (n >= 1000)  return (n / 1000).toFixed(1).replace(/\.0$/,'')  + 'k';
+  return String(n);
+}
+
+/* ---------- Edit nickname: in-place swap <span> → <input> ----------
+ * Bound by onclick="meBeginEditNickname(event)" on the rendered <span>.
+ * On blur → meCommitNickname() → updates state.profile.nickname + saves
+ *          + triggers global re-render (if GT.render exists in skeleton).
+ * Uses event delegation on the input so blur fires after the swap.
+ */
+function meBeginEditNickname(ev){
+  try { ev && ev.stopPropagation && ev.stopPropagation(); } catch(_){ }
+  var span = document.getElementById('me-name-span');
+  if (!span) return;
+  var input = document.getElementById('me-name-input');
+  if (!input) return;
+  span.style.display = 'none';
+  input.style.display = 'inline-block';
+  // focus + select all
+  try { input.focus(); input.setSelectionRange(0, input.value.length); }
+  catch(_){ input.focus(); }
+}
+
+function meCommitNickname(ev){
+  var span = document.getElementById('me-name-span');
+  var input = document.getElementById('me-name-input');
+  if (!span || !input) return;
+  var raw = (input.value || '').trim();
+  // Reject empty → snap back to previous value
+  var prof = _meProfile();
+  var next = raw || prof.nickname;
+  // Persist to state via Proxy (window.state provided by skeleton)
+  try {
+    if (window.state && typeof window.state.profile === 'object') {
+      window.state.profile.nickname = next;
+    } else if (window.state) {
+      // Fallback: set via profile path through skeleton's proxy
+      try { window.state['profile.nickname'] = next; } catch(_){}
+    }
+  } catch(e){ console.warn('[me] nickname save failed', e); }
+  // Persist to localStorage
+  try {
+    if (typeof window.saveState === 'function') window.saveState();
+    else if (window._state) localStorage.setItem('gotrace_state_v1', JSON.stringify(window._state));
+  } catch(e){ console.warn('[me] saveState failed', e); }
+  // Trigger skeleton re-render if exposed, else manually swap DOM back
+  if (window.GT && typeof window.GT.render === 'function') {
+    window.GT.render();
+  } else {
+    input.style.display = 'none';
+    span.style.display  = 'inline-block';
+    span.textContent    = next;
+  }
+}
+
+/* Tap on avatar → alert stub (matches brief: v0.2 上线 lightbox stub pattern) */
+function meAvatarTap(){
+  // We keep this as a no-op for v0.1 (avatar not editable in spec).
+  // Future v0.2: open avatar picker lightbox.
+}
+
+/* 8-grid thumbnail tap → v0.2 lightbox stub */
+function meOpenMedia(id){
+  // Stub per brief
+  try {
+    if (window.GT && typeof window.GT.toast === 'function') {
+      window.GT.toast('v0.2 上线: 完整素材库 · ' + id);
+      return;
+    }
+  } catch(_){}
+  alert('v0.2 上线: 完整素材库\n(素材 ' + id + ')');
+}
+
+/* 4 menu row tap → v0.2 stub (alert text per spec) */
+function meMenuTap(id){
+  var m = null;
+  for (var i = 0; i < ME_MENUS.length; i++) {
+    if (ME_MENUS[i].id === id) { m = ME_MENUS[i]; break; }
+  }
+  var msg = (m && m.alert) ? m.alert : 'v0.2 上线';
+  try {
+    if (window.GT && typeof window.GT.toast === 'function') {
+      window.GT.toast(msg); return;
+    }
+  } catch(_){}
+  alert(msg);
+}
+
+/* Bottom buttons: 设置 / 退出 */
+function meSettingsTap(){ alert('v0.1 设置: 待 v0.2 实现'); }
+function meLogoutTap(){   alert('v0.1 退出登录: 待 v0.2 实现 (需先确认数据)'); }
+
+/* --------------------------------------------------------------- */
+/* viewMe() — main entry. Returns HTML string only.                */
+/* No event delegation at document level — we use inline onclick   */
+/* so the snippet stays self-contained and matches skeleton flow.  */
+/* --------------------------------------------------------------- */
+function viewMe(){
+  var p = _meProfile();
+
+  /* ─── Profile header ─── */
+  var header = `
+    <section class="me-head" aria-label="个人主页">
+      <div class="me-avatar" onclick="meAvatarTap()" aria-label="头像">${_meEsc(p.avatarLetter)}</div>
+      <div class="me-profile">
+        <div class="me-name-row">
+          <span id="me-name-span" class="me-name"
+                onclick="meBeginEditNickname(event)"
+                title="点击修改昵称"
+                role="textbox"
+                aria-label="昵称 · 点击修改">${_meEsc(p.nickname)}</span>
+          <input id="me-name-input" class="me-name-edit"
+                 style="display:none"
+                 type="text"
+                 maxlength="20"
+                 value="${_meEsc(p.nickname)}"
+                 onblur="meCommitNickname(event)"
+                 onkeydown="if(event.key==='Enter'){this.blur();}"
+                 aria-label="编辑昵称" />
+        </div>
+        <div class="me-edit-hint">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+          点击名字可编辑
+        </div>
+        <div class="me-bio">${_meEsc(p.bio)}</div>
+      </div>
+    </section>
+  `;
+
+  /* ─── Stats row (4 boxes) ─── */
+  var stats = `
+    <div class="me-stats" role="list" aria-label="数据">
+      <div class="me-stat" role="listitem">
+        <div class="num terra">${p.routes}</div>
+        <div class="lbl">路线</div>
+      </div>
+      <div class="me-stat" role="listitem">
+        <div class="num">${p.media}</div>
+        <div class="lbl">素材</div>
+      </div>
+      <div class="me-stat" role="listitem">
+        <div class="num green">${p.books}</div>
+        <div class="lbl">路书</div>
+      </div>
+      <div class="me-stat" role="listitem">
+        <div class="num gold">${_meFmtFollowers(p.followers)}</div>
+        <div class="lbl">粉丝</div>
+      </div>
+    </div>
+  `;
+
+  /* ─── 8-grid media library ─── */
+  var tiles = MOCK_MEDIA_GRID.map(function(m){
+    return `<a class="me-media-tile"
+                 href="javascript:void(0)"
+                 onclick="meOpenMedia('${_meEsc(m.id)}');return false;"
+                 style="background:${m.gradient};"
+                 aria-label="素材 ${_meEsc(m.id)}">
+              <span class="emoji" aria-hidden="true">${m.emoji}</span>
+            </a>`;
+  }).join('');
+  var media = `
+    <div class="me-section">
+      <span>素材库</span>
+      <small><a onclick="meOpenMedia('all');return false;" href="javascript:void(0)">全部 ${p.media} ›</a></small>
+    </div>
+    <div class="me-media" role="grid" aria-label="素材库">${tiles}</div>
+  `;
+
+  /* ─── 4 menu rows ─── */
+  var rows = ME_MENUS.map(function(m){
+    return `<a class="me-menu-row"
+               href="javascript:void(0)"
+               onclick="meMenuTap('${_meEsc(m.id)}');return false;"
+               aria-label="${_meEsc(m.t)}">
+              <div class="me-menu-icon ${_meEsc(m.kind)}" aria-hidden="true">${m.icon}</div>
+              <div class="me-menu-body">
+                <div class="me-menu-t">${_meEsc(m.t)}</div>
+                <div class="me-menu-m">${_meEsc(m.m)}</div>
+              </div>
+              <span class="me-menu-arrow" aria-hidden="true">›</span>
+            </a>`;
+  }).join('');
+  var menus = `
+    <div class="me-section">
+      <span>工作台</span>
+      <small>点按进入</small>
+    </div>
+    <div class="me-menus" role="list" aria-label="工作台菜单">${rows}</div>
+  `;
+
+  /* ─── Bottom actions ─── */
+  var foot = `
+    <div class="me-foot">
+      <a class="me-set"      href="javascript:void(0)" onclick="meSettingsTap();return false;">设置</a>
+      <a class="me-logout"   href="javascript:void(0)" onclick="meLogoutTap();return false;">退出</a>
+    </div>
+  `;
+
+  return `
+    <div class="me-wrap">
+      ${header}
+      ${stats}
+      ${media}
+      ${menus}
+      ${foot}
+    </div>
+  `.trim();
+}
+
+/* Expose for headless test / iframe verify (matches single-file-spa §1 pattern) */
+window.MOCK_MEDIA_GRID  = MOCK_MEDIA_GRID;
+window.ME_MENUS         = ME_MENUS;
+window.viewMe           = viewMe;
+window.meBeginEditNickname = meBeginEditNickname;
+window.meCommitNickname    = meCommitNickname;
+window.meAvatarTap         = meAvatarTap;
+window.meOpenMedia         = meOpenMedia;
+window.meMenuTap           = meMenuTap;
+window.meSettingsTap       = meSettingsTap;
+window.meLogoutTap         = meLogoutTap;
+</script>

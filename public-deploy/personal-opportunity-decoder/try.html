@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Try Personal Opportunity Decoder · Day 4-7 试用招募</title>
+<meta name="description" content="Apply for Day 4-7 Beta. For solo builders who watch too many AI/business videos and need to turn them into a personal build plan.">
+<meta name="author" content="Patrick · personal-opportunity-decoder · try.html · 2026-07-07">
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2129; --border:#30363d;
+    --fg:#e6edf3; --fg-dim:#8b949e; --fg-muted:#6e7681;
+    --accent:#58a6ff; --green:#3fb950; --amber:#d29922; --red:#f85149; --purple:#a371f7;
+    --mono:'SF Mono',Monaco,'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:13px;color:var(--purple)}
+  .container{max-width:880px;margin:0 auto;padding:24px 20px}
+  /* nav bar (回到主站) */
+  nav.subnav{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;font-size:13px;z-index:50;display:flex;gap:14px;align-items:center}
+  nav.subnav a{color:var(--fg-dim);font-weight:500}
+  nav.subnav a:hover{color:var(--fg)}
+  nav.subnav .pill{margin-left:auto;font-size:11px;color:var(--fg-muted);padding:4px 10px;border:1px solid var(--border);border-radius:10px}
+  /* hero */
+  header.hero{padding:48px 24px;background:linear-gradient(135deg,#1c2129 0%,#0d1117 100%);border-radius:14px;text-align:center;border:1px solid var(--border);margin:24px 0}
+  header.hero h1{font-size:32px;margin:0 0 16px 0;font-weight:700;color:var(--accent)}
+  header.hero .tagline{font-size:15px;color:var(--fg-dim);max-width:680px;margin:0 auto 16px auto}
+  header.hero .tagline-sm{font-size:13px;color:var(--fg-muted);max-width:680px;margin:16px auto 0 auto}
+  header.hero .ctas{margin-top:24px}
+  /* sections */
+  section{margin:48px 0}
+  section h2{font-size:22px;margin:0 0 20px 0;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:8px}
+  section h2 .num{display:inline-block;width:32px;height:32px;background:var(--accent);color:#0d1117;border-radius:6px;text-align:center;line-height:32px;margin-right:8px;font-size:16px;font-weight:700;vertical-align:middle}
+  /* cards */
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+  .form-card h3{margin:0 0 12px 0;font-size:16px;color:var(--accent)}
+  .form-card label{display:block;font-size:13px;color:var(--fg-dim);margin:12px 0 4px 0;font-weight:500}
+  .form-card input,.form-card textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--fg);font-family:inherit;font-size:14px}
+  .form-card input:focus,.form-card textarea:focus{outline:none;border-color:var(--accent)}
+  .form-card textarea{min-height:80px;resize:vertical}
+  .btn{background:var(--accent);color:#0d1117;border:none;padding:10px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;transition:all 0.15s;text-decoration:none;display:inline-block}
+  .btn:hover{background:#4493f8}
+  .btn:disabled{background:var(--surface2);color:var(--fg-muted);cursor:not-allowed}
+  .btn-secondary{background:var(--surface2);color:var(--fg);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  /* why grid */
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:24px 0}
+  @media (max-width:900px){.why-grid{grid-template-columns:1fr}}
+  .why-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .why-card .num{font-family:var(--mono);font-size:24px;color:var(--accent);font-weight:700;display:block;margin-bottom:6px}
+  .why-card h4{margin:0 0 8px 0;font-size:15px;font-weight:600}
+  .why-card p{margin:0;font-size:13px;color:var(--fg-dim);line-height:1.55}
+  /* process step cards */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:900px){.grid-2{grid-template-columns:1fr}}
+  .step-card .ts{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--accent);color:#0d1117;padding:2px 8px;border-radius:10px;margin-bottom:8px;font-weight:700}
+  .step-card h3{margin:0 0 8px 0;font-size:16px;font-weight:600}
+  .step-card p{margin:0;font-size:13px;color:var(--fg-dim);line-height:1.6}
+  /* status banner (non-blocking, no alert/confirm pattern) */
+  .status-banner{background:var(--surface);border:1px solid var(--green);border-radius:8px;padding:14px 18px;margin-top:16px;display:none;color:var(--green)}
+  .status-banner.show{display:block}
+  /* footer */
+  footer{padding:32px 24px;border-top:1px solid var(--border);color:var(--fg-muted);font-size:13px;text-align:center;margin-top:48px}
+  footer a{color:var(--fg-dim)}
+  /* amber warning card */
+  .warn{background:var(--surface);border:1px solid var(--amber);border-left:3px solid var(--amber);border-radius:8px;padding:14px 18px;margin:16px 0;font-size:13px;color:var(--fg-dim);line-height:1.7}
+  .warn strong{color:var(--fg)}
+  /* inline kbd */
+  kbd{font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;color:var(--accent)}
+  /* Day 6 recruit banner (inline below subnav, prominent) */
+  .banner-recruit{background:linear-gradient(135deg,rgba(219,138,0,0.15),rgba(88,166,255,0.15));border-bottom:1px solid var(--orange,#db8a00);padding:12px 20px;font-size:13px;color:var(--fg);text-align:center}
+  .banner-recruit strong{color:var(--orange,#db8a00);margin-right:4px}
+  .banner-recruit a{color:var(--accent);font-weight:600;text-decoration:underline;margin:0 2px}
+  /* v0.3 try.html polish round 3: collapsible sections via <details> + compact-mode toggle */
+  details.collapse-summary{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px}
+  details.collapse-summary summary{cursor:pointer;font-size:15px;font-weight:600;color:var(--accent);list-style:none;padding:6px 0}
+  details.collapse-summary summary::before{content:'▸';display:inline-block;margin-right:8px;transition:transform 0.15s}
+  details.collapse-summary[open] summary::before{content:'▾'}
+  details.collapse-summary>div{padding:8px 0 0 26px;border-top:1px dashed var(--border);margin-top:8px;font-size:13px;color:var(--fg-dim);line-height:1.6}
+  /* compact-mode = body.compact then sections heavily hidden to reach form fast */
+  body.compact nav.subnav{box-shadow:none}
+  body.compact header.hero{display:none}
+  body.compact section:not(#apply){display:none}
+  body.compact section#apply{margin-top:0}
+  body.compact section#apply h2:first-of-type{margin-top:14px}
+  /* compact toggle button (top-right) */
+  .compact-toggle{position:fixed;top:60px;right:18px;z-index:60;background:var(--surface);border:1px solid var(--border);color:var(--fg-dim);padding:6px 10px;border-radius:18px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .compact-toggle:hover{color:var(--accent);border-color:var(--accent)}
+  @media (max-width:900px){.compact-toggle{top:8px;right:8px;font-size:11px}}
+  /* form character counter */
+  .counter{font-size:11px;color:var(--fg-muted);text-align:right;margin-top:4px;font-family:var(--mono)}
+  .counter.full{color:var(--red)}
+  /* sample-load button + prefilled banner */
+  .prefill-banner{background:var(--surface);border:1px dashed var(--green);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12px;color:var(--fg-dim);display:none}
+  .prefill-banner.show{display:block}
+  /* help mini overlay */
+  .help-mini-btn{position:fixed;top:108px;right:18px;z-index:60;background:var(--surface);border:1px solid var(--border);color:var(--fg-dim);padding:6px 10px;border-radius:18px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .help-mini-btn:hover{color:var(--accent);border-color:var(--accent)}
+  @media (max-width:900px){.help-mini-btn{top:48px;right:8px;font-size:11px}}
+  #help-mini{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center}
+  #help-mini.show{display:flex}
+  #help-mini .help-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto}
+  #help-mini h3{margin:0 0 14px 0;color:var(--accent);font-size:17px}
+  #help-mini .help-section{margin:12px 0}
+  #help-mini .help-section h4{margin:0 0 6px 0;font-size:12px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:0.05em}
+  #help-mini .help-section ul{list-style:none;padding:0;margin:0;font-size:13px;color:var(--fg-dim);line-height:1.7}
+  #help-mini .help-close{float:right;background:var(--surface2);color:var(--fg);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+</style>
+</head>
+<body>
+
+<nav class="subnav">
+  <a href="index.html">&larr; 回到主站 (Personal Opportunity Decoder v0.3.1)</a>
+  <a href="recruit.html">&middot; 招募信 (Day 6)</a>
+  <a href="index.html#try">&middot; 主页 #try tab</a>
+  <a href="index.html#cards">&middot; 主页 #cards tab</a>
+  <a href="inspect-data.html">&middot; inspect-data</a>
+  <span class="pill">Day 6 招募 · 截止 2026-07-14 23:59 PT · 剩 3 名额</span>
+</nav>
+
+<div class="banner-recruit">
+  <strong>📨 Day 6 招募已开</strong> — 想试 v0.3.1? 直入 <a href="recruit.html">recruit.html</a> 看完整 7 天 loop + 倒计时
+</div>
+<button class="compact-toggle" id="compact-toggle" aria-label="Compact mode">&#x2009;&#x2009;Compact</button>
+<button class="help-mini-btn" id="help-mini-btn" aria-label="Help">? Help</button>
+
+<div id="help-mini" role="dialog" aria-label="Help cheat sheet">
+  <div class="help-box">
+    <button class="help-close" id="help-mini-close">&#x2715; 关闭</button>
+    <h3>&#x1F91D; try.html Cheat Sheet (Patrick, 5 keyboard shortcuts)</h3>
+    <div class="help-section">
+      <h4>&#x2328;&#xfe0f; 快捷键</h4>
+      <ul>
+        <li><kbd>C</kbd> 切换 Compact mode(直接跳申请 form)</li>
+        <li><kbd>?</kbd> 打开/关闭本 cheat sheet</li>
+        <li><kbd>S</kbd> 装载示例 application(5 字段 sample 数据)</li>
+        <li><kbd>R</kbd> 重置 form(全清空)</li>
+        <li><kbd>Esc</kbd> 关闭任何 open overlay</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>&#x1F4DE; 我应该在 apply 之前...</h4>
+      <ul>
+        <li>&#x2713; 看过主站 demo(<a href="index.html">index.html</a>)至少 1 次</li>
+        <li>&#x2713; 有 1 条具体想解码的 URL(YouTube/article/产品页)</li>
+        <li>&#x2713; 已填过 <a href="index.html#input">主页 #input 5 资产表</a>(我会自动 prefill)</li>
+        <li>&#x2713; 知道 30 分钟 review 时间(T+48h)</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>&#x2753; FAQ</h4>
+      <ul>
+        <li><strong>Q: 申请后多久收到回信?</strong> A: 24h 内(T+24h delivery)</li>
+        <li><strong>Q: 隐私?</strong> A: 100% 本地 localStorage + 一次性 email 联系</li>
+        <li><strong>Q: 出 bug 怎么办?</strong> A: 写 email 给我,我手动看</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<main class="container">
+
+<header class="hero">
+  <h1>🤝 Try Personal Opportunity Decoder — Day 4-7 招募</h1>
+  <p class="tagline">给 3 个「像 Patrick」的人:独立开发者 / AI 工作者 / 视频/知识摄入狂。</p>
+  <p class="tagline">你给我一条视频/文章/产品页,我用这套 decoder 为你生成「My 5 Cards」+ 我自己帮你 review。</p>
+  <p class="tagline-sm">Day 4-7 共 7 天免费,不收钱,不签 NDA,不发邮件。我只为弄清核心需求是「总结」「判断」还是「可执行 plan」。</p>
+  <div class="ctas">
+    <a href="#apply" class="btn">📨 申请试用 (30 秒)</a>
+    &nbsp;
+    <a href="index.html" class="btn btn-secondary">&larr; 先看主站 demo</a>
+  </div>
+</header>
+
+<details class="collapse-summary" open>
+  <summary>1 · 为什么你适合 (6 项 checklist)</summary>
+  <div>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="num">1</span>
+      <h4>你每周花 ≥3 小时看 AI/独立开发者视频</h4>
+      <p>但看完就忘 / 没动。如果你「看→不动」已成习惯,这个工具就是给「你」做 build plan。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">2</span>
+      <h4>你已经有 ≥1 个可变现技能 + ≥1 个发布渠道</h4>
+      <p>我会读你表单 5 资产 (skill/tools/channels/hours/no-list),跟案例栈做 Fit+Risk。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">3</span>
+      <h4>你有「明确不想做」列表 (SaaS 登录?客服?硬件?)</h4>
+      <p>v0.2 Day 1 救你命的就是这条 — 没有 no-list,Build Plan 就是错的。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">4</span>
+      <h4>你想看「我不能用 ChatGPT 问」的角度</h4>
+      <p>ChatGPT 不读你的 no-list、不对照你的 toolstack、不查 Sensor Tower 反方证据。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">5</span>
+      <h4>你有「视频→卡片化」习惯</h4>
+      <p>如果你跟我一样,看完视频抄 17 张卡,你就是 Beta target。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">6</span>
+      <h4>你愿意拿 30 分钟回 form 帮我验 Day 5 主轴</h4>
+      <p>Day 5 关键问题:你真正想要的,是 (a) AI Summary 替读 (b) 我帮你「做或不做」判断 (c) Loop Plan。</p>
+    </div>
+  </div>
+
+  </div>
+</details>
+
+<details class="collapse-summary">
+  <summary>2 · 试用流程 (T+0 至 T+72h)</summary>
+  <div>
+
+  <div class="grid-2">
+    <div class="form-card">
+      <h3>T+0 — 你给我 (10 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">通过下方 #apply form 填:<br>
+        (a) 一条你想解码的 URL (YouTube/article/产品页)<br>
+        (b) 5 资产 (技能/工具栈/渠道/每周小时/no-list)<br>
+        (c) 你看完后的最初反应 (1 句话)
+      </p>
+    </div>
+    <div class="form-card">
+      <h3>T+24h — 我交 (45 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">我用 v0.3 工具为你生成 My 5 Cards (editable draft),含反方证据 + Source。发 Telegram 或 email。</p>
+    </div>
+    <div class="form-card">
+      <h3>T+48h — 你 review (15 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">你改你觉得不对的卡 (主站 v0.3 editable 全工作),回我「核心需求是 a/b/c」。这是 Day 5 数据点。</p>
+    </div>
+    <div class="form-card">
+      <h3>T+72h — 我聚合 + 公网报告</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">Day 7 公网 landing + demo gallery 发布,含 (匿名) 你同意用的话。</p>
+    </div>
+  </div>
+
+  </div>
+</details>
+  </div>
+</div>
+
+</section>
+
+<section id="apply">
+
+<h2><span class="num">3</span>申请 (本地 localStorage + 跨页 prefill)</h2>
+
+<p style="font-size:13px;color:var(--fg-muted);margin-bottom:14px">💡 如果你刚在 <strong>主页 #input</strong> tab 填过 5 资产,下面前 4 字段会自动 prefill(localStorage 跨 origin 同一台机器)。<strong>不需要重新填。</strong></p>
+
+<form id="apply-form">
+
+  <div class="form-card">
+    <h3>💬 你的 Telegram handle 或 email</h3>
+    <p style="font-size:13px;color:var(--fg-muted);margin:4px 0 12px 0">试用期间我会通过这个联系。你填的内容只存你的浏览器 localStorage,不发送到任何服务器。</p>
+
+    <label>Contact</label>
+    <input type="text" id="apply_contact" placeholder="@yourhandle 或 you@email.com" required maxlength="80">
+    <div class="counter" id="apply_contact_counter">0 / 80</div>
+
+    <label>你目前每周花多少小时看 AI/business 视频/文章?</label>
+    <input type="number" id="apply_video_hours" min="0" placeholder="3 / 5 / 10" max="168" required>
+    <div class="counter" id="apply_video_hours_counter">0 / 168</div>
+
+    <label>你试过哪些「卡我自己笔记」工具?(Notion / Obsidian / Roam / 其他)</label>
+    <input type="text" id="apply_tools" placeholder="例如:Notion, Obsidian, 自己表格, voice memo" maxlength="200">
+    <div class="counter" id="apply_tools_counter">0 / 200</div>
+
+    <label>你最不能容忍工具做的 1 件事 (your hard no)</label>
+    <textarea id="apply_no" placeholder="例如:不能收费 / 不能强登录 / 不能上传我的真数据 / 不能 email 通知 / 不能要 review" maxlength="500"></textarea>
+    <div class="counter" id="apply_no_counter">0 / 500</div>
+
+    <label>你希望解码的 URL (YouTube / 文章 / 产品页 / 案例 PDF)</label>
+    <input type="url" id="apply_url" placeholder="https://..." maxlength="500">
+    <div class="counter" id="apply_url_counter">0 / 500</div>
+
+    <div class="prefill-banner" id="prefill-banner">
+      ✅ 已从主页 #input 自动预填 5 资产。你可以接着改或直接申请。
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button type="submit" class="btn">📨 申请试用 (Day 4 候选)</button>
+      <button type="button" class="btn btn-secondary" id="load-sample">📦 装载示例 (S)</button>
+      <button type="button" class="btn btn-secondary" id="reset-form-btn">🗑 清空 (R)</button>
+      <span id="submit_status" style="color:var(--fg-muted);font-size:13px;margin-left:auto"></span>
+    </div>
+  </div>
+
+</form>
+
+<div class="status-banner" id="status-banner">
+  <strong>&#x2705; 申请已存档</strong>(本浏览器 localStorage)。<br>
+  <span style="font-size:13px;color:var(--fg-dim)">
+    <strong>接下来手动:</strong>用你填的 contact 发邮件给我,标题「<code>Personal Opportunity Decoder 试用</code>」。
+    邮箱见本页底部「作者联系」(CF 防爬保护,请按页面提示拼出邮箱)。
+    我会在 24h 内回。
+  </span>
+</div>
+
+<div class="warn">
+  <strong>&#x26A0; 重要:</strong>本工具纯前端,没法自动通知 Patrick。
+  填完 form 后,<strong>必须手动发 email 联系作者</strong>(本页底部有 CF 防爬保护,需简单拼出)。
+  这一步是我能联系你的唯一办法。
+</div>
+
+</section>
+
+<section>
+
+<h2><span class="num">4</span>&#x1F512; 隐私 (100% 本地)</h2>
+
+<div class="form-card">
+  <p style="font-size:13px;color:var(--fg-dim);line-height:1.7">
+    <strong style="color:var(--fg)">全部 100% 本地 (browser localStorage):</strong>
+    所有表单数据只存你的浏览器,不会发到任何服务器。我(Patrick)只在 email 联系你时,才看到你手动发给我的内容。<br><br>
+    <strong style="color:var(--fg)">Day 5 匿名聚合:</strong>
+    我会做 day 5 「核心需求是 a/b/c」统计,只公开 % 结果,不发个人数据。<br><br>
+    <strong style="color:var(--fg)">不收钱:</strong>
+    v0.2 阶段完全无价。Day 7 后可能做付费,但你试用期间所有 deliverable 免费 + 不收费。<br><br>
+    <strong style="color:var(--fg)">不签 NDA:</strong>
+    因为没什么可藏的 — 你帮我试,我帮你用工具。
+  </p>
+</div>
+
+</section>
+
+<section>
+
+<h2><span class="num">5</span>&#x1F4DC; What's NOT promised</h2>
+
+<div class="warn" style="border-color:var(--red);border-left-color:var(--red)">
+  <p style="font-size:13px;color:var(--fg-dim);line-height:1.7;margin:0">
+    &#x274C; <strong style="color:var(--fg)">不承诺你能赚到钱。</strong>这是个「可执行 build plan」,不是「保证 ROI」。<br>
+    &#x274C; <strong style="color:var(--fg)">不承诺 24h 内交付。</strong>通常 T+24h,我重写或问 follow-up 都会拖到 48h。<br>
+    &#x274C; <strong style="color:var(--fg)">不承诺做 mobile App 或 App Store 提交。</strong>本产品只到「Build Plan」层。<br>
+    &#x274C; <strong style="color:var(--fg)">不承诺给「真」内部数据。</strong>所有反方证据来自公开 source,不是 ground truth。
+  </p>
+</div>
+
+</section>
+
+<section>
+
+<h2><span class="num">6</span>&#x1F517; 相关链接</h2>
+
+<div class="form-card">
+  <ul style="color:var(--fg-dim);line-height:1.8;font-size:14px">
+    <li>主站 (Day 2 demo): <a href="index.html">/personal-opportunity-decoder/</a></li>
+    <li>主站 #input tab:<a href="index.html#input">/personal-opportunity-decoder/#input</a></li>
+    <li>主站 #cards tab:<a href="index.html#cards">/personal-opportunity-decoder/#cards</a></li>
+    <li>本文 #apply:<a href="#apply">#apply</a></li>
+    <li>vault note:<br><code>~/Downloads/Obsidian Vault/llm-wiki/products/personal-opportunity-decoder-2026-07-07/index.md</code></li>
+    <li>原始来源 (jason lee):<a href="https://www.youtube.com/watch?v=hDOUzlJwM1E" target="_blank" rel="noopener">youtube.com/watch?v=hDOUzlJwM1E</a></li>
+  </ul>
+</div>
+
+</section>
+
+<section>
+
+<h2><span class="num">7</span>&#x1F4EC; 作者联系 (CF 防爬保护 manual reconstruct)</h2>
+
+<div class="form-card">
+  <p style="font-size:14px;color:var(--fg);line-height:1.8">
+    Email 由 5 段拼成:<br>
+    <code style="background:var(--surface2);padding:6px 10px;display:inline-block;border-radius:4px;font-size:14px">
+      <strong style="color:var(--accent)">patrick.l.zeng</strong>
+      <span style="color:var(--fg-muted)">&#64;</span>
+      <strong style="color:var(--accent)">gmail</strong>
+      <span style="color:var(--fg-muted)">.</span>
+      <strong style="color:var(--accent)">com</strong>
+    </code><br>
+    <span style="font-size:12px;color:var(--fg-muted)">(CF 自动保护会改写明文 email 成 <code>[email&#160;protected]</code>,上面是手动拆解版本,真邮箱可拼。</span>)
+  </p>
+</div>
+
+</section>
+
+</main>
+
+<footer>
+  Personal Opportunity Decoder v0.2 try.html · 2026-07-07 · Day 4-7 Beta · by Patrick<br>
+  Source video: <a href="https://www.youtube.com/watch?v=hDOUzlJwM1E">jason lee coinsnap</a> · Git proposal + Patrick trim
+</footer>
+
+<script>
+  // === form save (localStorage) ===
+  const STORAGE_KEY = 'pod_v0_2_try_application';
+  const FIELDS = ['apply_contact','apply_video_hours','apply_tools','apply_no','apply_url'];
+
+  function loadForm(){
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      Object.entries(data).forEach(([k,v]) => {
+        const el = document.getElementById(k);
+        if (el && v != null) el.value = v;
+      });
+    } catch(e) {}
+  }
+  function saveForm(){
+    const data = {};
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  // === load sample ===
+  document.getElementById('load-sample').addEventListener('click', () => {
+    document.getElementById('apply_contact').value = '@example_handle';
+    document.getElementById('apply_video_hours').value = '5';
+    document.getElementById('apply_tools').value = 'Obsidian (vault + wikilinks), Notion (现管客户项目)';
+    document.getElementById('apply_no').value = '不能收费 / 不能强 email 通知';
+    document.getElementById('apply_url').value = 'https://www.youtube.com/watch?v=hDOUzlJwM1E';
+  });
+
+  // === submit ===
+  document.getElementById('apply-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveForm();
+    const apps = JSON.parse(localStorage.getItem('pod_v0_2_try_applications_log') || '[]');
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+    const snapshot = {ts: now};
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) snapshot[id] = el.value;
+    });
+    apps.push(snapshot);
+    localStorage.setItem('pod_v0_2_try_applications_log', JSON.stringify(apps));
+    // inline status banner (NO confirm/alert - sandbox safe + accessible)
+    const banner = document.getElementById('status-banner');
+    const statusEl = document.getElementById('submit_status');
+    banner.classList.add('show');
+    statusEl.textContent = '\u2705 saved at ' + now + ' (' + apps.length + ' total this browser)';
+    banner.scrollIntoView({behavior: 'smooth', block: 'center'});
+  });
+  // init
+  loadForm();
+  renderSavedInputs();
+</script>
+
+<script>
+  // ===================================================================
+  // try.html polish round 3 (mirror of v0.3.1 主站)
+  // ===================================================================
+
+  // === (1) Char counter live update on all form fields ===
+  (function(){
+    const COUNTERS = [
+      ['apply_contact', 80],
+      ['apply_video_hours', 168],
+      ['apply_tools', 200],
+      ['apply_no', 500],
+      ['apply_url', 500],
+    ];
+    function updateCounter(id, max){
+      const el = document.getElementById(id);
+      const counter = document.getElementById(id + '_counter');
+      if (!el || !counter) return;
+      const len = (el.value || '').length;
+      const isFull = len >= max;
+      counter.textContent = len + ' / ' + max + (isFull ? ' (max reached)' : '');
+      counter.classList.toggle('full', isFull);
+    }
+    COUNTERS.forEach(([id, max]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      updateCounter(id, max);
+      el.addEventListener('input', () => updateCounter(id, max));
+    });
+  })();
+
+  // === (2) Reset form (PITFALL #143B family: no confirm()) ===
+  (function(){
+    const btn = document.getElementById('reset-form-btn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      ['apply_contact','apply_video_hours','apply_tools','apply_no','apply_url'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const status = document.getElementById('submit_status');
+      if (status) status.textContent = '🗑 cleared';
+      // also dispatch input to update counters
+      ['apply_contact','apply_video_hours','apply_tools','apply_no','apply_url'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.dispatchEvent(new Event('input'));
+      });
+      localStorage.removeItem('pod_v0_2_try_application');
+    });
+  })();
+
+  // === (3) Compact mode toggle (C key + button) ===
+  (function(){
+    const KEY = 'pod_v0_3_try_compact';
+    const btn = document.getElementById('compact-toggle');
+    function apply(state){
+      document.body.classList.toggle('compact', state);
+      btn.textContent = state ? ' Full' : ' Compact';
+    }
+    const saved = localStorage.getItem(KEY);
+    apply(saved === '1');
+    if (btn) btn.addEventListener('click', () => {
+      const next = !document.body.classList.contains('compact');
+      apply(next);
+      localStorage.setItem(KEY, next ? '1' : '0');
+      // scroll to apply form when entering compact
+      if (next) {
+        setTimeout(() => {
+          const apply = document.getElementById('apply');
+          if (apply) apply.scrollIntoView({behavior:'smooth', block:'start'});
+        }, 200);
+      }
+    });
+  })();
+
+  // === (4) Help mini overlay (?) ===
+  (function(){
+    const btn = document.getElementById('help-mini-btn');
+    const overlay = document.getElementById('help-mini');
+    const close = document.getElementById('help-mini-close');
+    if (!btn || !overlay) return;
+    function toggle(){ overlay.classList.toggle('show'); }
+    function hide(){ overlay.classList.remove('show'); }
+    btn.addEventListener('click', toggle);
+    if (close) close.addEventListener('click', hide);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) hide(); });
+  })();
+
+  // === (5) Cross-page prefill detection (warn user if 主页 has data) ===
+  (function(){
+    // try.html is independent, but main page uses localStorage key 'pod_v0_2_form' for 5 资产
+    const mainForm = localStorage.getItem('pod_v0_2_form');
+    if (!mainForm) return;
+    try {
+      const data = JSON.parse(mainForm);
+      if (!data.url && !data.asset_skills) return;
+      // main page has 资产 data, prefill the 4 fields
+      const tries = {
+        apply_contact: data.asset_channels ? data.asset_channels.split(/[,/;]/)[0].trim() : '',
+        apply_video_hours: data.asset_hours || '',
+        apply_tools: data.asset_tools ? (data.asset_tools.length > 200 ? data.asset_tools.slice(0, 200) + '...' : data.asset_tools) : '',
+        apply_no: data.asset_no_list || '',
+      };
+      let filledAny = false;
+      Object.entries(tries).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && !el.value && val) {
+          el.value = val;
+          // also trigger input event to update counter
+          el.dispatchEvent(new Event('input'));
+          filledAny = true;
+        }
+      });
+      if (filledAny) {
+        const banner = document.getElementById('prefill-banner');
+        if (banner) banner.classList.add('show');
+      }
+    } catch(e) {}
+  })();
+
+  // === (6) Extend global keydown handler (PITFALL #143 family: skip if in input) ===
+  (function(){
+    document.addEventListener('keydown', (e) => {
+      const ae = document.activeElement;
+      const inForm = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+      if (inForm) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key;
+      const lc = k.toLowerCase();
+      // C = compact mode
+      if (lc === 'c') {
+        e.preventDefault();
+        const btn = document.getElementById('compact-toggle');
+        if (btn) btn.click();
+        return;
+      }
+      // ? or / = help
+      if (k === '?' || (k === '/' && e.shiftKey)) {
+        e.preventDefault();
+        const btn = document.getElementById('help-mini-btn');
+        if (btn) btn.click();
+        return;
+      }
+      // S = sample load
+      if (lc === 's') {
+        e.preventDefault();
+        const btn = document.getElementById('load-sample');
+        if (btn) btn.click();
+        return;
+      }
+      // R = reset form
+      if (lc === 'r') {
+        e.preventDefault();
+        const btn = document.getElementById('reset-form-btn');
+        if (btn) btn.click();
+        return;
+      }
+      // Esc = close any open overlay
+      if (k === 'Escape') {
+        const overlay = document.getElementById('help-mini');
+        if (overlay && overlay.classList.contains('show')) overlay.classList.remove('show');
+        if (inForm && ae && ae.blur) ae.blur();
+      }
+    });
+  })();
+
+  // === diagnostic marker (PITFALL #139 cf pattern) ===
+  document.title = '[try.html v0.4 polish round 4 OK] ' + document.title;
+</script>
+
+</body>
+</html>

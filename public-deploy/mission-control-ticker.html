@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Mission Control Ticker · Patrick 试点</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2333;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC",sans-serif;padding:24px 14px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:22px;margin-bottom:6px}
+h2{font-size:17px;color:var(--acc);margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.sub{color:var(--dim);font-size:13px}
+.ticker{background:linear-gradient(180deg,#1c2333 0%,#161b22 100%);border:1px solid var(--border);border-radius:9px;padding:14px;margin:14px 0;max-height:520px;overflow-y:auto;font-family:Menlo,monospace;font-size:12.5px}
+.evt{border-bottom:1px dashed #21262d;padding:7px 0;display:flex;gap:10px;align-items:flex-start}
+.evt:last-child{border-bottom:none}
+.ts{color:var(--dim);width:120px;flex-shrink:0;font-size:12px}
+.name{color:var(--acc);width:200px;flex-shrink:0;font-weight:600}
+.status{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11.5px;font-weight:600;margin-right:6px}
+.done{background:rgba(63,185,80,.15);color:var(--green)}
+.running{background:rgba(88,166,255,.15);color:var(--acc);animation:pulse 1.6s ease-in-out infinite}
+.err{background:rgba(248,81,73,.15);color:var(--red)}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+.metric{color:var(--amber);font-size:11.5px;margin-left:auto}
+.tags{color:var(--dim);font-size:11.5px}
+.foot{margin-top:36px;padding-top:12px;border-top:1px solid var(--border);color:var(--dim);font-size:11.5px}
+.controls{display:flex;gap:8px;margin:10px 0}
+button{background:var(--panel2);border:1px solid var(--border);color:var(--txt);padding:6px 13px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:12.5px}
+button:hover{border-color:var(--acc)}
+button.on{background:var(--acc);color:#0d1117;border-color:var(--acc);font-weight:600}
+.empty{color:var(--dim);text-align:center;padding:30px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🖥️ Mission Control Ticker · 试点 (Patrick)</h1>
+<p class="sub">灵感：Julian Goldie Agentic OS Mission Control（同 video GF0nIzXZ1v4）。零依赖 — 直接 tail <code>~/.hermes/memory/agent-tasks.jsonl</code>（cross-agent-observability 已在写）+ 自动 refresh。</p>
+
+<div class="controls">
+<button class="on" onclick="setFilter('all', this)">All</button>
+<button onclick="setFilter('running', this)">Running</button>
+<button onclick="setFilter('done', this)">Done</button>
+<button onclick="setFilter('err', this)">Error</button>
+<button onclick="toggleAuto(this)">⏸ Auto: on</button>
+<button onclick="loadOnce()">↻ Refresh now</button>
+</div>
+<h2>Recent activity</h2>
+<div id="ticker" class="ticker"><div class="empty">Loading…</div></div>
+
+<div class="foot">
+源 pipeline: <code>~/.hermes/memory/agent-tasks.jsonl</code> (各 publish cron 每次跑追加 event)。数据已存在 (4 lines), 不用新写文件。下一步: (a) 给 server.py 加一个 <code>/api/ticker?limit=20&since=...</code> 端点直接 tail 这 file; (b) 把现 dashboard 的 cron section 旁挂这个 ticker panel, 保留 cron table 也保留此 panel · LOOP SOURCE: cross-agent-observability · juliangoldie-2026-07-06
+</div>
+</div>
+
+<script>
+const TICKER = document.getElementById('ticker');
+let filter = 'all';
+let autoTimer = null;
+
+function fmtTime(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.getMonth()+1+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  } catch(e) { return iso.slice(11,19); }
+}
+function statusClass(s) {
+  if (s === 'done') return 'done';
+  if (s === 'running') return 'running';
+  if (s === 'error' || s === 'failed') return 'err';
+  return '';
+}
+function fmtMetrics(m) {
+  if (!m || !Object.keys(m).length) return '';
+  return Object.entries(m).filter(([k,v]) => typeof v !== 'object').map(([k,v]) => k+'='+v).join(' · ');
+}
+
+async function loadOnce() {
+  // Try the local canonical api if served by server.py, else fall back to embedded JSON
+  // (offline preview: we mock with what was in the file at install time + allow manual refresh to re-fetch)
+  try {
+    const r = await fetch('/api/ticker?limit=80');
+    if (r.ok) {
+      const data = await r.json();
+      render(data.events || []);
+      return;
+    }
+  } catch(e) { /* swallow, fall back to embedded */ }
+  // Embedded snapshot (will be overridden by real /api/ticker when server.py is wired):
+  render([
+    {started_at:'2026-07-05T13:00:49.000+00:00', ended_at:'2026-07-05T13:00:49.000+00:00', task_name:'publish-youtube-dashboards', status:'done', latency_ms:48, metrics:{exit_code:0,copied:0,skipped:0,early_skip:'no_candidates'}},
+    {started_at:'2026-07-04T13:00:07.000+00:00', ended_at:'2026-07-04T13:00:07.000+00:00', task_name:'publish-youtube-dashboards', status:'done', latency_ms:63, metrics:{exit_code:0,copied:0,skipped:0,early_skip:'no_candidates'}},
+  ]);
+}
+
+function render(events) {
+  const filtered = events.filter(e => {
+    if (filter === 'all') return true;
+    if (filter === 'err') return e.status === 'error' || e.status === 'failed';
+    return e.status === filter;
+  }).slice().reverse();
+
+  if (!filtered.length) {
+    TICKER.innerHTML = '<div class="empty">No events match filter "'+filter+'"</div>';
+    return;
+  }
+  TICKER.innerHTML = filtered.map(e => {
+    const cls = statusClass(e.status);
+    const ts = fmtTime(e.ended_at || e.started_at);
+    const m = fmtMetrics(e.metrics);
+    return `<div class="evt">
+      <span class="ts">${ts}</span>
+      <span class="name">${e.task_name}</span>
+      <span><span class="status ${cls}">${e.status}</span>${e.latency_ms ? e.latency_ms+'ms' : ''}</span>
+      ${m ? `<span class="metric">${m}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.controls button').forEach(b => {
+    if (b.dataset.role === 'auto') return;
+    b.classList.remove('on');
+  });
+  if (btn) { btn.classList.add('on'); }
+  loadOnce();
+}
+function toggleAuto(btn) {
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+    btn.classList.remove('on');
+    btn.textContent = '▶ Auto: off';
+  } else {
+    autoTimer = setInterval(loadOnce, 5000);
+    btn.classList.add('on');
+    btn.textContent = '⏸ Auto: on';
+  }
+  btn.dataset.role = 'auto';
+}
+window.addEventListener('load', () => { loadOnce(); autoTimer = setInterval(loadOnce, 5000); });
+</script>
+</body>
+</html>

@@ -1,0 +1,739 @@
+<style>
+/* plan-specific CSS — prefixed .plan- to avoid collision with skeleton/viewHome/viewMe */
+/* Re-uses design tokens from prototype:
+   --navy:#1B2A41; --terra:#D9723F; --gold:#E3B23C;
+   --cream:#F6F3EC; --ink:#27221B; --muted:#8A8272; --line:#E7E1D4; --green:#3E7A4C
+*/
+
+.plan-wrap{
+  display:block;
+  width:100%;
+  padding-bottom:120px;          /* room for fixed composer at bottom */
+}
+
+/* ---------- AI hero (planner greeting card) ---------- */
+.plan-hero{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:16px 16px 18px;
+  margin:4px 0 16px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#FFF6EC 0%,#FBE9DF 100%);
+  border:1.4px solid #F2D8C4;
+  overflow:hidden;
+}
+.plan-hero::before{
+  content:"";
+  position:absolute;
+  right:-30px;top:-30px;
+  width:120px;height:120px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(217,114,63,0.20) 0%,transparent 70%);
+  pointer-events:none;
+}
+.plan-hero::after{
+  content:"";
+  position:absolute;
+  right:-50px;bottom:-50px;
+  width:100px;height:100px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(227,178,60,0.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+.plan-avatar{
+  width:48px;height:48px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 4px 12px rgba(217,114,63,0.30);
+  position:relative;
+  z-index:1;
+}
+.plan-avatar svg{
+  width:24px;height:24px;
+  stroke:#fff;fill:none;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.plan-hero-text{
+  flex:1;min-width:0;
+  position:relative;
+  z-index:1;
+}
+.plan-hero-title{
+  font-size:18px;
+  font-weight:800;
+  color:var(--navy);
+  margin:0 0 3px;
+  letter-spacing:.3px;
+  line-height:1.25;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.plan-hero-title .k{
+  font-size:10px;
+  font-weight:800;
+  color:#fff;
+  background:var(--terra);
+  padding:2px 7px;
+  border-radius:8px;
+  letter-spacing:.5px;
+}
+.plan-hero-sub{
+  font-size:11.5px;
+  color:var(--ink);
+  margin:0;
+  line-height:1.5;
+  opacity:.78;
+}
+
+/* ---------- Section label ---------- */
+.plan-section{
+  font-size:12.5px;
+  font-weight:800;
+  color:var(--navy);
+  margin:16px 0 10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.plan-section small{
+  font-size:10px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+/* ---------- Quick prompt chips (horizontal scroll) ---------- */
+.plan-prompts-row{
+  position:relative;
+  margin:0 -16px 4px;
+  padding:0 16px;
+}
+.plan-prompts{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  padding:2px 0 6px;
+  scrollbar-width:none;
+}
+.plan-prompts::-webkit-scrollbar{display:none;}
+.plan-prompt{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:#fff;
+  color:var(--navy);
+  border:1.2px solid var(--line);
+  border-radius:20px;
+  padding:8px 14px;
+  font-size:11.5px;
+  font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:all .15s ease;
+  text-decoration:none;
+  font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.plan-prompt:hover{
+  border-color:var(--terra);
+  color:var(--terra);
+  background:#FFF7F1;
+}
+.plan-prompt:active{
+  transform:scale(.97);
+  background:var(--terra);
+  color:#fff;
+  border-color:var(--terra);
+}
+.plan-prompt .emoji{
+  font-size:13px;
+  line-height:1;
+}
+
+/* ---------- Chat thread ---------- */
+.plan-thread{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin:14px 0 6px;
+}
+.plan-message{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  min-width:0;
+}
+.plan-message.user{
+  flex-direction:row-reverse;
+}
+.plan-msg-avatar{
+  width:28px;height:28px;
+  border-radius:50%;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;justify-content:center;
+  font-size:10.5px;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:.3px;
+}
+.plan-msg-avatar.ai{
+  background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);
+  box-shadow:0 2px 6px rgba(217,114,63,0.25);
+}
+.plan-msg-avatar.user{
+  background:var(--navy);
+  box-shadow:0 2px 6px rgba(27,42,65,0.25);
+}
+.plan-msg-bubble{
+  max-width:78%;
+  font-size:12.5px;
+  line-height:1.55;
+  padding:9px 13px;
+  border-radius:14px;
+  word-break:break-word;
+}
+.plan-message.ai .plan-msg-bubble{
+  background:#fff;
+  color:var(--ink);
+  border-top-left-radius:4px;
+  box-shadow:0 3px 10px rgba(27,42,65,0.06);
+}
+.plan-message.user .plan-msg-bubble{
+  background:var(--navy);
+  color:#fff;
+  border-top-right-radius:4px;
+  box-shadow:0 3px 10px rgba(27,42,65,0.10);
+}
+
+/* CTA chip inside assistant bubble (e.g. "查看路线 →") */
+.plan-msg-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:8px;
+  padding:7px 13px;
+  background:var(--terra);
+  color:#fff;
+  border-radius:10px;
+  font-size:11.5px;
+  font-weight:700;
+  cursor:pointer;
+  border:none;
+  font-family:inherit;
+  box-shadow:0 3px 8px rgba(217,114,63,0.30);
+  transition:transform .15s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color:transparent;
+  text-decoration:none;
+}
+.plan-msg-cta:hover{
+  transform:translateY(-1px);
+  box-shadow:0 5px 12px rgba(217,114,63,0.40);
+}
+.plan-msg-cta:active{
+  transform:scale(.97);
+}
+.plan-msg-cta.arrow::after{
+  content:"→";
+  font-weight:800;
+  font-size:12px;
+}
+
+/* Inline metadata (timestamp) */
+.plan-msg-time{
+  font-size:9.5px;
+  color:var(--muted);
+  margin-top:3px;
+  padding:0 4px;
+  letter-spacing:.3px;
+}
+.plan-message.user .plan-msg-time{
+  text-align:right;
+}
+
+/* Thinking dots (used when "assistant" is processing — static 3-dot for v0.1) */
+.plan-msg-dots{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:4px 0 2px;
+}
+.plan-msg-dots span{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:var(--terra);
+  opacity:.4;
+  animation:plan-dot 1.2s ease-in-out infinite;
+}
+.plan-msg-dots span:nth-child(2){animation-delay:.15s;}
+.plan-msg-dots span:nth-child(3){animation-delay:.3s;}
+@keyframes plan-dot{
+  0%,100%{opacity:.3;transform:scale(.85);}
+  50%{opacity:1;transform:scale(1);}
+}
+@media (prefers-reduced-motion: reduce){
+  .plan-msg-dots span{animation:none;}
+}
+
+/* ---------- Empty state (when history is empty) ---------- */
+.plan-empty{
+  text-align:center;
+  padding:30px 16px 14px;
+  color:var(--muted);
+}
+.plan-empty .ic{
+  font-size:36px;
+  margin-bottom:8px;
+  filter:drop-shadow(0 2px 4px rgba(27,42,65,0.10));
+}
+.plan-empty .t{
+  font-size:13px;
+  font-weight:700;
+  color:var(--navy);
+  margin:0 0 4px;
+}
+.plan-empty .m{
+  font-size:11px;
+  margin:0;
+  line-height:1.5;
+}
+
+/* ---------- Composer (fixed at bottom, above tabbar) ---------- */
+.plan-composer{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:62px;                   /* sits above .tabbar (≈56px tall) */
+  width:100%;
+  max-width:420px;
+  background:rgba(246,243,236,0.96);
+  backdrop-filter:saturate(180%) blur(8px);
+  -webkit-backdrop-filter:saturate(180%) blur(8px);
+  border-top:1px solid var(--line);
+  padding:10px 12px 8px;
+  z-index:40;
+}
+.plan-composer-inner{
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  background:#fff;
+  border:1.4px solid var(--line);
+  border-radius:22px;
+  padding:6px 6px 6px 14px;
+  box-shadow:0 6px 18px rgba(27,42,65,0.10);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.plan-composer-inner:focus-within{
+  border-color:var(--terra);
+  box-shadow:0 6px 18px rgba(217,114,63,0.20);
+}
+.plan-input{
+  flex:1;
+  border:none;
+  outline:none;
+  background:transparent;
+  resize:none;
+  font-family:inherit;
+  font-size:13px;
+  line-height:1.45;
+  color:var(--ink);
+  padding:6px 0;
+  max-height:96px;
+  min-height:20px;
+  font-weight:500;
+}
+.plan-input::placeholder{
+  color:var(--muted);
+  font-weight:500;
+}
+.plan-send{
+  flex-shrink:0;
+  width:34px;height:34px;
+  border-radius:50%;
+  background:var(--terra);
+  color:#fff;
+  border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(217,114,63,0.35);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  -webkit-tap-highlight-color:transparent;
+  font-family:inherit;
+  padding:0;
+}
+.plan-send:hover{
+  transform:translateY(-1px);
+  box-shadow:0 5px 12px rgba(217,114,63,0.45);
+}
+.plan-send:active{
+  transform:scale(.93);
+}
+.plan-send:disabled{
+  background:var(--muted);
+  cursor:not-allowed;
+  opacity:.55;
+  box-shadow:none;
+  transform:none;
+}
+.plan-send svg{
+  width:16px;height:16px;
+  stroke:#fff;fill:none;stroke-width:2.2;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.plan-composer-hint{
+  font-size:10px;
+  color:var(--muted);
+  margin:6px 4px 0;
+  letter-spacing:.3px;
+  line-height:1.3;
+}
+.plan-composer-hint b{
+  color:var(--terra);
+  font-weight:700;
+}
+
+/* ---------- Reduce motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .plan-prompt,.plan-send,.plan-msg-cta,.plan-composer-inner{transition:none;}
+}
+</style>
+<script>
+/* ================================================================
+ * viewPlan — 驾迹 GoTrace v0.1 规划 tab (AI 智能规划师)
+ * OWNER: Loop L2-plan (only viewPlan in this file)
+ * Returns HTML string; skeleton handles DOM injection + hash routing
+ * No AI / network calls — all data is mock below
+ *
+ * State contract (per MERGE_GUIDE.md):
+ *   state.plan.history   array of {role, content, ts, cta?}
+ *     role  : "user" | "assistant"
+ *     content: string
+ *     ts    : number (Date.now())
+ *     cta   : optional { label, href }   (assistant "查看路线 →")
+ *
+ *   We initialise state.plan if absent (defensive — DEFAULT_STATE in
+ *   skeleton only ships state.trip/history; we create state.plan lazily
+ *   on first submit AND on first read so pre-populated messages show).
+ *
+ *   saveState() + state Proxy defined in skeleton (L1).
+ * ================================================================ */
+
+/* Quick prompt chips — tap → fills input + auto-submits */
+const MOCK_PROMPTS = [
+  { id:'p-chuanxi-7',  label:'7天川西环线',     emoji:'🏔️' },
+  { id:'p-tibet-318',  label:'318进藏摄影',     emoji:'📸' },
+  { id:'p-beijing-2',  label:'周末京郊',         emoji:'🌲' },
+  { id:'p-xinjiang',   label:'新疆北疆赏秋',     emoji:'🍁' },
+  { id:'p-hainan',     label:'海南环岛亲子',     emoji:'🏖️' },
+  { id:'p-yubeng',     label:'云南雨崩徒步',     emoji:'🥾' }
+];
+
+/* Pre-populated chat history (3 messages per brief) */
+const MOCK_MESSAGES = [
+  {
+    role:'user',
+    content:'想去川西看红叶',
+    ts: Date.now() - 1000 * 60 * 12     /* 12 min ago */
+  },
+  {
+    role:'assistant',
+    content:'推荐路线：川西小环线 4 日 · 成都 → 雅安 → 泸定 → 康定 → 新都桥 → 折多山 → 木雅圣地 → 成都。总里程约 880 km，10 月下旬为红叶最佳观赏期，海拔 3000-4000m 注意预防高反。',
+    ts: Date.now() - 1000 * 60 * 11,
+    cta: { label:'查看路线 →', href:'#trip?id=chuanxi-loop' }
+  },
+  {
+    role:'user',
+    content:'预算大概 8000',
+    ts: Date.now() - 1000 * 60 * 6
+  }
+];
+
+/* ---------- Helpers ---------- */
+function _planEsc(s){
+  /* Minimal HTML escape — content may contain user-facing Chinese */
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function _planFmtTime(ts){
+  var d = new Date(ts || Date.now());
+  var hh = String(d.getHours()).padStart(2,'0');
+  var mm = String(d.getMinutes()).padStart(2,'0');
+  return hh + ':' + mm;
+}
+
+/* Lazy-init state.plan + seed MOCK_MESSAGES on first read */
+function _planGetHistory(){
+  try {
+    if (!window.state) return MOCK_MESSAGES.slice();
+    /* Try both proxy access patterns: state.plan vs state['plan.history'] */
+    var hist = null;
+    try { hist = window.state.plan; } catch(_){ hist = null; }
+    if (!hist || typeof hist !== 'object') {
+      try { window.state.plan = { history: MOCK_MESSAGES.slice() }; } catch(_){ }
+      return MOCK_MESSAGES.slice();
+    }
+    if (!Array.isArray(hist.history)) {
+      try { hist.history = MOCK_MESSAGES.slice(); } catch(_){ }
+    }
+    return Array.isArray(hist.history) ? hist.history.slice() : MOCK_MESSAGES.slice();
+  } catch (e) {
+    return MOCK_MESSAGES.slice();
+  }
+}
+
+function _planSetHistory(arr){
+  try {
+    if (!window.state) return;
+    if (window.state.plan && typeof window.state.plan === 'object') {
+      window.state.plan.history = arr;
+    } else {
+      window.state.plan = { history: arr };
+    }
+    /* Persist */
+    if (typeof window.saveState === 'function') {
+      window.saveState();
+    }
+  } catch(e){ console.warn('[plan] history save failed', e); }
+}
+
+/* ---------- Handlers ---------- */
+
+/* Tap on a prompt chip → insert into input + auto-submit */
+function planTapPrompt(id){
+  var p = null;
+  for (var i = 0; i < MOCK_PROMPTS.length; i++) {
+    if (MOCK_PROMPTS[i].id === id) { p = MOCK_PROMPTS[i]; break; }
+  }
+  if (!p) return;
+  var ta = document.getElementById('plan-input');
+  if (ta) {
+    ta.value = p.label;
+    /* Update send-button enabled state */
+    planUpdateSend();
+    /* Focus + cursor to end */
+    try { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } catch(_){ ta.focus(); }
+  }
+  /* Auto-submit so user immediately sees the AI response flow */
+  planSubmitMessage();
+}
+
+/* Submit composer text → append to history + assistant mock reply */
+function planSubmitMessage(){
+  var ta = document.getElementById('plan-input');
+  if (!ta) return;
+  var raw = (ta.value || '').trim();
+  if (!raw) return;
+
+  var hist = _planGetHistory();
+  hist.push({ role:'user', content: raw, ts: Date.now() });
+
+  /* Build a contextual mock reply — no LLM call (per brief) */
+  var reply = '收到！正在为你规划「' + raw + '」路线…';
+  hist.push({ role:'assistant', content: reply, ts: Date.now() + 1 });
+  _planSetHistory(hist);
+
+  ta.value = '';
+  planUpdateSend();
+
+  /* Re-render the thread by replacing its innerHTML — preserves composer */
+  var thread = document.getElementById('plan-thread');
+  if (thread) {
+    thread.innerHTML = _planRenderThread(hist);
+    /* Smooth scroll to the latest message */
+    try {
+      thread.scrollIntoView({ block:'end', behavior:'smooth' });
+    } catch(_) {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+  }
+}
+
+/* CTA inside assistant bubble → navigate (hash routing handles it) */
+function planTapCta(href){
+  if (!href) return;
+  try {
+    if (window.GT && typeof window.GT.toast === 'function') {
+      window.GT.toast('正在跳转: ' + href);
+    }
+    /* Use hash navigation so skeleton's hashchange listener picks it up */
+    window.location.hash = href.replace(/^#/,'');
+  } catch(e){
+    window.location.hash = href;
+  }
+}
+
+/* Enable / disable send button based on textarea content */
+function planUpdateSend(){
+  var ta = document.getElementById('plan-input');
+  var btn = document.getElementById('plan-send');
+  if (!ta || !btn) return;
+  var has = (ta.value || '').trim().length > 0;
+  btn.disabled = !has;
+  btn.setAttribute('aria-disabled', has ? 'false' : 'true');
+}
+
+/* Auto-grow textarea to its content (capped at ~96px) */
+function planAutoGrow(){
+  var ta = document.getElementById('plan-input');
+  if (!ta) return;
+  ta.style.height = 'auto';
+  var h = Math.min(96, ta.scrollHeight);
+  ta.style.height = h + 'px';
+}
+
+/* ---------- Sub-renderers ---------- */
+function _planRenderThread(history){
+  if (!history || history.length === 0) {
+    return `
+      <div class="plan-empty">
+        <div class="ic" aria-hidden="true">🗺️</div>
+        <div class="t">开始你的第一次自驾规划</div>
+        <div class="m">点按上方话题快速开始，或直接描述你的想法</div>
+      </div>
+    `;
+  }
+  return history.map(function(m){
+    var isUser = (m.role === 'user');
+    var av = isUser ? '我' : 'AI';
+    var avClass = isUser ? 'user' : 'ai';
+    var bubble = _planEsc(m.content);
+    var cta = '';
+    if (!isUser && m.cta && m.cta.label && m.cta.href) {
+      cta = `<button class="plan-msg-cta arrow" type="button"
+              onclick="planTapCta('${_planEsc(m.cta.href)}');return false;"
+              aria-label="${_planEsc(m.cta.label)}">${_planEsc(m.cta.label)}</button>`;
+    }
+    return `
+      <div class="plan-message ${avClass}">
+        <div class="plan-msg-avatar ${avClass}" aria-hidden="true">${av}</div>
+        <div>
+          <div class="plan-msg-bubble">${bubble}${cta}</div>
+          <div class="plan-msg-time">${_planFmtTime(m.ts)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ---------- Main entry: viewPlan ---------- */
+function viewPlan(p){
+  /* Seed history from state (or fall back to MOCK_MESSAGES) */
+  var history = _planGetHistory();
+
+  /* If ?topic=... is in hash, prefill + auto-submit the matching prompt */
+  var topic = (p && p.params && p.params.topic) ? String(p.params.topic) : '';
+  var initialVal = '';
+  if (topic) {
+    var match = null;
+    for (var i = 0; i < MOCK_PROMPTS.length; i++) {
+      if (MOCK_PROMPTS[i].id === topic) { match = MOCK_PROMPTS[i]; break; }
+    }
+    if (match) initialVal = match.label;
+  }
+
+  /* AI hero (planner card) */
+  var hero = `
+    <section class="plan-hero" aria-label="AI 智能规划师">
+      <div class="plan-avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 013 3v1.6A6 6 0 0121 12v3a3 3 0 01-3 3h-1l-2 3v-3H9a3 3 0 01-3-3v-3a6 6 0 016-5.4V5a3 3 0 010-3z"/></svg>
+      </div>
+      <div class="plan-hero-text">
+        <h2 class="plan-hero-title">
+          <span>AI 智能规划师</span>
+          <span class="k">ONLINE</span>
+        </h2>
+        <p class="plan-hero-sub">描述你的自驾灵感，我来生成路线、估算预算与日程</p>
+      </div>
+    </section>
+  `;
+
+  /* Quick prompt chips */
+  var chips = MOCK_PROMPTS.map(function(c){
+    return `<button class="plan-prompt" type="button"
+              onclick="planTapPrompt('${_planEsc(c.id)}');return false;"
+              aria-label="话题 ${_planEsc(c.label)}">
+              <span class="emoji" aria-hidden="true">${c.emoji}</span>
+              <span>${_planEsc(c.label)}</span>
+            </button>`;
+  }).join('');
+  var promptsSection = `
+    <div class="plan-section">
+      <span>话题灵感</span>
+      <small>左右滑动 · 点按发送</small>
+    </div>
+    <div class="plan-prompts-row">
+      <div class="plan-prompts" role="list" aria-label="话题">${chips}</div>
+    </div>
+  `;
+
+  /* Chat thread */
+  var thread = `
+    <div class="plan-section">
+      <span>对话历史</span>
+      <small>共 ${history.length} 条</small>
+    </div>
+    <div class="plan-thread" id="plan-thread" role="log" aria-live="polite" aria-label="对话历史">
+      ${_planRenderThread(history)}
+    </div>
+  `;
+
+  /* Composer (fixed at bottom) */
+  var composer = `
+    <div class="plan-composer" role="region" aria-label="消息输入">
+      <div class="plan-composer-inner">
+        <textarea id="plan-input"
+                  class="plan-input"
+                  rows="1"
+                  placeholder="描述你的想法，比如 7天川西环线，摄影向，预算8000"
+                  oninput="planUpdateSend();planAutoGrow();"
+                  onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();planSubmitMessage();}"
+                  aria-label="输入规划需求">${_planEsc(initialVal)}</textarea>
+        <button id="plan-send"
+                class="plan-send"
+                type="button"
+                onclick="planSubmitMessage();return false;"
+                aria-label="发送"
+                ${initialVal ? '' : 'disabled'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="plan-composer-hint"><b>Enter</b> 发送 · <b>Shift+Enter</b> 换行</div>
+    </div>
+  `;
+
+  return `
+    <div class="plan-wrap">
+      ${hero}
+      ${promptsSection}
+      ${thread}
+    </div>
+    ${composer}
+  `.trim();
+}
+
+/* Expose for headless test / iframe verify (matches single-file-spa §1 pattern) */
+window.MOCK_PROMPTS    = MOCK_PROMPTS;
+window.MOCK_MESSAGES   = MOCK_MESSAGES;
+window.viewPlan        = viewPlan;
+window.planTapPrompt   = planTapPrompt;
+window.planSubmitMessage = planSubmitMessage;
+window.planTapCta      = planTapCta;
+window.planUpdateSend  = planUpdateSend;
+window.planAutoGrow    = planAutoGrow;
+</script>

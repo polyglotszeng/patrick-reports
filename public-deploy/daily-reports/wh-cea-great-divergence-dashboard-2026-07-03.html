@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WH CEA · AI and the Great Divergence (Jan 2026)</title>
+<style>
+  :root{
+    --bg:#0d0f17;--panel:#161a2b;--panel-2:#1f2540;--ink:#e6eaf2;--ink-mute:#8c95b0;--gold:#f5b542;--green:#3ddc97;--red:#ff6464;--blue:#5a9eff;--purple:#b48cff;--line:#2a3050;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,'SF Pro Display',Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 32px 80px;}
+  header.hero{position:relative;padding:36px 0 28px;border-bottom:1px solid var(--line);}
+  header.hero .tag{display:inline-block;padding:4px 12px;background:var(--panel-2);color:var(--gold);border-radius:99px;font-size:12px;letter-spacing:.5px;}
+  header.hero h1{font-size:34px;margin:14px 0 8px;font-weight:700;letter-spacing:-.5px;line-height:1.2;}
+  header.hero .sub{font-size:15px;color:var(--ink-mute);max-width:780px;}
+  header.hero .meta{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px;font-size:13px;color:var(--ink-mute);}
+  header.hero .meta b{color:var(--ink);font-weight:600;}
+
+  nav.toc{position:sticky;top:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 18px 18px 22px;margin:28px 0;}
+  nav.toc h3{margin:0 0 10px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);}
+  nav.toc ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;}
+  nav.toc a{color:var(--ink-mute);text-decoration:none;font-size:13px;display:flex;gap:8px;align-items:baseline;transition:color .2s;}
+  nav.toc a:hover{color:var(--gold);}
+  nav.toc .num{color:var(--blue);font-variant-numeric:tabular-nums;font-weight:600;min-width:22px;}
+
+  section{margin:36px 0;}
+  section h2{font-size:24px;margin:0 0 6px;color:var(--gold);font-weight:700;}
+  section .lead{color:var(--ink-mute);font-size:14px;margin:0 0 24px;}
+
+  .grid{display:grid;gap:18px;}
+  .grid.c2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}
+  .grid.c3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+  .grid.c4{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;}
+  .card .label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-mute);margin-bottom:6px;}
+  .card .big{font-size:34px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;}
+  .card .lbl{font-size:13px;color:var(--ink-mute);margin-top:4px;}
+  .card .note{font-size:12px;color:var(--ink-mute);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;}
+
+  .card.full h3{margin:0 0 14px;font-size:18px;color:var(--ink);}
+  .card.full h4{margin:18px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);}
+  .card.full p{margin:8px 0;color:var(--ink-mute);font-size:13px;}
+  .card.full ul{padding-left:18px;margin:8px 0;color:var(--ink-mute);font-size:13px;}
+  .card.full ul li{margin:4px 0;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  table th{text-align:left;background:var(--panel-2);color:var(--gold);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);}
+  table td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink-mute);font-variant-numeric:tabular-nums;}
+  table tr:hover td{background:var(--panel-2);color:var(--ink);}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;}
+  .pill.low{background:#1b3327;color:#3ddc97;}
+  .pill.mid{background:#3a3120;color:#f5b542;}
+  .pill.high{background:#3d1f25;color:#ff6464;}
+
+  .bar-track{position:relative;height:14px;background:var(--panel-2);border-radius:7px;overflow:hidden;}
+  .bar-track .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#5a9eff,#f5b542);border-radius:7px;}
+  .bar-track .lbl-r{position:absolute;right:6px;top:0;color:var(--ink);font-size:11px;line-height:14px;font-weight:600;}
+
+  .timeline{position:relative;padding-left:32px;border-left:2px solid var(--line);margin-left:8px;}
+  .timeline .evt{position:relative;margin:0 0 22px;}
+  .timeline .evt::before{content:'';position:absolute;left:-39px;top:6px;width:14px;height:14px;background:var(--gold);border:3px solid var(--bg);border-radius:50%;}
+  .timeline .evt .when{font-size:12px;color:var(--blue);font-weight:600;letter-spacing:.5px;}
+  .timeline .evt .what{display:inline-block;color:var(--ink);margin:2px 0;}
+  .timeline .evt p{margin:4px 0;color:var(--ink-mute);font-size:13px;}
+
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 16px;background:var(--panel);margin:8px 0;}
+  details summary{cursor:pointer;font-weight:600;color:var(--ink);font-size:14px;outline:none;}
+  details[open] summary{margin-bottom:8px;}
+  details p{margin:6px 0;color:var(--ink-mute);font-size:13px;}
+
+  .quote{position:relative;padding:18px 22px 18px 28px;background:var(--panel-2);border-left:4px solid var(--gold);border-radius:0 14px 14px 0;margin:16px 0;font-style:italic;color:var(--ink);}
+  .quote::before{content:'"';position:absolute;top:8px;left:10px;font-size:48px;color:var(--gold);opacity:.3;line-height:1;}
+  .quote cite{display:block;margin-top:8px;font-style:normal;font-size:12px;color:var(--ink-mute);}
+
+  footer{margin-top:64px;padding:24px 0;border-top:1px solid var(--line);text-align:center;color:var(--ink-mute);font-size:12px;}
+  footer a{color:var(--gold);text-decoration:none;}
+
+  /* Chart SVG */
+  .chart{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;}
+  .chart h4{margin:0 0 4px;font-size:15px;color:var(--ink);}
+  .chart .sub{font-size:12px;color:var(--ink-mute);margin-bottom:18px;}
+  .chart svg{width:100%;height:auto;display:block;}
+
+  /* callouts */
+  .callout{display:flex;gap:14px;background:linear-gradient(135deg,var(--panel) 0%,var(--panel-2) 100%);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:12px;padding:18px 22px;}
+  .callout.warn{border-left-color:var(--red);}
+  .callout.info{border-left-color:var(--blue);}
+  .callout .ico{font-size:24px;line-height:1;}
+  .callout h4{margin:0 0 4px;color:var(--ink);font-size:15px;}
+  .callout p{margin:4px 0;color:var(--ink-mute);font-size:13px;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink-mute);margin-bottom:8px;}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+
+  .logo-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+  .logo-row .pill-out{border:1px dashed var(--line);padding:6px 14px;border-radius:99px;font-size:12px;color:var(--ink-mute);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="tag">📄 WHITE HOUSE · COUNCIL OF ECONOMIC ADVISERS · JAN 2026</span>
+  <h1>Artificial Intelligence and the Great Divergence</h1>
+  <p class="sub">27-page CEA report analyzing whether the AI revolution will produce a "second Great Divergence" — a productivity takeoff for AI-leading nations and stagnation for everyone else. Frames everything through three lenses: <b style="color:var(--gold)">investment</b>, <b style="color:var(--gold)">performance</b>, and <b style="color:var(--gold)">adoption</b> — and forecasts U.S. GDP impact ranging from +1% (conservative) to +45% (AI-as-substitute-for-labor).</p>
+  <div class="meta">
+    <span>📅 <b>Published</b> January 2026</span>
+    <span>📊 <b>Pages</b> 27</span>
+    <span>💼 <b>Author</b> Council of Economic Advisers (Trump admin)</span>
+    <span>🎯 <b>Stance</b> Pro-AI-deregulation, America-first</span>
+  </div>
+</header>
+
+<nav class="toc" id="toc">
+  <h3>📑 Table of Contents</h3>
+  <ol>
+    <li><span class="num">01</span><a href="#exec">Executive Summary · Key Numbers</a></li>
+    <li><span class="num">02</span><a href="#framing">Great Divergence Framing · Industrial Revolution</a></li>
+    <li><span class="num">03</span><a href="#gdp">GDP Estimates · +1% to +45%</a></li>
+    <li><span class="num">04</span><a href="#labor">Labor Impact · Jevons' Paradox</a></li>
+    <li><span class="num">05</span><a href="#metrics">Key Metrics · 4x/year Compute Growth</a></li>
+    <li><span class="num">06</span><a href="#compute">Training Compute · Grok 4 $490M</a></li>
+    <li><span class="num">07</span><a href="#adoption">Adoption · 78% Orgs / 10% Production</a></li>
+    <li><span class="num">08</span><a href="#country">Country Comparison · U.S./China/EU</a></li>
+    <li><span class="num">09</span><a href="#policy">Trump AI Action Plan · EOs</a></li>
+    <li><span class="num">10</span><a href="#energy">Energy Dominance · 12% by 2028</a></li>
+    <li><span class="num">11</span><a href="#timeline">Key Dates Timeline</a></li>
+    <li><span class="num">12</span><a href="#caveats">Caveats & Blind Spots</a></li>
+  </ol>
+</nav>
+
+<!-- ============ Section 01: Executive Summary ============ -->
+<section id="exec">
+  <h2>01 · Executive Summary · The Numbers</h2>
+  <p class="lead">11 headline numbers from the report, ordered by "how shocking".</p>
+  <div class="grid c4">
+    <div class="card">
+      <div class="label">AI investment impact on 2025 GDP</div>
+      <div class="big">+1.3%</div>
+      <div class="lbl">annualized H1 2025 — scale of railroad booms during Industrial Revolution</div>
+    </div>
+    <div class="card">
+      <div class="label">Cumulative U.S. private AI investment (2013-2024)</div>
+      <div class="big">$470B</div>
+      <div class="lbl">vs. ~$50B for entire EU combined</div>
+    </div>
+    <div class="card">
+      <div class="label">U.S. private AI investment (2024)</div>
+      <div class="big">$109B</div>
+      <div class="lbl">#1 worldwide; China 2nd with just $9B</div>
+    </div>
+    <div class="card">
+      <div class="label">Training compute growth (since 2010)</div>
+      <div class="big">4×/yr</div>
+      <div class="lbl">total compute used grew &gt;1 billion-fold since 2012</div>
+    </div>
+    <div class="card">
+      <div class="label">Grok 4 training cost (July 2025)</div>
+      <div class="big">$490M</div>
+      <div class="lbl">2.4× per year cost growth since 2016</div>
+    </div>
+    <div class="card">
+      <div class="label">Task-length AI can complete</div>
+      <div class="big">2×/7mo</div>
+      <div class="lbl">for past 6 years — METR benchmark</div>
+    </div>
+    <div class="card">
+      <div class="label">Orgs using AI (2024)</div>
+      <div class="big">78%</div>
+      <div class="lbl">up from 55% in 2023</div>
+    </div>
+    <div class="card">
+      <div class="label">Firms using AI in production</div>
+      <div class="big">~10%</div>
+      <div class="lbl">Sept 2025; up from &lt;4% in 2023</div>
+    </div>
+    <div class="card">
+      <div class="label">U.S. workers using gen AI at work</div>
+      <div class="big">~40%</div>
+      <div class="lbl">May 2025 survey</div>
+    </div>
+    <div class="card">
+      <div class="label">Share of world AI compute in U.S.</div>
+      <div class="big">~74%</div>
+      <div class="lbl">May 2025; almost all Chinese models train on U.S. chips</div>
+    </div>
+    <div class="card">
+      <div class="label">U.S. unemployment rate (Dec 2025)</div>
+      <div class="big">4.4%</div>
+      <div class="lbl">despite AI hype — historically low</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 02: Framing ============ -->
+<section id="framing">
+  <h2>02 · The Great Divergence Framing</h2>
+  <p class="lead">Pomeranz's "Great Divergence" thesis (Industrial Revolution caused western economies to outpace the rest) is the report's organizing metaphor. CEA asks: <b style="color:var(--gold)">is AI the second Great Divergence?</b></p>
+
+  <div class="quote">
+    If the AI revolution is as transformative as the Industrial Revolution, should we expect this to lead to a second Great Divergence? Of course, the future impact of AI is uncertain, so in this paper we focus on the empirical data that can be seen and measured today.
+    <cite>— Introduction, page 1</cite>
+  </div>
+
+  <div class="grid c2">
+    <div class="card full">
+      <h3>📐 Industrial Revolution analogy</h3>
+      <h4>1st Divergence (1750-1900)</h4>
+      <p>Industrializing nations' per-capita GDP pulled away from the rest. Standards of living in the West doubled while China's GDP share collapsed.</p>
+      <h4>Convergence (1900-2025)</h4>
+      <p>Last 25 years saw a partial reversal: developing nations grew <i>faster</i> than rich ones, closing some of the gap.</p>
+      <h4>2nd Divergence hypothesis</h4>
+      <p>If AI diffusion follows investment concentration (U.S. #1, China #2, EU #3), then AI adoption will drive another productivity divergence.</p>
+    </div>
+    <div class="card full">
+      <h3>🚨 Pace-of-change caveat</h3>
+      <h4>4-5× per year compute scaling</h4>
+      <p>Since 2010 training compute has grown 4-5× per year on average (Epoch AI). Many metrics "double every few months".</p>
+      <h4>What this means</h4>
+      <p>The AI of 2026 will look nothing like the AI of 2024. Forecasting 10-yr GDP impacts from current data is like forecasting 1925 GDP from 1900 railroad data.</p>
+      <h4>Top AI firms</h4>
+      <p>OpenAI, Anthropic, xAI, Meta, Google all publicly aim for AGI or superintelligence. <b style="color:var(--gold)">If achieved, the divergence thesis becomes a near-certainty.</b></p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <span class="ico">📚</span>
+    <div>
+      <h4>Key terms the report defines upfront</h4>
+      <p><b style="color:var(--ink)">Generative AI</b> — produces text/images/video (LLMs are the dominant type). <b style="color:var(--ink)">Agentic AI</b> — generative AI that executes actions to accomplish goals. <b style="color:var(--ink)">AGI</b> — hypothetical AI matching all human intellectual tasks. <b style="color:var(--ink)">ASI</b> — AI that surpasses humans. <b style="color:var(--ink)">Specialized intelligence</b> — current state: superhuman at narrow tasks but not generalizable.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 03: GDP Estimates Table 1 ============ -->
+<section id="gdp">
+  <h2>03 · GDP Impact Estimates · Table 1</h2>
+  <p class="lead">9 academic + industry forecasts of AI's GDP impact. Range is wild: <b style="color:var(--green)">+0.9%</b> (most conservative) to <b style="color:var(--red)">≥45%</b> (full AI-substitutes-for-labor scenario). All in <b style="color:var(--gold)">GDP level</b>, not annual growth rate.</p>
+
+  <div class="card full">
+    <table>
+      <thead><tr><th>Study</th><th>GDP Impact</th><th>Horizon</th><th>Region</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>Acemoglu (NBER 2024)</td><td>0.9–1.6%</td><td>10 yrs</td><td>U.S.</td><td><span class="pill low">conservative</span></td></tr>
+        <tr><td>Penn Wharton Budget Model (2025)</td><td>1.5%</td><td>10 yrs</td><td>U.S.</td><td><span class="pill low">conservative</span></td></tr>
+        <tr><td>Oxford Economics (2024)</td><td>1.8–4%</td><td>8 yrs</td><td>U.S.</td><td><span class="pill low">low</span></td></tr>
+        <tr><td>McKinsey (2023)</td><td>2.4–4.1%</td><td>Long Run</td><td>Global</td><td><span class="pill low">low</span></td></tr>
+        <tr><td>Alonso et al. (JME 2022)</td><td>4.7–19.5%</td><td>Long Run</td><td>U.S.</td><td><span class="pill mid">mid</span></td></tr>
+        <tr><td>Goldman Sachs (2023)</td><td>7%</td><td>10 yrs</td><td>Global</td><td><span class="pill mid">mid</span></td></tr>
+        <tr><td>PwC (2025)</td><td>1–15%</td><td>10 yrs</td><td>Global</td><td><span class="pill mid">mid</span></td></tr>
+        <tr><td>Aldasoro et al. (BIS 2024)</td><td>20–45%</td><td>10 yrs</td><td>U.S.</td><td><span class="pill high">high</span></td></tr>
+        <tr><td>Hanson (GMU 2001)</td><td>≥45%</td><td>—</td><td>Global</td><td><span class="pill high">AGI scenario</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:18px;font-size:12px;color:var(--ink-mute)">Note: Except for Hanson (2001), all are impacts on the GDP level (not annual growth). For comparison: the IT revolution boosted U.S. GDP by ~14% (ITIF, 2010).</p>
+  </div>
+
+  <div class="grid c3" style="margin-top:18px">
+    <div class="chart">
+      <h4>📊 GDP impact distribution</h4>
+      <div class="sub">Midpoint of each estimate range</div>
+      <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="-apple-system,sans-serif" font-size="11">
+          <!-- baseline -->
+          <line x1="60" y1="250" x2="580" y2="250" stroke="#2a3050" stroke-width="1"/>
+          <text x="60" y="270" fill="#8c95b0">0%</text>
+          <text x="200" y="270" fill="#8c95b0">15%</text>
+          <text x="340" y="270" fill="#8c95b0">30%</text>
+          <text x="490" y="270" fill="#8c95b0">45%</text>
+
+          <!-- bars: each at y = i*22 + 30, height 14 -->
+          <rect x="60" y="30" width="20" height="14" fill="#3ddc97"/><text x="85" y="42" fill="#e6eaf2">Acemoglu</text>
+          <rect x="60" y="60" width="14" height="14" fill="#3ddc97"/><text x="80" y="72" fill="#e6eaf2">Wharton</text>
+          <rect x="60" y="90" width="44" height="14" fill="#3ddc97"/><text x="110" y="102" fill="#e6eaf2">Oxford Econ</text>
+          <rect x="60" y="120" width="64" height="14" fill="#3ddc97"/><text x="130" y="132" fill="#e6eaf2">McKinsey</text>
+          <rect x="60" y="150" width="225" height="14" fill="#f5b542"/><text x="290" y="162" fill="#e6eaf2">Alonso JME</text>
+          <rect x="60" y="180" width="98" height="14" fill="#f5b542"/><text x="163" y="192" fill="#e6eaf2">Goldman 7%</text>
+          <rect x="60" y="210" width="208" height="14" fill="#f5b542"/><text x="273" y="222" fill="#e6eaf2">PwC (8%)</text>
+          <!-- off-chart for Aldasoro and Hanson; show with arrows -->
+          <rect x="490" y="40" width="60" height="14" fill="#ff6464"/><text x="460" y="52" fill="#ff6464">← Aldasoro up to 45%</text>
+          <rect x="490" y="70" width="60" height="14" fill="#ff6464"/><text x="460" y="82" fill="#ff6464">← Hanson ≥45%</text>
+        </g>
+      </svg>
+      <p style="font-size:11px;color:var(--ink-mute);margin:8px 0 0">Width = % impact at chart scale (1 unit = 0.3%).</p>
+    </div>
+
+    <div class="card full">
+      <h4>🔬 Why the range is so wide</h4>
+      <p>Studies differ on 3 things:</p>
+      <ul>
+        <li>Whether AI is mostly a productivity booster vs. labor substitute</li>
+        <li>Whether the gains are concentrated in tech or diffuse across sectors</li>
+        <li>How fast diffusion occurs (corporate adoption vs. individual use)</li>
+      </ul>
+      <p>The 2025 H1 data <b style="color:var(--gold)">rules out the very bottom of the range</b>: AI investment alone added +1.3% annualized to GDP, comparable to railroad investment during the Industrial Revolution.</p>
+    </div>
+
+    <div class="card full">
+      <h4>💼 Labor share will fall as AI substitutes</h4>
+      <p>If "AI does everything humans can" (AGI), then capital becomes a substitute for labor → wage growth slows relative to capital returns.</p>
+      <p>This is the divergence mechanism: AI-leading nations see GDP rise and wages stagnate; AI-laggards see both stagnate.</p>
+      <p>For the U.S., Acemoglu's +1.5% is plausible if AI augments workers (not substitutes); Aldasoro's +20-45% requires capital-substitution + AGI-like trajectories.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 04: Labor / Jevons' Paradox ============ -->
+<section id="labor">
+  <h2>04 · Labor Impact · Jevons' Paradox</h2>
+  <p class="lead">Will AI kill jobs or create them? CEA invokes the 1865 Jevons' Paradox — coal-efficient engines increased total coal demand — and argues AI may similarly increase the demand for human labor despite higher productivity.</p>
+
+  <div class="quote">
+    Jevons' Paradox occurs if a technological advance reduces the amount of a resource (like labor) needed for a specific application. This actually causes overall usage of that resource to increase as usage expands to new applications.
+    <cite>— Section 2.4, page 7</cite>
+  </div>
+
+  <div class="grid c2">
+    <div class="card full">
+      <h3>📉 Three conditions for Paradox to occur</h3>
+      <ol style="padding-left:20px;color:var(--ink-mute);font-size:13px;">
+        <li><b style="color:var(--gold)">AI must meaningfully boost worker productivity</b> — evidence supports this (SWE-bench 4%→72% in one year).</li>
+        <li><b style="color:var(--gold)">Cost savings must translate to lower prices</b> — (still being observed in inference cost: 9×/year cheaper).</li>
+        <li><b style="color:var(--gold)">Lower prices must increase demand faster than efficiency gains reduce per-unit labor</b> — historical evidence supports this in coal, water, lighting, even road capacity (induced demand).</li>
+      </ol>
+      <h4 style="margin-top:18px">🏥 Empirical counter-example: radiologists</h4>
+      <p>AI predicted to "replace radiologists" since 2016. Instead, radiologist employment is now at historical highs. Lower cost per diagnosis → more diagnoses demanded → more radiologist hours (not fewer).</p>
+    </div>
+    <div class="card full">
+      <h3>📊 Current labor data (mixed signals)</h3>
+      <table style="font-size:12px">
+        <thead><tr><th>Finding</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td>Employment falling for early-career workers in AI-exposed occupations (coding, customer service)</td><td>Brynjolfsson et al. 2025</td></tr>
+          <tr><td>No correlation between AI exposure and current unemployment</td><td>Yale Budget Lab 2025</td></tr>
+          <tr><td>Sectors with AI substitution lose jobs; sectors with AI-augmentation gain jobs</td><td>Johnston & Makridis 2025</td></tr>
+          <tr><td>Overall U.S. unemployment rate</td><td><b style="color:var(--gold)">4.4% (Dec 2025, BLS)</b></td></tr>
+        </tbody>
+      </table>
+      <h4 style="margin-top:18px">🏛️ Historical precedent</h4>
+      <p>1860: 43% of U.S. workforce in agriculture.<br>2015: 1.2% in agriculture.<br>Today: majority of workers in jobs created after 1940 (wind turbine tech, software dev, textile chemist, mental-health counselor).</p>
+    </div>
+  </div>
+
+  <div class="callout warn" style="margin-top:18px">
+    <span class="ico">⚠️</span>
+    <div>
+      <h4>The exception risk</h4>
+      <p>Past technologies all created new labor categories. AI could be the exception <b style="color:var(--ink)">only if</b> it either (1) develops agency to operate fully independently, OR (2) drives productivity without generating new labor demand (Ayres 1990, Donaldson 2018, Feigenbaum & Gross 2024). The report flags this as the most uncertain lever — most historical analogies say jobs grow, but a few academic models say they don't.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 05: Key Metrics ============ -->
+<section id="metrics">
+  <h2>05 · Three Categories of Metrics · Investment / Performance / Adoption</h2>
+  <p class="lead">Total Factor Productivity is the lagging indicator. The report focuses on <b style="color:var(--gold)">three leading-indicator lenses</b>: how much is invested, what the models can do, how widely they're used.</p>
+
+  <div class="chart" style="margin-bottom:18px">
+    <h4>📈 Investment → Performance → Adoption causal loop</h4>
+    <div class="sub">The three metrics are interrelated. The CEA stops short of formal modeling but uses the loop to organize evidence.</div>
+    <svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#f5b542"/>
+        </marker>
+      </defs>
+      <g font-family="-apple-system,sans-serif" font-size="13">
+        <rect x="60" y="90" width="160" height="60" rx="14" fill="#1f2540" stroke="#f5b542" stroke-width="2"/>
+        <text x="140" y="118" fill="#f5b542" text-anchor="middle" font-weight="700">INVESTMENT</text>
+        <text x="140" y="136" fill="#e6eaf2" text-anchor="middle" font-size="11">$252B global 2024</text>
+
+        <rect x="320" y="90" width="160" height="60" rx="14" fill="#1f2540" stroke="#5a9eff" stroke-width="2"/>
+        <text x="400" y="118" fill="#5a9eff" text-anchor="middle" font-weight="700">PERFORMANCE</text>
+        <text x="400" y="136" fill="#e6eaf2" text-anchor="middle" font-size="11">SWE-bench 4→72%</text>
+
+        <rect x="580" y="90" width="160" height="60" rx="14" fill="#1f2540" stroke="#3ddc97" stroke-width="2"/>
+        <text x="660" y="118" fill="#3ddc97" text-anchor="middle" font-weight="700">ADOPTION</text>
+        <text x="660" y="136" fill="#e6eaf2" text-anchor="middle" font-size="11">78% of orgs</text>
+
+        <line x1="220" y1="120" x2="320" y2="120" stroke="#f5b542" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="480" y1="120" x2="580" y2="120" stroke="#5a9eff" stroke-width="2" marker-end="url(#arr)"/>
+        <path d="M 660 150 Q 660 200 400 200 Q 140 200 140 150" fill="none" stroke="#3ddc97" stroke-width="2" marker-end="url(#arr)"/>
+
+        <text x="270" y="110" fill="#f5b542">→</text>
+        <text x="530" y="110" fill="#5a9eff">→</text>
+        <text x="380" y="215" fill="#3ddc97" text-anchor="middle">← revenue feeds next round of investment</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="grid c3">
+    <div class="card full">
+      <h3>💵 Investment Lens</h3>
+      <h4>Global corporate AI investment (2024)</h4>
+      <div class="bar-track" style="margin:8px 0"><div class="fill" style="width:80%"></div><span class="lbl-r">$252B</span></div>
+      <h4>U.S. share (2024)</h4>
+      <div class="bar-track" style="margin:8px 0"><div class="fill" style="width:37%"></div><span class="lbl-r">$94B private</span></div>
+      <h4>Gen-AI specific (2024)</h4>
+      <div class="bar-track" style="margin:8px 0"><div class="fill" style="width:14%"></div><span class="lbl-r">$34B (+19% YoY)</span></div>
+      <h4>U.S. info-processing equipment growth (H1 2025)</h4>
+      <div class="bar-track" style="margin:8px 0"><div class="fill" style="width:28%;background:linear-gradient(90deg,#3ddc97,#f5b542)"></div><span class="lbl-r">28% annual rate</span></div>
+      <p class="note">Up from 5.5% in 2024. This category = 25% of all U.S. private investment and is now driving GDP.</p>
+    </div>
+
+    <div class="card full">
+      <h3>🎯 Performance Lens</h3>
+      <table>
+        <tbody>
+          <tr><td>SWE-bench coding task (2023→2024)</td><td><b>4% → 72%</b></td></tr>
+          <tr><td>Cost per token (best case)</td><td><b>900× / year</b> decrease</td></tr>
+          <tr><td>Cost per token (typical)</td><td><b>≥9× / year</b> decrease</td></tr>
+          <tr><td>Task-length AI completes (50% success)</td><td><b>2× / 7 months</b> (6 yrs)</td></tr>
+          <tr><td>Revenue growth, OpenAI/Anthropic/DeepMind</td><td><b>3× / year</b> (H2 2024)</td></tr>
+          <tr><td>OpenAI revenue projection (2026-28)</td><td><b>2× / year</b></td></tr>
+        </tbody>
+      </table>
+      <p class="note">OpenAI's projected growth exceeds historical unicorns (Amazon had 2 yrs at this rate).</p>
+    </div>
+
+    <div class="card full">
+      <h3>📊 Adoption Lens</h3>
+      <table>
+        <tbody>
+          <tr><td>Org-wide AI use (2023→2024)</td><td><b>55% → 78%</b></td></tr>
+          <tr><td>AI use in production (firms)</td><td><b>&lt;4% (2023) → 10% (Sep 2025)</b></td></tr>
+          <tr><td>Paid AI subscriptions (firms)</td><td><b>7% (Jan '23) → 45% (today)</b></td></tr>
+          <tr><td>U.S. workers using gen AI at work</td><td><b>~40%</b></td></tr>
+          <tr><td>AI business revenue (forecast 2028)</td><td><b>$1T+</b></td></tr>
+          <tr><td>Critical minerals (gallium, by 2030)</td><td><b>&gt;10% of world supply</b> for data centers alone</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Adoption lags performance in production environments — last-mile integration is the bottleneck.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 06: Training Compute ============ -->
+<section id="compute">
+  <h2>06 · Training Compute · The 4×/Year Curve</h2>
+  <p class="lead">Since 2010 the FLOP used to train frontier AI models has grown at an average rate of <b style="color:var(--gold)">4× per year</b> — a &gt;1 billion-fold total increase since 2012. This is the single most-documented "why AI is different" metric in the report.</p>
+
+  <div class="chart">
+    <h4>🚀 Training compute for notable AI models (FLOP, log scale)</h4>
+    <div class="sub">Source: Epoch AI · CEA Figure 1 (log scale, 10²⁵ to 10²⁷ FLOP range)</div>
+    <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg">
+      <g font-family="-apple-system,sans-serif" font-size="11">
+        <!-- y axis log ticks -->
+        <line x1="60" y1="40" x2="60" y2="240" stroke="#2a3050"/>
+        <line x1="60" y1="240" x2="780" y2="240" stroke="#2a3050"/>
+        <text x="50" y="44" fill="#8c95b0" text-anchor="end">10²⁷</text>
+        <text x="50" y="84" fill="#8c95b0" text-anchor="end">10²⁶</text>
+        <text x="50" y="124" fill="#8c95b0" text-anchor="end">10²⁵</text>
+        <text x="50" y="164" fill="#8c95b0" text-anchor="end">10²⁴</text>
+        <text x="50" y="204" fill="#8c95b0" text-anchor="end">10²³</text>
+        <text x="50" y="240" fill="#8c95b0" text-anchor="end">10²²</text>
+
+        <!-- x year ticks -->
+        <text x="100" y="260" fill="#8c95b0">2012</text>
+        <text x="160" y="260" fill="#8c95b0">2014</text>
+        <text x="220" y="260" fill="#8c95b0">2016</text>
+        <text x="280" y="260" fill="#8c95b0">2018</text>
+        <text x="340" y="260" fill="#8c95b0">2020</text>
+        <text x="400" y="260" fill="#8c95b0">2022</text>
+        <text x="460" y="260" fill="#8c95b0">2024</text>
+        <text x="520" y="260" fill="#8c95b0">2026</text>
+
+        <!-- exponential curve: y = 240 - log10(FLOP)*40, x = 60 + (year-2012)/14*470 -->
+        <!-- 2012: 10^23 (AlphaGo Fan) → y=200 -->
+        <!-- 2018 GPT-2 (355M): 10^21 → y=280 ... off chart -->
+        <!-- GPT-3 2020: 10^23.5 → y=180 -->
+        <!-- GPT-4 2023: 10^25.5 → y=100 -->
+        <!-- Grok 4 2025: 10^26.5 → y=60 -->
+
+        <path d="M 100,200 Q 200,180 280,140 Q 350,100 420,80 Q 480,60 550,40" fill="none" stroke="#f5b542" stroke-width="3"/>
+
+        <!-- data points -->
+        <circle cx="100" cy="200" r="6" fill="#3ddc97"/><text x="80" y="195" fill="#e6eaf2" font-size="10">AlphaGo Fan</text>
+        <circle cx="280" cy="140" r="6" fill="#3ddc97"/>
+        <circle cx="350" cy="120" r="6" fill="#3ddc97"/><text x="345" y="115" fill="#e6eaf2" font-size="10">GPT-3</text>
+        <circle cx="420" cy="80" r="6" fill="#5a9eff"/><text x="395" y="78" fill="#e6eaf2" font-size="10">GPT-4</text>
+        <circle cx="500" cy="50" r="6" fill="#b48cff"/><text x="495" y="48" fill="#e6eaf2" font-size="10">Grok 4</text>
+      </g>
+    </svg>
+    <p style="margin-top:8px;font-size:12px;color:var(--ink-mute)">The $490M Grok 4 (2025) is the most expensive single training run documented. Cost growth matches compute growth: 2.4×/yr (training) and 2.5×/yr (cloud compute) since 2016.</p>
+  </div>
+
+  <div class="grid c3" style="margin-top:18px">
+    <div class="card">
+      <div class="label">Training cost growth (since 2016)</div>
+      <div class="big" style="color:var(--red)">2.4×/yr</div>
+      <div class="lbl">≈ doubles every 5 months</div>
+    </div>
+    <div class="card">
+      <div class="label">Cloud compute cost growth</div>
+      <div class="big" style="color:var(--gold)">2.5×/yr</div>
+      <div class="lbl">Moore's Law for AI</div>
+    </div>
+    <div class="card">
+      <div class="label">Inference cost (best case)</div>
+      <div class="big" style="color:var(--green)">900×/yr</div>
+      <div class="lbl">↓ — costs collapse faster than training</div>
+    </div>
+  </div>
+
+  <div class="quote" style="margin-top:18px">
+    As scaling laws are not laws of nature, but observed empirical relationships, they could someday end. But they have characterized the current deep-learning era, where the amount of compute spent on training computer models has increased by more than <b>1 billion-fold since 2012.</b>
+    <cite>— Section 3.2.1, page 9</cite>
+  </div>
+</section>
+
+<!-- ============ Section 07: Adoption ============ -->
+<section id="adoption">
+  <h2>07 · Adoption · From Awareness to Production</h2>
+  <p class="lead">Adoption is the wildest metric set. <b style="color:var(--green)">78% of orgs use AI</b> (2024), but only <b style="color:var(--gold)">10% use it in production</b>. The gap is the next-12-month opportunity.</p>
+
+  <div class="grid c2">
+    <div class="chart">
+      <h4>📊 Organizational AI use · 2023 → 2024</h4>
+      <div class="sub">55% → 78% in one year (+23 ppt)</div>
+      <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="-apple-system,sans-serif" font-size="13">
+          <rect x="80" y="40" width="60" height="140" rx="6" fill="#1f2540"/>
+          <rect x="80" y="80" width="60" height="100" rx="6" fill="#f5b542"/>
+          <text x="110" y="60" fill="#f5b542" text-anchor="middle" font-weight="700" font-size="22">55%</text>
+          <text x="110" y="200" fill="#e6eaf2" text-anchor="middle">2023</text>
+
+          <rect x="240" y="40" width="60" height="140" rx="6" fill="#1f2540"/>
+          <rect x="240" y="50" width="60" height="130" rx="6" fill="#3ddc97"/>
+          <text x="270" y="70" fill="#3ddc97" text-anchor="middle" font-weight="700" font-size="22">78%</text>
+          <text x="270" y="200" fill="#e6eaf2" text-anchor="middle">2024</text>
+
+          <path d="M 145 110 L 235 95" stroke="#5a9eff" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+        </g>
+      </svg>
+    </div>
+    <div class="chart">
+      <h4>🏭 AI in production of goods/services (firms)</h4>
+      <div class="sub">&lt;4% (2023) → 4% (9/2024) → 10% (9/2025). Source: U.S. Census BTOS.</div>
+      <svg viewBox="0 0 500 220" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="-apple-system,sans-serif" font-size="13">
+          <line x1="60" y1="180" x2="460" y2="180" stroke="#2a3050"/>
+          <text x="60" y="200" fill="#8c95b0" font-size="11">0%</text>
+          <text x="180" y="200" fill="#8c95b0" font-size="11">5%</text>
+          <text x="300" y="200" fill="#8c95b0" font-size="11">10%</text>
+          <text x="420" y="200" fill="#8c95b0" font-size="11">15%</text>
+
+          <!-- Sep 2023 -->
+          <rect x="80" y="170" width="40" height="10" fill="#5a9eff"/><text x="100" y="165" fill="#e6eaf2" text-anchor="middle" font-size="11">4% (9/23)</text>
+          <!-- Sep 2024 -->
+          <rect x="170" y="166" width="40" height="14" fill="#5a9eff"/><text x="190" y="160" fill="#e6eaf2" text-anchor="middle" font-size="11">4% (9/24)</text>
+          <!-- Sep 2025 -->
+          <rect x="270" y="140" width="40" height="40" fill="#3ddc97"/><text x="290" y="132" fill="#3ddc97" text-anchor="middle" font-size="11" font-weight="700">10% (9/25)</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <div class="grid c3" style="margin-top:18px">
+    <div class="card full">
+      <h3>💼 Paid AI subscriptions (firms)</h3>
+      <div class="bar-track" style="margin:12px 0;height:24px"><div class="fill" style="width:14%;background:linear-gradient(90deg,#ff6464,#5a9eff)"></div><span class="lbl-r" style="font-size:13px;line-height:24px">7% (Jan 2023)</span></div>
+      <div class="bar-track" style="height:24px"><div class="fill" style="width:90%;background:linear-gradient(90deg,#3ddc97,#f5b542)"></div><span class="lbl-r" style="font-size:13px;line-height:24px">45% (today, 2025)</span></div>
+      <p class="note">Ramp AI Index — payment data. "Today" defined as late 2025.</p>
+    </div>
+    <div class="card full">
+      <h3>👷 U.S. workers using gen AI at work</h3>
+      <div class="bar-track" style="margin:12px 0;height:32px"><div class="fill" style="width:80%;height:32px;background:linear-gradient(90deg,#5a9eff,#f5b542)"></div><span class="lbl-r" style="font-size:14px;line-height:32px">~40%</span></div>
+      <p class="note">Multi-survey average (Pew, Bick et al. 2024, Hartley et al. 2025). Growth trajectory shown in CEA Figure 9.</p>
+    </div>
+    <div class="card full">
+      <h3>💰 AI company revenue projections</h3>
+      <table style="font-size:12px">
+        <tbody>
+          <tr><td>OpenAI H1 2024 revenue</td><td>~$1.3B</td></tr>
+          <tr><td>OpenAI H1 2025 revenue</td><td>~$3-5B (est.)</td></tr>
+          <tr><td>OpenAI projected 2027</td><td><b style="color:var(--gold)">$20B+</b></td></tr>
+          <tr><td>Burn rate (annualized)</td><td>~$115B by 2029</td></tr>
+          <tr><td>Nvidia valuation (Sept '25)</td><td><b style="color:var(--gold)">$5 trillion</b> (first to hit)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 08: Country Comparison ============ -->
+<section id="country">
+  <h2>08 · Cross-Country · U.S. #1, China #2, EU #3</h2>
+  <p class="lead">The U.S. leads on most metrics. Cumulative private AI investment 2013–2024: <b style="color:var(--gold)">$470B U.S.</b> vs. <b style="color:var(--red)">~$50B all EU combined</b>.</p>
+
+  <div class="grid c2">
+    <div class="chart">
+      <h4>🌍 Private AI investment by country (2024)</h4>
+      <div class="sub">Source: Quid + Stanford HAI 2025 · CEA Figure 10</div>
+      <svg viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="-apple-system,sans-serif" font-size="11">
+          <line x1="120" y1="20" x2="120" y2="260" stroke="#2a3050"/>
+          <text x="115" y="265" fill="#8c95b0" text-anchor="end">$0</text>
+          <text x="115" y="190" fill="#8c95b0" text-anchor="end">$50B</text>
+          <text x="115" y="120" fill="#8c95b0" text-anchor="end">$100B</text>
+
+          <!-- USA: 109 -->
+          <rect x="120" y="20" width="380" height="18" fill="#f5b542"/><text x="510" y="34" fill="#f5b542" font-weight="700">$109B</text><text x="128" y="34" fill="#0d0f17" font-weight="700">USA</text>
+          <!-- China: 9 -->
+          <rect x="120" y="48" width="32" height="18" fill="#5a9eff"/><text x="160" y="62" fill="#5a9eff">$9B</text><text x="128" y="62" fill="#e6eaf2">China</text>
+          <!-- UK, Sweden, Canada, France, Germany, UAE, Austria, Israel, S.Korea, India, NL, Italy, Japan -->
+          <rect x="120" y="76" width="22" height="18" fill="#5a9eff"/><text x="150" y="90" fill="#5a9eff">$5.7B</text><text x="128" y="90" fill="#e6eaf2">UK</text>
+          <rect x="120" y="104" width="18" height="18" fill="#5a9eff"/><text x="146" y="118" fill="#5a9eff">$4.6B</text><text x="128" y="118" fill="#e6eaf2">Sweden</text>
+          <rect x="120" y="132" width="18" height="18" fill="#5a9eff"/><text x="146" y="146" fill="#5a9eff">$4.5B</text><text x="128" y="146" fill="#e6eaf2">Canada</text>
+          <rect x="120" y="160" width="14" height="18" fill="#b48cff"/><text x="142" y="174" fill="#b48cff">$3.5B</text><text x="128" y="174" fill="#e6eaf2">France</text>
+          <rect x="120" y="188" width="12" height="18" fill="#b48cff"/><text x="140" y="202" fill="#b48cff">$3.0B</text><text x="128" y="202" fill="#e6eaf2">Germany</text>
+          <rect x="120" y="216" width="10" height="18" fill="#b48cff"/><text x="138" y="230" fill="#b48cff">$2.5B</text><text x="128" y="230" fill="#e6eaf2">UAE</text>
+          <rect x="120" y="244" width="8" height="18" fill="#3ddc97"/><text x="136" y="258" fill="#3ddc97">$2.0B</text><text x="128" y="258" fill="#e6eaf2">Austria</text>
+        </g>
+      </svg>
+      <p style="font-size:11px;color:var(--ink-mute)">Approximate bar lengths. USA dominates with ~10× China's private investment.</p>
+    </div>
+
+    <div class="chart">
+      <h4>🖥️ Share of world's AI compute by country</h4>
+      <div class="sub">May 2025 · weighted by GPU cluster performance · CEA Figure 13</div>
+      <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="-apple-system,sans-serif" font-size="11">
+          <line x1="20" y1="40" x2="20" y2="170" stroke="#2a3050"/>
+          <text x="15" y="174" fill="#8c95b0" text-anchor="end">0%</text>
+          <text x="15" y="100" fill="#8c95b0" text-anchor="end">50%</text>
+          <text x="15" y="40" fill="#8c95b0" text-anchor="end">100%</text>
+
+          <rect x="20" y="40" width="430" height="22" fill="#f5b542"/><text x="460" y="56" fill="#f5b542" font-weight="700">USA 74%</text>
+          <rect x="20" y="68" width="90" height="22" fill="#5a9eff"/><text x="118" y="84" fill="#5a9eff">China 15%</text>
+          <rect x="20" y="96" width="30" height="22" fill="#b48cff"/><text x="58" y="112" fill="#b48cff">EU 5%</text>
+          <rect x="20" y="124" width="14" height="22" fill="#3ddc97"/><text x="42" y="140" fill="#3ddc97">Other</text>
+        </g>
+      </svg>
+      <p style="font-size:11px;color:var(--ink-mute)">Source: Epoch AI · aggregate 16-bit FLOP/s. Includes only public GPU clusters (10-20% of global).</p>
+    </div>
+  </div>
+
+  <div class="grid c3" style="margin-top:18px">
+    <div class="card full">
+      <h3>🇪🇺 Europe — the decline narrative</h3>
+      <h4>EU share of world GDP (PPP)</h4>
+      <p><b style="color:var(--red)">27% (1980) → 14% (2025)</b></p>
+      <p>Not just emerging-market catch-up; Germany + several EU countries grow <i>slower</i> than other advanced economies. Lower productivity growth + worse business environment + weaker tech sector.</p>
+      <h4>EU cumulative AI investment (2013–2024)</h4>
+      <p>~$50B vs $470B for U.S. → <b style="color:var(--red)">~10× gap</b></p>
+    </div>
+    <div class="card full">
+      <h3>🇨🇳 China — slowing but spending</h3>
+      <h4>Private AI investment (2024)</h4>
+      <p>$9B (vs $109B U.S.) — but state spending is much bigger.</p>
+      <h4>Public sector AI spending (2025)</h4>
+      <p><b style="color:var(--gold)">~$56B</b> (some reports cite $98B)</p>
+      <h4>Hardware constraint</h4>
+      <p>Almost all Chinese AI models train on U.S. hardware (Figure 14). U.S. export controls (Oct 2022, Oct 2023, Dec 2024) limit China's access to cutting-edge chips.</p>
+      <h4>Satellite players entering</h4>
+      <p>Saudi Humain ($10B), UAE Stargate (with OpenAI/NVIDIA).</p>
+    </div>
+    <div class="card full">
+      <h3>🤝 Pax Silica alliance</h3>
+      <p>U.S.-led international partnership on AI supply chains — ranging from upstream semiconductor equipment manufacturers (Japan) to downstream data center investors (Qatar).</p>
+      <h4>Members grow faster</h4>
+      <p><b style="color:var(--gold)">2.5% real GDP growth</b> (avg Q4 2022 → Q3 2025) vs. <b style="color:var(--red)">1.1% for G7</b>.</p>
+      <h4>Frontier gap closing</h4>
+      <p>Only 7 countries rank in top-200 models. Distance between frontier (U.S.) and last-ranked (Israel) is just <b style="color:var(--gold)">11 months</b>.</p>
+    </div>
+  </div>
+
+  <details>
+    <summary>📌 Middle-income AI usage paradox</summary>
+    <p>Middle-income economies account for <b>50% of global AI usage</b> in 2024 — disproportionately high relative to their share of GDP. Low-income economies: <b>&lt;1%</b> (lack of electricity + data center access). Adoption highly correlated with GDP per capita.</p>
+  </details>
+
+  <details>
+    <summary>📌 Leapfrogging potential in developing nations</summary>
+    <p>Just as developing countries skipped landlines and went straight to mobile, they may skip centralized data centers and use <b>smartphones as primary AI interaction</b>. Electricity reliability is the main constraint.</p>
+  </details>
+</section>
+
+<!-- ============ Section 09: Trump AI Action Plan ============ -->
+<section id="policy">
+  <h2>09 · The Trump AI Action Plan</h2>
+  <p class="lead">Section 5 of the report covers specific Trump executive orders + the One Big Beautiful Bill. Three pillars: <b style="color:var(--gold)">investment</b>, <b style="color:var(--gold)">performance</b>, <b style="color:var(--gold)">adoption</b>.</p>
+
+  <div class="grid c3">
+    <div class="card full">
+      <h3>💵 5.1 Investment</h3>
+      <h4>🏛️ One Big Beautiful Bill Act</h4>
+      <p>Public Law 119-21, signed <b>July 4, 2025</b>. Restores 100% bonus depreciation for IT infrastructure + data center equipment.</p>
+      <p>CEA estimates <b style="color:var(--gold)">+1% GDP growth/yr</b> for 4 yrs after passage, real wages +$4,000-$7,200/worker.</p>
+      <p>Total investment impact: <b style="color:var(--gold)">7-10% increase</b> in investment.</p>
+      <h4>🌐 Trade deals + capital imports</h4>
+      <ul>
+        <li>EU: <b>$40B</b> commitment for U.S. AI chips</li>
+        <li>UAE: <b>$1.4 trillion</b> in U.S. investment commitment (AI explicitly named)</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>🎯 5.2 Performance</h3>
+      <h4>📄 AI Action Plan (Jul 23, 2025)</h4>
+      <p>Three pillars: rapid data center buildout, enable innovation, uphold free speech in AI.</p>
+      <h4>🪛 Deregulation</h4>
+      <ul>
+        <li>EO Jul 23, 2025: accelerate federal permitting for data centers + energy + manufacturing</li>
+        <li>EO Dec 11, 2025: reduce state-level barriers</li>
+        <li>NEPA categorical exclusions for data centers</li>
+        <li>AI Centers of Excellence</li>
+        <li>Federal procurement: only contract with "objective and free from top-down ideological bias" AI</li>
+      </ul>
+      <h4>📈 Deregulation impact</h4>
+      <p>CEA estimates <b style="color:var(--gold)">+0.3 to +0.8 pp/yr</b> GDP growth for two decades — cumulative <b style="color:var(--gold)">+6-17% by 2045</b>.</p>
+    </div>
+
+    <div class="card full">
+      <h3>⚡ 5.3 Energy Dominance</h3>
+      <h4>🏭 Energy supply actions</h4>
+      <ul>
+        <li>Resume federal leasing for energy development</li>
+        <li>New LNG export permits</li>
+        <li>Support advanced nuclear</li>
+      </ul>
+      <h4>📈 Energy impact</h4>
+      <p>CEA: at least <b style="color:var(--gold)">+0.3% to +1.2% GDP by 2035</b>, excl. AI synergies.</p>
+      <h4>🏗️ AI data center electricity demand</h4>
+      <table>
+        <tbody>
+          <tr><td>2023 baseline</td><td><b>4%</b> of U.S. electricity</td></tr>
+          <tr><td>2028 forecast (low)</td><td><b>7%</b></td></tr>
+          <tr><td>2028 forecast (high)</td><td><b>12%</b></td></tr>
+        </tbody>
+      </table>
+      <p class="note">DOE Apr 2025: identified 16 federal sites positioned for rapid data center construction.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:18px">
+    <span class="ico">🎯</span>
+    <div>
+      <h4>Bottom line on policy</h4>
+      <p>The CEA makes three quantifiable claims: (1) OBBB alone = +1% GDP/yr, +$4-7K wage; (2) Deregulation = +0.3-0.8 pp/yr for 20 yrs; (3) Energy dominance = +0.3-1.2% by 2035. None account for AI-specific synergies, so combined upper bound could be <b style="color:var(--gold)">+3-5 pp/yr of incremental GDP growth</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 10: Energy ============ -->
+<section id="energy">
+  <h2>10 · Energy Dominance & Critical Minerals</h2>
+  <p class="lead">The report's "energy dominance" section highlights the supply chain for AI's physical substrate: <b style="color:var(--gold)">silicon</b>, <b style="color:var(--gold)">gallium</b>, <b style="color:var(--gold)">germanium</b>.</p>
+
+  <div class="grid c2">
+    <div class="card full">
+      <h3>⚡ AI electricity demand projection</h3>
+      <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+        <g font-family="-apple-system,sans-serif" font-size="11">
+          <line x1="40" y1="170" x2="460" y2="170" stroke="#2a3050"/>
+          <text x="40" y="190" fill="#8c95b0">0%</text>
+          <text x="180" y="190" fill="#8c95b0">5%</text>
+          <text x="280" y="190" fill="#8c95b0">10%</text>
+          <text x="380" y="190" fill="#8c95b0">15%</text>
+
+          <rect x="60" y="146" width="40" height="24" fill="#5a9eff"/><text x="80" y="140" fill="#5a9eff" text-anchor="middle">4% (2023)</text>
+          <rect x="180" y="110" width="40" height="60" fill="#3ddc97"/><text x="200" y="104" fill="#3ddc97" text-anchor="middle">7% (2028 L)</text>
+          <rect x="320" y="62" width="40" height="108" fill="#f5b542"/><text x="340" y="56" fill="#f5b542" text-anchor="middle">12% (2028 H)</text>
+        </g>
+      </svg>
+      <p style="margin-top:8px;font-size:12px;color:var(--ink-mute)">Generative AI data centers grow from 4% → 7-12% of U.S. electricity demand by 2028. Source: American Action Forum (2025).</p>
+    </div>
+
+    <div class="card full">
+      <h3>⛏️ Critical minerals</h3>
+      <ul>
+        <li><b style="color:var(--gold)">Silicon</b> — main building block of semiconductor chips</li>
+        <li><b style="color:var(--gold)">Gallium</b> — used in advanced chips; by 2030 data centers alone may demand <b style="color:var(--red)">>10% of today's world supply</b></li>
+        <li><b style="color:var(--gold)">Germanium</b> — another key chip component</li>
+      </ul>
+      <p>CEA flags minerals as "Achilles' heel" of Trump's AI ambitions (per Tech Policy Press). Trade policy + domestic mining incentives are part of the action plan.</p>
+    </div>
+  </div>
+
+  <div class="callout info" style="margin-top:18px">
+    <span class="ico">🔌</span>
+    <div>
+      <h4>Grid interventions</h4>
+      <p>The AI Action Plan includes grid management tech + power line upgrades to optimize existing infrastructure. DOE has identified <b style="color:var(--gold)">16 federal sites</b> with existing energy infrastructure ready for rapid data center construction.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 11: Timeline ============ -->
+<section id="timeline">
+  <h2>11 · Key Dates Timeline · 2022-2026</h2>
+  <p class="lead">The most important dates the report references — combines AI milestones + Trump policy actions.</p>
+
+  <div class="timeline">
+    <div class="evt">
+      <span class="when">Q4 2022 · Nov 30</span>
+      <div class="what">🚀 ChatGPT released (first public LLM)</div>
+      <p>Inflection point for adoption metrics. Pew surveys on ChatGPT use begin tracking from this point.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Oct 2022</span>
+      <div class="what">🚫 U.S. export controls on AI chips to China</div>
+      <p>First major restriction on Chinese access to cutting-edge U.S. hardware.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Jan 2023</span>
+      <div class="what">📊 7% of firms have paid AI subscriptions (baseline)</div>
+      <p>Ramp AI Index starts tracking — will rise to 45% by 2025.</p>
+    </div>
+    <div class="evt">
+      <span class="when">2023</span>
+      <div class="what">📉 SWE-bench coding 4% (baseline)</div>
+      <p>A year later: 72%. Most dramatic single-year benchmark jump in the report.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Oct 2023</span>
+      <div class="what">🚫 U.S. strengthens export controls (round 2)</div>
+      <p>Limits expanded to cover more chip types + manufacturing equipment.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Apr 2025</span>
+      <div class="what">🏛️ DOE identifies 16 federal sites for AI data centers</div>
+      <p>Energy infrastructure pre-positioning for rapid buildout.</p>
+    </div>
+    <div class="evt">
+      <span class="when">May 12, 2025</span>
+      <div class="what">🇸🇦 Saudi PIF launches HUMAIN with $10B fund</div>
+      <p>New state-backed AI company for Saudi Arabia.</p>
+    </div>
+    <div class="evt">
+      <span class="when">May 22, 2025</span>
+      <div class="what">🇦🇪 Stargate UAE announced (OpenAI + NVIDIA + UAE)</div>
+      <p>Massive data center build in UAE partnership.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Jul 4, 2025</span>
+      <div class="what">🏛️ One Big Beautiful Bill signed into law (PL 119-21)</div>
+      <p>100% bonus depreciation for IT infra; 21% corporate rate preserved. CEA estimates: +1% GDP/yr for 4 yrs.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Jul 2025</span>
+      <div class="what">🤖 Grok 4 released — training cost $490M</div>
+      <p>Most expensive single training run documented. Compute scaling continues 4×/yr.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Jul 23, 2025</span>
+      <div class="what">📜 AI Action Plan + EO on data center permitting</div>
+      <p>Three-pillar strategy: rapid data center buildout, enable innovation, free-speech AI.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Sept 2025</span>
+      <div class="what">💵 Nvidia hits $5 trillion valuation (first ever)</div>
+      <p>Crossed the milestone that no company had previously reached.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Q3 2025</span>
+      <div class="what">📊 U.S. unemployment 4.4% (BLS)</div>
+      <p>Despite AI hype, labor market remains tight — Jevons' Paradox (so far) holds.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Dec 11, 2025</span>
+      <div class="what">🏛️ Trump EO on state-level AI barriers</div>
+      <p>Preemption of state regulations that conflict with federal AI policy.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Dec 2024</span>
+      <div class="what">🚫 U.S. further strengthens export controls (round 3)</div>
+      <p>Latest tightening of chip access for China.</p>
+    </div>
+    <div class="evt">
+      <span class="when">Jan 2026</span>
+      <div class="what">📑 CEA publishes this report</div>
+      <p>Frame for first year of Trump AI policy implementation.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Section 12: Caveats ============ -->
+<section id="caveats">
+  <h2>12 · Caveats & Blind Spots</h2>
+  <p class="lead">Even with the data-heavy framing, the report has limitations worth flagging.</p>
+
+  <div class="grid c2">
+    <div class="card full">
+      <h3>🚨 Stance-driven framing</h3>
+      <p>This is a <b>Trump administration CEA</b> report. The "America-first" lens is everywhere — capital imports, export controls, energy dominance framed as competitive advantage. Not neutral prose.</p>
+      <h4>What's missing</h4>
+      <ul>
+        <li>No detailed tax incidence analysis (who pays for OBBB)</li>
+        <li>No discussion of wealth concentration from AI</li>
+        <li>Limited treatment of AI safety / alignment risk</li>
+        <li>Treatment of export controls is mostly positive — no mention of long-term blowback</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>🤷 Forecasting caveat (self-flagged)</h3>
+      <p>The report itself acknowledges:</p>
+      <p><b style="color:var(--gold)">"Not every AI-related investment will be profitable, and the short-run always contains the potential for substantial volatility."</b></p>
+      <h4>Why numbers are uncertain</h4>
+      <ul>
+        <li>Scaling laws could end</li>
+        <li>AI could develop agency and bypass labor demand</li>
+        <li>Adoption curve could plateau at ~10% of production firms (not 78% of org-wide use)</li>
+        <li>Regulatory shocks (tariffs, antitrust) could reroute flows</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>📚 Citation density</h3>
+      <p>Report has 150 footnotes across 27 pages, dominated by:</p>
+      <ul>
+        <li><b>Stanford HAI AI Index 2025</b> — ~20 citations (most data)</li>
+        <li><b>Epoch AI</b> — ~25 citations (compute, performance)</li>
+        <li><b>CEA staff analysis</b> — policy impact claims</li>
+        <li>Federal Reserve + BLS + Census + IMF — base statistics</li>
+      </ul>
+      <p>Useful as a snapshot of mid-2025 thinking, but derivative of HAI + Epoch.</p>
+    </div>
+    <div class="card full">
+      <h3>🔍 What's well-evidenced vs. speculative</h3>
+      <h4>Solid (cited primary data)</h4>
+      <ul>
+        <li>Compute scaling, training costs, revenue projections</li>
+        <li>Investment flows by country</li>
+        <li>Adoption rates (BTOS, Pew, Ramp)</li>
+        <li>Unemployment rate (BLS)</li>
+      </ul>
+      <h4>More speculative</h4>
+      <ul>
+        <li>GDP impact estimates (10-yr forecasts)</li>
+        <li>Whether scaling laws continue</li>
+        <li>Whether AI develops agency / replaces labor</li>
+        <li>CEA's policy impact estimates (own model)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>📄 Source: <a href="https://www.whitehouse.gov/" target="_blank">The White House</a> · Council of Economic Advisers · "Artificial Intelligence and the Great Divergence" (January 2026, 27 pages).</p>
+  <p>Generated from extracted PDF text via <b>Hermes Agent</b> · pymupdf extract · single-file static HTML · no external data dependencies.</p>
+</footer>
+
+</div>
+<script>
+// TOC current-section highlight (lightweight, pure JS)
+document.addEventListener('DOMContentLoaded', () => {
+  const tocLinks = document.querySelectorAll('nav.toc a');
+  const sections = Array.from(tocLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const observed = sections.map((s, i) => ({el: s, idx: i}));
+  if (!('IntersectionObserver' in window)) return;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        const id = en.target.id;
+        tocLinks.forEach(a => a.style.color = '');
+        const active = document.querySelector('nav.toc a[href="#'+id+'"]');
+        if (active) active.style.color = 'var(--gold)';
+      }
+    });
+  }, {rootMargin: '-30% 0px -60% 0px'});
+  observed.forEach(o => io.observe(o.el));
+});
+</script>
+</body>
+</html>

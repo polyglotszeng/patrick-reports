@@ -4,10 +4,67 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#06b6d4">
-<meta name="description" content="全球火箭发射数据库 v4 — LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + Cesium 3-mode globe + PWA 离线缓存 + Watchlist 关注任务">
-<link rel="manifest" href="./manifest.json">
+<meta name="description" content="全球火箭发射数据库 v4 — LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + Cesium 3-mode globe + Watchlist 关注任务">
+<!-- DISABLED PWA: <link rel="manifest"> removed, no SW registration, no cache. Patrick v4.1.1 SW was stuck unregistering. -->
+<!-- Repro: see git log dd00b2c / dc921ce for v4 PWA-stack. Re-add after SW debugging complete. -->
+<script>
+// === v4.1.2 inline ultra-safe bootstrap: PWA DISABLED, fetch with 8s timeout per file, no external SW ===
+'use strict';
+async function loadJSON(path, timeoutMs=8000){
+  const ctl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const opts = ctl ? {cache:'no-store', signal:ctl.signal} : {cache:'no-store'};
+  const t = setTimeout(()=>{ try{ ctl && ctl.abort('timeout'); }catch(e){} }, timeoutMs);
+  try {
+    const r = await fetch(path, opts);
+    if(!r.ok) throw new Error(path+' '+r.status);
+    return await r.json();
+  } catch(e) {
+    try { ctl && ctl.abort(); } catch(_){}
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
+}
+window.__rl_db_state__ = {DB:null, dataMode:'加载中…'};
+async function fetchAll(){
+  // Hard cap 9s total
+  const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+  const hardT = setTimeout(()=>{ try{ctrl.abort();}catch(e){} }, 9000);
+  const safeJson = (path) => loadJSON(path, 7000).catch(e => ({_err:String(e), records:[], _path:path}));
+  try {
+    const [launches, objects, sources, stats, timeline, tles, pads, crew, agencies] = await Promise.all([
+      safeJson('./data/launches.json'),
+      safeJson('./data/objects.json'),
+      safeJson('./data/sources.json'),
+      safeJson('./data/stats.json'),
+      safeJson('./data/timeline.json'),
+      safeJson('./data/celestrak-satellites.json'),
+      safeJson('./data/pads.json'),
+      safeJson('./data/crew.json'),
+      safeJson('./data/agencies.json'),
+    ]);
+    return {launches, objects, sources, stats, timeline, tles, pads, crew, agencies};
+  } finally {
+    clearTimeout(hardT);
+  }
+}
+// Expose to inner main script via event
+window.dispatchEvent(new CustomEvent('rl_data_ready', {detail: { } }));
+console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '!');
+</script>
+<!-- END v4.1.2 inline bootstrap -->
+<!-- DISABLED PWA per v4.1.2. No external dependencies, no SW. Main script handles all fetch with 8s timeout. -->
+<!-- v4.1.4 early inline bootstrap: kick loadData() on DOMContentLoaded, fallback SEED. -->
+<script>
+(function(){
+  // Test if this very early bootstrap script runs in Patrick's browser by writing a marker to title
+  document.title = '[v4.1.4 bootstrap OK] ' + (document.title || '');
+  // Don't do anything else here — main script (later <script> tag) handles actual work.
+  // This script just confirms v4.1.4 reached Patrick's browser.
+})();
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='72' text-anchor='middle' x='50'>🚀</text></svg>">
-<title>全球火箭发射数据库 · v4 PWA+watchlist+agencies</title>
+<title>全球火箭发射数据库 · v4 (PWA disabled · direct fetch) · v4.1.4-boot-OK</title>
 <style>
   :root{
     --bg:#0b0f1a; --panel:#121828; --panel2:#0f1522; --border:#1f2a44;
@@ -242,6 +299,7 @@
 </style>
 </head>
 <body>
+<div id="v414boot" style="background:linear-gradient(90deg,#ff5d6c,#06b6d4);color:#0b0f1a;padding:14px 20px;font-weight:700;font-size:16px;text-align:center;letter-spacing:.02em">✅ v4.1.4 booted — Patrick this is FRESH HTML from cloudflare (no cached v4)!</div>
 <div class="wrap">
   <header>
     <h1>🚀 全球火箭发射数据库 <span class="v-pill">v4</span></h1>
@@ -485,35 +543,97 @@ let CESIUM_VIEWER = null;
 let GLOBE_MODE = "dark-map";
 let GLOBE_DAYS = 7;
 
-async function loadJSON(path){
-  const r = await fetch(path,{cache:"no-store"});
-  if(!r.ok) throw new Error(path+" "+r.status);
-  return r.json();
+async function loadJSON(path, timeoutMs=8000, signal=null){
+  const opts = {cache:"no-store"};
+  if(signal) opts.signal = signal;
+  const ctl = new AbortController();
+  const intTimeout = setTimeout(()=>{try{ctl.abort('timeout');}catch(e){}}, timeoutMs);
+  // Chain signal to internal abort
+  if(signal){
+    if(signal.aborted){ ctl.abort('outer'); }
+    else signal.addEventListener('abort', ()=>{ try{ctl.abort('outer');}catch(e){} });
+  }
+  try{
+    const r = await Promise.race([
+      fetch(path, {...opts, signal:ctl.signal}).then(r => {
+        if(!r.ok) throw new Error(path+' '+r.status);
+        return r.json();
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error(path+' timeout '+timeoutMs+'ms')), timeoutMs))
+    ]);
+    return r;
+  }finally{
+    clearTimeout(intTimeout);
+  }
 }
 async function loadData(){
-  let liveOK=false;
+  let liveOK = false;
+  let errMsg = null;
+  const controller = new AbortController();
+  const hardTimeout = setTimeout(() => controller.abort('hard_timeout'), 9000);
   try{
-    const [launches,objects,sources,stats,timeline,tles,pads,crew,agencies] = await Promise.all([
-      loadJSON("./data/launches.json"),
-      loadJSON("./data/objects.json"),
-      loadJSON("./data/sources.json"),
-      loadJSON("./data/stats.json"),
-      loadJSON("./data/timeline.json").catch(()=>null),
-      loadJSON("./data/celestrak-satellites.json").catch(()=>null),
-      loadJSON("./data/pads.json").catch(()=>null),
-      loadJSON("./data/crew.json").catch(()=>null),
-      loadJSON("./data/agencies.json").catch(()=>null)
+    // CORE 4 files only — these populate KPI cards immediately
+    const [launches, objects, sources, stats] = await Promise.all([
+      loadJSON('./data/launches.json', 8000, controller.signal).catch(e => {errMsg=e.message; return null;}),
+      loadJSON('./data/objects.json', 8000, controller.signal).catch(e => {errMsg=e.message; return null;}),
+      loadJSON('./data/sources.json', 8000, controller.signal).catch(e => {errMsg=e.message; return null;}),
+      loadJSON('./data/stats.json', 8000, controller.signal).catch(e => {errMsg=e.message; return null;}),
     ]);
-    DB={launches:launches.records||[],objects:objects.records||[],sources:sources.sources||[],stats,timeline,tles:tles?.records||[],pads,crew,agencies,mode:"json"};
-    for(const t of DB.tles) TLE_BY_ID[t.norad_id]=t;
-    liveOK=true;
-  }catch(e){
-    console.warn("data/*.json 失败,fallback seed:",e.message);
-    DB={launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:"seed"};
+    if(launches && stats) {
+      DB = {
+        launches: launches.records||[],
+        objects: objects?.records||[],
+        sources: sources?.sources||[],
+        stats,
+        timeline: null,
+        tles: [],
+        pads: null,
+        crew: null,
+        agencies: null,
+        mode: 'json'
+      };
+      liveOK = true;
+      // Lazily fetch derived data, each independent
+      fetchDerived(controller.signal);
+    } else {
+      throw new Error('core fetch failed: ' + errMsg);
+    }
+  } catch(e) {
+    console.warn('loadData core failed, fallback seed:', e.message, errMsg);
+    DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+  } finally {
+    clearTimeout(hardTimeout);
   }
-  render();
-  refreshFreshness(liveOK);
-  startWatchCountdownLoop();
+  // Always update UI even if throws — use DOM-safe wrapper
+  try { refreshFreshness(liveOK); } catch(e){console.warn('refreshFreshness err',e);}
+  try { render(); } catch(e){console.warn('render err',e);}
+  try { startWatchCountdownLoop(); } catch(e){console.warn('watch err',e);}
+  if(liveOK) {
+    // After initial paint, load extended data (timeline/sats/pads/crew/agencies)
+    // These don't block core rendering
+  }
+}
+
+// Async background fetch for tab-content data
+async function fetchDerived(signal){
+  // Each is independent and slow-load tolerated
+  const safe = (path, key) => loadJSON(path, 6000, signal)
+    .then(d => {
+      if(key === 'timeline') DB.timeline = d;
+      if(key === 'tles') { DB.tles = d.records||[]; for(const t of DB.tles) TLE_BY_ID[t.norad_id]=t; refreshFreshness(true); renderTimeline(); }
+      if(key === 'pads') { DB.pads = d; renderPads(); refreshFreshness(true); }
+      if(key === 'crew') { DB.crew = d; refreshFreshness(true); }
+      if(key === 'agencies') { DB.agencies = d; refreshFreshness(true); }
+    })
+    .catch(e => console.warn('lazy ' + key + ' failed', e.message));
+  // Fire 5 in parallel — they're tab-content, KPI shows even if some fail
+  Promise.all([
+    safe('./data/timeline.json','timeline'),
+    safe('./data/celestrak-satellites.json','tles'),
+    safe('./data/pads.json','pads'),
+    safe('./data/crew.json','crew'),
+    safe('./data/agencies.json','agencies'),
+  ]);
 }
 
 function refreshFreshness(liveOK){
@@ -538,7 +658,7 @@ function refreshFreshness(liveOK){
   $("#nextBuildLabel").textContent = "⏰ next auto-update: "+nextUtc.toISOString().slice(0,16)+"Z";
 }
 
-const $=id=>document.getElementById(id);
+const $=sel=>document.querySelector(sel); /* v4.1.5 FIX: was getElementById — every $("#id") call returned null, so refreshFreshness/render threw and KPI stayed "—" forever */
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $$=(sel,root=document)=>root.querySelectorAll(sel);
 
@@ -686,7 +806,8 @@ function fillLaunchFilters(){
   $("#fSource").insertAdjacentHTML("beforeend",uniq(DB.launches.flatMap(l=>l.sources||[])).map(opt).join(""));
 }
 function filterLaunches(){
-  const f={q:$("#fSearch").value.trim().toLowerCase(),provider:$("#fProvider").value,country:$("#fCountry").value,year:$("#fYear").value,status:$("#fStatus").value,source:$("#fSource").value};
+  const get = id => { const el = $(id); return el ? (el.value ?? "") : ""; };
+  const f={q:get("#fSearch").trim().toLowerCase(),provider:get("#fProvider"),country:get("#fCountry"),year:get("#fYear"),status:get("#fStatus"),source:get("#fSource")};
   return DB.launches.filter(l=>{
     if(f.provider&&l.provider!==f.provider) return false;
     if(f.country&&l.country!==f.country) return false;
@@ -809,10 +930,18 @@ function closeDrawer(){$("#drawer").classList.remove("open");$("#overlay").class
 
 /* ========== Timeline tab ========== */
 function renderTimeline(){
-  if(!DB.timeline) return;
+  if(!DB.timeline){
+    const c = $("#tlCanvas");
+    if(c) c.innerHTML = '<div class="empty" style="grid-column:1/-1">⏳ Timeline loading...</div>';
+    return;
+  }
   const tl=DB.timeline, monthly=(tl.monthly||[]).slice(-12);
   const max=Math.max(1,...monthly.map(m=>m.count));
   const now=new Date(), curMonth=now.getUTCFullYear()+"-"+String(now.getUTCMonth()+1).padStart(2,"0");
+  if(!monthly.length) {
+    const c = $("#tlCanvas");
+    if(c) c.innerHTML = '<div class="empty" style="grid-column:1/-1">暂无数据</div>';
+  }
   $("#tlCanvas").innerHTML=monthly.map(m=>{
     const isCur=m.month===curMonth;
     const title=`${m.month} · 总 ${m.count} (✓${Math.round(m.success/m.count*100)||0}% ⌛${Math.round(m.upcoming/m.count*100)||0}%)`;
@@ -833,8 +962,12 @@ function renderTimeline(){
 
 /* ========== Pads tab (v4 — fetch LL2 detail on demand + drawer) ========== */
 function renderPads(){
-  if(!DB.pads) return;
-  const pads = DB.pads.rankings||[];
+  if(!DB.pads || !DB.pads.rankings){
+    const padGrid = $("#padsGrid");
+    if(padGrid) padGrid.innerHTML = '<div class="empty">⏳ Pad 数据加载中… 切换到其他 tab 后再回来</div>';
+    return;
+  }
+  const pads = DB.pads.rankings;
   $("#tabBadgePads").textContent = pads.length;
   const allYears = new Set();
   pads.forEach(p=>Object.keys(p.years||{}).forEach(y=>allYears.add(y)));
@@ -1112,7 +1245,7 @@ function renderWorldMap(rows){
   const dots = rows.map(r=>{
     const [x,y]=proj(r.lon,r.lat);
     const color = /station|ISS|天宫|CSS/i.test(r.name)?"var(--accent2)":/weather/i.test(r.category)?"var(--warn)":/science/i.test(r.category)?"var(--accent)":"var(--muted)";
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="0.5" data-norad="${r.norad_id}" style="cursor:pointer"><title>${r.name} (${r.lat.toFixed(1)}°, ${r.lon.toFixed(1)}°)</title></circle>`;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="0.5" data-norad="${r.norad_id}" style="cursor:pointer"><title>${r.name} (${r.lat.toFixed(1)}°, ${r.lon.toFixed(1)}°) · v4.1.4-boot-OK</title></circle>`;
   }).join("");
   const grid=[];
   for(let lon=-180;lon<=180;lon+=30){const[x,y1]=proj(lon,90),[,y2]=proj(lon,-90); grid.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="rgba(42,53,84,.3)" stroke-width="0.3"/>`);}
@@ -1337,10 +1470,34 @@ $("#installBtn")?.addEventListener("click", ()=>{
   deferredPrompt.userChoice.then(()=>{deferredPrompt=null; $("#installBanner").classList.remove("show");});
 });
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js?v=4").then(reg=>{$("#swLabel").textContent="📥 PWA ✓"; $("#swLabel").style.color="var(--accent2)";}).catch(err=>{$("#swLabel").textContent="⚠️ PWA failed"; $("#swLabel").style.color="var(--warn)";});
+  // v4.1.5 — PWA permanently disabled. The v4.1.2 unregister was inside `if(false && ...)`
+  // so it NEVER ran: the old v4 SW kept serving stale cached HTML on /rocket-launch-db/.
+  // Now: always unregister every SW + purge all CacheStorage.
+  try{
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+    if(window.caches && caches.keys) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  }catch(e){ console.warn('sw cleanup', e); }
 }
 
-setupTabs(); render(); loadData();
+// v4.1.4: layer 1 — sync minimal render with empty state
+try { render(); } catch(e){console.warn('init render err:',e);}
+// v4.1.4: layer 2 — wrap main init in try-catch
+try {
+  setupTabs();
+} catch(e){console.warn('init setupTabs err:',e);}
+// v4.1.4: layer 3 — call loadData with hard 6s timer fallback
+let _loadDataFallbackTimer = setTimeout(() => {
+  if(DB.mode !== 'json') {
+    console.warn('[v4.1.4 fallback] loadData did not resolve in 6s — using SEED');
+    // Hard fallback: use SEED and update UI
+    try {
+      DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+      refreshFreshness(false);
+      render();
+    } catch(e){console.warn('hard fallback err:',e);}
+  }
+}, 6000);
+loadData().finally(() => clearTimeout(_loadDataFallbackTimer));
 </script>
 </body>
 </html>

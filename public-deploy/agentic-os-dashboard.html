@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic OS Dashboard · public snapshot</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2333;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;--teal:#39c5cf;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC",sans-serif;line-height:1.55;padding:0 0 60px;}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 22px;}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+header h1{font-size:22px;font-weight:800;letter-spacing:.04em;}
+header h1 span{color:var(--acc);}
+header .meta{font-size:11.5px;color:var(--dim);}
+.ver-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--amber);background:rgba(210,153,34,.08);color:var(--amber);font-weight:700;}
+#snapbar{display:flex;align-items:center;gap:10px;font-size:11.5px;padding:6px 12px;border:1px solid var(--amber);border-radius:8px;margin-bottom:8px;background:rgba(210,153,34,.06);color:var(--amber);}
+#ticker{display:flex;gap:14px;overflow-x:auto;font-size:10.5px;font-family:Menlo,monospace;color:var(--dim);padding:5px 2px 9px;margin-bottom:8px;white-space:nowrap;scrollbar-width:thin;}
+#ticker .ev{flex-shrink:0;}
+#ticker .ev b{color:var(--txt);font-weight:600;}
+#ticker .ok{color:var(--green);}#ticker .error{color:var(--red);}#ticker .hand{color:var(--purple);}#ticker .info{color:var(--acc);}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.tab{padding:8px 16px;font-size:12.5px;color:var(--dim);cursor:pointer;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;transition:all .15s;font-weight:600;}
+.tab:hover{color:var(--txt);background:#1c2333;}
+.tab:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;}
+.tab.active{color:var(--acc);background:var(--panel);border-color:var(--border);border-bottom-color:var(--panel);position:relative;bottom:-1px;}
+.tab .badge{font-size:10px;color:var(--red);margin-left:3px;}
+.panel{display:none;background:var(--panel);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;padding:20px 22px;}
+.panel.active{display:block;}
+.panel h2{font-size:16px;display:flex;align-items:center;gap:8px;margin-bottom:12px;color:var(--acc);letter-spacing:.04em;}
+.panel p.note{font-size:12.5px;color:var(--dim);margin-bottom:12px;line-height:1.7;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:14px;}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 13px;}
+.kpi .n{font-size:22px;font-weight:800;}
+.kpi .n.green{color:var(--green);}.kpi .n.amber{color:var(--amber);}.kpi .n.red{color:var(--red);}.kpi .n.purple{color:var(--purple);}.kpi .n.teal{color:var(--teal);}
+.kpi .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:14px;}
+.card h3{font-size:14.5px;display:flex;align-items:center;gap:7px;margin-bottom:3px;}
+.card .loopname{font-size:11px;color:var(--dim);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em;}
+.card .note{font-size:12px;color:var(--dim);border-left:2px solid var(--border);padding-left:8px;margin:6px 0;}
+.cron-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid #21262d;font-size:12px;}
+.cron-row .nm{flex:1;color:var(--txt);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cron-row .sc{color:var(--dim);font-family:Menlo,monospace;font-size:10.5px;width:90px;text-align:center;flex-shrink:0;}
+.st{font-size:10.5px;font-weight:800;padding:2px 9px;border-radius:999px;flex-shrink:0;display:inline-block;min-width:42px;text-align:center;}
+.st.ok{background:rgba(63,185,80,.15);color:var(--green);}
+.st.er{background:rgba(248,81,73,.15);color:var(--red);}
+.st.hand{background:rgba(188,140,255,.15);color:var(--purple);}
+.st.todo{background:rgba(210,153,34,.15);color:var(--amber);}
+.chip-btn{font-size:11px;background:#21262d;color:#a5d6ff;padding:4px 11px;border-radius:999px;border:1px solid transparent;cursor:pointer;}
+.chip-btn:hover{border-color:var(--acc);}
+.chip-btn.on{background:#1f6feb;color:#fff;border-color:#1f6feb;}
+.lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:820px){.lanes{grid-template-columns:repeat(2,1fr);}}
+.lane{background:#0d1117;border:1px solid var(--border);border-radius:10px;padding:11px;min-height:200px;}
+.lane h4{font-size:12px;color:var(--txt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.lane h4 .ct{color:var(--dim);font-weight:400;font-family:Menlo,monospace;font-size:11px;}
+.task{background:var(--panel);border:1px solid #30363d;border-radius:7px;padding:8px 10px;font-size:11.5px;margin-bottom:7px;border-left:3px solid var(--dim);}
+.task.doing{border-left-color:var(--acc);}
+.task.review{border-left-color:var(--purple);}
+.task.backlog{border-left-color:var(--amber);}
+.task.done{border-left-color:var(--green);opacity:.7;}
+.task b{display:block;font-size:12px;color:var(--txt);margin-bottom:2px;}
+.task .meta{color:var(--dim);font-size:10.5px;font-family:Menlo,monospace;}
+.task .tag{display:inline-block;font-size:9px;padding:1px 6px;background:#21262d;border-radius:999px;color:var(--acc);margin-right:4px;}
+.inbox{font-size:13px;}
+.inbox .item{display:flex;gap:10px;padding:9px 12px;background:#0d1117;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;align-items:baseline;flex-wrap:wrap;}
+.inbox .item.acked{opacity:.5;}
+.inbox .pr{font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;flex-shrink:0;}
+.inbox .pr.P0{background:rgba(248,81,73,.2);color:var(--red);}
+.inbox .pr.P1{background:rgba(210,153,34,.2);color:var(--amber);}
+.inbox .pr.P2,.inbox .pr.Px{background:#21262d;color:var(--dim);}
+.inbox b{color:var(--txt);font-weight:700;margin-right:6px;}
+.inbox .time{color:var(--dim);font-size:11px;font-family:Menlo,monospace;flex-shrink:0;}
+.inbox .time.stale{color:var(--red);font-weight:700;}
+.reg-row{padding:8px 12px;background:#0d1117;border:1px solid var(--border);border-radius:7px;margin-bottom:5px;font-size:12px;display:flex;align-items:center;gap:10px;}
+.reg-row .id{font-family:Menlo,monospace;color:var(--acc);width:150px;flex-shrink:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;}
+.reg-row .nm{flex:1;color:var(--txt);}
+.reg-row .sc{color:var(--dim);font-family:Menlo,monospace;font-size:11px;width:110px;text-align:center;flex-shrink:0;}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}
+.dot.green{background:var(--green);}.dot.amber{background:var(--amber);}.dot.red{background:var(--red);}
+.adapters{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.adp{background:#0d1117;border:1px solid var(--border);border-radius:9px;padding:12px;border-left:4px solid var(--teal);}
+.adp.ok{border-left-color:var(--green);}
+.adp h4{font-size:13px;color:var(--green);margin-bottom:3px;font-family:Menlo,monospace;}
+.adp p{font-size:11.5px;color:var(--dim);line-height:1.55;}
+table.tt{font-size:12px;border-collapse:collapse;width:100%;margin-top:6px;}
+table.tt th,table.tt td{padding:7px 10px;border:1px solid var(--border);text-align:left;}
+table.tt th{background:#0d1117;color:var(--acc);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
+table.tt td b{color:var(--txt);}
+footer{margin-top:24px;color:var(--dim);font-size:11px;border-top:1px solid var(--border);padding-top:14px;text-align:center;}
+pre.code{background:#0a111e;border:1px solid var(--border);border-radius:7px;padding:10px 14px;font-size:11.5px;font-family:Menlo,monospace;color:var(--txt);overflow-x:auto;margin:8px 0;line-height:1.6;}
+code{background:#0d1420;padding:1px 5px;border-radius:3px;font-family:Menlo,monospace;font-size:11.5px;color:var(--acc);}
+input.search{background:#0d1117;border:1px solid var(--border);border-radius:6px;color:var(--txt);font-size:12px;padding:5px 10px;width:220px;font-family:Menlo,monospace;}
+input.search:focus{outline:none;border-color:var(--acc);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📊 <span>Agentic OS</span> Dashboard</h1>
+    <div class="meta">8-module model-agnostic agent OS · personal build</div>
+    <span class="ver-pill">📸 STATIC SNAPSHOT</span>
+  </header>
+
+  <div id="snapbar">📸 静态快照 · generated <b style="margin:0 4px;" id="snap-ts">—</b> · 写操作(ack/移卡/journal)在公网版禁用 · 数据已脱敏</div>
+  <div id="ticker"></div>
+
+  <div class="tabs" role="tablist" id="tabbar">
+    <div class="tab active" role="tab" tabindex="0" aria-selected="true" data-tab="m0">① Overview</div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m1">② Registry</div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m2">③ Adapters</div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m3">④ Memory</div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m4">⑤ Paperclip</div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m5">⑥ Kanban <span class="badge"></span></div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m6">⑦ Cron <span class="badge"></span></div>
+    <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="m7">⑧ Inbox <span class="badge"></span></div>
+  </div>
+
+  <section class="panel active" id="p-m0">
+    <h2>① Loop 0 · Overview</h2>
+    <p class="note">Julian 8-module model-agnostic playbook 的个人实现:cron 自动化 + agent registry + task bus + human-in-the-loop inbox。本页为公开静态快照,live 版跑在本机。</p>
+    <div class="kpis">
+      <div class="kpi"><div class="n purple">8</div><div class="l">modules</div></div>
+      <div class="kpi"><div class="n" id="k-cron">—</div><div class="l">cron jobs</div></div>
+      <div class="kpi"><div class="n red" id="k-err">—</div><div class="l">errors</div></div>
+      <div class="kpi"><div class="n amber" id="k-inbox">—</div><div class="l">inbox unacked</div></div>
+      <div class="kpi"><div class="n teal" id="k-tasks">—</div><div class="l">tasks in flight</div></div>
+      <div class="kpi"><div class="n green" id="k-health">—</div><div class="l">cron health</div></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>🎯 8 modules at a glance</h3>
+        <table class="tt">
+          <tr><th>id</th><th>module</th><th>status</th></tr>
+          <tr><td><b>M1</b></td><td>Mission Control UI</td><td>✅ dashboard v4</td></tr>
+          <tr><td><b>M2</b></td><td>Agent Registry</td><td id="mod-m2">—</td></tr>
+          <tr><td><b>M3</b></td><td>Tool Adapter</td><td>✅ 5/5 (search envelope v1)</td></tr>
+          <tr><td><b>M4</b></td><td>Memory Feedback</td><td id="mod-m4">—</td></tr>
+          <tr><td><b>M5</b></td><td>Paperclip Org</td><td>✅ 5 dept · 5 lead agent</td></tr>
+          <tr><td><b>M6</b></td><td>Task Bus + Kanban</td><td id="mod-m6">—</td></tr>
+          <tr><td><b>M7</b></td><td>Cron Loops</td><td id="mod-m7">—</td></tr>
+          <tr><td><b>M8</b></td><td>Human Inbox</td><td id="mod-m8">—</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>♻️ Distilled loop</h3>
+        <pre class="code" style="margin:6px 0;">operator goal
+  → mission control     <span style="color:var(--dim)">// M1</span>
+  → agent registry      <span style="color:var(--dim)">// M2</span>
+  → task bus            <span style="color:var(--dim)">// M6</span>
+  → tool adapter        <span style="color:var(--dim)">// M3</span>
+  → artifact            <span style="color:var(--dim)">// M9</span>
+  → review              <span style="color:var(--dim)">// M6 lane=Review</span>
+  → memory              <span style="color:var(--dim)">// M4</span>
+  → next loop           <span style="color:var(--dim)">// M7 cron</span>
+  <span style="color:var(--dim)">// 人交互唯一通路 = M8 inbox</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-m1">
+    <h2>② Loop 1 · Agent Registry</h2>
+    <p class="note" id="reg-meta"></p>
+    <div id="reg-domains"></div>
+    <div class="card" style="margin-top:14px;">
+      <h3>🤖 5 agents → 5 dept</h3>
+      <table class="tt">
+        <tr><th>agent</th><th>dept</th><th>role</th></tr>
+        <tr><td><b>🧠 Claude</b></td><td>🔬 Research</td><td>思考/写作</td></tr>
+        <tr><td><b>🔭 Hermes</b></td><td>👔 Executive</td><td>orchestration/cron</td></tr>
+        <tr><td><b>🦾 OpenClaw</b></td><td>📣 Growth</td><td>浏览器/发布</td></tr>
+        <tr><td><b>⚙️ Codex</b></td><td>🔨 Build</td><td>代码/refactor</td></tr>
+        <tr><td><b>🖥️ Cowork</b></td><td>🧪 QA</td><td>desktop ops/审计</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="p-m2">
+    <h2>③ Loop 2 · Tool Adapter Layer</h2>
+    <p class="note">"Every tool should be swappable"。5 adapter type。</p>
+    <div class="adapters">
+      <div class="adp ok"><h4>shell ✅</h4><p>whitelist-only 执行,不接受任意命令</p></div>
+      <div class="adp ok"><h4>file ✅</h4><p>vault 读写 · journal · inbox 回写</p></div>
+      <div class="adp ok"><h4>browser ✅</h4><p>browser-use agent / Playwright</p></div>
+      <div class="adp ok"><h4>llm ✅</h4><p>multi-provider 路由 (5 provider)</p></div>
+      <div class="adp ok"><h4>search ✅</h4><p>统一 envelope v1 (多 source 归一)</p></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-m3">
+    <h2>④ Loop 3 · Memory Feedback</h2>
+    <p class="note">Memory ≠ transcript dump。4 层结构 + daily 写循环新鲜度监控。</p>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="k-daily">—</div><div class="l">daily 断更 (天)</div></div>
+      <div class="kpi"><div class="n" id="k-llmwiki">—</div><div class="l">knowledge 断更 (天)</div></div>
+    </div>
+    <div class="card">
+      <h3>📌 写 memory 触发条件</h3>
+      <ul style="font-size:13px;padding-left:18px;line-height:1.7;color:var(--dim);">
+        <li>Preference should persist</li>
+        <li>Source/workflow canonical</li>
+        <li>Task outcome changes future behavior</li>
+        <li>Failure reveals a guardrail</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="panel" id="p-m4">
+    <h2>⑤ Loop 4 · Paperclip Organization</h2>
+    <p class="note">5 dept 各 1 lead + N sub-agent,创建 persistent agent 需人工 approval(M8)。</p>
+    <div class="grid">
+      <div class="card"><h3>👔 Executive</h3><div class="loopname">lead: Hermes</div><p class="note">goal decomposition / approvals / priority</p></div>
+      <div class="card"><h3>🔬 Research</h3><div class="loopname">lead: Claude</div><p class="note">source gathering / news / market scans</p></div>
+      <div class="card"><h3>🔨 Build</h3><div class="loopname">lead: Codex</div><p class="note">implementation / deployment / adapters</p></div>
+      <div class="card"><h3>🧪 QA</h3><div class="loopname">lead: Cowork</div><p class="note">review / testing / artifact scoring</p></div>
+      <div class="card"><h3>📣 Growth</h3><div class="loopname">lead: OpenClaw</div><p class="note">publishing / outreach / content</p></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-m5">
+    <h2>⑥ Loop 5 · Task Bus + Kanban</h2>
+    <p class="note">task bus 快照(公网只读)。<span id="tasks-upd" style="font-family:Menlo,monospace;font-size:11px;"></span></p>
+    <div class="lanes" id="lanes"></div>
+  </section>
+
+  <section class="panel" id="p-m6">
+    <h2>⑦ Loop 6 · Scheduled Loops</h2>
+    <p class="note">"Automation should be boring, bounded, inspectable"。</p>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="chip-btn on" data-cf="all" onclick="setCronFilter('all')">all</button>
+      <button class="chip-btn" data-cf="er" onclick="setCronFilter('er')">error</button>
+      <button class="chip-btn" data-cf="ok" onclick="setCronFilter('ok')">ok</button>
+    </div>
+    <div id="cronlist"></div>
+    <p class="note" style="margin-top:10px;" id="cron-src"></p>
+  </section>
+
+  <section class="panel" id="p-m7">
+    <h2>⑧ Loop 7 · Human Inbox (safety valve)</h2>
+    <p class="note">"The inbox is the safety valve"。P0/P1/P2 分级,超 24h 未 ack 标红。公网版只读。</p>
+    <div class="inbox" id="inboxlist"></div>
+    <h2 style="margin-top:22px;">🛡 Approval policy</h2>
+    <table class="tt">
+      <tr><th>require human</th><th>auto-allow</th></tr>
+      <tr><td>Spend money</td><td>Read local project files</td></tr>
+      <tr><td>Send external messages</td><td>Write workspace drafts</td></tr>
+      <tr><td>Publish publicly</td><td>Update private memory notes</td></tr>
+      <tr><td>Install dependencies</td><td>Move internal Kanban tasks</td></tr>
+      <tr><td>Create new persistent agents</td><td>Ack inbox items</td></tr>
+      <tr><td>Access private / sensitive data</td><td></td></tr>
+    </table>
+  </section>
+
+  <footer>
+    <b>Agentic OS Dashboard</b> · public static snapshot · generated <span id="foot-ts">—</span> · write ops disabled
+  </footer>
+</div>
+
+<script>
+window.__SNAPSHOT__={"generated_at": "2026-07-06 14:53", "cron": {"rows": [{"name": "ai-trending-daily", "schedule": "0 8 * * *", "status": "error"}, {"name": "ai-trending-weekly", "schedule": "0 23 * * 0", "status": "error"}, {"name": "hardtech-daily", "schedule": "0 9 * * *", "status": "ok"}, {"name": "hardtech-publish", "schedule": "15 9 * * *", "status": "error"}, {"name": "hardtech-weekly", "schedule": "30 23 * * 0", "status": "error"}, {"name": "sync-daily-index", "schedule": "30 9 * * *", "status": "error"}, {"name": "agentic-os-skill-weekly-review", "schedule": "0 9 * * 0", "status": "ok"}, {"name": "open-notebooklm-cron", "schedule": "every 360m", "status": "ok"}, {"name": "worldmonitor-china-feeds-daily", "schedule": "0 7 * * *", "status": "ok"}, {"name": "daily-eventkit-bridge", "schedule": "30 7 * * *", "status": "ok"}, {"name": "publish-youtube-dashboards", "schedule": "0 21 * * *", "status": "ok"}, {"name": "round-n-dashboards-generator", "schedule": "0 9 */3 * *", "status": "ok"}, {"name": "daily-reports-sync-verify", "schedule": "30 9 */3 * *", "status": "ok"}, {"name": "cf-pages-drift-check", "schedule": "0 */6 * * *", "status": "ok"}, {"name": "ai-capital-battle-transcript-retry", "schedule": "every 360m", "status": "ok"}, {"name": "web3-protocols-daily-recheck", "schedule": "0 9 * * *", "status": "ok"}, {"name": "memory-audit", "schedule": "0 */6 * * *", "status": "error"}, {"name": "project-memory-slack-digest", "schedule": "0 9 * * *", "status": "ok"}, {"name": "human-loop-watchdog", "schedule": "0 10,20 * * *", "status": "error"}, {"name": "github-push-retry", "schedule": "15 */2 * * *", "status": "error"}, {"name": "Fable 5 test midway check-in (7/6 21:00)", "schedule": "once at 2026-07-06", "status": null}, {"name": "Fable 5 test final judgment reminder (7/7 22:00)", "schedule": "once at 2026-07-07", "status": null}, {"name": "judge-hardtech-publish", "schedule": "30 10 * * *", "status": "error"}, {"name": "imessage-poll-inbox", "schedule": "every 1m", "status": "ok"}, {"name": "imessage-send-outbox", "schedule": "every 1m", "status": "ok"}, {"name": "human-loop-watchdog", "schedule": "0 10,20 * * *", "status": null}, {"name": "memory-compactor-hourly", "schedule": "0 * * * *", "status": "ok"}, {"name": "Dashboard Health Check (Daily)", "schedule": "0 9 * * *", "status": null}], "total": 28, "ok": 15, "error": 9, "source": "jobs.json ground truth"}, "inbox": {"items": [{"checked": true, "priority": "P0", "date": "06-28", "age_h": 197.6, "job": "agentic-os-skill-weekly-review + memory-audit 根因", "title": "🟥 minimax 429 已自愈 (cron next run ok), 不需 action"}, {"checked": false, "priority": "P1", "date": "07-05", "age_h": 26.9, "job": "cf-pages-drift-check", "title": "✅ 自愈了 (06 cron 已 auto-pass) — 无需 action"}, {"checked": false, "priority": "P1", "date": "07-05", "age_h": 20.6, "job": "github-push-retry", "title": "🟧 仍 error · 41 commits 积压"}], "unacked": 2}, "tasks": {"updated": "2026-07-06 14:30", "tasks": [{"title": "修 error 发布链 cron", "lane": "backlog", "module": "M7", "owner": "hermes", "note": "Blocked by inbox"}, {"title": "graphify-weekly 转正", "lane": "backlog", "module": "M4", "owner": "claude", "note": "proposal → cron"}, {"title": "skillspector 79 flags triage", "lane": "backlog", "module": "M5", "owner": "cowork", "note": "已扫描"}, {"title": "life-wiki/.data 2.6GB 瘦身", "lane": "backlog", "module": "M4", "owner": "cowork", "note": "safe-mode"}, {"title": "v4 dashboard live 化 ship", "lane": "doing", "module": "M1", "owner": "cowork", "note": "本 session"}, {"title": "Patch skill agentic-os v3", "lane": "doing", "module": "M1", "owner": "hermes", "note": "todo"}, {"title": "Save v3 pattern to memory", "lane": "doing", "module": "M4", "owner": "hermes", "note": "todo"}, {"title": "dashboard-v4 sanity check", "lane": "review", "module": "M6", "owner": "human", "note": "in-progress"}, {"title": "memory-audit (cron 注册)", "lane": "done", "module": "M4", "owner": "hermes", "note": "07-05"}, {"title": "human-loop-watchdog ship", "lane": "done", "module": "M8", "owner": "hermes", "note": "07-04"}, {"title": "v05 HITL Fix C (exit 2 = hand)", "lane": "done", "module": "M7", "owner": "cowork", "note": "07-05"}, {"title": "iMessage Mac↔Phone pipe ship", "lane": "done", "module": "M3", "owner": "openclaw", "note": "07-05"}, {"title": "imessage inbox/send cron 1m", "lane": "done", "module": "M7", "owner": "hermes", "note": "07-05"}]}, "registry": {"domains": [{"id": "ai-research", "icon": "🔬", "name": "AI 研究 / 内容摄入", "status": "green", "skills_n": 5, "autos_n": 7, "err_n": 1}, {"id": "publishing", "icon": "🚀", "name": "发布链 / CF Pages", "status": "amber", "skills_n": 6, "autos_n": 8, "err_n": 4}, {"id": "knowledge-synthesis", "icon": "🔗", "name": "知识综合 / 链接", "status": "red", "skills_n": 6, "autos_n": 3, "err_n": 1}, {"id": "life-os", "icon": "🧭", "name": "生活 OS / EMAI / 回顾", "status": "red", "skills_n": 5, "autos_n": 2, "err_n": 0}, {"id": "meta", "icon": "🧠", "name": "Agentic OS 元系统", "status": "amber", "skills_n": 7, "autos_n": 2, "err_n": 1}, {"id": "creative", "icon": "🎨", "name": "创作 / 内容输出", "status": "green", "skills_n": 6, "autos_n": 0, "err_n": 0}, {"id": "projects", "icon": "🗺️", "name": "项目：旅行 / 投资 / 应用", "status": "amber", "skills_n": 5, "autos_n": 0, "err_n": 0}], "skills_total": 334, "automations_total": 26}, "vault": {"daily": 0.0, "llm_wiki": 0.0}, "ticker": [{"t": "07-06T14:52", "src": "imessage-poll-inbox", "st": "ok"}, {"t": "07-06T14:52", "src": "imessage-send-outbox", "st": "ok"}, {"t": "07-06T14:16", "src": "github-push-retry", "st": "hand"}, {"t": "07-06T14:00", "src": "memory-compactor-hourly", "st": "ok"}, {"t": "07-06T12:00", "src": "cf-pages-drift-check", "st": "ok"}, {"t": "07-06T12:00", "src": "memory-audit", "st": "error"}, {"t": "07-06T11:35", "src": "ai-capital-battle-transcript-retry", "st": "ok"}, {"t": "07-06T10:32", "src": "open-notebooklm-cron", "st": "ok"}, {"t": "07-06T10:30", "src": "judge-hardtech-publish", "st": "hand"}, {"t": "07-06T10:00", "src": "human-loop-watchdog", "st": "hand"}]};
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(function(t){
+    var on=t.dataset.tab===id;
+    t.classList.toggle('active',on);
+    t.setAttribute('aria-selected',on?'true':'false');
+  });
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('active',p.id==='p-'+id);});
+  if(location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+}
+document.getElementById('tabbar').addEventListener('click',function(e){
+  var t=e.target.closest('.tab'); if(t) showTab(t.dataset.tab);
+});
+document.getElementById('tabbar').addEventListener('keydown',function(e){
+  var tabs=Array.from(document.querySelectorAll('.tab'));
+  var i=tabs.findIndex(function(t){return t.classList.contains('active');});
+  if(e.key==='ArrowRight'){var n=tabs[(i+1)%tabs.length];showTab(n.dataset.tab);n.focus();}
+  if(e.key==='ArrowLeft'){var p=tabs[(i-1+tabs.length)%tabs.length];showTab(p.dataset.tab);p.focus();}
+});
+if(location.hash) showTab(location.hash.slice(1));
+function setBadge(tab,n){
+  var b=document.querySelector('.tab[data-tab="'+tab+'"] .badge');
+  if(b)b.textContent=(n&&n>0)?n:'';
+}
+function statusCls(s){return s==='ok'?'ok':(s==='error'?'er':'todo');}
+
+var S=window.__SNAPSHOT__||{};
+var CRON_FILTER='all';
+
+function renderCron(){
+  var c=S.cron||{rows:[]};
+  var rows=c.rows.filter(function(r){
+    if(CRON_FILTER==='all')return true;
+    return statusCls(r.status)===CRON_FILTER;
+  });
+  document.getElementById('cronlist').innerHTML=rows.map(function(r){
+    var cls=statusCls(r.status);
+    var lbl=cls==='er'?'error':(cls==='todo'?esc(r.status):cls);
+    return '<div class="cron-row"><span class="nm">'+esc(r.name)+'</span><span class="sc">'+esc(r.schedule)+'</span><span class="st '+cls+'">'+lbl+'</span></div>';
+  }).join('')||'<p class="note">no rows</p>';
+}
+function setCronFilter(f){
+  CRON_FILTER=f;
+  document.querySelectorAll('[data-cf]').forEach(function(b){b.classList.toggle('on',b.dataset.cf===f);});
+  renderCron();
+}
+function ageLabel(h){
+  if(h==null)return '';
+  if(h<24)return h.toFixed(0)+'h';
+  return (h/24).toFixed(1)+'d';
+}
+function render(){
+  document.getElementById('snap-ts').textContent=S.generated_at||'?';
+  document.getElementById('foot-ts').textContent=S.generated_at||'?';
+
+  var c=S.cron||{rows:[],total:0,ok:0,error:0};
+  renderCron();
+  setBadge('m6',c.error);
+  document.getElementById('k-cron').textContent=c.total;
+  document.getElementById('k-err').textContent=c.error;
+  var pct=c.total?Math.round(100*c.ok/c.total):0;
+  document.getElementById('k-health').textContent=c.ok+'/'+c.total;
+  document.getElementById('k-health').className='n '+(pct>=80?'green':(pct>=60?'amber':'red'));
+  document.getElementById('mod-m7').innerHTML=(c.error>0?'🔴 ':'✅ ')+c.error+'/'+c.total+' error';
+  document.getElementById('cron-src').textContent='source: '+(c.source||'snapshot');
+
+  var items=(S.inbox||{}).items||[];
+  var un=(S.inbox||{}).unacked||0;
+  setBadge('m7',un);
+  document.getElementById('k-inbox').textContent=un;
+  document.getElementById('mod-m8').innerHTML=(un>0?'🔴 ':'✅ ')+un+' pending';
+  document.getElementById('inboxlist').innerHTML=items.map(function(it){
+    var stale=it.age_h!=null&&it.age_h>24&&!it.checked;
+    var pr=/^P[012]$/.test(it.priority)?it.priority:'Px';
+    return '<div class="item'+(it.checked?' acked':'')+'">'
+      +'<span class="pr '+pr+'">'+esc(it.priority)+'</span>'
+      +'<span class="time'+(stale?' stale':'')+'">'+esc(it.date||'')+(it.age_h!=null?' · '+ageLabel(it.age_h):'')+'</span>'
+      +'<span style="flex:1;min-width:200px;">'+(it.job?'<b>['+esc(it.job)+']</b>':'')+esc(it.title)+'</span>'
+      +(it.checked?'<span class="st ok">acked</span>':'<span class="st todo">pending</span>')
+      +'</div>';
+  }).join('')||'<p class="note">inbox 空 ✅</p>';
+
+  var tasks=(S.tasks||{}).tasks||[];
+  var LANES=['backlog','doing','review','done'];
+  var TITLES={backlog:'Backlog',doing:'Doing',review:'Review',done:'Done'};
+  var inflight=tasks.filter(function(t){return t.lane==='doing'||t.lane==='review';}).length;
+  document.getElementById('k-tasks').textContent=inflight;
+  setBadge('m5',tasks.filter(function(t){return t.lane==='review';}).length);
+  document.getElementById('mod-m6').innerHTML='✅ '+tasks.length+' tasks · '+inflight+' in flight';
+  document.getElementById('tasks-upd').textContent=(S.tasks||{}).updated?('updated '+(S.tasks||{}).updated):'';
+  document.getElementById('lanes').innerHTML=LANES.map(function(lane){
+    var ts=tasks.filter(function(t){return t.lane===lane;});
+    return '<div class="lane"><h4>'+TITLES[lane]+' <span class="ct">'+ts.length+'</span></h4>'
+      +ts.map(function(t){
+        return '<div class="task '+esc(lane)+'"><b>'+esc(t.title)+'</b>'
+          +'<span class="meta"><span class="tag">'+esc(t.module||'')+'</span>'+esc(t.owner||'')+(t.note?' · '+esc(t.note):'')+'</span></div>';
+      }).join('')+'</div>';
+  }).join('');
+
+  var reg=S.registry||{domains:[]};
+  document.getElementById('reg-domains').innerHTML=reg.domains.map(function(d){
+    return '<div class="reg-row">'
+      +'<span class="id"><span class="dot '+esc(d.status||'amber')+'"></span>'+esc(d.icon||'')+' '+esc(d.id)+'</span>'
+      +'<span class="nm">'+esc(d.name)+'</span>'
+      +'<span class="sc">'+(d.skills_n||0)+' skills</span>'
+      +'<span class="sc">'+(d.autos_n||0)+' cron'+(d.err_n?' · <b style="color:var(--red)">'+d.err_n+' err</b>':'')+'</span>'
+      +'</div>';
+  }).join('');
+  document.getElementById('reg-meta').textContent=reg.domains.length+' domains · '+(reg.skills_total||'?')+' skills · '+(reg.automations_total||'?')+' automations (manifest)';
+  document.getElementById('mod-m2').innerHTML='✅ '+reg.domains.length+' domains';
+
+  var v=S.vault||{};
+  var kd=document.getElementById('k-daily'), kw=document.getElementById('k-llmwiki');
+  kd.textContent=v.daily!=null?v.daily:'—';
+  kw.textContent=v.llm_wiki!=null?v.llm_wiki:'—';
+  kd.className='n '+(v.daily==null?'':(v.daily>=1?'red':'green'));
+  kw.className='n '+(v.llm_wiki==null?'':(v.llm_wiki>=7?'amber':'green'));
+  document.getElementById('mod-m4').innerHTML=(v.daily!=null&&v.daily>=1?'⚠️ daily 断更 '+v.daily+'d':'✅ daily fresh');
+
+  document.getElementById('ticker').innerHTML=(S.ticker||[]).slice(0,10).map(function(e){
+    return '<span class="ev"><span class="'+esc(e.st)+'">●</span> '+esc(e.t)+' <b>'+esc(e.src)+'</b></span>';
+  }).join('');
+}
+render();
+console.log('[dashboard-static] public snapshot, write ops disabled');
+</script>
+</body>
+</html>

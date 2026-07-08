@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🚀 DIAG3 redirect → /rockets/</title>
+<style>body{background:#111;color:#fff;font-family:monospace;padding:30px;font-size:18px}</style>
+</head>
+<body>
+<h1>🚀 Patrick's FORCE-REDIRECT diagnostic page</h1>
+<p>This is the <strong>third unique URL</strong> — no browser has fetched it before.</p>
+<p>Below is an auto-redirect that uses <code>location.replace()</code> to bypass back-button cache.</p>
+<script>
+const redirectLog = [];
+const start = Date.now();
+redirectLog.push('[' + new Date().toISOString() + '] diag3 loaded — t=0ms');
+
+// Method 1: location.replace (no history entry, harder for browser to cache)
+setTimeout(() => {
+  redirectLog.push('[' + new Date().toISOString() + '] redirecting via location.replace to /rockets/?cb=diag3');
+  document.body.innerHTML += '<pre>' + redirectLog.join('\n') + '</pre><h2 style="color:#ff9f43">正在跳转 /rockets/ ...</h2>';
+  setTimeout(() => {
+    // Force fresh URL with cache-buster
+    window.location.replace('https://2017zyl.xyz/rockets/?cb=diag3-' + Date.now());
+  }, 3000);
+}, 500);
+
+// Show live log
+setInterval(() => {
+  const pre = document.querySelector('pre');
+  if (pre) pre.textContent = redirectLog.join('\n');
+}, 100);
+</script>
+<pre id="log"></pre>
+<h1 style="color:#39d0a4;font-size:48px">⏳ 跳转中 / redirecting...</h1>
+<p>If you see this page for >5s, your browser has blocked the redirect.</p>
+<h3>Manual link if redirect fails:</h3>
+<p><a href="https://2017zyl.xyz/rockets/?cb=diag3-manual" style="color:#39d0a4;font-size:24px;font-weight:700">https://2017zyl.xyz/rockets/?cb=diag3-manual</a></p>
+</body>
+</html>

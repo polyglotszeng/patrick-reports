@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="驾迹GoTrace">
+<meta name="theme-color" content="#1B2A41">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="驾迹 GoTrace — 自驾路线规划与路书生成">
+<title>驾迹 GoTrace</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADzklEQVR42u3d220UQRAF0MrDGRADEiIlQiMbvkkEB4DA3ulHPY50/z1dffb2WF7PxNuX7yJ/TRiBwCFwCBwCh8AhcAgcAofAIXCIwCFwCBwCh8AhcAgcAofAMSK/f341hKE43vf+eeCggZWOOA6AGAIlmKCkM45ULDoRCSYoaYXj7ibNIRLtWYy6nqE48m9APyLRiYULnoWj7pQb+IjSLNociHCsHGi/37DgGFQYDZYWPl7WWADHqL9plVhsGJYlp8aRZ0a/fnwbu/aMOA5P5337n2SUj5gg4yGIA1By+oiEMpKb2Kckm4/oJ+OYiR1KUvmITjIuslhIJI+P6CEjCYtVRJL4iOoyErJYQiSDjyCDj/s41i61BIvnRO76CDL4yIhjlIzlPprgWGW/NIsnRG6VR5DBRy4cw2Us9FEYBxmlfUTyA6WxjBd8HD5cInNttJexykcxHGQ08JEUxygZn/VRG4fa6FEeoTaUxzkcZLTxcQIHGcd8pMahNjqVR6gN5ZEdBxCv+SiD40nL0bAKx0IfoTaUx3YcaqNfeYTaUB5wwHEJx8vNZvuX+Nh0soTaUB5wwFEKh43ferKkwOGGo+ttRzhTnCzpcNjy/CcLHHDAAcd5HG44Gt92hNpQHnDAAQcccMABh8AhcMABBxxwwAEHHHCc+yaHbd7nY+23OjSH5oADDjjggAMOOAQOgQMOOOCAAw444IDDt899+9z/ragNOOCAA46WOPgY+l/2ysPzOZwsnuzjZPFMMDjg8BxSNxyeYKw24ICjJA4+bslIh0N5NKsNb2pSG97xpja8HXKajPI4+DgpIzUO5dGmNt68y15tHMXBRw8ZSXHM9HF4wtdwKI8GtZEXxzQfCWtjIw4+qsu4gIOP5TJK4ljFnIwrtbEdBx91ZVzDwcetMebCwUdRGYdwrK3EUSxuHSj3cUzzkWF0GXHwUU7GURw7ltqYxXUZp3EM9FFXxgUcm5bdiUUSGXdw7Ft8AxZ5ZFzDsXUEdVmkknETx4FBFDKRUMZlHP8Yx9qJJDdxbA7FcJyfSx4QyWWkwJFqOpu2v6KMLDj+PaMMY5q55DAsiy2A478j60Gk0Bqj3OzqEim3tPDxsqJiODpVSN2FRIPJ5hxu3Ssvg+PjU84z6HIXXBjHZyd+a+j5r7Atjhc24MA2ZLue0The3pKFG3P3p8Oxd5POp+iEC+PIr6T6YDvgSEikx0j74MigpNkkG+I4DKXx9Jrj2GFlzrhm4fiIHkOAQ+AQOAQOgUPgEDgEDoFD4BCBQ+AQOAQOgUPgEDgEDoFD+ucPcby7KYkRrtgAAAAASUVORK5CYII=">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22:%22%5Cu9a7e%5Cu8ff9%20GoTrace%22%2C%22short_name%22:%22GoTrace%22%2C%22start_url%22:%22.%2F%22%2C%22scope%22:%22.%2F%22%2C%22display%22:%22standalone%22%2C%22orientation%22:%22portrait%22%2C%22background_color%22:%22%23F6F3EC%22%2C%22theme_color%22:%22%231B2A41%22%2C%22description%22:%22%5Cu81ea%5Cu9a7e%5Cu89c6%5Cu9891%5Cu4e0e%5Cu8def%5Cu7ebf%5Cu89c4%5Cu5212%5Cu52a9%5Cu624b%22%2C%22icons%22:%5B%7B%22src%22:%22data:image%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAADzklEQVR42u3d220UQRAF0MrDGRADEiIlQiMbvkkEB4DA3ulHPY50%2Fz1dffb2WF7PxNuX7yJ%2FTRiBwCFwCBwCh8AhcAgcAofAIXCIwCFwCBwCh8AhcAgcAofAMSK%2Ff341hKE43vf%2BeeCggZWOOA6AGAIlmKCkM45ULDoRCSYoaYXj7ibNIRLtWYy6nqE48m9APyLRiYULnoWj7pQb%2BIjSLNociHCsHGi%2F37DgGFQYDZYWPl7WWADHqL9plVhsGJYlp8aRZ0a%2Ffnwbu%2FaMOA5P5337n2SUj5gg4yGIA1By%2BoiEMpKb2Kckm4%2FoJ%2BOYiR1KUvmITjIuslhIJI%2BP6CEjCYtVRJL4iOoyErJYQiSDjyCDj%2Fs41i61BIvnRO76CDL4yIhjlIzlPprgWGW%2FNIsnRG6VR5DBRy4cw2Us9FEYBxmlfUTyA6WxjBd8HD5cInNttJexykcxHGQ08JEUxygZn%2FVRG4fa6FEeoTaUxzkcZLTxcQIHGcd8pMahNjqVR6gN5ZEdBxCv%2BSiD40nL0bAKx0IfoTaUx3YcaqNfeYTaUB5wwHEJx8vNZvuX%2BNh0soTaUB5wwFEKh43ferKkwOGGo%2BttRzhTnCzpcNjy%2FCcLHHDAAcd5HG44Gt92hNpQHnDAAQcccMABh8AhcMABBxxwwAEHHHCc%2ByaHbd7nY%2B23OjSH5oADDjjggAMOOAQOgQMOOOCAAw444IDDt899%2B9z%2FragNOOCAA46WOPgY%2Bl%2F2ysPzOZwsnuzjZPFMMDjg8BxSNxyeYKw24ICjJA4%2BbslIh0N5NKsNb2pSG97xpja8HXKajPI4%2BDgpIzUO5dGmNt68y15tHMXBRw8ZSXHM9HF4wtdwKI8GtZEXxzQfCWtjIw4%2Bqsu4gIOP5TJK4ljFnIwrtbEdBx91ZVzDwcetMebCwUdRGYdwrK3EUSxuHSj3cUzzkWF0GXHwUU7GURw7ltqYxXUZp3EM9FFXxgUcm5bdiUUSGXdw7Ft8AxZ5ZFzDsXUEdVmkknETx4FBFDKRUMZlHP8Yx9qJJDdxbA7FcJyfSx4QyWWkwJFqOpu2v6KMLDj%2BPaMMY5q55DAsiy2A478j60Gk0Bqj3OzqEim3tPDxsqJiODpVSN2FRIPJ5hxu3Ssvg%2BPjU84z6HIXXBjHZyd%2Ba%2Bj5r7Atjhc24MA2ZLue0The3pKFG3P3p8Oxd5POp%2BiEC%2BPIr6T6YDvgSEikx0j74MigpNkkG%2BI4DKXx9Jrj2GFlzrhm4fiIHkOAQ%2BAQOAQOgUPgEDgEDoFD4BCBQ%2BAQOAQOgUPgEDgEDoFD%2BucPcby7KYkRrtgAAAAASUVORK5CYII%3D%22%2C%22sizes%22:%22180x180%22%2C%22type%22:%22image%2Fpng%22%2C%22purpose%22:%22any%20maskable%22%7D%5D%7D">
+<style>
+:root{
+  --navy:#1B2A41;
+  --navy-dk:#13202F;
+  --terra:#D9723F;
+  --gold:#E3B23C;
+  --cream:#F6F3EC;
+  --ink:#27221B;
+  --muted:#8A8272;
+  --line:#E7E1D4;
+  --green:#3E7A4C;
+  --bar-h:60px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior-y:contain;
+  padding-top:env(safe-area-inset-top,0);
+  padding-bottom:env(safe-area-inset-bottom,0);
+  padding-left:env(safe-area-inset-left,0);
+  padding-right:env(safe-area-inset-right,0);
+}
+
+/* Boot loader — visible until first render */
+#boot-loading{
+  position:fixed;inset:0;
+  background:var(--navy);
+  color:#fff;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9999;
+  font-size:14px;letter-spacing:1px;
+}
+#boot-loading .mark{
+  width:54px;height:54px;border-radius:50%;
+  background:linear-gradient(135deg,var(--terra),var(--gold));
+  margin-bottom:18px;
+  box-shadow:0 8px 24px rgba(217,114,63,0.4);
+  animation:pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{transform:scale(1);opacity:1;}
+  50%{transform:scale(0.85);opacity:0.7;}
+}
+
+/* App shell */
+.app{
+  max-width:560px;
+  margin:0 auto;
+  min-height:100vh;
+  background:var(--cream);
+  position:relative;
+  display:flex;flex-direction:column;
+}
+
+/* Status bar mock (visible in browser; ignored in real PWA) */
+.statusbar{
+  height:24px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:11px;font-weight:700;color:var(--ink);
+  background:var(--cream);flex-shrink:0;
+}
+.statusbar .dot{width:5px;height:5px;border-radius:50%;background:var(--ink);margin-left:3px;}
+
+/* View area */
+#main-content{
+  flex:1;padding:8px 16px calc(var(--bar-h) + env(safe-area-inset-bottom,0px) + 16px);
+  overflow-y:auto;
+}
+.view{animation:fadeIn .18s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+.view-head{padding:8px 0 14px;}
+.view-title{
+  font-size:22px;font-weight:800;color:var(--navy);
+  margin:0;letter-spacing:0.5px;
+}
+.view-sub{font-size:12px;color:var(--muted);margin:4px 0 0;}
+
+.placeholder{
+  background:#fff;border:1px dashed var(--line);
+  border-radius:14px;padding:24px 16px;
+  color:var(--muted);font-size:12.5px;text-align:center;
+  margin-top:10px;
+}
+
+/* Bottom tab bar */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;
+  height:calc(var(--bar-h) + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:rgba(246,243,236,0.94);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;align-items:flex-start;
+  z-index:50;
+}
+.tabbar a{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;padding-top:8px;
+  text-decoration:none;color:var(--muted);
+  font-size:11px;font-weight:700;
+  height:100%;
+}
+.tabbar a svg{
+  width:22px;height:22px;
+  stroke:var(--muted);fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round;
+  transition:.15s;
+}
+.tabbar a.active{color:var(--terra);}
+.tabbar a.active svg{stroke:var(--terra);fill:rgba(217,114,63,0.08);}
+.tabbar a:active{opacity:0.6;}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .view,#boot-loading .mark{animation:none;}
+}
+</style>
+</head>
+<body>
+  <div id="boot-loading" role="status" aria-label="加载中">
+    <div class="mark" aria-hidden="true"></div>
+    <div>驾迹 GoTrace · 加载中</div>
+  </div>
+  <div class="app">
+    <div class="statusbar" aria-hidden="true">
+      <span>9:41</span><span>驾迹</span><span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+    </div>
+    <main id="main-content" role="main"></main>
+    <nav class="tabbar" role="navigation" aria-label="主导航"><a href="#home" data-tab="home" aria-label="首页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg><span>首页</span></a><a href="#plan" data-tab="plan" aria-label="规划"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 01-11.9 7.8L3 21l1.7-6.1A8.5 8.5 0 1121 11.5z"/></svg><span>规划</span></a><a href="#trip" data-tab="trip" aria-label="行程"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 6l7-3 8 3 7-3v15l-7 3-8-3-7 3zM8 3v15M16 6v15"/></svg><span>行程</span></a><a href="#book" data-tab="book" aria-label="路书"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>路书</span></a><a href="#me" data-tab="me" aria-label="我的"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6"/></svg><span>我的</span></a></nav>
+  </div>
+<script>
+(function () {
+  'use strict';
+
+  // ─── Default state (will be migrated / extended by L2/L3 loops) ──────────
+  var DEFAULT_STATE = {
+    _v: 1,
+    trip: {
+      currentId: null,
+      drafts: {},         // id -> { title, days, createdAt }
+      history: []         // [id, ...] most-recent first
+    },
+    media: {
+      items: {},          // id -> { type: 'photo'|'voice', dataUrl, ts, lat, lng }
+      byTrip: {}           // tripId -> [mediaId, ...]
+    },
+    routes: {
+      list: {},           // id -> { title, days, km, style }
+      byTrip: {}          // tripId -> routeId
+    },
+    profile: {
+      name: '旅人',
+      avatar: null,
+      plan: 'free',
+      stats: { trips: 0, km: 0, routes: 0 }
+    }
+  };
+  var STORAGE_KEY = 'gotrace_state_v1';
+
+  // ─── Load with auto-migration ────────────────────────────────────────────
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return deepClone(DEFAULT_STATE);
+      var saved = JSON.parse(raw);
+      var base = deepClone(DEFAULT_STATE);
+      // shallow merge top-level
+      for (var k in saved) { if (Object.prototype.hasOwnProperty.call(saved, k)) base[k] = saved[k]; }
+      // schema migrations
+      if (saved && saved._v === undefined) { base._v = 1; }
+      if (saved && saved.trip && Array.isArray(saved.trip.history) === false) { base.trip.history = []; }
+      return base;
+    } catch (e) {
+      console.warn('[gotrace] loadState failed, using defaults', e);
+      return deepClone(DEFAULT_STATE);
+    }
+  }
+
+  function deepClone(o) {
+    if (typeof structuredClone === 'function') return structuredClone(o);
+    return JSON.parse(JSON.stringify(o));
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+    } catch (e) {
+      console.warn('[gotrace] saveState failed', e);
+    }
+  }
+
+  // ─── State Proxy ─────────────────────────────────────────────────────────
+  var _state = loadState();
+
+  function getPath(path) {
+    var parts = path.split('.');
+    var cur = _state;
+    for (var i = 0; i < parts.length; i++) {
+      if (cur == null) return undefined;
+      cur = cur[parts[i]];
+    }
+    return cur;
+  }
+
+  function setPath(path, value) {
+    var parts = path.split('.');
+    var cur = _state;
+    for (var i = 0; i < parts.length - 1; i++) {
+      if (cur[parts[i]] == null) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = value;
+  }
+
+  var state = new Proxy({}, {
+    get: function (_, key) {
+      if (typeof key !== 'string') return undefined;
+      if (key.indexOf('.') !== -1) return getPath(key);
+      return _state[key];
+    },
+    set: function (_, key, value) {
+      if (typeof key !== 'string') return true;
+      if (key.indexOf('.') !== -1) { setPath(key, value); return true; }
+      _state[key] = value;
+      return true;
+    }
+  });
+
+  // ─── Hash routing with ? query support ───────────────────────────────────
+  var TABS = ['home', 'plan', 'trip', 'book', 'me'];
+  var TAB_LABELS = { home: '首页', plan: '规划', trip: '行程', book: '路书', me: '我的' };
+
+  function parseHash() {
+    var raw = (location.hash || '#home').slice(1);
+    var qIdx = raw.indexOf('?');
+    var hash = qIdx === -1 ? raw : raw.slice(0, qIdx);
+    var qs = qIdx === -1 ? '' : raw.slice(qIdx + 1);
+    var params = {};
+    if (qs) {
+      qs.split('&').forEach(function (kv) {
+        if (!kv) return;
+        var eq = kv.indexOf('=');
+        var k = eq === -1 ? kv : kv.slice(0, eq);
+        var v = eq === -1 ? '' : kv.slice(eq + 1);
+        try { params[decodeURIComponent(k)] = decodeURIComponent(v); }
+        catch (e) { params[k] = v; }
+      });
+    }
+    if (TABS.indexOf(hash) === -1) hash = 'home';
+    return { hash: hash, params: params };
+  }
+
+  function activeTab() {
+    var p = parseHash();
+    // map aliases: "book" = 路书, query tripId allowed
+    return p.hash;
+  }
+
+  // ─── View functions (placeholders only — L2/L3 fill real content) ────────
+  function viewHome(p) {
+    return ''
+      + '<section class="view view-home" data-tab="home">'
+      + '  <header class="view-head"><h1 class="view-title">首页</h1>'
+      + '    <p class="view-sub">推荐路线 · 灵感话题 · 路线广场</p></header>'
+      + '  <div class="placeholder">L1 skeleton · 首页 · 待 L2 填充</div>'
+      + '</section>';
+  }
+
+  function viewPlan(p) {
+    return ''
+      + '<section class="view view-plan" data-tab="plan">'
+      + '  <header class="view-head"><h1 class="view-title">规划</h1>'
+      + '    <p class="view-sub">AI 智能规划师</p></header>'
+      + '  <div class="placeholder">L1 skeleton · 规划 · 待 L2 填充'
+      + (p.params.tripId ? ' · tripId=' + escapeHtml(p.params.tripId) : '')
+      + '</div>'
+      + '</section>';
+  }
+
+  function viewTrip(p) {
+    return ''
+      + '<section class="view view-trip" data-tab="trip">'
+      + '  <header class="view-head"><h1 class="view-title">行程</h1>'
+      + '    <p class="view-sub">实时轨迹 · 当日时间轴</p></header>'
+      + '  <div class="placeholder">L1 skeleton · 行程 · 待 L3 填充'
+      + (p.params.day != null ? ' · day=' + escapeHtml(p.params.day) : '')
+      + '</div>'
+      + '</section>';
+  }
+
+  function viewBook(p) {
+    return ''
+      + '<section class="view view-book" data-tab="book">'
+      + '  <header class="view-head"><h1 class="view-title">路书</h1>'
+      + '    <p class="view-sub">智能路书生成 · 多风格模板</p></header>'
+      + '  <div class="placeholder">L1 skeleton · 路书 · 待 L3 填充'
+      + (p.params.tripId ? ' · tripId=' + escapeHtml(p.params.tripId) : '')
+      + '</div>'
+      + '</section>';
+  }
+
+  function viewMe() {
+    return ''
+      + '<section class="view view-me" data-tab="me">'
+      + '  <header class="view-head"><h1 class="view-title">我的</h1>'
+      + '    <p class="view-sub">素材库 · 数据看板 · 工作台</p></header>'
+      + '  <div class="placeholder">L1 skeleton · 我的 · 待 L3 填充</div>'
+      + '</section>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+    });
+  }
+
+  // ─── Render ──────────────────────────────────────────────────────────────
+  function render() {
+    var boot = document.getElementById('boot-loading');
+    if (boot) boot.style.display = 'none';
+
+    var main = document.getElementById('main-content');
+    if (!main) return;
+    var p = parseHash();
+    var html = '';
+    if (p.hash === 'home') html = viewHome(p);
+    else if (p.hash === 'plan') html = viewPlan(p);
+    else if (p.hash === 'trip') html = viewTrip(p);
+    else if (p.hash === 'book') html = viewBook(p);
+    else if (p.hash === 'me') html = viewMe(p);
+    else html = viewHome(p);
+
+    main.innerHTML = html;
+
+    // Update tab nav active state
+    var links = document.querySelectorAll('.tabbar a');
+    for (var i = 0; i < links.length; i++) {
+      var linkHash = links[i].getAttribute('data-tab');
+      links[i].classList.toggle('active', linkHash === p.hash);
+      links[i].setAttribute('aria-current', linkHash === p.hash ? 'page' : 'false');
+    }
+
+    // Update document title
+    document.title = TAB_LABELS[p.hash] + ' · 驾迹 GoTrace';
+
+    // Scroll to top on tab switch
+    window.scrollTo(0, 0);
+  }
+
+  window.addEventListener('hashchange', render);
+
+  // ─── PWA Service Worker (Blob URL) ───────────────────────────────────────
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    var swCode = [
+      "var CACHE='gotrace-v0.1';",
+      "var ASSETS=['./'];",
+      "self.addEventListener('install',function(e){",
+      "  e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(ASSETS).catch(function(){});}));",
+      "  self.skipWaiting();",
+      "});",
+      "self.addEventListener('activate',function(e){",
+      "  e.waitUntil(caches.keys().then(function(keys){",
+      "    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));",
+      "  }));",
+      "  self.clients.claim();",
+      "});",
+      "self.addEventListener('fetch',function(e){",
+      "  if(e.request.method!=='GET') return;",
+      "  e.respondWith(",
+      "    caches.match(e.request).then(function(r){",
+      "      return r || fetch(e.request).then(function(resp){",
+      "        if(resp && resp.status===200){",
+      "          var copy=resp.clone();",
+      "          caches.open(CACHE).then(function(c){return c.put(e.request,copy).catch(function(){});});",
+      "        }",
+      "        return resp;",
+      "      }).catch(function(){return caches.match('./');})",
+      "    })",
+      "  );",
+      "});"
+    ].join('\n');
+
+    try {
+      var swBlob = new Blob([swCode], { type: 'application/javascript' });
+      var swUrl = URL.createObjectURL(swBlob);
+      navigator.serviceWorker.register(swUrl).then(function (reg) {
+        console.log('[gotrace] SW registered, scope=', reg.scope);
+      }).catch(function (err) {
+        console.warn('[gotrace] SW registration failed:', err);
+      });
+    } catch (e) {
+      console.warn('[gotrace] SW setup error:', e);
+    }
+  }
+
+  // ─── Boot ────────────────────────────────────────────────────────────────
+  window._state = _state;
+  window.state = state;
+  window.GT = { render: render, save: saveState, tabs: TABS, labels: TAB_LABELS };
+
+  // Ensure default hash
+  if (!location.hash) location.hash = '#home';
+
+  // First render after DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();
+</script>
+</body>
+</html>

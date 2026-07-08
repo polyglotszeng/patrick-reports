@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Extraction Shooter Maps Are Different — Riloe 设计分析</title>
+<style>
+:root {
+  --bg-0: #0a0a0f;
+  --bg-1: #12121a;
+  --bg-2: #1c1c28;
+  --bg-3: #252535;
+  --fg-0: #f5f5f7;
+  --fg-1: #c7c7d1;
+  --fg-2: #8b8b9a;
+  --accent: #ff6b35;
+  --accent-2: #ffa559;
+  --warn: #f59e0b;
+  --link: #6db3ff;
+  --border: rgba(255,255,255,0.08);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg-0); color: var(--fg-0); font-family: var(--font-stack); line-height: 1.65; }
+body { padding: 0; }
+
+.hero {
+  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 64px 48px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--accent-2);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+  max-width: 900px;
+}
+.hero .subtitle {
+  font-size: 18px;
+  color: var(--fg-1);
+  margin-bottom: 28px;
+  max-width: 800px;
+  font-style: italic;
+}
+.hero-meta {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--fg-2);
+  font-family: var(--mono);
+}
+.hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.hero-meta .pill {
+  background: var(--bg-3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.warn-box {
+  background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.05) 100%);
+  border-left: 4px solid var(--warn);
+  padding: 20px 24px;
+  margin: 32px 48px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--fg-1);
+}
+.warn-box strong { color: var(--warn); }
+.warn-box .verdict {
+  margin-top: 12px;
+  font-style: italic;
+  color: var(--fg-0);
+}
+
+.tab-nav {
+  position: sticky;
+  top: 0;
+  background: rgba(10,10,15,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  padding: 0 48px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tab-nav button {
+  background: transparent;
+  color: var(--fg-2);
+  border: none;
+  padding: 18px 20px;
+  font-family: var(--font-stack);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.15s;
+}
+.tab-nav button:hover { color: var(--fg-0); }
+.tab-nav button.active {
+  color: var(--accent);
+}
+.tab-nav button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20px; right: 20px;
+  height: 2px;
+  background: var(--accent);
+}
+
+main { max-width: 1200px; margin: 0 auto; padding: 0 48px 80px; }
+
+.page { display: none; padding-top: 40px; }
+.page.active { display: block; }
+
+h2.section {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+  color: var(--fg-0);
+}
+h3 { font-size: 20px; font-weight: 600; margin: 28px 0 16px; color: var(--fg-0); }
+h4 { font-size: 16px; font-weight: 600; margin: 20px 0 12px; color: var(--accent-2); }
+
+blockquote {
+  background: var(--bg-2);
+  border-left: 3px solid var(--accent);
+  padding: 18px 24px;
+  margin: 20px 0;
+  border-radius: 4px;
+  font-style: italic;
+  color: var(--fg-1);
+}
+blockquote .src { display: block; margin-top: 10px; font-size: 12px; color: var(--fg-2); font-style: normal; }
+
+.card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px 26px;
+  margin: 16px 0;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.card:hover { border-color: var(--accent); }
+.card h4 { margin-top: 0; }
+.card .meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-2);
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+.card p { color: var(--fg-1); }
+.card ul { color: var(--fg-1); padding-left: 20px; }
+.card ul li { margin: 6px 0; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+@media (max-width: 900px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+.stat-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+.stat-card .v {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--accent);
+  font-family: var(--mono);
+  margin-bottom: 4px;
+}
+.stat-card .l {
+  font-size: 12px;
+  color: var(--fg-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+th, td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+th {
+  background: var(--bg-2);
+  font-weight: 600;
+  color: var(--accent-2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+tr:hover { background: rgba(255,107,53,0.04); }
+
+.quote-card {
+  background: var(--bg-2);
+  border-left: 3px solid var(--accent-2);
+  padding: 18px 22px;
+  margin: 14px 0;
+  border-radius: 6px;
+  font-style: italic;
+  color: var(--fg-1);
+}
+.quote-card .label {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--fg-2);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+
+.timestamp {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.timestamp .t {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 13px;
+}
+.timestamp .d { color: var(--fg-1); }
+
+ol.steps {
+  counter-reset: step;
+  padding-left: 0;
+}
+ol.steps > li {
+  counter-increment: step;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px 16px 56px;
+  margin: 12px 0;
+  position: relative;
+  list-style: none;
+  color: var(--fg-1);
+}
+ol.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 16px; top: 16px;
+  width: 28px; height: 28px;
+  background: var(--accent);
+  color: var(--bg-0);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.footer {
+  margin-top: 80px;
+  padding: 40px 48px;
+  background: var(--bg-1);
+  border-top: 1px solid var(--border);
+  text-align: center;
+  color: var(--fg-2);
+  font-size: 13px;
+}
+.footer code {
+  font-family: var(--mono);
+  background: var(--bg-3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--accent-2);
+}
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">🎯 核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ 5 条主线</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 📊 核心数据</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 🗺 5 排名 + Honorable 速览</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">🎯 Map → Patrick Skill / Workflow 映射</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ 🗺 5 排名 + Honorable → 具体 Skill / Tool / W</a></li>
+      <li><a class="h3-link" href="#h3-6" data-toc-target="h3-6">↳ 🎮 Honorable Mentions → Pattern Library</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">🗺️ 地图即场所,非竞技场</a></li>
+      <li><a class="h3-link" href="#h3-7" data-toc-target="h3-7">↳ 核心对比: Genre × Map Logic</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ 真实地点 → 涌现冲突 (3 案例)</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">💎 战利品驱动冲突,非制高点</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ 设计反直觉: Loot ≠ Optimal Defensive</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ 3 个标志性 Loot-Driven Hot Zone</a></li>
+      <li><a class="h3-link" href="#h3-11" data-toc-target="h3-11">↳ 对比: Halo vs Tarkov 冲突来源</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">📏 尺度光谱 (Scale Spectrum)</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ 5 个尺度 × 设计模式</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ Customs 的 3-Lane 拆解</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">🏰 Compound 微地图 (Hunt: Showdown 范式)</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ Lawson Delta 结构</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ 设计模式: Static + Random = Roguelike Traver</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ 产品副效应: Compound = Micro-Product</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">🕸 Cryo Archive — Spoke-and-Hub 布局</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ 几何结构</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Clearance 系统</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ Cryo 的核心设计创新</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">🏔 垂直性 + Legacy Zones</a></li>
+      <li><a class="h3-link" href="#h3-20" data-toc-target="h3-20">↳ Dam Control Tower: Verticality 设计精妙</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ Dorms: Legacy Zone 现象</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Legacy Zones 的特征</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">🌀 Genre 融合 — 真正的 Innovation 发生地</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ Riloe 的 Genre 谱系</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ Genre-Blending = True Innovation</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ Honorable Mentions Montage</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">🔗 与 Patrick 工作的关联 (18 cards)</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">🗺️ Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ 🔴 立即 (本周)</a></li>
+      <li><a class="h3-link" href="#h3-27" data-toc-target="h3-27">↳ 🟡 中期 (1 个月)</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ 🟢 长期 (季度)</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">💬 关键金句 (15 quotes)</a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">⏱️ 关键时间戳</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">🔗 资源</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ 视频 / 创作者</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ 提到的游戏 / 工作室</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ 商业信息</a></li>
+  </ol>
+</aside>
+
+
+
+
+
+
+
+
+<section class="hero">
+  <div class="hero-eyebrow">VIDEO ANALYSIS · GAME DESIGN</div>
+  <h1>Why Extraction Shooter Maps Are Different</h1>
+  <p class="subtitle">"Less like structured coliseums for gameplay and more like real places that you just happen to be fighting in."</p>
+  <div class="hero-meta">
+    <span class="pill">📺 Riloe</span>
+    <span class="pill">⏱ 25 min</span>
+    <span class="pill">📅 2026-06-13</span>
+    <span class="pill">🎮 Game Design / Level Design</span>
+    <span class="pill">⚠️ Sponsored (FlexiSpot)</span>
+  </div>
+</section>
+
+<div class="warn-box">
+  <strong>⚠️ 诚实折扣:</strong> 本视频为个人游戏创作者 Riloe 的地图设计 long-form,FlexiSpot 商业赞助 (affiliate code YTE730) + 个人频道 (非研究机构)。1/3 red flag fired (sponsored only)。
+  <div class="verdict">战术地图设计分析扎实 (8/10),genre-mashup 原创论点强,元叙事 "redefining what a map can be" 是创作者 framing。引用时需注明出处。</div>
+</div>
+
+<nav class="tab-nav" id="tabNav">
+  <button class="active" data-tab="core">核心</button>
+  <button data-tab="mapskill">🎯 Map→Skill 映射</button>
+  <button data-tab="place">🗺️ 地图即场所</button>
+  <button data-tab="loot">💎 战利品冲突</button>
+  <button data-tab="scale">📏 尺度光谱</button>
+  <button data-tab="compound">🏰 Compound 微地图</button>
+  <button data-tab="spoke">🕸 Cryo Spoke-Hub</button>
+  <button data-tab="vertical">🏔 垂直+Legacy</button>
+  <button data-tab="genre">🌀 Genre 融合</button>
+  <button data-tab="patrick">🔗 Patrick 关联</button>
+  <button data-tab="action">🗺️ 实战路线</button>
+  <button data-tab="quotes">💬 金句库</button>
+  <button data-tab="timeline">⏱️ 时间戳</button>
+  <button data-tab="resources">🔗 资源</button>
+</nav>
+
+<main>
+
+<!-- TAB 1: CORE -->
+<section class="page active" data-page="core">
+  <h2 id="h2-1" class="section">🎯 核心论点</h2>
+  <blockquote>
+    "Extraction shooter maps are less like structured coliseums for gameplay and more like real places that you just happen to be fighting in."
+    <span class="src">— Riloe, 24:14</span>
+  </blockquote>
+
+  <h3 id="h3-1">5 条主线</h3>
+  <ol class="steps">
+    <li><strong>地图即场所,非竞技场</strong> — extraction 地图 (化学工厂、沼泽水坝、俄国海关) 模拟真实地点,战利品位置而非制高点驱动 PvP 流动。</li>
+    <li><strong>战利品是冲突的天然引擎</strong> — Tarkov Factory、Customs、Streets 的"热点"都源自 loot spawns (314 标房、3 楼办公室保险箱),不是 high ground。</li>
+    <li><strong>随机化 × 可记忆性 = 类 roguelike 遍历</strong> — Hunt: Showdown 的 compounds 是静态布局,但 AI / 油桶 / 路障是随机的,所以同一路线从不感觉安全。</li>
+    <li><strong>地图的尺度光谱比大小更重要</strong> — Factory (微缩) → Customs (中等) → Streets (城市街区) → Cryo (raid) → Dam (多地形) — 每个尺度解锁不同设计模式。</li>
+    <li><strong>未来 = 单人谜题 + 生存 + PvP 重新装配</strong> — Marathon 的 Cryo Archive (PvP 对局中的 7-vault raid) 标志着该 genre 在向多系统融合体验收敛。</li>
+  </ol>
+
+  <h3 id="h3-2">📊 核心数据</h3>
+  <div class="grid-3">
+    <div class="stat-card"><div class="v">5+3</div><div class="l">RANKED + HONORABLE</div></div>
+    <div class="stat-card"><div class="v">2016</div><div class="l">FIRST MAP (FACTORY)</div></div>
+    <div class="stat-card"><div class="v">314</div><div class="l">DORMS ICONIC ROOM</div></div>
+    <div class="stat-card"><div class="v">7</div><div class="l">CRYO VAULTS</div></div>
+    <div class="stat-card"><div class="v">6</div><div class="l">CRYO SECTORS</div></div>
+    <div class="stat-card"><div class="v">25:00</div><div class="l">VIDEO DURATION</div></div>
+  </div>
+
+  <h3 id="h3-3">🗺 5 排名 + Honorable 速览</h3>
+  <table>
+    <thead>
+      <tr><th>#</th><th>地图</th><th>游戏</th><th>设计精髓</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>5</td><td>Factory</td><td>Escape from Tarkov</td><td>Raw aggression in less than a city block. Loot-driven hot zones.</td></tr>
+      <tr><td>4</td><td>Dam</td><td>Arc Raiders (Embark Studios)</td><td>Asymmetric biomes + control tower as "high castle" (reward by position).</td></tr>
+      <tr><td>3</td><td>Lawson Delta</td><td>Hunt: Showdown (Crytek)</td><td>Boss compounds = tiny PvP maps. Static + random = roguelike traversal.</td></tr>
+      <tr><td>2 (HM)</td><td>Streets of Tarkov</td><td>Escape from Tarkov</td><td>"Wide as puddle, deep as ocean." Most complex map for size. Perf issues.</td></tr>
+      <tr><td>2 (HM)</td><td>Labs</td><td>Escape from Tarkov</td><td>Trespass-in-secret-facility feel. Service corridor labyrinth.</td></tr>
+      <tr><td>2 (HM)</td><td>Labyrinth</td><td>Escape from Tarkov</td><td>Smallest extraction map. Discovered during live event.</td></tr>
+      <tr><td>1*</td><td>Cryo Archive</td><td>Marathon (Bungie)</td><td>6 sectors, 7 vaults, Vault 7 = Compiler boss fight. PvE + PvP + puzzle.</td></tr>
+      <tr><td><strong>1</strong></td><td>Customs</td><td>Escape from Tarkov</td><td>Lopsided 3-lane. Dorms legacy. Best all-around example. Designed by Nikita Buyanov.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-4">⚠️ Anti-patterns (反面教材)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">EXTRACTION GENRE</div>
+      <h4>❌ Streets Performance Issue</h4>
+      <p>"Streets is notorious for running terribly, even after years of optimization and updates." — 复杂度不等于深度。地图越大越复杂,optimization 越难,最终体验越差。</p>
+      <p style="margin-top: 10px;"><strong>教训</strong>: 复杂系统的性能问题 = 早期 ambitious scope + 后期 patch 而非重构。</p>
+    </div>
+    <div class="card">
+      <div class="meta">EXTRACTION GENRE</div>
+      <h4>❌ Labs / Labyrinth Solved-Location</h4>
+      <p>"As players have played them over and over, the best possible approaches have been figured out. Good players rush to spawns to hold the best angle." — 静态布局 + 反复游玩 = 可解构 → 失去 magic。</p>
+      <p style="margin-top: 10px;"><strong>教训</strong>: 任何系统如果没有随机性 layer,都会从 "engaging challenge" 退化为 "solved puzzle"。</p>
+    </div>
+    <div class="card">
+      <div class="meta">EXTRACTION GENRE</div>
+      <h4>❌ Factory Expansion Loss of Simplicity</h4>
+      <p>"It's lost some of that beloved simplicity" — Factory 多次扩展后,新 loot pool / 多个 extracts 让原本的 "raw aggression in a city block" 体验稀释。</p>
+      <p style="margin-top: 10px;"><strong>教训</strong>: 一个成功的"小而专"设计,被扩展成"大而全"后,会失去灵魂。Know when to stop adding.</p>
+    </div>
+    <div class="card">
+      <div class="meta">PATRICK VAULT / TOOLS</div>
+      <h4>❌ Vault Bloat (类比 Streets)</h4>
+      <p>vault 主题越加越多 → read_file 100K limit 警告、graphify 0.82s baseline 失效 → vault 进入 "Streets state"。症状: vault 慢、检索慢、cross-ref 失效。</p>
+      <p style="margin-top: 10px;"><strong>修法</strong>: 周期性 deprecate / merge / archive 类似主题。Streets state 不是设计问题是 scope 问题。</p>
+    </div>
+    <div class="card">
+      <div class="meta">PATRICK VAULT / TOOLS</div>
+      <h4>❌ Cron Job Spawn Fight</h4>
+      <p>多个 cron job 全部在 :00 触发 → 同一秒 5 个 subagent 启动 → spawn fight = 资源争用 = 部分 job 失败。类比 Streets guaranteed spawn fights。</p>
+      <p style="margin-top: 10px;"><strong>修法</strong>: 评估 launchd plist 启动时间,考虑 staggered start (5 工具各自 5min 错开) 或 jitter。</p>
+    </div>
+    <div class="card">
+      <div class="meta">PATRICK VAULT / TOOLS</div>
+      <h4>❌ Static Workflow Solved-Location</h4>
+      <p>workflow 跑了几十遍后 → 大家都"rush to spawns to hold the best angle" → workflow 失去 magic。类比 Labs / Labyrinth。</p>
+      <p style="margin-top: 10px;"><strong>修法</strong>: inject 随机性 layer (Poisson routing / random subset of skills / randomized output format)。Hunt 的"static + random"模式直接借鉴。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 2: MAP→SKILL MAPPING -->
+<section class="page" data-page="mapskill">
+  <h2 id="h2-2" class="section">🎯 Map → Patrick Skill / Workflow 映射</h2>
+  <blockquote>
+    "If you squint, this is the design language of agentic systems — multiple bounded contexts orchestrated into a coherent experience where the orchestration layer is itself part of the gameplay."
+    <span class="src">— 抽象 thesis 的 actionable reference</span>
+  </blockquote>
+
+  <h3 id="h3-5">🗺 5 排名 + Honorable → 具体 Skill / Tool / Workflow</h3>
+
+  <div class="card">
+    <div class="meta">#5 FACTORY · TARKOV → MVP / FACTORY TEST</div>
+    <h4>映射目标: 任何新想法先做 Factory</h4>
+    <ul>
+      <li><strong>类比</strong>: Factory = extraction genre compressed into less than a city block。1 张地图 = 整个 genre 精髓。</li>
+      <li><strong>Patrick 应用</strong>: 新 skill / dashboard / vault theme 先做 Factory 版本 — 1 page HTML / 5 KB / 5 min deploy。</li>
+      <li><strong>具体 Skill</strong>: <code>creative/claude-design</code> (one-off HTML artifact) + <code>creative/sketch</code> (2-3 design variants) 组合,5 分钟出 Factory 版本。</li>
+      <li><strong>验证</strong>: Factory version 是否 capture essence?是 → 扩展;否 → 重做,不要 scale 错误方向。</li>
+      <li><strong>反面</strong>: 不做 Factory 直接做 Dam 大而全,会陷入 Streets performance 问题。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#4 DAM · ARC RAIDERS → DAM CONTROL TOWER (UI FOCAL POINT)</div>
+    <h4>映射目标: Daily Reports Hero CTA 设计</h4>
+    <ul>
+      <li><strong>类比</strong>: Dam control tower = "high castle" reward 来自 position 本身,不是 hold 它。</li>
+      <li><strong>Patrick 应用</strong>: daily-reports.html 的 hero CTA + 4-tab dashboard selector 不需要"hold 才有用",positioning 本身创造吸引力。</li>
+      <li><strong>具体 Skill</strong>: <code>productivity/daily-summary-html</code> (Patrick 实战 daily report 模板) + <code>creative/claude-design</code> (hero CTA design)。</li>
+      <li><strong>实操</strong>: audit 当前 daily-reports.html hero 区 — 是 "force hold" (复杂交互) 还是 "reward-by-visibility" (单看一眼就有价值)?</li>
+      <li><strong>关键</strong>: Dam 找到的平衡 = reward 来自位置本身,跟 Patrick "polish > deploy" 哲学同源 — visible good design > hidden great features。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#3 LAWSON DELTA · HUNT SHOWDOWN → COMPOUND MICROSERVICES</div>
+    <h4>映射目标: 100+ Skills 拆解为独立 Compound</h4>
+    <ul>
+      <li><strong>类比</strong>: Lawson Delta 每个 compound = 独立 PvP map,可独立游玩 (bounty clash mode)。</li>
+      <li><strong>Patrick 应用</strong>: 每个 skill = independent bounded context,可独立调用 surface。</li>
+      <li><strong>具体 Skill</strong>: <code>autonomous-ai-agents/audit</code> (system health check) + <code>cross-domain-intent</code> (umbrella skill) + <code>devops/kanban-orchestrator</code> (multi-skill workflow)。</li>
+      <li><strong>实操</strong>: 验证 100+ skills 哪些有 "独立调用 surface" (e.g. <code>extract-youtube-video</code> 单独跑) vs 哪些必须 chain 才能用。后者需要重构成 compound。</li>
+      <li><strong>关键</strong>: Hunt 找到了 "static layout + random elements" 模式。Patrick vault 应该是 "fixed skill set + random selection via Poisson routing"。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#2 (HM) STREETS · TARKOV → 复杂系统的技术债警钟</div>
+    <h4>映射目标: Vault 主题防止进入 Streets State</h4>
+    <ul>
+      <li><strong>类比</strong>: Streets = "most complex map for its size" + "notorious for running terribly"。</li>
+      <li><strong>Patrick 应用</strong>: vault 主题 / dashboard / cron 累计到一定复杂度后,会进入 Streets state — 复杂但慢。</li>
+      <li><strong>具体 Skill</strong>: <code>knowledge-synthesis/graphify</code> (vault graph visualization, 0.82s baseline) + <code>productivity/audit</code> (18-point audit/repair pass)。</li>
+      <li><strong>实操</strong>: 周期性跑 graphify 看 isolated nodes / size 增长趋势;跑 audit 看哪些 dashboard 已达 "Streets state"。</li>
+      <li><strong>决策</strong>: Streets state 主题 = deprecate / merge / rewrite 三选一,不要原地 patch。Streets 也被 patch 多年但 still terrible。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#2 (HM) LABS · TARKOV → 高 Stakes Learning 模式</div>
+    <h4>映射目标: Live Trading / Live Deploy / 真用户产品</h4>
+    <ul>
+      <li><strong>类比</strong>: Labs = 高 stakes (100K ruble key + no insurance) + 最高难度 loot + best 设计秘密感。</li>
+      <li><strong>Patrick 应用</strong>: 任何 high-stakes learning (live trading / 真用户 deploy / 公开 site) 应该走 Labs pattern — 投入真实资源,失败 cost 真实。</li>
+      <li><strong>具体 Skill</strong>: <code>devops/ci-failure-self-heal-loop</code> (CI 失败自动修复,high-stakes loop) + <code>devops/patricks-publish-pipeline-watchdog</code> (publish 监控)。</li>
+      <li><strong>实操</strong>: 区分 high-stakes learning (Labs pattern) vs low-stakes sandbox (Factory pattern)。两类 skill 不能混。</li>
+      <li><strong>关键</strong>: Labs 的 "trespassing in secret facility" 感觉来自 high stakes — Patrick 的 high-stakes loop 也需要创造类似 sense of consequence。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#1* CRYO ARCHIVE · MARATHON → 5-TOOL ECOSYSTEM VAULT 7 LAYER</div>
+    <h4>映射目标: Meta-Orchestrator 跨 5 工具编排</h4>
+    <ul>
+      <li><strong>类比</strong>: Cryo = 6 sectors (5 工具 ecosystem) + 7 vaults (sequential multi-step task) + Vault 7 = Compiler (meta-orchestrator)。</li>
+      <li><strong>Patrick 应用</strong>: 当前 5 工具 (Telegram bot / Content Multiplier / 4-Answer Checker / Heartbeat / Poisson Router) 是 parallel dispatch。缺 Vault 7 = meta-orchestrator 层。</li>
+      <li><strong>具体 Skill</strong>: <code>autonomous-ai-agents/coordinator</code> (multi-agent orchestrator) + <code>autonomous-ai-agents/agent-orchestration</code> (parallel multi-agent with result collection)。</li>
+      <li><strong>实操</strong>: 设计 "vault 7" layer — 输入 = complex multi-step task (如 Greg Isenberg "6 skills" 实战),输出 = 跨 5 工具编排的 coherent deliverable。</li>
+      <li><strong>关键</strong>: Cryo 的 7-vault 系统 = "single-player puzzle + survival + PvP design being articulately reassembled" = agentic OS thesis 的 gameplay analog。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="meta">#1 CUSTOMS · TARKOV → 3-LANE PRODUCT LAYER</div>
+    <h4>映射目标: 产品线 / 服务线 / Tool Chain 分层</h4>
+    <ul>
+      <li><strong>类比</strong>: Customs = lopsided 3-lane (boiler / center / big red),中心是 brutal choke。</li>
+      <li><strong>Patrick 应用</strong>: 产品分层 = left lane (新用户 entry) / center (power users main flow) / right lane (admin / ops)。</li>
+      <li><strong>具体 Skill</strong>: <code>patricks-vault-os</code> (5-tool ecosystem integration) + <code>patricks-knowledge-hub</code> (3-tier knowledge hub)。</li>
+      <li><strong>实操</strong>: 评估 5 工具 哪个是 "boiler side" (onboarding, simple),哪个是 "center" (main workflow),哪个是 "big red side" (admin, advanced)。每个 lane 对应不同 skill surface。</li>
+      <li><strong>关键</strong>: Customs 设计智慧 = "making the center sections a lived-in heart of the map rather than just a corridor to pass through"。Patrick 中心 lane 也应该是 lived-in experience,不是 corridor。</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-6">🎮 Honorable Mentions → Pattern Library</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">HALO BLOOD GULCH</div>
+      <h4>Symmetric Sandbox</h4>
+      <p>Opposing bases + 物理 sandbox + 车辆/步兵。"Symmetric structure" 适合 onboarding (新玩家立即懂布局)。Patrick 应用: 新工具 onboarding UX 应该 symmetric。</p>
+    </div>
+    <div class="card">
+      <div class="meta">COD NUKETOWN</div>
+      <h4>Compact Chaos</h4>
+      <p>3 lanes + 中段 + 双层建筑。"Small memorizable angles"。Patrick 应用: <code>sketch</code> skill 的 2-3 variants 比 1 个长 form 更有效。</p>
+    </div>
+    <div class="card">
+      <div class="meta">APEX KING'S CANYON</div>
+      <h4>Vertical Choke</h4>
+      <p>垂直性 + choke points + power positions + 室内外混搭。Patrick 应用: vault MOC 设计应该 vertical (主 MOC → sub MOC → micro MOC)。</p>
+    </div>
+    <div class="card">
+      <div class="meta">BF CASPIAN BORDER</div>
+      <h4>Destructible Scale</h4>
+      <p>大规模 + 可破坏 + grinder capture。Patrick 应用: dashboard 应该支持 custom widget 拖拽 (destructible),不只 static layout。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 2: PLACE -->
+<section class="page" data-page="place">
+  <h2 id="h2-3" class="section">🗺️ 地图即场所,非竞技场</h2>
+  <blockquote>
+    "Maps present themselves as a real location. Catwalks, refuse, containers, stairwells, they all seem to serve their original purpose in-world rather than for the purpose of map design."
+    <span class="src">— Riloe, 2:30</span>
+  </blockquote>
+
+  <h3 id="h3-7">核心对比: Genre × Map Logic</h3>
+  <table>
+    <thead><tr><th>Genre</th><th>地图逻辑</th><th>经典代表</th></tr></thead>
+    <tbody>
+      <tr><td>Arena shooter</td><td>对称小尺度,高地为王</td><td>Nuketown (CoD)</td></tr>
+      <tr><td>Battle royale</td><td>大型地形,final circle</td><td>King's Canyon (Apex)</td></tr>
+      <tr><td>Tactical shooter</td><td>小型可记忆角度</td><td>Dust 2 (CS)</td></tr>
+      <tr style="background: rgba(255,107,53,0.08);"><td><strong>Extraction shooter</strong></td><td><strong>真实地点 + 战利品驱动冲突</strong></td><td><strong>Factory / Customs / Dam / Cryo</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-8">真实地点 → 涌现冲突 (3 案例)</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">FACTORY · TARKOV</div>
+      <h4>化学工厂 → 楼梯即冲突</h4>
+      <p>Catwalks / silos / 办公室 — 即使没设计意图,楼梯结构本身创造 encounters。Factory 的"raw aggression" 来自真实工厂的物理约束。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CUSTOMS · TARKOV</div>
+      <h4>海关区域 → 绕行而非直线</h4>
+      <p>Dorms / gas station / construction site — 路径不是直线,而是绕行。"Crossing this map safely requires a circuitous indirect route."</p>
+    </div>
+    <div class="card">
+      <div class="meta">DAM · ARC RAIDERS</div>
+      <h4>水坝地形 → 多 biomes 独立小剧场</h4>
+      <p>Swamps / red lakes / hills / dam 本身 — 每个 POI 都是不同 biomes 的"独立小剧场",同时构成大地图的一部分。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CRYO ARCHIVE · MARATHON</div>
+      <h4>研究设施 → 三维交叠</h4>
+      <p>6 sectors 作为 spoke,中央 hub 连接,layered catwalks / air vents / corridors 三维交叠。真实研究设施的复杂度。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 3: LOOT -->
+<section class="page" data-page="loot">
+  <h2 id="h2-4" class="section">💎 战利品驱动冲突,非制高点</h2>
+  <blockquote>
+    "Tarkov's map flow, its natural points of conflict, arise not through high ground or power positions, but through the placement of loot."
+    <span class="src">— Riloe, 2:46</span>
+  </blockquote>
+
+  <h3 id="h3-9">设计反直觉: Loot ≠ Optimal Defensive</h3>
+  <div class="card">
+    <p>"Loot is often not in the best, most defendable position." — 这是 extraction 设计的核心 insight。</p>
+    <ul>
+      <li>不在最好防守点 — 避免 camping 滥用</li>
+      <li>在走廊外、spawn 旁、楼梯口 — 路过即取</li>
+      <li>反过来创造 PvP hotspots — "not traditional hot spots you'd expect in a PvP map, but these became legendary points of danger"</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-10">3 个标志性 Loot-Driven Hot Zone</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="meta">FACTORY · TARKOV</div>
+      <h4>第三层办公室保险箱</h4>
+      <p>"People fought for the small number of key spawns in jackets." — 早期 Factory 的唯一目标,创造 relentless close-range PvP。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CUSTOMS · TARKOV</div>
+      <h4>Dorms 314 标房</h4>
+      <p>"The single most iconic location in an extraction shooter map of all time." — Container / rare guns / bitcoins。</p>
+    </div>
+    <div class="card">
+      <div class="meta">STREETS · TARKOV</div>
+      <h4>多高 tier 锁房</h4>
+      <p>"More secret areas than I can count, multiple bosses." — 高 tier 锁房形成多个 micro-hotspot。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-11">对比: Halo vs Tarkov 冲突来源</h3>
+  <table>
+    <thead><tr><th>维度</th><th>Halo Blood Gulch</th><th>Tarkov Factory</th></tr></thead>
+    <tbody>
+      <tr><td>中央冲突点</td><td>中央桥 (designer 决定)</td><td>3 楼保险箱 (loot 决定)</td></tr>
+      <tr><td>主导逻辑</td><td>制高点 + vehicle sandbox</td><td>loot spawns + emergent</td></tr>
+      <tr><td>玩家行为</td><td>占据 / 防守</td><td>抢 / 跑 / 反复</td></tr>
+      <tr><td>设计哲学</td><td>Coliseum for combat</td><td>Real place to traverse</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- TAB 4: SCALE -->
+<section class="page" data-page="scale">
+  <h2 id="h2-5" class="section">📏 尺度光谱 (Scale Spectrum)</h2>
+  <blockquote>
+    "Factory may be the extraction genre compressed into a micro scale, but Customs, designed by Tarkov founder Nikita Buyanov himself, does it all and still somehow does it better."
+    <span class="src">— Riloe, 19:33</span>
+  </blockquote>
+
+  <h3 id="h3-12">5 个尺度 × 设计模式</h3>
+  <table>
+    <thead><tr><th>地图</th><th>尺度</th><th>主要设计模式</th><th>代表冲突</th></tr></thead>
+    <tbody>
+      <tr><td>Factory</td><td><strong>Micro</strong> (city block)</td><td>Raw aggression, close-range</td><td>Spawn → loot → extract in 60s</td></tr>
+      <tr><td>Customs</td><td><strong>Medium</strong> (海关区域)</td><td>3-lane + central choke</td><td>Dorms = PvP 文化 anchor</td></tr>
+      <tr><td>Streets</td><td><strong>City block</strong> (莫斯科 1:1)</td><td>"Wide puddle, deep ocean"</td><td>Multiple high-tier locked rooms</td></tr>
+      <tr><td>Cryo Archive</td><td><strong>Raid</strong> (6 sectors)</td><td>Spoke-hub + clearance system</td><td>Vault 7 = Compiler boss fight</td></tr>
+      <tr><td>Dam</td><td><strong>Multi-biome</strong></td><td>Asymmetric biomes + verticality</td><td>Control tower + red lake PvP</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-13">Customs 的 3-Lane 拆解</h3>
+  <div class="card">
+    <blockquote>
+      "Customs is essentially a classic three-lane map, albeit a lopsided one on a big scale."
+      <span class="src">— Riloe, 19:50</span>
+    </blockquote>
+    <ul>
+      <li><strong>左车道</strong>: Boiler side (far right)</li>
+      <li><strong>中车道</strong>: Dorms / gas station / construction site (中心)</li>
+      <li><strong>右车道</strong>: Big red side (across the river)</li>
+      <li><strong>核心机制</strong>: Spawn 一侧 → Extract 另一侧,中间 = brutal choke point</li>
+    </ul>
+    <p style="margin-top: 12px;"><strong>多年扩展的智慧</strong>: "making the center sections a lived-in heart of the map rather than just a corridor to pass through."</p>
+  </div>
+</section>
+
+<!-- TAB 5: COMPOUND -->
+<section class="page" data-page="compound">
+  <h2 id="h2-6" class="section">🏰 Compound 微地图 (Hunt: Showdown 范式)</h2>
+  <blockquote>
+    "Each compound is essentially a tiny PvP map in and of itself, and every single one of them on this map is fantastically designed."
+    <span class="src">— Riloe, 6:39</span>
+  </blockquote>
+
+  <h3 id="h3-14">Lawson Delta 结构</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">3 大中央 COMPOUNDS</div>
+      <h4>Train Station · Prison · Fort</h4>
+      <p>每个都是独立 PvP 地图级别设计。任何 compound 都可能成为 round 焦点 (boss spawn 公开)。</p>
+    </div>
+    <div class="card">
+      <div class="meta">多个小 COMPOUNDS</div>
+      <h4>Surrounding compounds</h4>
+      <p>包围三大中央 compound 的小据点。共同形成 round 的 tactical canvas。</p>
+    </div>
+  </div>
+
+  <h3 id="h3-15">设计模式: Static + Random = Roguelike Traversal</h3>
+  <div class="card">
+    <p><strong>Static layout</strong>: 墙壁可穿透性、门窗位置 fixed。Map knowledge 重要。</p>
+    <p style="margin-top: 8px;"><strong>Random elements</strong>: AI spawns / 油桶 / 路障 / 火焰 spill。每次进 compound 都不一样。</p>
+    <blockquote style="margin-top: 12px;">
+      "Every fight a game of map knowledge mixed with advantageous use of those random elements."
+      <span class="src">— Riloe, 7:10</span>
+    </blockquote>
+  </div>
+
+  <h3 id="h3-16">产品副效应: Compound = Micro-Product</h3>
+  <div class="card">
+    <p>"You can actually play any of them as isolated PvP sessions through the game's bounty clash mode these days."</p>
+    <p style="margin-top: 8px;">Compound 本身变成可独立游玩的 micro-product — 这跟 modular skill 设计是同一哲学。</p>
+  </div>
+</section>
+
+<!-- TAB 6: SPOKE -->
+<section class="page" data-page="spoke">
+  <h2 id="h2-7" class="section">🕸 Cryo Archive — Spoke-and-Hub 布局</h2>
+  <blockquote>
+    "Six sectors as spokes off of a central section all crisscross with a layer of stairwalks, air vents, and corridors. Teams each spawn locked into the back of one of these six sections."
+    <span class="src">— Riloe, 15:42</span>
+  </blockquote>
+
+  <h3 id="h3-17">几何结构</h3>
+  <div class="card">
+    <ul>
+      <li><strong>6 sectors</strong> = 6 个 spoke (从中央 hub 向外辐射)</li>
+      <li><strong>1 central hub</strong> = 中央连接节点</li>
+      <li><strong>Layered catwalks / air vents / corridors</strong> = 三维交叠</li>
+      <li><strong>Teams 锁定 spawn</strong> = 队 spawn 在各自 sector 起点</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-18">Clearance 系统</h3>
+  <ol class="steps">
+    <li><strong>AI 清除 + tag 收集</strong> — 每个 sector 内的 AI 敌人掉 tag,用于升级 security clearance</li>
+    <li><strong>6 vaults 顺序解锁</strong> — Vault 1 最简 → Vault 6 最难。每 vault 需更高 clearance</li>
+    <li><strong>Vault 7 = "The Compiler"</strong> — "requires you complete and extract with a token from all six prior ones"</li>
+    <li><strong>Compiler Boss Fight</strong> — "RPG raid straight out of Destiny",多阶段 boss fight 发生在 timed PvP match 内</li>
+  </ol>
+
+  <blockquote style="margin-top: 16px;">
+    "Truly a once-in-a-lifetime awesome gaming community moment." — 全球首通的观赛体验
+    <span class="src">— Riloe, 17:55</span>
+  </blockquote>
+
+  <h3 id="h3-19">Cryo 的核心设计创新</h3>
+  <div class="card">
+    <p>"Single-player puzzle, survival, and PvP design being articulately reassembled into something that is not only incredibly satisfying to master, but is truly forward thinking, redefining what a map can really be."</p>
+  </div>
+</section>
+
+<!-- TAB 7: VERTICAL -->
+<section class="page" data-page="vertical">
+  <h2 id="h2-8" class="section">🏔 垂直性 + Legacy Zones</h2>
+
+  <h3 id="h3-20">Dam Control Tower: Verticality 设计精妙</h3>
+  <blockquote>
+    "I also love maps with a high castle, if you will, as a goal for players, some high point on the map. And Dam's control tower does this better than most."
+    <span class="src">— Riloe, 4:36</span>
+  </blockquote>
+  <div class="card">
+    <p><strong>Verticality 的失败模式</strong>: "In many games, this kind of power position is either too risky to be worth it or they are so powerful a position if controlled that they become kind of a nuisance for every other player."</p>
+    <p style="margin-top: 12px;"><strong>Dam 的精妙平衡</strong>:</p>
+    <ul>
+      <li>是 power position (loot + information gathering)</li>
+      <li>但不是 overpowered — 不需要 hold 就有 reward</li>
+      <li>"More than anything, it just feels cool to be way up here"</li>
+      <li>"Not so disconnected from the rest of the map as to feel like a gimmick"</li>
+    </ul>
+    <p style="margin-top: 12px;"><strong>核心 insight</strong>: Reward 来自 <em>position 本身</em>,不是 hold 它。</p>
+  </div>
+
+  <h3 id="h3-21">Dorms: Legacy Zone 现象</h3>
+  <blockquote>
+    "Dorms is one of the only game locations I've ever seen become a hot spot for PvP solely because of its legacy."
+    <span class="src">— Riloe, 20:36</span>
+  </blockquote>
+  <div class="card">
+    <h4>Dorms 314 标房 进化</h4>
+    <ul>
+      <li><strong>最初</strong>: 高价值 loot (containers / rare guns / bitcoins)</li>
+      <li><strong>多次 balance 后</strong>: loot 价值不再特别</li>
+      <li><strong>但</strong>: 玩家仍然 flock here = "this is where you go to fight"</li>
+      <li>"People have played thousands of hours here, not in Tarkov, in dorms"</li>
+    </ul>
+  </div>
+
+  <h3 id="h3-22">Legacy Zones 的特征</h3>
+  <div class="grid-2">
+    <div class="card">
+      <h4>机制层</h4>
+      <p>Loot 价值已变迁,但 PvP 文化记忆 > 当前游戏机制。形成 community ritual — 去 Dorms = 表达 "I'm hardcore player"。</p>
+    </div>
+    <div class="card">
+      <h4>类比</h4>
+      <p>跟 vault cross-reference network 的 MOC 节点异曲同工: anchor 节点的引用价值不是当前内容决定,而是 community attention 决定。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 8: GENRE -->
+<section class="page" data-page="genre">
+  <h2 id="h2-9" class="section">🌀 Genre 融合 — 真正的 Innovation 发生地</h2>
+  <blockquote>
+    "They draw from everywhere. Huge open worlds of survival games, large scale arenas of battle royale, the puzzles and complex mazes of survival horror, the small memorizable angles of tactical shooters."
+    <span class="src">— Riloe, 23:11</span>
+  </blockquote>
+
+  <h3 id="h3-23">Riloe 的 Genre 谱系</h3>
+  <table>
+    <thead><tr><th>Genre</th><th>关键特征</th><th>Extraction Map 借鉴</th></tr></thead>
+    <tbody>
+      <tr><td>Survival (open worlds)</td><td>广袤地形,资源管理</td><td>Hunt: Showdown 的 bayou 探索感</td></tr>
+      <tr><td>Battle royale (大型 arenas)</td><td>大型地形,final circle</td><td>Arc Raiders Dam 的多 POI</td></tr>
+      <tr><td>Survival horror (puzzles / mazes)</td><td>谜题 + 紧张感</td><td>Tarkov Labs 的 service corridors</td></tr>
+      <tr><td>Tactical shooter (可记忆角度)</td><td>小型 precision combat</td><td>Hunt compound 的 close combat</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="h3-24">Genre-Blending = True Innovation</h3>
+  <blockquote>
+    "This meshing, this blurring of genre that we can see true innovation happening where map design and the rest of gaming has become sort of familiar over the years."
+    <span class="src">— Riloe, 23:35</span>
+  </blockquote>
+
+  <h3 id="h3-25">Honorable Mentions Montage</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">HALO · BUNGIE</div>
+      <h4>Blood Gulch</h4>
+      <p>Opposing bases + 物理 sandbox + 车辆/步兵协同。"Halo through and through."</p>
+    </div>
+    <div class="card">
+      <div class="meta">CALL OF DUTY · ACTIVISION</div>
+      <h4>Nuketown</h4>
+      <p>三车道 + 可穿越中段 + 双层建筑。"Call of Duty at its best."</p>
+    </div>
+    <div class="card">
+      <div class="meta">APEX LEGENDS · RESPAWN</div>
+      <h4>King's Canyon</h4>
+      <p>垂直性 + choke points + power positions + 室内外混搭。"Apex and BR done right."</p>
+    </div>
+    <div class="card">
+      <div class="meta">BATTLEFIELD · DICE/EA</div>
+      <h4>Caspian Border</h4>
+      <p>大规模可破坏地形 + grinder capture points + 大空间坦克/战机。"DNA of Battlefield on full display."</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 9: PATRICK -->
+<section class="page" data-page="patrick">
+  <h2 id="h2-10" class="section">🔗 与 Patrick 工作的关联 (18 cards)</h2>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="meta">CARD 01 · 地图即场所</div>
+      <h4>Vault 信息架构</h4>
+      <p><strong>Riloe 洞察</strong>: 真实地点 > 设计竞技场。<br>
+      <strong>Patrick 应用</strong>: vault 不该是 grid of notes,该是<strong>场所感</strong>的知识空间。MOC 不是 dashboard,是 compound。<br>
+      <strong>实操</strong>: 重新审视 vault 主页 — 不是 static dashboard,而是"dorms of your vault"(community ritual 节点)。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 02 · 战利品冲突</div>
+      <h4>涌现式 cross-reference</h4>
+      <p><strong>Riloe 洞察</strong>: loot positions ≠ optimal defensive。<br>
+      <strong>Patrick 应用</strong>: cross-reference network 的"value" 不在 central index,在 <strong>loot-like emergent hotspots</strong>。<br>
+      <strong>实操</strong>: graphify 找出 vault 里被引用最多的 20 笔记 → 这些就是"loot hotspots",围绕它们建 MOC。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 03 · Customs 三车道</div>
+      <h4>产品分层</h4>
+      <p><strong>Riloe 洞察</strong>: Customs = lopsided 3-lane,中心 brutal choke。<br>
+      <strong>Patrick 应用</strong>: 产品线 = left lane (新用户) / center (power users) / right lane (admin/ops)。<br>
+      <strong>实操</strong>: 评估 5 工具 (Telegram bot / Content Multiplier / 4-Answer Checker / Heartbeat / Poisson Router) 哪个是 "boiler side" 哪个是 "big red side"。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 04 · Dam 控制塔</div>
+      <h4>UI Focal Point</h4>
+      <p><strong>Riloe 洞察</strong>: control tower reward 来自 position 本身,不是 hold 它。<br>
+      <strong>Patrick 应用</strong>: daily-reports.html hero CTA / 4-tab dashboard selector — 不需要"hold"才有用,positioning 本身创造吸引力。<br>
+      <strong>实操</strong>: audit current dashboard CTAs — 是 force hold 还是 reward-by-visibility?</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 05 · Hunt compounds</div>
+      <h4>微服务架构</h4>
+      <p><strong>Riloe 洞察</strong>: 每个 compound = 独立 PvP map,可独立游玩 (bounty clash)。<br>
+      <strong>Patrick 应用</strong>: 每个 skill = independent bounded context,可独立调用。<br>
+      <strong>实操</strong>: 验证 100+ skills 哪些有"独立调用 surface" (e.g. `extract-youtube-video` 可单独跑) vs 哪些必须 chain。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 06 · Cryo 6 sectors</div>
+      <h4>Spoke-and-Hub MOC</h4>
+      <p><strong>Riloe 洞察</strong>: 6 sectors 围绕 central hub,catwalks 层叠交错。<br>
+      <strong>Patrick 应用</strong>: vault MOC 设计 = spoke + hub,每个 child note = sector。<br>
+      <strong>实操</strong>: 用 MOCs/_glossary.md 作为 hub,周围 5-7 个 child notes 作为 sectors,catwalks = cross-references。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 07 · Vault 7</div>
+      <h4>多步 Agent 编排 (5 工具 ecosystem mapping)</h4>
+      <p><strong>Riloe 洞察</strong>: vault 7 需完成前 6 个 + token + hidden section + multi-stage boss。<br>
+      <strong>Patrick 应用</strong>: 复杂 agent task = multi-vault 编排。Compiler = orchestration layer。</p>
+      <p><strong>实操 (具体 5 工具 mapping)</strong>:</p>
+      <ul>
+        <li><strong>Sector 1 (vault 1)</strong>: <code>telegram-claude-bot</code> — input capture (类似 AI 清除 tag)</li>
+        <li><strong>Sector 2 (vault 2)</strong>: <code>content-multiplier</code> — 1 idea → 5 platforms (类似 vault 解锁)</li>
+        <li><strong>Sector 3 (vault 3)</strong>: <code>answer-class-checker</code> — 4-class self-check (类似 vault 验证)</li>
+        <li><strong>Sector 4 (vault 4)</strong>: <code>heartbeat</code> — 24/7 monitor (类似 vault 时间约束)</li>
+        <li><strong>Sector 5 (vault 5)</strong>: <code>task-router</code> — Poisson loop count (类似 vault 选择)</li>
+        <li><strong>Sector 6 (vault 6)</strong>: <code>vault-os</code> 跨 5 工具 integration (类似 cross-cutting concerns)</li>
+        <li><strong>Vault 7 = Compiler</strong>: <code>coordinator</code> skill — meta-orchestrator,跨 5 工具编排 coherent deliverable (类似 Cryo 7-vault + compiler boss fight)</li>
+      </ul>
+      <p style="margin-top: 10px;"><strong>Candidate 实战</strong>: Greg Isenberg "6 Skills" video processing = 1 candidate vault 7 run (vaults 1-6 = single skill usage, vault 7 = cross-tool orchestration)。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 08 · Dorms Legacy</div>
+      <h4>Vault Anchor Notes</h4>
+      <p><strong>Riloe 洞察</strong>: 314 标房 loot 价值已变,但 PvP 文化仍在。<br>
+      <strong>Patrick 应用</strong>: vault 里某些"老笔记" (e.g. AGENTS.md / MEMORY.md) 价值不在内容,在 <strong>ritual anchor</strong>。<br>
+      <strong>实操</strong>: identify 5-10 vault notes that are ritual anchors (high cross-ref count, low recent edit) → 重新 canonicalize 这些。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 09 · 随机化+可记忆</div>
+      <h4>Poisson 路由</h4>
+      <p><strong>Riloe 洞察</strong>: static + random = "every fight a game of map knowledge mixed with random elements"。<br>
+      <strong>Patrick 应用</strong>: `~/.hermes/task-router/` (Discover Poisson loop count) = static skill 池 + 随机调用。<br>
+      <strong>实操</strong>: audit 5 工具是否真的"every call is a game of skill knowledge mixed with random elements"。如都已固化,需要 inject 随机性。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 10 · Spawn fights</div>
+      <h4>Traffic Spikes / Cache Misses</h4>
+      <p><strong>Riloe 洞察</strong>: "many of its spawns have become guaranteed spawn fights" (Streets problem)。<br>
+      <strong>Patrick 应用</strong>: cron job 触发时的"cold start" = 所有 subagent 同时启动 = spawn fight。<br>
+      <strong>实操</strong>: 评估 5 工具 launchd plist 启动时间,如果都在 :00 触发 = spawn fight。考虑 staggered start。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 11 · Factory Raw Aggression</div>
+      <h4>MVP 验证</h4>
+      <p><strong>Riloe 洞察</strong>: Factory = "extraction genre compressed into less than a city block" + "raw aggression"。<br>
+      <strong>Patrick 应用</strong>: 任何新 skill / tool / vault theme 的 MVP = compressed minimum viable combat。<br>
+      <strong>实操</strong>: "factory test" — 新想法先做最小可行版本 (1 page HTML / 5 KB / 5 min deploy),看是否 capture essence,再扩展。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 12 · Streets Performance</div>
+      <h4>技术债</h4>
+      <p><strong>Riloe 洞察</strong>: "Streets is notorious for running terribly, even after years of optimization"。<br>
+      <strong>Patrick 应用</strong>: 复杂系统的性能问题 = 早期 ambitious scope + 后期 patch 而非重构。<br>
+      <strong>实操</strong>: audit 哪些 vault 主题 / dashboard / cron 已达 "Streets state" (complex but slow)。考虑 deprecate 或 rewrite。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 13 · Embark 设计哲学</div>
+      <h4>早期产品战略</h4>
+      <p><strong>Riloe 洞察</strong>: "Arc Raiders Embark Studios I think they knew they could stand behind this one" (Dam 作为首发地图)。<br>
+      <strong>Patrick 应用</strong>: 首发地图选择 = product strategy signal。<br>
+      <strong>实操</strong>: 评估我的 "Day 1 deliverable" 是什么。是 Factory (小而专) 还是 Dam (大而完整)?</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 14 · Marathon 未来</div>
+      <h4>Agentic OS Thesis</h4>
+      <p><strong>Riloe 洞察</strong>: Cryo Archive = "redefining what a map can really be"。<br>
+      <strong>Patrick 应用</strong>: "redefining what a vault / app / agent can really be" = Agentic OS thesis。<br>
+      <strong>实操</strong>: 把 Cryo Archive 作为 case study 写进 `agentic-os-demo` — multi-vault = multi-agent orchestration 的游戏化 analog。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 15 · Redefining Map</div>
+      <h4>Vault-as-OS</h4>
+      <p><strong>Riloe 洞察</strong>: 设计语言在 genre boundary 上被打破。<br>
+      <strong>Patrick 应用</strong>: vault 不再是 note collection,而是 <strong>operating system for personal cognition</strong>。<br>
+      <strong>实操</strong>: 把 "vault as OS" 升级为 thesis statement,加入 daily-review 模板。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 16 · Compound</div>
+      <h4>模块化 Skill 设计</h4>
+      <p><strong>Riloe 洞察</strong>: Hunt compounds 可独立游玩 = micro-product。<br>
+      <strong>Patrick 应用</strong>: skill 不该是 monolithic,应该 = "compound" — 自包含、可独立调用、可组合。<br>
+      <strong>实操</strong>: audit 100+ skills 哪些是 true compound (single bounded context) vs 哪些是 hybrid (multi-domain)。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 17 · Heart-attack PvP</div>
+      <h4>高 stakes 学习</h4>
+      <p><strong>Riloe 洞察</strong>: Tarkov = "heart attack-inducing close-range PvP"。<br>
+      <strong>Patrick 应用</strong>: live trading / live deploy / live public site = "heart attack inducing"。<br>
+      <strong>实操</strong>: 评估哪些 learning 是 high stakes (真钱/真用户) vs low stakes (sandbox)。两类需要不同 skill。</p>
+    </div>
+    <div class="card">
+      <div class="meta">CARD 18 · Wide Puddle Deep Ocean</div>
+      <h4>DeepSurface Thesis</h4>
+      <p><strong>Riloe 洞察</strong>: Streets 评价 — 表层宽阔但 depth 无穷。<br>
+      <strong>Patrick 应用</strong>: agentic OS = wide surface (5 tools / 100+ skills / 12 themes) + deep interior (per-tool expertise)。<br>
+      <strong>实操</strong>: 跟 daily-reports.html 设计呼应 — wide overview tab + deep dive 5 versions。</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAB 10: ACTION -->
+<section class="page" data-page="action">
+  <h2 id="h2-11" class="section">🗺️ Patrick 实战路线</h2>
+
+  <h3 id="h3-26">🔴 立即 (本周)</h3>
+  <ol class="steps">
+    <li><strong>Factory Test</strong> — 任何新想法先做 Factory (1 page / 5KB / 5 min)。评估是否 capture essence。</li>
+    <li><strong>Audit Dorm Anchors</strong> — 用 graphify 找出 vault 里 cross-ref 最多的 20 笔记。重新 canonicalize 5-10 个 ritual anchor。</li>
+    <li><strong>Compound Audit</strong> — 评估 100+ skills 哪些是 true compound (single bounded context, 可独立调用) vs hybrid。</li>
+  </ol>
+
+  <h3 id="h3-27">🟡 中期 (1 个月)</h3>
+  <ol class="steps">
+    <li><strong>Dam Control Tower</strong> — daily-reports.html 的 hero CTA 重新设计,reward 来自 position 本身。</li>
+    <li><strong>Spoke-and-Hub MOC</strong> — vault MOCs/_glossary.md 作为 hub,周围 5-7 个 child notes = sectors。</li>
+    <li><strong>Customs 三车道</strong> — 5 工具 ecosystem 重新定位 (boiler side / center / big red side)。</li>
+  </ol>
+
+  <h3 id="h3-28">🟢 长期 (季度)</h3>
+  <ol class="steps">
+    <li><strong>Cryo Vault 7</strong> — 设计一个 "vault 7" layer — meta-orchestrator 跨 5 工具编排。Greg Isenberg "6 skills" 可能是 candidate。</li>
+    <li><strong>Genre Meshing 实战</strong> — vault 不止是 Obsidian notes,跨文件系统 / Telegram / Notion / GitHub / iCloud 形成 meshing。</li>
+    <li><strong>Map-as-Place Manifesto</strong> — 写一篇 5KB manifest,重新定义 "vault" 在我工作流里的位置。</li>
+  </ol>
+</section>
+
+<!-- TAB 11: QUOTES -->
+<section class="page" data-page="quotes">
+  <h2 id="h2-12" class="section">💬 关键金句 (15 quotes)</h2>
+
+  <div class="quote-card">
+    <div class="label">#1 · FACTORY ESSENCE</div>
+    "Spawning just feet away from an opponent would be a problem, but it's why you go here."
+  </div>
+  <div class="quote-card">
+    <div class="label">#2 · EXTRACTION CORE</div>
+    "Loot is often not in the best, most defendable position."
+  </div>
+  <div class="quote-card">
+    <div class="label">#3 · DAM SUBTLETY</div>
+    "Control tower does this better than most... not the overpowered position that you'd think it is."
+  </div>
+  <div class="quote-card">
+    <div class="label">#4 · HUNT GOAL</div>
+    "Every fight to be in a satisfying, memorable cinematic location."
+  </div>
+  <div class="quote-card">
+    <div class="label">#5 · STREETS REVIEW</div>
+    "Wide as a puddle but deep as an ocean."
+  </div>
+  <div class="quote-card">
+    <div class="label">#6 · LABS REPUTATION</div>
+    "You might want to take a break there before queuing on Labs for a day."
+  </div>
+  <div class="quote-card">
+    <div class="label">#7 · CRYO TURN</div>
+    "The seventh vault changes everything."
+  </div>
+  <div class="quote-card">
+    <div class="label">#8 · WORLD FIRST</div>
+    "Truly a once-in-a-lifetime awesome gaming community moment."
+  </div>
+  <div class="quote-card">
+    <div class="label">#9 · DORMS LEGACY</div>
+    "The single most iconic location in an extraction shooter map of all time."
+  </div>
+  <div class="quote-card">
+    <div class="label">#10 · COMMUNITY RITUAL</div>
+    "I have played thousands of hours here, not in Tarkov, in dorms."
+  </div>
+  <div class="quote-card">
+    <div class="label">#11 · CORE THESIS</div>
+    "Less like structured coliseums for gameplay and more like real places."
+  </div>
+  <div class="quote-card">
+    <div class="label">#12 · ROGUELIKE TRAVERSAL</div>
+    "The roguelike randomized shuffle... makes traversing the exact same route feel uncertain."
+  </div>
+  <div class="quote-card">
+    <div class="label">#13 · FUTURE DESIGN</div>
+    "Single-player puzzle, survival, and PvP design being articulately reassembled."
+  </div>
+  <div class="quote-card">
+    <div class="label">#14 · PARAPHRASE</div>
+    "Feel like real places that you just happen to be fighting in."
+  </div>
+  <div class="quote-card">
+    <div class="label">#15 · GENRE MESHING</div>
+    "Where map design and the rest of gaming has become sort of familiar over the years."
+  </div>
+</section>
+
+<!-- TAB 12: TIMELINE -->
+<section class="page" data-page="timeline">
+  <h2 id="h2-13" class="section">⏱️ 关键时间戳</h2>
+
+  <div class="timestamp"><div class="t">0:00</div><div class="d">Cold open — Nuketown / Blood Gulch / Chernarus / Dust 2 (legendary map 列举)</div></div>
+  <div class="timestamp"><div class="t">0:43</div><div class="d">"every time a new genre emerges, what a great map can be changes again"</div></div>
+  <div class="timestamp"><div class="t">1:12</div><div class="d">"extraction games have a unique relationship with their maps"</div></div>
+  <div class="timestamp"><div class="t">1:58</div><div class="d"><strong>#5 Factory</strong> — 2016-08-04 Tarkov 封闭测试首发</div></div>
+  <div class="timestamp"><div class="t">2:45</div><div class="d">"loot is often not in the best, most defendable position" (核心 thesis #1)</div></div>
+  <div class="timestamp"><div class="t">3:35</div><div class="d">"spawning just feet away from an opponent would be a problem, but it's why you go here" (Factory 精髓)</div></div>
+  <div class="timestamp"><div class="t">4:02</div><div class="d"><strong>#4 Dam</strong> — Arc Raiders (Embark Studios)</div></div>
+  <div class="timestamp"><div class="t">5:50</div><div class="d">"control tower does this better than most" (Dam 垂直性)</div></div>
+  <div class="timestamp"><div class="t">5:53</div><div class="d"><strong>#3 Lawson Delta</div></div>
+  <div class="timestamp"><div class="t">7:01</div><div class="d">"every fight to be in a satisfying, memorable cinematic location" (Hunt 设计目标)</div></div>
+  <div class="timestamp"><div class="t">8:25</div><div class="d">"every fight a game of map knowledge mixed with advantageous use of those random elements"</div></div>
+  <div class="timestamp"><div class="t">9:34</div><div class="d">Honorable mention: <strong>Streets of Tarkov</strong> — "wide as a puddle but deep as an ocean"</div></div>
+  <div class="timestamp"><div class="t">11:42</div><div class="d">Honorable mention: <strong>Labs</strong> — "you might want to take a break there before queuing on Labs"</div></div>
+  <div class="timestamp"><div class="t">13:08</div><div class="d"><strong>Labyrinth</strong> (Shoreline off-shoot, 最小 extraction map)</div></div>
+  <div class="timestamp"><div class="t">14:23</div><div class="d"><strong>#1 Contender: Cryo Archive</strong> — Marathon (Bungie)</div></div>
+  <div class="timestamp"><div class="t">16:24</div><div class="d">"the seventh vault changes everything"</div></div>
+  <div class="timestamp"><div class="t">17:55</div><div class="d">"race for someone to be the world's first" (全球首通)</div></div>
+  <div class="timestamp"><div class="t">19:12</div><div class="d">"single-player puzzle, survival, and PvP design being articulately reassembled"</div></div>
+  <div class="timestamp"><div class="t">19:52</div><div class="d"><strong>#1 Customs</strong> — Tarkov (Nikita Buyanov 设计)</div></div>
+  <div class="timestamp"><div class="t">20:30</div><div class="d">"essentially a classic three-lane map, albeit a lopsided one on a big scale"</div></div>
+  <div class="timestamp"><div class="t">20:48</div><div class="d"><strong>Dorms 314 标房</strong></div></div>
+  <div class="timestamp"><div class="t">21:48</div><div class="d">"the single most iconic location in an extraction shooter map of all time"</div></div>
+  <div class="timestamp"><div class="t">22:35</div><div class="d">"I have played thousands of hours here, not in Tarkov, in dorms"</div></div>
+  <div class="timestamp"><div class="t">23:15</div><div class="d">"every map in EFT has flaws" (平衡叙述)</div></div>
+  <div class="timestamp"><div class="t">23:43</div><div class="d">Honorable mentions montage — Halo Blood Gulch / CoD Nuketown / Apex King's Canyon / BF Caspian Border</div></div>
+  <div class="timestamp"><div class="t">24:14</div><div class="d">"less like structured coliseums for gameplay and more like real places" (核心 thesis #2)</div></div>
+  <div class="timestamp"><div class="t">24:37</div><div class="d">"this meshing, this blurring of genre"</div></div>
+  <div class="timestamp"><div class="t">24:52</div><div class="d">"the roguelike randomized shuffle"</div></div>
+  <div class="timestamp"><div class="t">25:07</div><div class="d">Outro + FlexiSpot sponsor plug</div></div>
+</section>
+
+<!-- TAB 13: RESOURCES -->
+<section class="page" data-page="resources">
+  <h2 id="h2-14" class="section">🔗 资源</h2>
+
+  <h3 id="h3-29">视频 / 创作者</h3>
+  <ul style="padding-left: 20px; line-height: 2;">
+    <li><a href="https://www.youtube.com/watch?v=jBrRp55DtfU">Why Extraction Shooter maps are different (原视频)</a></li>
+    <li><a href="https://www.youtube.com/@Riloe">Riloe channel</a> — 游戏设计 long-form 频道</li>
+  </ul>
+
+  <h3 id="h3-30">提到的游戏 / 工作室</h3>
+  <ul style="padding-left: 20px; line-height: 2;">
+    <li><strong>Escape from Tarkov</strong> (Battlestate Games) — Factory / Customs / Streets / Labs / Labyrinth</li>
+    <li><strong>Arc Raiders</strong> (Embark Studios) — Dam</li>
+    <li><strong>Hunt: Showdown</strong> (Crytek) — Lawson Delta (含 bounty clash mode)</li>
+    <li><strong>Marathon</strong> (Bungie) — Cryo Archive</li>
+    <li><strong>Halo</strong> (Bungie) — Blood Gulch</li>
+    <li><strong>Call of Duty</strong> (Activision) — Nuketown</li>
+    <li><strong>Apex Legends</strong> (Respawn) — King's Canyon</li>
+    <li><strong>Battlefield</strong> (DICE/EA) — Caspian Border</li>
+  </ul>
+
+  <h3 id="h3-31">商业信息</h3>
+  <ul style="padding-left: 20px; line-height: 2;">
+    <li><strong>Sponsor</strong>: FlexiSpot (E7 standing desk, affiliate code YTE730, 30 USD discount)</li>
+  </ul>
+
+  <h3 id="h3-32">设计参考</h3>
+  <ul style="padding-left: 20px; line-height: 2;">
+    <li><strong>Nikita Buyanov</strong> — Tarkov 创始人,Customs 设计师</li>
+    <li><strong>Crytek</strong> — Hunt: Showdown,compound-as-micro-map 范式发明者</li>
+    <li><strong>Bungie</strong> — Marathon,Cryo vault 设计 (7 vaults + Compiler boss fight)</li>
+  </ul>
+
+  <h3 id="h3-33">关联 Vault 笔记</h3>
+  <ul style="padding-left: 20px; line-height: 2;">
+    <li><code>[[agentic-os-demo]]</code> — Agentic OS 演示</li>
+    <li><code>[[llm-wiki/games/_index]]</code> — games 主题索引</li>
+    <li><code>[[patricks-loop-os-v1.6.0]]</code> — 5-tool loop OS master dashboard</li>
+    <li><code>[[loop-engineering-data-story]]</code> — 数据叙事 single-page HTML 模式</li>
+    <li><code>[[cross-domain-intent]]</code> — 跨域意图 umbrella skill</li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="footer">
+  <p>Generated by Hermes Agent · video-to-obsidian v1.9.2 · 2026-06-27</p>
+  <p style="margin-top: 8px;">Source: <code>https://www.youtube.com/watch?v=jBrRp55DtfU</code> · Channel: Riloe · Duration: 25 min</p>
+</footer>
+
+<script>
+const tabs = document.querySelectorAll('.tab-nav button');
+const pages = document.querySelectorAll('.page');
+
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    tabs.forEach(b => b.classList.remove('active'));
+    pages.forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`[data-page="${target}"]`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// Allow click on h2.section to scroll to top of page
+document.querySelectorAll('h2.section').forEach(h => {
+  h.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+</script>
+
+
+  
+
+
+  
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+</body>
+</html>

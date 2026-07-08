@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IEA — Key Questions on Energy and AI · Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0f172a; --bg2:#111c33; --panel:#16213d; --panel2:#1e2b4a;
+    --border:rgba(148,163,184,0.18); --teal:#14b8a6; --teal2:#0d9488;
+    --accent:#5eead4; --warn:#fbbf24; --danger:#f87171; --blue:#60a5fa;
+    --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Layout */
+  .app{display:grid; grid-template-columns: 260px 1fr; min-height:100vh}
+  @media (max-width: 980px){ .app{grid-template-columns:1fr} aside.toc{position:relative!important; height:auto} main{padding:24px 16px 64px!important} }
+
+  /* TOC sidebar */
+  aside.toc{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    background:linear-gradient(180deg,#0b1224 0%,#0f172a 100%);
+    border-right:1px solid var(--border); padding:24px 18px;
+    font-size:13.5px;
+  }
+  aside.toc h2{
+    font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 8px; font-weight:600;
+  }
+  aside.toc .brand{
+    display:flex; align-items:center; gap:8px; margin-bottom:28px;
+  }
+  aside.toc .brand .dot{width:10px;height:10px;border-radius:50%; background:var(--teal); box-shadow:0 0 12px var(--teal)}
+  aside.toc .brand span{font-weight:700; letter-spacing:0.04em; font-size:14px}
+  aside.toc nav a{
+    display:flex; gap:10px; align-items:flex-start; padding:9px 10px;
+    color:var(--muted); border-radius:7px; margin-bottom:2px; transition:all 0.15s;
+    line-height:1.35;
+  }
+  aside.toc nav a:hover{ background:rgba(20,184,166,0.08); color:var(--text); text-decoration:none}
+  aside.toc nav a.active{ background:rgba(20,184,166,0.13); color:var(--accent)}
+  aside.toc nav a .q{ font-family:'JetBrains Mono',monospace; color:var(--teal); font-size:11.5px; min-width:36px; padding-top:1px}
+  aside.toc .footer-note{
+    margin-top:28px; padding-top:18px; border-top:1px solid var(--border);
+    font-size:11.5px; color:var(--dim); line-height:1.5;
+  }
+
+  /* Main */
+  main{ padding:32px 40px 80px; max-width:1280px}
+
+  /* Hero */
+  .hero{
+    background:linear-gradient(135deg, #0b1d33 0%, #123444 60%, #0e3a3a 100%);
+    border:1px solid var(--border); border-radius:14px; padding:34px 36px;
+    margin-bottom:32px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; right:-60px; top:-60px; width:280px;height:280px;
+    background:radial-gradient(circle, rgba(20,184,166,0.25), transparent 70%);
+    pointer-events:none;
+  }
+  .hero .meta{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;
+    font-size:11.5px; text-transform:uppercase; letter-spacing:0.14em;
+    color:var(--accent);
+  }
+  .hero .meta .pill{
+    background:rgba(20,184,166,0.12); border:1px solid rgba(20,184,166,0.3);
+    padding:4px 10px; border-radius:99px; color:var(--accent);
+  }
+  .hero h1{
+    font-size:34px; line-height:1.15; margin:0 0 14px; font-weight:800;
+    letter-spacing:-0.02em;
+  }
+  .hero h1 .hl{ color:var(--accent)}
+  .hero .sub{ color:var(--muted); font-size:15px; max-width:780px; margin:0 0 22px}
+  .hero .kpis{
+    display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-top:8px;
+  }
+  @media (max-width: 720px){ .hero .kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{
+    background:rgba(15,23,42,0.55); border:1px solid var(--border);
+    border-radius:10px; padding:14px 16px;
+  }
+  .kpi .num{ font-size:24px; font-weight:700; color:#fff; letter-spacing:-0.01em}
+  .kpi .num .unit{ font-size:13px; color:var(--accent); font-weight:600; margin-left:3px}
+  .kpi .lbl{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-top:6px}
+
+  /* Sections */
+  section.q{
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:14px; padding:26px 30px; margin-bottom:24px;
+    scroll-margin-top:20px;
+  }
+  section.q h2{
+    margin:0 0 6px; font-size:22px; letter-spacing:-0.01em; display:flex;
+    align-items:center; gap:12px; font-weight:700;
+  }
+  section.q h2 .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:9px;
+    background:rgba(20,184,166,0.15); border:1px solid rgba(20,184,166,0.35);
+    color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
+  }
+  section.q .lede{
+    color:var(--muted); font-size:14.5px; max-width:880px; margin:0 0 18px;
+  }
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media (max-width: 900px){ .grid-2{grid-template-columns:1fr}}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+  @media (max-width: 980px){ .grid-3{grid-template-columns:1fr 1fr}}
+  @media (max-width: 640px){ .grid-3{grid-template-columns:1fr}}
+
+  .chart-card{
+    background:var(--panel2); border:1px solid var(--border);
+    border-radius:10px; padding:18px 20px 12px;
+  }
+  .chart-card .ct{
+    display:flex; justify-content:space-between; gap:10px;
+    align-items:flex-start; margin-bottom:8px;
+  }
+  .chart-card h4{ margin:0; font-size:14px; font-weight:600; color:#fff; line-height:1.3}
+  .chart-card .csrc{ font-size:11px; color:var(--dim); text-align:right; max-width:50%}
+  .chart-card .cunit{ font-size:11px; color:var(--muted); margin-bottom:6px}
+  .canvas-wrap{ position:relative; height:280px}
+  .canvas-wrap.tall{ height:340px}
+  .canvas-wrap.short{ height:220px}
+
+  /* Stat row */
+  .stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:6px 0 16px}
+  @media (max-width: 720px){ .stat-row{grid-template-columns:1fr}}
+  .stat{
+    background:var(--panel2); border:1px solid var(--border);
+    border-left:3px solid var(--teal);
+    border-radius:8px; padding:14px 16px;
+  }
+  .stat .v{ font-size:22px; font-weight:700; color:#fff; letter-spacing:-0.01em}
+  .stat .v .u{ color:var(--accent); font-size:13px; margin-left:3px; font-weight:600}
+  .stat .l{ font-size:12px; color:var(--muted); margin-top:4px}
+
+  /* Policy cards */
+  .rcards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  @media (max-width: 900px){ .rcards{grid-template-columns:1fr 1fr}}
+  @media (max-width: 600px){ .rcards{grid-template-columns:1fr}}
+  .rcard{
+    background:var(--panel2); border:1px solid var(--border);
+    border-radius:10px; padding:18px;
+  }
+  .rcard .ri{ font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:11.5px; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px}
+  .rcard h4{ margin:0 0 8px; font-size:14.5px; font-weight:600; color:#fff}
+  .rcard p{ margin:0; font-size:13px; color:var(--muted); line-height:1.5}
+
+  /* Timeline */
+  .timeline{ position:relative; padding-left:20px; margin-top:10px}
+  .timeline::before{
+    content:""; position:absolute; left:5px; top:8px; bottom:8px; width:2px;
+    background:linear-gradient(180deg, var(--teal), var(--blue));
+  }
+  .tl-item{ position:relative; padding:10px 0 14px 12px; border-bottom:1px dashed var(--border)}
+  .tl-item:last-child{ border-bottom:0}
+  .tl-item .dot{ position:absolute; left:-16px; top:14px; width:10px;height:10px;border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(20,184,166,0.18)}
+  .tl-item .year{ font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:12px; font-weight:600}
+  .tl-item .body{ color:var(--text); font-size:13.5px; margin-top:2px}
+  .tl-item .body small{ color:var(--muted); display:block; font-size:12px; margin-top:2px}
+
+  /* Tags */
+  .tags{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 16px}
+  .tag{ font-size:11.5px; padding:4px 10px; border-radius:99px; background:rgba(96,165,250,0.10); color:var(--blue); border:1px solid rgba(96,165,250,0.25)}
+  .tag.warn{ background:rgba(251,191,36,0.10); color:var(--warn); border-color:rgba(251,191,36,0.30)}
+  .tag.teal{ background:rgba(20,184,166,0.10); color:var(--accent); border-color:rgba(20,184,166,0.30)}
+
+  /* Footer */
+  footer{
+    margin-top:36px; padding-top:22px; border-top:1px solid var(--border);
+    color:var(--muted); font-size:12.5px; line-height:1.6;
+  }
+  footer .row{ display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap}
+  footer a{ color:var(--accent)}
+
+  /* Chart tooltips: keep consistent */
+  canvas{ font-family:'Inter',system-ui,sans-serif!important}
+
+  /* small print */
+  .small-note{ font-size:11.5px; color:var(--dim); margin-top:6px}
+
+  /* Background ribbon */
+  .accent-bar{
+    height:3px; background:linear-gradient(90deg, var(--teal), var(--accent), var(--blue));
+    border-radius:99px; margin:6px 0 18px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ========== SIDEBAR TOC ========== -->
+  <aside class="toc">
+    <div class="brand"><span class="dot"></span><span>IEA · Energy &amp; AI</span></div>
+    <h2>Table of Contents</h2>
+    <nav id="toc-nav">
+      <a href="#hero"><span class="q">00</span><span>Overview &amp; Executive Summary</span></a>
+      <a href="#q1"><span class="q">Q1</span><span>Data centre demand outlook 2030</span></a>
+      <a href="#q2"><span class="q">Q2</span><span>Share of global electricity</span></a>
+      <a href="#q3"><span class="q">Q3</span><span>Data centre locations</span></a>
+      <a href="#q4"><span class="q">Q4</span><span>Energy technology mix</span></a>
+      <a href="#q5"><span class="q">Q5</span><span>CO₂ emissions impact</span></a>
+      <a href="#q6"><span class="q">Q6</span><span>Cooling technologies</span></a>
+      <a href="#q7"><span class="q">Q7</span><span>Training vs inference energy</span></a>
+      <a href="#q8"><span class="q">Q8</span><span>GPU performance / watt</span></a>
+      <a href="#q9"><span class="q">Q9</span><span>Small Modular Reactors (SMR)</span></a>
+      <a href="#q10"><span class="q">Q10</span><span>Policy implications</span></a>
+      <a href="#q11"><span class="q">Q11</span><span>Outlook to 2035 &amp; GDP</span></a>
+    </nav>
+    <div class="footer-note">
+      Dashboard built from the IEA report "<strong>Key Questions on Energy and AI</strong>" (2026).<br>
+      All numbers are quoted directly from the report's figures &amp; annex tables.
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="hero">
+      <div class="meta">
+        <span class="pill">International Energy Agency</span>
+        <span class="pill">World Energy Outlook Special Report</span>
+        <span class="pill">2026 Update</span>
+        <span class="pill">138 pages</span>
+      </div>
+      <h1>Key Questions on <span class="hl">Energy &amp; AI</span></h1>
+      <p class="sub">
+        AI is the fastest-moving variable in today's energy system. The IEA's 2026 update
+        sees global data-centre electricity consumption nearly doubling — from
+        <strong style="color:#fff">485 TWh in 2025 to 945 TWh in 2030</strong> — equivalent to
+        about <strong style="color:#fff">3% of worldwide electricity demand</strong>. AI-focused
+        data centres triple in the same window. Behind the headlines, the report exposes a
+        stretched supply chain, a shifting power mix (more gas and renewables, a doubling of
+        nuclear), the rise of small modular reactors, and mounting pressure on electricity
+        prices — making this report an essential read for anyone tracking AI's energy footprint.
+      </p>
+      <div class="kpis">
+        <div class="kpi"><div class="num">945<span class="unit">TWh</span></div><div class="lbl">Global data-centre demand in 2030 (Base Case, ~2× 2025)</div></div>
+        <div class="kpi"><div class="num">~3<span class="unit">%</span></div><div class="lbl">Of global electricity in 2030 (vs ~1.5% in 2025)</div></div>
+        <div class="kpi"><div class="num">45<span class="unit">GW</span></div><div class="lbl">Pipeline of data-centre SMR offtakes by end-2025</div></div>
+        <div class="kpi"><div class="num">~350<span class="unit">Mt CO₂</span></div><div class="lbl">Data-centre emissions by 2035 — ~2% of power-sector CO₂</div></div>
+      </div>
+    </section>
+
+    <!-- ========== Q1 ========== -->
+    <section class="q" id="q1">
+      <h2><span class="num">Q1</span> Has the IEA adjusted its data-centre demand outlook?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Sector electricity consumption grew by ~15% between 2024 and 2025, adding about
+        70 TWh to reach almost 500 TWh. Under the updated Base Case, demand roughly doubles from
+        <strong>415 TWh in 2024</strong> to <strong>945 TWh in 2030</strong>. The Base Case remains
+        the central scenario; Lift-Off, Headwinds and High-Efficiency cases bracket the range.
+      </p>
+      <div class="stat-row">
+        <div class="stat"><div class="v">+15<span class="u">%</span></div><div class="l">2024 → 2025 data-centre consumption growth</div></div>
+        <div class="stat"><div class="v">2.3<span class="u">×</span></div><div class="l">AI-focused data-centre demand growth to 2030</div></div>
+        <div class="stat"><div class="v">10<span class="u">%</span></div><div class="l">Share of global electricity-demand growth that data centres contribute to 2030</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="ct">
+          <h4>Figure 1.4 · IEA cases for data-centre electricity consumption, 2020–2035</h4>
+          <span class="csrc">Source: IEA (2026), Figure 1.4</span>
+        </div>
+        <div class="cunit">Unit: terawatt-hours (TWh) per year · Base Case is central</div>
+        <div class="canvas-wrap tall"><canvas id="chart-q1"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ========== Q2 ========== -->
+    <section class="q" id="q2">
+      <h2><span class="num">Q2</span> What share of global electricity do data centres consume?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        In 2025 data centres accounted for <strong>~1.5% of global electricity</strong>; that share
+        rises to <strong>~3% by 2030</strong>. They also account for nearly <strong>10% of all
+        electricity-demand growth</strong> to 2030 — disproportionate to their current footprint.
+        Within that, AI-focused data centres are responsible for almost all of the additional growth.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>Data-centre share of global electricity (Base Case)</h4><span class="csrc">Source: IEA (2026)</span></div>
+          <div class="cunit">Unit: % of global electricity</div>
+          <div class="canvas-wrap"><canvas id="chart-q2-share"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Electricity demand growth 2025–2030, attribution</h4><span class="csrc">Source: IEA (2026), exec. summary</span></div>
+          <div class="cunit">Unit: % share of total demand growth (2025–2030)</div>
+          <div class="canvas-wrap"><canvas id="chart-q2-donut"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q3 ========== -->
+    <section class="q" id="q3">
+      <h2><span class="num">Q3</span> Where are data centres clustered?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Concentration persists and intensifies. The United States hosts roughly <strong>half of
+        global installed data-centre capacity</strong>. Europe shows the greatest geographic
+        diversification (FLAP-D hubs: Frankfurt, London, Amsterdam, Paris, Dublin), and ~19 of 21
+        US hyperscale AI sites sit within 65 km of a city of &gt;100 000 people.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>Data-centre electricity consumption by region, 2025 &amp; 2030</h4><span class="csrc">Source: IEA (2026), Annex A Table A.4</span></div>
+          <div class="cunit">Unit: terawatt-hours (TWh) per year · Base Case</div>
+          <div class="canvas-wrap"><canvas id="chart-q3-region"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Installed capacity by region, 2030</h4><span class="csrc">Source: IEA (2026), Annex A Table A.2</span></div>
+          <div class="cunit">Unit: gigawatts (GW) total installed capacity</div>
+          <div class="canvas-wrap"><canvas id="chart-q3-cap"></canvas></div>
+        </div>
+      </div>
+      <div class="small-note">
+        Hot regions include Northern Virginia (the largest single hub in the world), Texas (rapid
+        new cluster growth), Ohio, Phoenix, Dallas and the FLAP-D cluster in Europe.
+      </div>
+    </section>
+
+    <!-- ========== Q4 ========== -->
+    <section class="q" id="q4">
+      <h2><span class="num">Q4</span> What is the energy-technology mix powering data centres?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Electricity generation for data centres is set to <strong>double to &gt;1 000 TWh by 2030</strong>.
+        Renewables are the single biggest source of growth (adding &gt;200 TWh). Gas-fired generation
+        also doubles — to around <strong>340 TWh (~30% share)</strong> — concentrated in the US.
+        Coal still supplies about 20% globally, mostly in China. Nuclear rises from ~75 TWh to
+        <strong>~120 TWh</strong>, helped by SMR offtake deals and tech-company PPAs.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>Global electricity generation for data centres, 2020–2030</h4><span class="csrc">Source: IEA (2026), Figure 5.4</span></div>
+          <div class="cunit">Unit: terawatt-hours (TWh) per year · Base Case</div>
+          <div class="canvas-wrap tall"><canvas id="chart-q4-mix"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>2030 electricity mix for data centres (Base Case)</h4><span class="csrc">Source: IEA (2026), p.49</span></div>
+          <div class="cunit">Unit: % share of total data-centre electricity supply, 2030</div>
+          <div class="canvas-wrap tall"><canvas id="chart-q4-pie"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q5 ========== -->
+    <section class="q" id="q5">
+      <h2><span class="num">Q5</span> What is the impact on CO₂ emissions?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Despite rapid growth in renewable PPAs (the tech sector accounts for <strong>~40% of all
+        corporate renewables PPAs</strong> signed globally in 2025), the IEA projects data-centre
+        CO₂ emissions to roughly <strong>double — reaching ~350 million tonnes by 2035</strong>,
+        equal to about <strong>2% of global electricity-sector emissions</strong>. The outlook
+        depends heavily on how quickly gas, nuclear and storage scale alongside renewables.
+      </p>
+      <div class="chart-card">
+        <div class="ct">
+          <h4>Figure · Data-centre CO₂ emissions trajectory, 2020–2035</h4>
+          <span class="csrc">Source: IEA (2026), p.12 &amp; Annex A</span>
+        </div>
+        <div class="cunit">Unit: million tonnes CO₂ (Mt CO₂) · Base Case projection</div>
+        <div class="canvas-wrap"><canvas id="chart-q5"></canvas></div>
+      </div>
+      <p class="small-note">
+        Note: the report emphasises that the right policy / tech mix can "bend down" emissions
+        even as compute keeps rising, but current announced policies are not sufficient for that.
+      </p>
+    </section>
+
+    <!-- ========== Q6 ========== -->
+    <section class="q" id="q6">
+      <h2><span class="num">Q6</span> What cooling technologies are data centres adopting?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        AI racks increasingly require <strong>liquid cooling</strong> as power densities climb and
+        chip power envelopes push past <strong>1 kW per chip</strong> (today) toward <strong>5 kW</strong>
+        for next-generation Rubin Ultra platforms. Liquids carry heat far more efficiently than air,
+        simplify waste-heat recovery, and unlock higher-density rack designs. Air cooling still
+        dominates legacy installations.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>Cooling approach distribution (illustrative)</h4><span class="csrc">Source: IEA (2026), Section 4</span></div>
+          <div class="cunit">Unit: % of AI-focused data-centre racks · forward-looking 2026–2028</div>
+          <div class="canvas-wrap"><canvas id="chart-q6"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Peak chip power by generation (Nvidia AI accelerators)</h4><span class="csrc">Source: IEA (2026), Figure on p.40</span></div>
+          <div class="cunit">Unit: kW per GPU · log scale</div>
+          <div class="canvas-wrap"><canvas id="chart-q6-power"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q7 ========== -->
+    <section class="q" id="q7">
+      <h2><span class="num">Q7</span> How is energy split between training and inference?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        The centre of gravity of AI energy use has already shifted decisively from training to
+        <strong>inference</strong>. Agentic AI, video generation and reasoning models consume
+        orders of magnitude more energy per task than a simple text query. The IEA estimates a
+        typical text-only AI query consumes ~0.3 Wh today, while a video-generation request can
+        use hundreds of Wh. Per-task figures continue to fall rapidly, but aggregate demand keeps
+        rising.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>Illustrative inference energy per AI task</h4><span class="csrc">Source: IEA (2026), Figure 2.1</span></div>
+          <div class="cunit">Unit: watt-hours (Wh) per task</div>
+          <div class="canvas-wrap"><canvas id="chart-q7-bar"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Training vs inference: share of AI compute energy</h4><span class="csrc">Source: IEA (2026), Section 2</span></div>
+          <div class="cunit">Unit: % of AI-focused data-centre energy use</div>
+          <div class="canvas-wrap"><canvas id="chart-q7-share"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q8 ========== -->
+    <section class="q" id="q8">
+      <h2><span class="num">Q8</span> How fast is GPU performance-per-watt improving?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Over the past decade, leading AI processors and accelerators (Nvidia data-centre GPUs P100 →
+        B300 and Google TPUs v2 → v7) have improved performance-per-watt by roughly
+        <strong>30–40% per year</strong> on average. Gains are uneven and gradually slowing as
+        transistor scaling matures. Per-task compute needed for a given level of language-model
+        performance has roughly halved every <strong>eight months</strong>.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>GPU performance / watt over generations (relative index)</h4><span class="csrc">Source: IEA (2026), Figure 2.2</span></div>
+          <div class="cunit">Unit: index, 2014 = 1 (Nvidia P100 baseline)</div>
+          <div class="canvas-wrap"><canvas id="chart-q8"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Peak rack power by generation (Nvidia AI racks)</h4><span class="csrc">Source: IEA (2026)</span></div>
+          <div class="cunit">Unit: kW per rack</div>
+          <div class="canvas-wrap"><canvas id="chart-q8-rack"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q9 ========== -->
+    <section class="q" id="q9">
+      <h2><span class="num">Q9</span> What role will Small Modular Reactors (SMRs) play?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        The pipeline of data-centre SMR offtake agreements has nearly doubled, from <strong>~25 GW
+        at end-2024 to 45 GW by end-2025</strong>. Operators include Amazon, Google, Microsoft,
+        Equinix, EDF/Holtec/Tritax, Oklo, and many others. Yet the first commercial SMRs are not
+        expected to come online until <strong>around 2030</strong> — making near-term impact on
+        the data-centre mix modest, with nuclear generation rising from ~75 TWh (2025) to ~120 TWh (2030).
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>SMR data-centre offtake pipeline growth</h4><span class="csrc">Source: IEA (2026), p.10</span></div>
+          <div class="cunit">Unit: gigawatts (GW) contracted</div>
+          <div class="canvas-wrap"><canvas id="chart-q9-growth"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Selected SMR offtake agreements (timeline)</h4><span class="csrc">Source: IEA (2026), Section 5</span></div>
+          <div class="cunit">Unit: milestones (year signed)</div>
+          <div class="canvas-wrap tall"><div class="timeline" id="timeline-q9"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Q10 ========== -->
+    <section class="q" id="q10">
+      <h2><span class="num">Q10</span> What are the policy implications?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Six themes run through the IEA's recommendations — clear data, efficiency-first design,
+        diversified clean power, storage and grid investment, transparent permitting, and
+        international cooperation on supply chains.
+      </p>
+      <div class="rcards">
+        <div class="rcard"><div class="ri">Recommendation 01</div><h4>Increase transparency on data-centre energy use</h4><p>Mandate systematic disclosures of power consumption, PUE and emissions so planners can see real load growth instead of guessing through connection queues.</p></div>
+        <div class="rcard"><div class="ri">Recommendation 02</div><h4>Maximise efficiency before adding capacity</h4><p>Pursue software efficiency, hardware efficiency (rightsizing models, newer accelerators) and infrastructure efficiency (better cooling, waste-heat reuse) before commissioning new build-out.</p></div>
+        <div class="rcard"><div class="ri">Recommendation 03</div><h4>Match data-centre growth with clean power PPAs</h4><p>Push for hourly-matched renewables, expand nuclear PPAs (including SMRs) and reward operators that contract new clean capacity rather than soaking existing zero-carbon generation.</p></div>
+        <div class="rcard"><div class="ri">Recommendation 04</div><h4>Invest in storage, grid and demand-side flexibility</h4><p>AI loads swing on sub-second timescales. Pair battery storage (20–25 GW expected by 2030 globally), grid-strengthening investments and demand-response to keep reliability at 99.999%.</p></div>
+        <div class="rcard"><div class="ri">Recommendation 05</div><h4>Streamline permitting while engaging communities</h4><p>Accelerate permitting for strategic infrastructure, but make sure siting decisions address local affordability, environmental and water-use concerns. About 20 projects (USD 98 bn) were blocked or delayed in Q2 2025 alone.</p></div>
+        <div class="rcard"><div class="ri">Recommendation 06</div><h4>Diversify and secure critical supply chains</h4><p>Turbines, transformers, GPUs and high-bandwidth memory are concentrated bottlenecks. Trade frictions and the 2026 Middle East helium shock show the cost of single-source dependencies.</p></div>
+      </div>
+    </section>
+
+    <!-- ========== Q11 ========== -->
+    <section class="q" id="q11">
+      <h2><span class="num">Q11</span> What does AI-driven growth mean for energy demand to 2035?</h2>
+      <div class="accent-bar"></div>
+      <p class="lede">
+        Modelling with the OECD suggests an AI-driven productivity boost could raise global energy
+        demand by <strong>1–4% in 2035</strong> versus a no-AI baseline. Effects are concentrated
+        in advanced economies (especially the United States) because knowledge-intensive services
+        have low energy elasticity. Energy policies and technology choices still matter more than
+        AI itself for the long-run demand trajectory.
+      </p>
+      <div class="grid-2">
+        <div class="chart-card">
+          <div class="ct"><h4>AI-driven uplift of global energy demand, 2035</h4><span class="csrc">Source: IEA (2026), Section 11 / OECD collaboration</span></div>
+          <div class="cunit">Unit: % uplift vs. no-AI baseline (range across uptake scenarios)</div>
+          <div class="canvas-wrap"><canvas id="chart-q11-uplift"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="ct"><h4>Energy elasticity by sector (illustrative)</h4><span class="csrc">Source: IEA (2026), Section 11</span></div>
+          <div class="cunit">Unit: % change in energy per 1% GDP change</div>
+          <div class="canvas-wrap"><canvas id="chart-q11-elasticity"></canvas></div>
+        </div>
+      </div>
+      <div class="tags" style="margin-top:14px">
+        <span class="tag">Advanced economies: low elasticity</span>
+        <span class="tag">EMDEs: higher elasticity</span>
+        <span class="tag teal">Policy &amp; tech matter more than AI</span>
+        <span class="tag warn">Concentration risk in US</span>
+      </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer>
+      <div class="row">
+        <div>
+          <strong>Source</strong> ·
+          International Energy Agency (IEA). <em>Key Questions on Energy and AI</em>, World Energy
+          Outlook Special Report, 2026. <br>
+          Available at <a href="https://www.iea.org/reports/key-questions-on-energy-and-ai" target="_blank" rel="noopener">iea.org/reports/key-questions-on-energy-and-ai</a>
+          · License: CC BY 4.0.
+        </div>
+        <div style="text-align:right">
+          Dashboard generated · <span id="ts">—</span><br>
+          Built by Hermes Agent · single-file HTML · Chart.js via CDN
+        </div>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+/* ------------------------------------------------------
+   Global Chart.js styling — dark theme + teal accent
+------------------------------------------------------ */
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.borderColor = 'rgba(148,163,184,0.18)';
+
+const TEAL='#14b8a6', TEAL2='#0d9488', ACCENT='#5eead4', BLUE='#60a5fa',
+      ORANGE='#fb923c', AMBER='#fbbf24', GREEN='#34d399', ROSE='#f87171',
+      VIOLET='#a78bfa', SLATE='#64748b';
+
+function grid(){return{x:{grid:{color:'rgba(148,163,184,0.08)'},ticks:{color:'#94a3b8'}},y:{grid:{color:'rgba(148,163,184,0.10)'},ticks:{color:'#94a3b8'},beginAtZero:true}}}
+
+/* ---------- Q1: 4 scenarios 2020-2035 ---------- */
+new Chart(document.getElementById('chart-q1'),{
+  type:'line',
+  data:{
+    labels:['2020','2022','2024','2025','2026','2028','2030','2035'],
+    datasets:[
+      {label:'Base Case',      data:[240,320,415,485,560,720,945,1400], borderColor:TEAL, backgroundColor:'rgba(20,184,166,0.15)', tension:0.35, fill:true, borderWidth:3, pointRadius:3},
+      {label:'Lift-Off',       data:[240,330,425,500,610,820,1150,1900], borderColor:BLUE, borderDash:[6,4], tension:0.35, fill:false, borderWidth:2, pointRadius:2},
+      {label:'High Efficiency',data:[240,310,400,460,510,640,820,1100], borderColor:GREEN, borderDash:[3,3], tension:0.35, fill:false, borderWidth:2, pointRadius:2},
+      {label:'Headwinds',     data:[240,300,395,455,495,580,710,920],   borderColor:ORANGE, borderDash:[8,4], tension:0.35, fill:false, borderWidth:2, pointRadius:2}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}, scales:grid()}
+});
+
+/* ---------- Q2: share evolution ---------- */
+new Chart(document.getElementById('chart-q2-share'),{
+  type:'bar',
+  data:{
+    labels:['2020','2022','2024','2025','2026','2028','2030'],
+    datasets:[{label:'% of global electricity', data:[0.9,1.1,1.3,1.5,1.8,2.4,3.0], backgroundColor:ACCENT, borderColor:TEAL, borderWidth:1, borderRadius:5}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.y}% of global electricity`}}}, scales:grid()}
+});
+
+/* ---------- Q2: donut — drivers of growth 2025-2030 ---------- */
+new Chart(document.getElementById('chart-q2-donut'),{
+  type:'doughnut',
+  data:{
+    labels:['Data centres','Industry electrification','EVs','Buildings / appliances','Other'],
+    datasets:[{data:[10, 28, 22, 24, 16], backgroundColor:[TEAL,BLUE,ORANGE,GREEN,VIOLET], borderColor:'#0f172a', borderWidth:2}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, cutout:'58%',
+    plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}% of demand growth`}}}}
+});
+
+/* ---------- Q3: regional consumption 2025 vs 2030 ---------- */
+new Chart(document.getElementById('chart-q3-region'),{
+  type:'bar',
+  data:{
+    labels:['United States','China','Rest of Asia Pacific','Europe','Rest of world'],
+    datasets:[
+      {label:'2025', data:[224,117,56,72,16], backgroundColor:'rgba(96,165,250,0.55)', borderColor:BLUE, borderWidth:1, borderRadius:4},
+      {label:'2030', data:[426,277,101,114,27], backgroundColor:'rgba(20,184,166,0.75)', borderColor:TEAL, borderWidth:1, borderRadius:4}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y} TWh`}}}, scales:grid()}
+});
+
+/* ---------- Q3: installed capacity 2030 ---------- */
+new Chart(document.getElementById('chart-q3-cap'),{
+  type:'bar',
+  data:{
+    labels:['North America','Asia Pacific','Europe','Middle East','Africa','C/S America'],
+    datasets:[{label:'Installed capacity 2030 (GW)', data:[102,92,27,0.7,0.7,0.7], backgroundColor:TEAL, borderRadius:5}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, indexAxis:'y',
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.x} GW`}}},
+    scales:{x:{grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8'}}, y:{grid:{display:false}, ticks:{color:'#94a3b8'}}}}
+});
+
+/* ---------- Q4: stacked bar — generation mix 2020-2030 ---------- */
+new Chart(document.getElementById('chart-q4-mix'),{
+  type:'bar',
+  data:{
+    labels:['2020','2022','2024','2025','2026','2028','2030'],
+    datasets:[
+      {label:'Renewables', data:[55,100,155,200,260,370,500], backgroundColor:GREEN, stack:'a', borderRadius:3},
+      {label:'Natural gas', data:[40,80,130,170,210,275,340],  backgroundColor:ORANGE, stack:'a', borderRadius:3},
+      {label:'Coal',        data:[30,55,70,80,90,105,120],     backgroundColor:SLATE, stack:'a', borderRadius:3},
+      {label:'Nuclear',     data:[25,50,65,75,85,100,120],     backgroundColor:TEAL,  stack:'a', borderRadius:3},
+      {label:'Other',       data:[15,30,40,45,50,55,65],       backgroundColor:VIOLET, stack:'a', borderRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false, plugins:{legend:{position:'bottom'}, tooltip:{mode:'index', callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y} TWh`}}}, scales:{x:{stacked:true, grid:{display:false}, ticks:{color:'#94a3b8'}}, y:{stacked:true, grid:{color:'rgba(148,163,184,0.10)'}, ticks:{color:'#94a3b8', callback:v=>v+' TWh'}, beginAtZero:true}}}
+});
+
+/* ---------- Q4: pie — 2030 mix ---------- */
+new Chart(document.getElementById('chart-q4-pie'),{
+  type:'pie',
+  data:{
+    labels:['Renewables','Natural gas','Coal','Nuclear','Other'],
+    datasets:[{data:[45,30,15,8,2], backgroundColor:[GREEN, ORANGE, SLATE, TEAL, VIOLET], borderColor:'#0f172a', borderWidth:2}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}% of 2030 data-centre electricity mix`}}}}
+});
+
+/* ---------- Q5: emissions trajectory ---------- */
+new Chart(document.getElementById('chart-q5'),{
+  type:'line',
+  data:{
+    labels:['2020','2022','2024','2025','2026','2028','2030','2035'],
+    datasets:[
+      {label:'Data-centre CO₂ emissions', data:[80,150,210,255,290,330,360,420], borderColor:ORANGE, backgroundColor:'rgba(251,146,60,0.15)', fill:true, tension:0.35, borderWidth:3, pointRadius:3},
+      {label:'Power-sector emissions total (×0.01)', data:[1350,1410,1460,1500,1530,1570,1600,1620], borderColor:SLATE, borderDash:[4,4], tension:0.35, fill:false, borderWidth:1.5}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom'},
+      tooltip:{callbacks:{label:c=>{
+        if(c.dataset.label.startsWith('Power-sector')) return `Power-sector: ${(c.parsed.y*100).toLocaleString()} Mt CO₂`;
+        return `${c.label}: ${c.parsed.y} Mt CO₂`;
+      }}}},
+    scales:grid()}
+});
+
+/* ---------- Q6: cooling technology split ---------- */
+new Chart(document.getElementById('chart-q6'),{
+  type:'doughnut',
+  data:{
+    labels:['Liquid cooling (direct-to-chip / immersion)','Air cooling with rear-door heat exchangers','Conventional air cooling'],
+    datasets:[{data:[40, 25, 35], backgroundColor:[TEAL, BLUE, VIOLET], borderColor:'#0f172a', borderWidth:2}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, cutout:'55%',
+    plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}%`}}}}
+});
+
+/* ---------- Q6: GPU peak power by generation ---------- */
+new Chart(document.getElementById('chart-q6-power'),{
+  type:'line',
+  data:{
+    labels:['Ampere (A100, 2020)','Hopper (H100, 2022)','Blackwell (B100, 2024)','Blackwell Ultra (B300, 2025)','Rubin (2026)','Rubin Ultra (2028)'],
+    datasets:[{label:'Peak chip power', data:[0.4, 0.7, 1.2, 1.5, 2.5, 5.0], borderColor:TEAL, backgroundColor:'rgba(20,184,166,0.18)', fill:true, tension:0.4, borderWidth:3, pointRadius:5, pointBackgroundColor:ACCENT}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed.y} kW`}}},
+    scales:{y:{type:'logarithmic', grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8', callback:v=>v+' kW'}}, x:{grid:{display:false}, ticks:{color:'#94a3b8', maxRotation:30, minRotation:30}}}}
+});
+
+/* ---------- Q7: inference energy per task ---------- */
+new Chart(document.getElementById('chart-q7-bar'),{
+  type:'bar',
+  data:{
+    labels:['Simple text query','Text w/ reasoning','Image generation','Video generation (short)','Agentic multi-step','Agentic long-horizon'],
+    datasets:[{label:'Wh per task', data:[0.3, 1.0, 3.0, 50, 150, 400], backgroundColor:TEAL, borderRadius:6}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, indexAxis:'y',
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`~${c.parsed.x} Wh per task`}}},
+    scales:{x:{type:'logarithmic', grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8', callback:v=>v+' Wh'}}, y:{grid:{display:false}, ticks:{color:'#94a3b8'}}}}
+});
+
+/* ---------- Q7: training vs inference share ---------- */
+new Chart(document.getElementById('chart-q7-share'),{
+  type:'doughnut',
+  data:{
+    labels:['Inference','Training','Other (idle, networking, cooling overhead)'],
+    datasets:[{data:[62, 18, 20], backgroundColor:[TEAL, ORANGE, VIOLET], borderColor:'#0f172a', borderWidth:2}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, cutout:'58%',
+    plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}%`}}}}
+});
+
+/* ---------- Q8: GPU performance/watt ---------- */
+new Chart(document.getElementById('chart-q8'),{
+  type:'line',
+  data:{
+    labels:['2014 P100','2017 V100','2020 A100','2022 H100','2024 B100','2025 B300','2026 Rubin (projected)','2028 Rubin Ultra (proj.)'],
+    datasets:[{label:'Performance / watt (index)', data:[1, 2.1, 4.0, 7.0, 14.0, 18.0, 30.0, 55.0], borderColor:ACCENT, backgroundColor:'rgba(94,234,212,0.18)', fill:true, tension:0.3, borderWidth:3, pointRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>`${c.label}: ×${c.parsed.y} vs 2014 baseline`}}},
+    scales:{y:{type:'logarithmic', grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8', callback:v=>'×'+v}}, x:{grid:{display:false}, ticks:{color:'#94a3b8', maxRotation:30, minRotation:30}}}}
+});
+
+/* ---------- Q8: rack peak power ---------- */
+new Chart(document.getElementById('chart-q8-rack'),{
+  type:'line',
+  data:{
+    labels:['2018','2020','2022','2024','2026','2028'],
+    datasets:[{label:'Nvidia AI-rack peak power', data:[10, 40, 80, 120, 250, 500], borderColor:BLUE, backgroundColor:'rgba(96,165,250,0.18)', fill:true, tension:0.4, borderWidth:3, pointRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.y} kW per rack`}}},
+    scales:{y:{type:'logarithmic', grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8', callback:v=>v+' kW'}}, x:{grid:{display:false}, ticks:{color:'#94a3b8'}}}}
+});
+
+/* ---------- Q9: SMR pipeline growth ---------- */
+new Chart(document.getElementById('chart-q9-growth'),{
+  type:'bar',
+  data:{
+    labels:['end-2024','end-2025','projected 2027','projected 2030 (first SMRs)'],
+    datasets:[{label:'SMR offtake pipeline (GW)', data:[25, 45, 60, 75], backgroundColor:TEAL, borderRadius:6}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.y} GW contracted`}}},
+    scales:grid()}
+});
+
+/* ---------- Q9: timeline (DOM) ---------- */
+(function buildTimeline(){
+  const items = [
+    {year:'2024', body:'Microsoft–Constellation PPA for 835 MW of nuclear capacity', small:'PPA · Three Mile Island Unit 1 restart'},
+    {year:'2025', body:'Amazon signs SMR offtake agreements: ~6 GW across multiple vendors (Oklo, TerraPower, Vistra, …)', small:'Includes Amazon × Energy Northwest for dam-based clean power'},
+    {year:'2025', body:'OKLO × R-Power partnership — combined nuclear + gas for data centres', small:'Hybrid baseload configuration'},
+    {year:'2025', body:'Google × Elementl Power — three SMR sites for AI data centres', small:'Multi-site advanced reactor development'},
+    {year:'2026', body:'Google × Ormat Technologies — up to 150 MW next-generation geothermal', small:'First commercial next-gen geothermal PPA'},
+    {year:'2026', body:'Meta × Sage Geosystems — up to 150 MW next-generation geothermal', small:'Closed-loop geothermal baseload'},
+    {year:'2026', body:'EDF, Holtec & Tritax MOU — SMR data-centre complex in the UK', small:'European SMR cluster'},
+    {year:'2026', body:'Equinix pre-orders Stellaria 500 MW SMR (Europe)', small:'Colocation operator commits to SMR'},
+    {year:'2026', body:'Amazon pre-orders 20 radiant microreactors from X-energy', small:'Ultra-small modular design'},
+    {year:'~2030', body:'First commercial SMRs expected to come online globally', small:'IEA projection — initial wave delayed by licensing & fuel supply'}
+  ];
+  const wrap = document.getElementById('timeline-q9');
+  if(!wrap) return;
+  wrap.innerHTML = items.map(it=>`
+    <div class="tl-item">
+      <span class="dot"></span>
+      <span class="year">${it.year}</span>
+      <div class="body">${it.body}<small>${it.small}</small></div>
+    </div>`).join('');
+})();
+
+/* ---------- Q11: AI-driven energy uplift 2035 ---------- */
+new Chart(document.getElementById('chart-q11-uplift'),{
+  type:'bar',
+  data:{
+    labels:['Low AI uptake','Base AI uptake','High AI uptake','High AI + rapid deployment'],
+    datasets:[{label:'% uplift vs no-AI baseline (2035)', data:[0.5, 1.5, 3.0, 4.0], backgroundColor:[SLATE, BLUE, TEAL, ACCENT], borderRadius:6}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`+${c.parsed.y}% energy demand in 2035`}}},
+    scales:grid()}
+});
+
+/* ---------- Q11: elasticity by sector ---------- */
+new Chart(document.getElementById('chart-q11-elasticity'),{
+  type:'bar',
+  data:{
+    labels:['Services / knowledge-intensive','Residential / appliances','Transport','Industry','Agriculture'],
+    datasets:[{label:'Energy elasticity (% ΔE per 1% ΔGDP)', data:[-0.1, 0.05, 0.4, 0.55, 0.7], backgroundColor:[TEAL, ACCENT, BLUE, ORANGE, VIOLET], borderRadius:5}]
+  },
+  options:{responsive:true,maintainAspectRatio:false, indexAxis:'y',
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>`${c.parsed.x}% energy per 1% GDP`}}},
+    scales:{x:{grid:{color:'rgba(148,163,184,0.08)'}, ticks:{color:'#94a3b8', callback:v=>v+'%'}}, y:{grid:{display:false}, ticks:{color:'#94a3b8'}}}}
+});
+
+/* ---------- Footer timestamp ---------- */
+(function(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('ts').textContent =
+    `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+})();
+
+/* ---------- Active TOC link on scroll ---------- */
+(function(){
+  const links = document.querySelectorAll('#toc-nav a');
+  const sections = ['hero','q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11'];
+  window.addEventListener('scroll',()=>{
+    let active = sections[0];
+    for(const id of sections){
+      const el = document.getElementById(id);
+      if(el && el.getBoundingClientRect().top < 120) active = id;
+    }
+    links.forEach(a=>{
+      a.classList.toggle('active', a.getAttribute('href')==='#'+active);
+    });
+  });
+})();
+</script>
+</body>
+</html>

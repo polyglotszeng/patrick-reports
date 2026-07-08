@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Control · Patrick's Agent Fleet</title>
+<style>
+:root{--bg:#05070d;--panel:#0d1420;--border:#1c2940;--txt:#dce6f5;--dim:#5f7291;--acc:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;--pink:#ff7bcb;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{background:radial-gradient(ellipse at 42% 46%, #0b1322 0%, var(--bg) 65%);color:var(--txt);font-family:-apple-system,"PingFang SC",sans-serif;overflow:hidden;}
+#stars{position:fixed;inset:0;z-index:0;}
+.hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 22px;z-index:10;pointer-events:none;}
+.hud h1{font-size:16px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;}
+.hud h1 span{color:var(--acc);}
+#mode{pointer-events:auto;font-size:11px;padding:4px 12px;border-radius:999px;border:1px solid var(--border);color:var(--dim);letter-spacing:.05em;}
+#mode.live{color:var(--green);border-color:var(--green);box-shadow:0 0 12px rgba(63,185,80,.25);}
+#stage{position:fixed;inset:0;z-index:1;}
+#ring{position:absolute;}
+svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+.core{position:absolute;width:150px;height:150px;border-radius:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at 38% 34%, #1c355a 0%, #101d33 55%, #0a1424 100%);border:1px solid #2a4573;box-shadow:0 0 60px rgba(88,166,255,.28),inset 0 0 40px rgba(88,166,255,.12);cursor:pointer;z-index:5;}
+.core::before,.core::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:1px dashed rgba(88,166,255,.35);animation:spin 22s linear infinite;}
+.core::after{inset:-28px;border:1px solid rgba(88,166,255,.12);animation:spin 45s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.core .t1{font-size:11px;letter-spacing:.18em;color:var(--acc);text-transform:uppercase;}
+.core .t2{font-size:20px;font-weight:800;margin:2px 0;}
+.core .t3{font-size:10px;color:var(--dim);}
+.corepulse{animation:corepulse 3.2s ease-in-out infinite;}
+@keyframes corepulse{0%,100%{box-shadow:0 0 55px rgba(88,166,255,.25),inset 0 0 40px rgba(88,166,255,.1);}50%{box-shadow:0 0 90px rgba(88,166,255,.5),inset 0 0 55px rgba(88,166,255,.2);}}
+.node{position:absolute;width:92px;height:92px;border-radius:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 32%, #131f33 0%, #0b1424 70%);border:1.5px solid var(--border);cursor:pointer;transition:border-color .3s, box-shadow .3s;z-index:4;}
+.node .ic{font-size:22px;line-height:1;}
+.node .nm{font-size:11px;font-weight:700;margin-top:3px;letter-spacing:.04em;}
+.node .rl{font-size:8.5px;color:var(--dim);letter-spacing:.03em;}
+.node .st{position:absolute;bottom:-7px;font-size:8.5px;font-weight:800;padding:1px 8px;border-radius:999px;background:#0b1424;border:1px solid var(--border);color:var(--dim);letter-spacing:.06em;}
+.node.active{border-color:var(--c);box-shadow:0 0 26px var(--glow),inset 0 0 18px var(--glow);}
+.node.active .st{color:var(--c);border-color:var(--c);}
+.node.err{border-color:var(--red);box-shadow:0 0 26px rgba(248,81,73,.4);}
+.node.err .st{color:var(--red);border-color:var(--red);}
+.lk{stroke:#1c2940;stroke-width:1;}
+.lk.hot{stroke-width:1.6;filter:drop-shadow(0 0 4px var(--lc));}
+.pkt{filter:drop-shadow(0 0 5px var(--lc));}
+#ticker{position:fixed;top:60px;right:0;bottom:0;width:330px;background:linear-gradient(270deg, rgba(9,14,24,.96), rgba(9,14,24,.82));border-left:1px solid var(--border);z-index:8;display:flex;flex-direction:column;}
+#ticker header{padding:13px 16px 9px;font-size:11px;letter-spacing:.14em;color:var(--acc);text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;}
+#tklist{flex:1;overflow-y:auto;padding:6px 14px;font-family:"SF Mono",Menlo,monospace;}
+.tk{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #101a2c;font-size:11px;align-items:baseline;animation:fadein .5s;}
+@keyframes fadein{from{opacity:0;transform:translateX(14px);}to{opacity:1;}}
+.tk .t{color:#3b4c68;font-size:9.5px;flex-shrink:0;}
+.tk .s{flex-shrink:0;font-weight:800;}
+.tk .s.ok{color:var(--green);}.tk .s.error{color:var(--red);}.tk .s.info{color:var(--acc);}.tk .s.hand{color:var(--purple);}
+.tk .m{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tk .m b{color:var(--txt);font-weight:700;}
+#inspect{position:fixed;left:18px;bottom:18px;width:330px;background:rgba(9,14,24,.95);border:1px solid var(--ic,#2a4573);border-radius:14px;z-index:9;padding:16px;display:none;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+#inspect h2{font-size:15px;display:flex;align-items:center;gap:8px;}
+#inspect .role{font-size:11px;color:var(--dim);margin:2px 0 10px;}
+#inspect .kv{font-size:12px;margin:5px 0;display:flex;gap:8px;}
+#inspect .kv b{color:var(--dim);font-weight:600;width:70px;flex-shrink:0;}
+#inspect .think{display:inline-flex;gap:3px;margin-left:4px;}
+#inspect .think i{width:4px;height:4px;border-radius:50%;background:var(--acc);animation:th 1.2s infinite;}
+#inspect .think i:nth-child(2){animation-delay:.2s;}#inspect .think i:nth-child(3){animation-delay:.4s;}
+@keyframes th{0%,100%{opacity:.2;}50%{opacity:1;}}
+#inspect .log{margin-top:9px;border-top:1px solid var(--border);padding-top:7px;max-height:130px;overflow-y:auto;font-family:Menlo,monospace;font-size:10.5px;color:var(--dim);}
+#inspect .log div{padding:2px 0;}
+#inspect .x{position:absolute;top:10px;right:14px;color:var(--dim);cursor:pointer;font-size:15px;}
+.statbar{position:fixed;left:18px;top:60px;z-index:8;display:flex;flex-direction:column;gap:8px;}
+.stat{background:rgba(9,14,24,.85);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:11px;color:var(--dim);}
+.stat b{color:var(--txt);font-size:16px;display:block;}
+.stat.bad b{color:var(--red);}
+#tklist::-webkit-scrollbar,#inspect .log::-webkit-scrollbar{width:4px;}
+#tklist::-webkit-scrollbar-thumb{background:#1c2940;border-radius:2px;}
+@media(max-width:900px){#ticker{width:260px;}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div class="hud">
+  <h1>⬢ MISSION <span>CONTROL</span> — Agent Fleet</h1>
+  <span id="mode">DEMO 回放 · 跑 python3 server.py 变 LIVE</span>
+</div>
+<div class="statbar">
+  <div class="stat"><b id="s-agents">5</b>AGENTS</div>
+  <div class="stat"><b id="s-autos">19</b>AUTOMATIONS</div>
+  <div class="stat bad"><b id="s-err">7</b>ERRORS</div>
+</div>
+<div id="stage">
+  <svg id="links"></svg>
+  <div class="core corepulse" id="core" onclick="inspect('core')">
+    <div class="t1">Reactor Core</div>
+    <div class="t2">AGENTIC OS</div>
+    <div class="t3">orchestration</div>
+  </div>
+</div>
+<aside id="ticker">
+  <header><span>▮ Task Ticker</span><span id="tkmode" style="color:var(--dim)">replay</span></header>
+  <div id="tklist"></div>
+</aside>
+<div id="inspect">
+  <span class="x" onclick="this.parentElement.style.display='none'">✕</span>
+  <h2 id="in-name"></h2>
+  <div class="role" id="in-role"></div>
+  <div class="kv"><b>状态</b><span id="in-state"></span></div>
+  <div class="kv"><b>当前任务</b><span id="in-task"></span></div>
+  <div class="log" id="in-log"></div>
+</div>
+
+<script>
+/* ================= fleet（Patrick 真实五件套，角色沿用 Julian 的分工命名）================= */
+const FLEET=[
+ {id:'claude', nm:'Claude',   ic:'🧠', c:'#58a6ff', role:'Intelligence · 思考/规划/写作',           angle:-90},
+ {id:'hermes', nm:'Hermes',   ic:'🔭', c:'#bc8cff', role:'Orchestration · cron 编排/研究（18 jobs）', angle:-18},
+ {id:'openclaw',nm:'OpenClaw',ic:'🦾', c:'#3fb950', role:'Execution · 浏览器/动手执行',              angle:54},
+ {id:'codex',  nm:'Codex',    ic:'⚙️', c:'#d29922', role:'Refactor · 代码实现独立车道',              angle:126},
+ {id:'cowork', nm:'Cowork',   ic:'🖥️', c:'#ff7bcb', role:'Desktop Ops · 文件/桌面自动化',           angle:198},
+];
+const CORE={id:'core',nm:'Reactor Core',ic:'⬢',c:'#58a6ff',role:'Orchestration brain · 协调一切'};
+/* cron → 归属 Hermes；名字里含关键词的事件也点亮相应 agent */
+const AGENT_HINTS={claude:['claude','notebooklm','review','digest'],openclaw:['browser','openclaw'],codex:['codex'],cowork:['cowork','journal','watchdog','eventkit']};
+
+let LIVE=false, EVENTS=[], LOGS={core:[],claude:[],hermes:[],openclaw:[],codex:[],cowork:[]}, TASKS={}, STATES={};
+FLEET.forEach(f=>{TASKS[f.id]='待命';STATES[f.id]='idle';});
+TASKS.core='协调 fleet';STATES.core='online';
+
+/* ================= 星空 ================= */
+const cv=document.getElementById('stars'),cx=cv.getContext('2d');
+function stars(){cv.width=innerWidth;cv.height=innerHeight;cx.fillStyle='rgba(220,230,245,.5)';
+ for(let i=0;i<130;i++){const r=Math.random();cx.globalAlpha=.12+r*.4;cx.beginPath();cx.arc(Math.random()*cv.width,Math.random()*cv.height,r*1.1,0,7);cx.fill();}}
+stars();addEventListener('resize',()=>{stars();layout();});
+
+/* ================= 轨道布局 ================= */
+const stage=document.getElementById('stage'),svg=document.getElementById('links'),core=document.getElementById('core');
+let C={x:0,y:0},R=0,nodes={};
+FLEET.forEach(f=>{
+  const el=document.createElement('div');el.className='node';el.id='n-'+f.id;
+  el.style.setProperty('--c',f.c);el.style.setProperty('--glow',f.c+'55');
+  el.innerHTML=`<span class="ic">${f.ic}</span><span class="nm" style="color:${f.c}">${f.nm}</span><span class="rl">${f.role.split('·')[0]}</span><span class="st" id="st-${f.id}">IDLE</span>`;
+  el.onclick=()=>inspect(f.id);
+  stage.appendChild(el);nodes[f.id]=el;
+});
+function layout(){
+  const w=innerWidth-330,h=innerHeight; C={x:w*0.5,y:h*0.53}; R=Math.min(w,h)*0.31;
+  core.style.left=C.x+'px';core.style.top=C.y+'px';
+  svg.innerHTML=FLEET.map(f=>`<line class="lk" id="lk-${f.id}"/><circle class="pkt" id="pk-${f.id}" r="3.5" fill="${f.c}" opacity="0"/>`).join('');
+  FLEET.forEach(f=>place(f,f.angle));
+}
+function place(f,deg){
+  const a=deg*Math.PI/180,x=C.x+R*Math.cos(a),y=C.y+R*Math.sin(a);
+  f._x=x;f._y=y;
+  nodes[f.id].style.left=x+'px';nodes[f.id].style.top=y+'px';
+  const lk=document.getElementById('lk-'+f.id);
+  if(!lk)return; /* layout() 尚未建线时跳过，防第一帧崩溃 */
+  lk.setAttribute('x1',C.x);lk.setAttribute('y1',C.y);lk.setAttribute('x2',x);lk.setAttribute('y2',y);
+  lk.style.setProperty('--lc',f.c);
+}
+layout(); /* 必须先建 SVG 线，再启动公转 */
+/* 缓慢公转 */
+let T0=Date.now();
+(function orbit(){
+  try{
+    const dt=(Date.now()-T0)/1000;
+    FLEET.forEach((f,i)=>place(f,f.angle+dt*2.2));
+  }catch(e){}
+  requestAnimationFrame(orbit);
+})();
+
+/* ================= 节点点亮 + 数据包动画 ================= */
+function fire(agent,status){
+  const f=FLEET.find(x=>x.id===agent);if(!f)return;
+  const el=nodes[agent],lk=document.getElementById('lk-'+agent),pk=document.getElementById('pk-'+agent);
+  el.classList.remove('active','err');void el.offsetWidth;
+  el.classList.add(status==='error'?'err':'active');
+  lk.classList.add('hot');lk.style.stroke=status==='error'?'#f85149':f.c;
+  /* 数据包从节点流向核心 */
+  let p=0;pk.style.setProperty('--lc',f.c);pk.setAttribute('opacity','1');pk.setAttribute('fill',status==='error'?'#f85149':f.c);
+  const anim=setInterval(()=>{p+=0.04;if(p>=1){clearInterval(anim);pk.setAttribute('opacity','0');}
+    pk.setAttribute('cx',f._x+(C.x-f._x)*p);pk.setAttribute('cy',f._y+(C.y-f._y)*p);},16);
+  setTimeout(()=>{el.classList.remove('active','err');lk.classList.remove('hot');lk.style.stroke='';},2600);
+  document.getElementById('st-'+agent).textContent=status==='error'?'ERROR':'ACTIVE';
+  setTimeout(()=>{if(STATES[agent]!=='thinking')document.getElementById('st-'+agent).textContent='IDLE';},2800);
+}
+
+/* ================= 事件 → agent 映射 ================= */
+function agentOf(src){
+  const s=(src||'').toLowerCase();
+  for(const [a,keys] of Object.entries(AGENT_HINTS)) if(keys.some(k=>s.includes(k))) return a;
+  return 'hermes'; /* cron 默认归 Hermes */
+}
+function pushEvent(e,animate=true){
+  const a=agentOf(e.src);
+  TASKS[a]=e.src;STATES[a]=e.st==='error'?'error':'active';
+  LOGS[a].unshift(`${e.t} ${e.st==='error'?'✗':'✓'} ${e.src} ${e.msg||''}`);LOGS[a]=LOGS[a].slice(0,30);
+  LOGS.core.unshift(`${e.t} [${a}] ${e.src}`);LOGS.core=LOGS.core.slice(0,30);
+  if(animate)fire(a,e.st);
+  const el=document.createElement('div');el.className='tk';
+  el.innerHTML=`<span class="t">${(e.t||'').replace('2026-','').replace('T',' ').slice(0,11)}</span><span class="s ${e.st}">${e.st==='ok'?'✓':e.st==='error'?'✗':e.st==='hand'?'⇄':'·'}</span><span class="m"><b>${e.src}</b> ${e.msg||''}</span>`;
+  const list=document.getElementById('tklist');list.prepend(el);
+  while(list.children.length>60)list.lastChild.remove();
+}
+
+/* ================= 点击检视 ================= */
+function inspect(id){
+  const f=id==='core'?CORE:FLEET.find(x=>x.id===id);
+  const box=document.getElementById('inspect');
+  box.style.display='block';box.style.setProperty('--ic',f.c);
+  document.getElementById('in-name').innerHTML=`${f.ic} <span style="color:${f.c}">${f.nm}</span>`;
+  document.getElementById('in-role').textContent=f.role;
+  const st=STATES[id]||'idle';
+  document.getElementById('in-state').innerHTML=st==='error'?'<span style="color:var(--red)">error</span>':st==='idle'?'idle':`thinking<span class="think"><i></i><i></i><i></i></span>`;
+  document.getElementById('in-task').textContent=TASKS[id]||'—';
+  document.getElementById('in-log').innerHTML=(LOGS[id]&&LOGS[id].length?LOGS[id]:['（暂无活动记录）']).map(l=>`<div>${l}</div>`).join('');
+}
+
+/* ================= 数据源：live 轮询 / demo 回放 ================= */
+const REPLAY=[
+ {t:"07-04 16:21",src:"open-notebooklm-cron",st:"ok",msg:"flashcards 生成"},
+ {t:"07-04 12:00",src:"cf-pages-drift-check",st:"error",msg:"exit 2 · drift 检出"},
+ {t:"07-04 12:00",src:"memory-audit",st:"error",msg:"exit 1"},
+ {t:"07-04 11:26",src:"ai-capital-battle-transcript-retry",st:"ok",msg:"retry 成功"},
+ {t:"07-04 10:00",src:"human-loop-watchdog",st:"hand",msg:"→ Telegram：daily 断更提醒"},
+ {t:"07-04 09:33",src:"sync-daily-index",st:"error",msg:"exit 1 · fcards"},
+ {t:"07-04 09:18",src:"hardtech-publish",st:"error",msg:"exit 1 · 发布中断"},
+ {t:"07-04 09:11",src:"round-n-dashboards-generator",st:"ok",msg:"3 dashboards"},
+ {t:"07-04 09:11",src:"project-memory-slack-digest",st:"ok",msg:"digest 送达"},
+ {t:"07-04 09:02",src:"hardtech-daily",st:"ok",msg:"18 items 收集"},
+ {t:"07-04 08:01",src:"ai-trending-daily",st:"error",msg:"exit 1 · JSON 后失败"},
+ {t:"07-04 07:30",src:"daily-eventkit-bridge",st:"ok",msg:"日历同步"},
+ {t:"07-04 07:00",src:"worldmonitor-china-feeds-daily",st:"ok",msg:"feeds 更新"},
+ {t:"07-04 —",src:"claude-review",st:"ok",msg:"registry 审阅（demo）"},
+ {t:"07-04 —",src:"codex-lane",st:"ok",msg:"kanban 车道待命（demo）"},
+ {t:"07-04 —",src:"openclaw-browser",st:"hand",msg:"⇄ Hermes handoff（demo）"},
+];
+let seen=new Set();
+async function poll(){
+  try{
+    const r=await fetch('/api/ticker',{cache:'no-store'});
+    if(!r.ok)throw 0;
+    const j=await r.json();LIVE=true;
+    document.getElementById('mode').className='live';
+    document.getElementById('mode').textContent='● LIVE · agent-tasks.jsonl (CF Function)';
+    document.getElementById('tkmode').textContent='live';
+    j.events.slice().reverse().forEach(e=>{const k=e.t+e.src;if(!seen.has(k)){seen.add(k);pushEvent(e,seen.size>18);}});
+    const jr=await (await fetch('/api/jobs')).json();
+    // agent-tasks.jsonl 里 status 用 'done' / 'failed',不是 'error'
+    const errs=jr.jobs.filter(x=>x.last_status!=='done').length;
+    document.getElementById('s-err').textContent=errs;
+    document.getElementById('s-autos').textContent=jr.jobs.length;
+    if(jr.note){document.getElementById('s-autos').title=jr.note;}
+  }catch(e){LIVE=false;}
+}
+async function boot(){
+  await poll();
+  if(LIVE){setInterval(poll,15000);return;}
+  /* demo 回放：按时间正序逐条进场，循环 */
+  let i=REPLAY.length-1;
+  const step=()=>{pushEvent(REPLAY[i],true);i=(i-1+REPLAY.length)%REPLAY.length;};
+  step();setInterval(step,2800);
+}
+boot();
+</script>
+</body>
+</html>

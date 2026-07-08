@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Do THIS Before You Lose Access to Fable 5 - Mark Kashef War-gaming 实操 · Patrick 解构</title>
+<style>
+:root {
+  --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+  --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+  --accent: #ff6b35; --accent-2: #f7c59f;
+  --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+  --gap: #fb923c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6; font-size: 15px;
+}
+body { padding: 32px 48px 64px 48px; max-width: 1200px; margin: 0 auto; }
+
+/* === TOC sidebar v1.4.4 collapsible === */
+.toc {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 240px; background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px; overflow-y: auto;
+  transition: transform 0.3s ease, width 0.3s ease;
+  z-index: 100;
+}
+.toc.collapsed { width: 48px; padding: 24px 8px; }
+.toc.collapsed .toc-label,
+.toc.collapsed .toc-section { display: none; }
+.toc-toggle {
+  position: absolute; top: 12px; right: 8px;
+  width: 28px; height: 28px; border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-dim);
+  border-radius: 4px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.toc-toggle:hover { background: var(--accent); color: white; }
+.toc h3 { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+.toc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+             color: var(--text-mute); margin: 12px 0 6px; font-weight: 600; }
+.toc ul { list-style: none; }
+.toc a { display: block; padding: 6px 8px; color: var(--text-dim);
+         text-decoration: none; font-size: 13px; border-radius: 4px;
+         border-left: 2px solid transparent; transition: all 0.15s ease; }
+.toc a:hover { background: var(--bg-elevated); color: var(--text); }
+.toc a.active { color: var(--accent); border-left-color: var(--accent);
+                background: rgba(255, 107, 53, 0.08); }
+.toc.collapsed a { font-size: 11px; padding: 6px 4px; }
+body { padding-left: 260px; transition: padding-left 0.3s ease; }
+body.toc-collapsed { padding-left: 72px; }
+@media (max-width: 900px) {
+  .toc { transform: translateX(-100%); }
+  .toc.collapsed { transform: translateX(-12px); width: 48px; }
+  body, body.toc-collapsed { padding-left: 0; }
+  .toc-toggle { display: flex; }
+}
+
+h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+.subtitle { color: var(--text-dim); font-size: 16px; margin-bottom: 24px; }
+.meta-bar {
+  display: flex; flex-wrap: wrap; gap: 16px; padding: 12px 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 24px; font-size: 13px;
+}
+.meta-bar .meta-item { display: flex; gap: 6px; }
+.meta-bar .meta-item strong { color: var(--text-dim); }
+.meta-bar a { color: var(--accent); text-decoration: none; }
+.meta-bar a:hover { text-decoration: underline; }
+
+.hero {
+  background: linear-gradient(135deg, rgba(255,107,53,0.10) 0%, rgba(167,139,250,0.05) 100%);
+  border: 1px solid var(--border); border-left: 4px solid var(--accent);
+  border-radius: 12px; padding: 24px; margin-bottom: 24px;
+}
+.hero h2 { font-size: 18px; margin-bottom: 12px; color: var(--accent-2); }
+.hero p { color: var(--text); font-size: 15px; }
+.hero ol { margin: 12px 0 0 24px; color: var(--text-dim); font-size: 14px; }
+.hero ol li { margin-bottom: 6px; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+         gap: 12px; margin-bottom: 32px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border);
+             border-radius: 8px; padding: 16px; }
+.stat-card .num { font-size: 26px; font-weight: 700; color: var(--accent);
+                  font-feature-settings: "tnum"; }
+.stat-card .label { font-size: 12px; color: var(--text-mute); margin-top: 4px;
+                    text-transform: uppercase; letter-spacing: 0.04em; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--border);
+        margin-bottom: 24px; padding-bottom: 0; }
+.tab { background: transparent; border: 1px solid var(--border); border-bottom: none;
+       padding: 8px 14px; color: var(--text-dim); cursor: pointer; border-radius: 6px 6px 0 0;
+       font-size: 13px; font-family: inherit; transition: all 0.15s ease; }
+.tab:hover { background: var(--bg-elevated); color: var(--text); }
+.tab.active { background: var(--bg-card); color: var(--accent); border-color: var(--accent); }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+h2.section { font-size: 20px; margin: 24px 0 16px; color: var(--text);
+             border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
+h3 { font-size: 16px; margin: 16px 0 8px; color: var(--accent-2); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+             gap: 16px; margin-bottom: 16px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+        padding: 16px; transition: border-color 0.15s ease; }
+.card:hover { border-color: var(--accent); }
+.card h4 { font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+.card p { color: var(--text-dim); font-size: 13px; line-height: 1.55; }
+.card .badge-row { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+th { background: var(--bg-elevated); color: var(--text-dim); font-weight: 600;
+     text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+tr:hover { background: rgba(255, 107, 53, 0.04); }
+td code, pre code { background: var(--bg-elevated); padding: 2px 6px; border-radius: 4px;
+                    font-size: 12px; color: var(--yellow); }
+pre { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 6px;
+      padding: 14px; overflow-x: auto; font-size: 12px; line-height: 1.55;
+      color: var(--text); margin: 12px 0; }
+blockquote { border-left: 3px solid var(--accent); padding: 12px 16px;
+             background: var(--bg-elevated); margin: 12px 0;
+             color: var(--text); font-style: italic; border-radius: 0 6px 6px 0; }
+
+.badge { display: inline-block; padding: 3px 8px; border-radius: 999px;
+         font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.badge.mitig { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+.badge.warn { background: rgba(251, 191, 36, 0.15); color: var(--yellow); }
+.badge.gap { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+.badge.neutral { background: rgba(156, 163, 175, 0.15); color: var(--gray); }
+.badge.source { background: rgba(167, 139, 250, 0.15); color: var(--purple); }
+
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.cmp.good { border-left: 3px solid var(--green); }
+.cmp.bad { border-left: 3px solid var(--red); }
+.cmp h5 { font-size: 13px; margin-bottom: 8px; }
+.cmp.good h5 { color: var(--green); }
+.cmp.bad h5 { color: var(--red); }
+
+.quote-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+              gap: 12px; margin-bottom: 16px; }
+.quote-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+              border-radius: 8px; padding: 14px; }
+.quote-card.yellow { border-left-color: var(--yellow); }
+.quote-card.green { border-left-color: var(--green); }
+.quote-card.blue { border-left-color: var(--blue); }
+.quote-card.purple { border-left-color: var(--purple); }
+.quote-card .q-en { color: var(--text); font-style: italic; font-size: 13px; }
+.quote-card .q-zh { color: var(--text-dim); font-size: 13px; margin-top: 8px; padding-top: 8px;
+                    border-top: 1px dashed var(--border); }
+.quote-card .q-meta { font-size: 11px; color: var(--text-mute); margin-top: 8px;
+                      display: flex; gap: 8px; flex-wrap: wrap; }
+
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+                    width: 2px; background: var(--border); }
+.tl-item { position: relative; margin-bottom: 10px; font-size: 13px; }
+.tl-item::before { content: ''; position: absolute; left: -24px; top: 6px;
+                   width: 10px; height: 10px; background: var(--accent);
+                   border-radius: 50%; border: 2px solid var(--bg); }
+.tl-time { color: var(--accent); font-weight: 600; margin-right: 8px; }
+.tl-what { color: var(--text-dim); }
+
+footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border);
+         color: var(--text-mute); font-size: 12px; }
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+.callout { background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3);
+           border-radius: 8px; padding: 14px 16px; margin: 16px 0; }
+.callout strong { color: var(--yellow); }
+
+.chain { display: flex; align-items: center; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.chain-step { background: var(--bg-elevated); border: 1px solid var(--border);
+              border-radius: 6px; padding: 8px 12px; font-size: 13px; color: var(--text); }
+.chain-arrow { color: var(--accent); font-size: 18px; }
+</style>
+</head>
+<body>
+
+<aside class="toc" id="toc">
+  <button class="toc-toggle" id="toc-toggle" aria-label="Toggle TOC">&#9776;</button>
+  <h3 class="toc-label">Contents</h3>
+  <div class="toc-section">
+  <ul>
+    <li><a href="#core" class="active">🔥 核心论点</a></li>
+    <li><a href="#urgency">⏰ 时效 + Unknowns</a></li>
+    <li><a href="#wargame">🎯 Wargame 定义</a></li>
+    <li><a href="#prompt">📋 Prompt 模板</a></li>
+    <li><a href="#structure">📁 文件夹 + 命令</a></li>
+    <li><a href="#usecases">🛠️ 5 Use Cases</a></li>
+    <li><a href="#related">🔗 Patrick 关联</a></li>
+    <li><a href="#tier4">⚔️ Tier 4 反差</a></li>
+    <li><a href="#quotes">💬 金句库</a></li>
+    <li><a href="#timeline">⏱️ 时间戳</a></li>
+    <li><a href="#action">🗺️ 实战路线</a></li>
+    <li><a href="#limits">⚠️ 视频局限</a></li>
+    <li><a href="#vendors">📊 Vendor 表</a></li>
+    <li><a href="#summary">🎓 一行启示</a></li>
+  </ul>
+  </div>
+</aside>
+
+<h1>Do THIS Before You Lose Access to Fable 5</h1>
+<p class="subtitle">Mark Kashef · War-gaming 实操 - Patrick 解构(2026-07-06)</p>
+
+<div class="meta-bar">
+  <div class="meta-item"><strong>Channel:</strong> Mark Kashef</div>
+  <div class="meta-item"><strong>Duration:</strong> 13:58</div>
+  <div class="meta-item"><strong>Uploaded:</strong> 2026-07-05</div>
+  <div class="meta-item"><strong>Views:</strong> 19.2K</div>
+  <div class="meta-item"><strong>Series:</strong> Fable 5 · 第 5 部</div>
+  <div class="meta-item"><strong>Source:</strong> <a href="https://www.youtube.com/watch?v=nuwlyQXrADg" target="_blank">YouTube</a></div>
+  <div class="meta-item"><strong>Vault:</strong> <a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/index.md">index.md</a></div>
+</div>
+
+<div class="hero">
+  <h2>🎯 一句话核心</h2>
+  <p><strong>不要让 Fable 5 写 plan,要让它把任务 wargame 到任何便宜模型(Opus 4.8 / GPT 5.5 / GLM)都能照着执行的详细程度。</strong></p>
+  <p style="margin-top: 8px;">Fable 5 在 Claude 订阅内只剩 <strong>2-3 天</strong>(couple days from 7/6),Mark 给"第三种打法":既不是 panic 囤 token 乱 build,也不是摆烂 - 而是用最后时间把"Fable 真正不可替代的特质"(<strong>elicit Unknown Unknowns</strong>)提前固化成 blueprint。</p>
+  <ol>
+    <li><strong>Wargame ≠ Plan</strong> - plan 假设线性成功,wargame 枚举所有失败分支 + counteraction</li>
+    <li><strong>4 元素每个 move</strong> - Expected observation / Failure signal / Cause / Countermove</li>
+    <li><strong>4 件套文件夹</strong> - tasks/ + war-games/ + success.md + ledger.md</li>
+    <li><strong>/goal + /loop 双命令</strong> - fan-out + 每 20 分钟迭代 polish</li>
+    <li><strong>适配便宜 executor</strong> - wargame 文件本身就是 Opus 4.8 / GPT 5.5 / GLM / Sonnet 5 的 brief</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat-card"><div class="num">13:58</div><div class="label">时长</div></div>
+  <div class="stat-card"><div class="num">150</div><div class="label">Transcript cues</div></div>
+  <div class="stat-card"><div class="num">2,914</div><div class="label">Words</div></div>
+  <div class="stat-card"><div class="num">5</div><div class="label">Use Case 模板</div></div>
+  <div class="stat-card"><div class="num">17</div><div class="label">Patrick Cards</div></div>
+  <div class="stat-card"><div class="num">6</div><div class="label">视频局限</div></div>
+  <div class="stat-card"><div class="num">15</div><div class="label">Bilingual Quotes</div></div>
+  <div class="stat-card"><div class="num">2-3d</div><div class="label">Fable 5 截止</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 核心论点</button>
+  <button class="tab" data-tab="urgency">⏰ 时效 + Unknowns</button>
+  <button class="tab" data-tab="wargame">🎯 Wargame 定义</button>
+  <button class="tab" data-tab="prompt">📋 Prompt 模板</button>
+  <button class="tab" data-tab="structure">📁 文件夹 + 命令</button>
+  <button class="tab" data-tab="usecases">🛠️ 5 Use Cases</button>
+  <button class="tab" data-tab="related">🔗 Patrick 关联</button>
+  <button class="tab" data-tab="tier4">⚔️ Tier 4 反差</button>
+  <button class="tab" data-tab="quotes">💬 金句库</button>
+  <button class="tab" data-tab="timeline">⏱️ 时间戳</button>
+  <button class="tab" data-tab="action">🗺️ 实战路线</button>
+  <button class="tab" data-tab="limits">⚠️ 视频局限</button>
+  <button class="tab" data-tab="vendors">📊 Vendor 表</button>
+  <button class="tab" data-tab="summary">🎓 一行启示</button>
+</div><!-- ============ TAB 1: CORE ============ -->
+<div class="tab-content active" data-tab-content="core">
+  <h2 class="section">🔥 核心论点:为什么 Wargame 是 Fable 5 撤离前最佳动作</h2>
+
+  <blockquote>
+    "The goal of this video is I want to give you a <strong>third move</strong>. One that takes the single most valuable thing that I find about Fable 5 and allows you to use it well after it's out of your subscription."
+    <br>- <span style="color: var(--text-dim);">[00:22] Mark Kashef</span>
+  </blockquote>
+
+  <h3>三种打法的对比 (binary choice → third move)</h3>
+  <table>
+    <tr><th>策略</th><th>动作</th><th>结果</th><th>Mark 的评价</th></tr>
+    <tr>
+      <td><span class="badge gap">❌ 第一种 (panic)</span></td>
+      <td>最后几天疯狂囤 token,把所有 idea build 一遍</td>
+      <td>浪费 tokens,得到 80% 烂尾项目</td>
+      <td>"throwing hundreds of thousands of tokens at random tasks before the clock runs out"</td>
+    </tr>
+    <tr>
+      <td><span class="badge gap">❌ 第二种 (shrug)</span></td>
+      <td>摆烂,等 7/8 之后再说</td>
+      <td>失去 Fable 5 全部 leverage</td>
+      <td>"barely using it to begin with"</td>
+    </tr>
+    <tr style="background: rgba(74, 222, 128, 0.05);">
+      <td><span class="badge mitig">✅ 第三种 (wargame)</span></td>
+      <td>用 Fable 5 推演 + 便宜模型执行</td>
+      <td>10 个项目 → 10 份可复用的 blueprint</td>
+      <td>"take all the benefit and the raw intelligence of Fable, then emulate with existing models that are way cheaper"</td>
+    </tr>
+  </table>
+
+  <h3>Fable 5 真正不可替代的是什么?</h3>
+  <div class="callout">
+    <strong>答案:不是智力(intelligence),而是 elicit Unknown Unknowns 的能力。</strong>
+    <p style="margin-top: 8px; color: var(--text-dim);">便宜模型(Opus 4.8 / GPT 5.5 / GLM)智力够,但缺少 Fable 5 那种"把你领到你从没想过的领域"的能力。Wargame = 把这个能力<strong>外化</strong>(externalize)成 markdown blueprint,让便宜模型拿着这份 brief 也能跑到 Fable 5 同等水平。</p>
+  </div>
+
+  <h3>video source 关键时间锚点</h3>
+  <div class="timeline">
+    <div class="tl-item"><span class="tl-time">[00:01]</span><span class="tl-what">Fable 5 几天后撤出 Claude 订阅 - <strong>开门定调</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[00:22]</span><span class="tl-what">第三种打法 - 拒绝 binary choice</span></div>
+    <div class="tl-item"><span class="tl-time">[00:49]</span><span class="tl-what">"任何模型都能执行的详尽 brief" = wargame 核心</span></div>
+    <div class="tl-item"><span class="tl-time">[01:37]</span><span class="tl-what">Anthropic 工程师发文:orchestrator 盲区 > 模型智力</span></div>
+    <div class="tl-item"><span class="tl-time">[02:29]</span><span class="tl-what"><strong>Fable 5 真正不可替代 = elicit Unknown Unknowns</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[03:06]</span><span class="tl-what">Wargame 定义:按回合拆解每个场景</span></div>
+    <div class="tl-item"><span class="tl-time">[04:20]</span><span class="tl-what">Second/third/fourth order consequence - 多层级推演</span></div>
+    <div class="tl-item"><span class="tl-time">[05:35]</span><span class="tl-what">Prompt 第 1 段模板:"War-game order"</span></div>
+    <div class="tl-item"><span class="tl-time">[10:31]</span><span class="tl-what">文件夹结构完整披露</span></div>
+    <div class="tl-item"><span class="tl-time">[12:42]</span><span class="tl-what"><span class="badge warn">⚠️ Mark 承认 demo 假设值</span> - 真生产必须填 ledger</span></div>
+    <div class="tl-item"><span class="tl-time">[13:11]</span><span class="tl-what">终极论点 - "planning 的自然极限"</span></div>
+  </div>
+</div>
+
+<!-- ============ TAB 2: URGENCY + UNKNOWNS ============ -->
+<div class="tab-content" data-tab-content="urgency">
+  <h2 class="section">⏰ 时效性 + Known/Unknown 框架</h2>
+
+  <h3>2-3 天截止时间线(从 2026-07-06 起算)</h3>
+  <div class="chain">
+    <div class="chain-step"><strong>7/6 今天</strong></div>
+    <div class="chain-arrow">→</div>
+    <div class="chain-step">couple days left (Mark 录制时)</div>
+    <div class="chain-arrow">→</div>
+    <div class="chain-step"><strong>7/8 截止</strong>(视频明示)</div>
+    <div class="chain-arrow">→</div>
+    <div class="chain-step">Fable 5 从 Pro/Max 订阅撤出</div>
+    <div class="chain-arrow">→</div>
+    <div class="chain-step">转移到 Anthropic 独立 API(费用 eye-watering)</div>
+  </div>
+
+  <h3>Known/Unknown 4 象限 - orchestrator 盲区框架</h3>
+  <blockquote>
+    "with a model this capable, you're no longer held back by raw intelligence. You're held back by the things that you <strong>don't know</strong> as the orchestrator, as the person providing the instructions, the plans, and the prompts to these kinds of models."
+    <br>- <span style="color: var(--text-dim);">[01:51] 引用 Anthropic 工程师文章</span>
+  </blockquote>
+
+  <div class="compare">
+    <div class="cmp good">
+      <h5>✅ 我们知道我们知道的 (Known Knowns)</h5>
+      <p>项目启动时已经掌握的事实:技术栈、需求、约束。模型可以理解,人也知道。</p>
+    </div>
+    <div class="cmp bad">
+      <h5>⚠️ 我们知道我们不知道的 (Known Unknowns)</h5>
+      <p>意识到存在但不掌握的盲区:性能基准、安全漏洞、边界 case。模型可以列出清单,需要人去补。</p>
+    </div>
+    <div class="cmp bad">
+      <h5>🟡 我们不知道我们知道的 (Unknown Knowns)</h5>
+      <p><strong>Tacit knowledge</strong> - 你以为模型知道的生活经验、直觉、行业常识,但即使 Fable 5 也没有你那个 level。<strong>需要显式化</strong>。</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--accent);">
+      <h5>🎯 我们不知道我们不知道的 (Unknown Unknowns)</h5>
+      <p><strong>Fable 5 真正不可替代</strong> - 你不知道这片领域值得探索,但 Fable 5 能领你到这里。便宜模型够聪明,但不会主动探到这里。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>📌 Wargame 的核心任务:</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">在 Fable 5 还在的时候,用它的智力 + 你不知道的盲区,把所有可能的"uncomfortable question"问出来,固化成 brief。然后把这 brief 喂给 Opus 4.8 / GPT 5.5 / GLM - 它们拿着这份地图就不会迷路。</p>
+  </div>
+</div>
+
+<!-- ============ TAB 3: WARGAME DEFINITION ============ -->
+<div class="tab-content" data-tab-content="wargame">
+  <h2 class="section">🎯 War-gaming 定义:不是 Plan,是 Plan 的极限</h2>
+
+  <h3>Wargame vs Plan - 5 维对比</h3>
+  <table>
+    <tr><th>维度</th><th>Plan (传统)</th><th>Wargame (Mark 提出)</th></tr>
+    <tr>
+      <td><strong>假设</strong></td>
+      <td>线性成功路径(blue-sky scenario)</td>
+      <td><strong>枚举所有失败分支</strong>(pessimistic + optimistic)</td>
+    </tr>
+    <tr>
+      <td><strong>结构</strong></td>
+      <td>Phase 1 → 2 → 3,按时间线</td>
+      <td>Move → Reaction → Counteraction,按回合</td>
+    </tr>
+    <tr>
+      <td><strong>每个 step 内容</strong></td>
+      <td>任务 + 预期</td>
+      <td>动作 + observation + failure signal + failure cause + countermove</td>
+    </tr>
+    <tr>
+      <td><strong>执行者</strong></td>
+      <td>写 plan 的同一个模型(昂贵)</td>
+      <td><strong>便宜的 executor 模型</strong>(Opus 4.8 / GPT 5.5 / GLM)</td>
+    </tr>
+    <tr>
+      <td><strong>失败成本</strong></td>
+      <td>80% 烂尾,20% 最难的留给你</td>
+      <td>预先枚举好应对路径,执行时遇到 → 查 brief → 走 counteraction</td>
+    </tr>
+  </table>
+
+  <h3>三大元素(每个 move 必须包含)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <h4>1. Action - 动作</h4>
+      <p>这一步 AI 要做什么具体动作(e.g. 调用 API、读文件、修改 config)。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>2. Reaction - 现实反应</h4>
+      <p>执行动作后,现实"humility it by throwing some form of error" - 哪个具体的 error、长什么样、exit code 多少。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>3. Counteraction - 应对</h4>
+      <p>检测到 error 后的应对路径 - 重试 / 回滚 / 改方案 / 升级到 human-in-loop。</p>
+    </div>
+  </div>
+
+  <h3>具体例子:website API endpoint build</h3>
+  <pre>Move 1: AI 调用 POST /api/endpoint {param1, param2}
+  Observation (success): HTTP 200 + {result: {id: "xxx", status: "created"}}
+  Failure signal: HTTP 500 + {error: "DB connection timeout"}
+  Failure cause: 可能是 connection pool exhausted / DB restart 中
+  Counteraction:
+    - 先 retry 1 次(SET retries=3 in client)
+    - 仍 fail → 切换到 read replica
+    - 还 fail → flag 到 ledger.md 加 &lt;db_failures_today&gt; placeholder,等人工查
+
+Move 2: 验证结果数据完整性
+  Observation (success): SELECT COUNT(*) 跟写入数匹配
+  Failure signal: COUNT 不匹配(<strong>这是 silent corruption</strong>)
+  Failure cause: race condition / partial commit
+  Counteraction: 触发 reconciliation job + 通知 Slack #incident
+
+Move 3: 返回 response 给前端
+  ...</pre>
+
+  <div class="callout">
+    <strong>🧠 为什么这是 plan 的极限?</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">普通 plan 写"调用 API"就完了。Wargame 把每一步的"如果失败怎么办"全部显式化 - 这就是 Second/Third/Fourth order consequence 推演。执行者拿到这份 brief 即使智力不如 Fable 5,也不会"卡在 20% 最难的部分"。</p>
+  </div>
+</div>
+
+<!-- ============ TAB 4: PROMPT TEMPLATE ============ -->
+<div class="tab-content" data-tab-content="prompt">
+  <h2 class="section">📋 Prompt 模板 - 7 段固定结构</h2>
+
+  <h3>完整模板(每个 use case 都用同一段头)</h3>
+  <pre>War-game order.
+You are <strong>not</strong> executing this mission, you are purely war-gaming it.
+A cheaper executor model will run the brief below. [指定 executor: Opus 4.8 / GPT 5.5 / GLM / Sonnet 5]
+[可选] Tailor your prompt and war-game to how [executor] would execute it best.
+参考 [executor] 的官方文档 / system card / API reference。
+
+Then fight the mission on paper move by move and write it to
+war-games/&lt;name&gt;.markdown
+
+每个 move 必须包含:
+- Expected observation: 成功看到什么
+- Failure signal: 失败看到什么(包括具体 error message / exit code)
+- Failure cause: 哪类问题(常见:timeout / permission / data race / validation)
+- Countermove: 应对路径(retry / fallback / escalate)
+
+每条分叉(像迷宫分叉)给 trigger:
+"If you observe X → take route Y, otherwise route Z"
+
+最后收尾 3 段:
+1. <strong>Assumptions flag</strong> - 侦察 / due diligence 解决不了的变量,显式 flag 给用户
+2. <strong>Abort conditions</strong> - 什么情况整个 plan 停(无权限 / 资源耗尽 / 安全违规)
+3. <strong>End state + verification</strong> - open every page / exercise every link / 跑 smoke test
+
+[Mission brief 部分:use case 特定]
+
+# Website example:
+I'm rebuilding the marketing site for [business name].
+Current site: [problem description].
+Target audience (ICP): [who].
+Call to action: [what you want them to do].
+Framework: 你的选择。
+Sections: [list]。
+URL: [link]。
+Mobile-first 是硬要求。
+Verify before reporting: open each page, exercise every link.</pre>
+
+  <h3>关键设计原则</h3>
+  <table>
+    <tr><th>原则</th><th>为什么</th></tr>
+    <tr>
+      <td><strong>"You are not executing"</strong> 写在最前</td>
+      <td>Fable 5 容易默认"既然你给我 brief,我就执行"。这句话锁死它只推演,不实际跑。</td>
+    </tr>
+    <tr>
+      <td><strong>显式指定 executor 模型</strong></td>
+      <td>Fable 5 可以按目标模型 docs 优化 brief(例如 Opus 4.8 vs Sonnet 4.6 文风不同)。</td>
+    </tr>
+    <tr>
+      <td><strong>"move by move"</strong></td>
+      <td>防止 Fable 5 给你一份 high-level plan 而非细粒度 brief。</td>
+    </tr>
+    <tr>
+      <td><strong>write to war-games/&lt;name&gt;.markdown</strong></td>
+      <td>文件输出强制 - 后面 /goal 命令需要批量读取。</td>
+    </tr>
+    <tr>
+      <td><strong>每个 move 4 元素 + abort</strong></td>
+      <td>这 4 个元素 + abort condition 是 wargame vs plan 的本质区别。少一个就退化回 plan。</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <strong>💡 进阶:Claude Code Guide sub-agent</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">把 wargame 文件喂给 Claude Code Guide agent + prompt "tailor this to how Sonnet 5 would execute" → sub-agent 自动读 Sonnet 5 system card + 文档 → 输出<strong>目标模型专属版 wargame</strong>。精度再上一层,但需要 executor 模型已发布。</p>
+  </div>
+</div><!-- ============ TAB 5: STRUCTURE ============ -->
+<div class="tab-content" data-tab-content="structure">
+  <h2 class="section">📁 文件夹结构 + /goal + /loop 双命令</h2>
+
+  <h3>4 件套文件夹</h3>
+  <pre>fables-last-week/                    # 主目录(Mark 临时命名)
+├── tasks/                           # 10 个任务的 mission brief
+│   ├── 01-website-rebuild.md
+│   ├── 02-copy-rewrite.md
+│   ├── 03-local-ai-setup.md
+│   ├── 04-tax-optimization.md
+│   ├── 05-chatbot-improvements.md
+│   └── ...                          # 总共 10 个 .md
+├── war-games/                       # Fable 输出每个任务的 wargame markdown
+│   ├── website.markdown
+│   ├── copy.markdown
+│   └── ...
+├── success.md                       # 你定义的成功判据
+└── ledger.md                        # 卡住时填 &lt;var_name&gt; placeholder</pre>
+
+  <h3>每个文件的角色</h3>
+  <table>
+    <tr><th>文件</th><th>写什么</th><th>谁来写</th></tr>
+    <tr>
+      <td><code>tasks/&lt;name&gt;.md</code></td>
+      <td>Mission brief(用 5 个 use case 模板填空)</td>
+      <td>你(orchestrator)</td>
+    </tr>
+    <tr>
+      <td><code>war-games/&lt;name&gt;.markdown</code></td>
+      <td>Fable 5 输出的 wargame detail(move by move)</td>
+      <td>Fable 5(/goal 触发)</td>
+    </tr>
+    <tr>
+      <td><code>success.md</code></td>
+      <td>成功判据:每条 wargame 必须满足的 metric / 验证步骤</td>
+      <td>你(orchestrator)</td>
+    </tr>
+    <tr>
+      <td><code>ledger.md</code></td>
+      <td>Wargame 卡住时填 &lt;var_name&gt; placeholder,作为 human-in-loop 反馈</td>
+      <td>Fable 5(自动)+ 你(填值)</td>
+    </tr>
+  </table>
+
+  <h3>/goal + /loop 双命令 - 2 层 fan-out</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>/goal - 一次性 fan-out</h4>
+      <p><strong>Prompt</strong>: "Every mission file in /tasks has a first draft war game. Go through each one, loop through, and do the recon mission for each mission, write a war games file, and then draft all 10 before polishing any."</p>
+      <p style="margin-top: 8px;"><strong>效果</strong>:Fable 5 fan-out 10 个 sub-agent 并行写 war-games/* - "a million tokens later, you could have a war games folder that's fully populated"。</p>
+      <p style="margin-top: 8px; color: var(--text-dim);"><strong>关键</strong>:<em>draft all 10 before polishing any</em> - 先全 draft,后面 /loop 再 polish,避免一头扎进去单个 polish 浪费 token。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--purple);">
+      <h4>/loop - 周期性迭代</h4>
+      <p><strong>Prompt</strong>: "theoretically run /loop every 20 minutes, loop through every first draft until you really push it to its limits."</p>
+      <p style="margin-top: 8px;"><strong>效果</strong>:每 20 分钟 Fable 5 对每个 wargame draft 重新跑一轮 - 看能不能再加 countermove / assumption flag / 更细粒度的 failure signal。</p>
+      <p style="margin-top: 8px; color: var(--text-dim);"><strong>警告</strong>:<span class="badge warn">⚠️ Mark 没解释为什么 20 分钟</span> - 推测是 token cost 平衡,但没数据支撑(见 Tier 4 §video gaps)。</p>
+    </div>
+  </div>
+
+  <h3>ledger.md 协议详解</h3>
+  <blockquote>
+    "the whole point of it is pointing out anywhere where it's blocked. So, if it's war gaming and there's some form of variable that's undefined, it should populate a little parentheses variable placeholder for something that it needs your input"
+    <br>- <span style="color: var(--text-dim);">[11:06] Mark Kashef</span>
+  </blockquote>
+
+  <pre>ledger.md 示例:
+==========
+INPUTS NEEDED TO UNBLOCK:
+- business_type: (假定 SaaS B2B)
+- target_audience: (假定 Series A startup CTO)
+- problem_we_solve: (假定 developer onboarding friction)
+- success_metric: (假定 time-to-first-deploy < 10 min)
+
+UNRESOLVED ASSUMPTIONS:
+- postgres 是否已有 connection pool (假定有,需验证)
+- CI/CD pipeline 是否已配 (假定 GitHub Actions,需验证)
+==========</pre>
+
+  <div class="callout">
+    <strong>📌 与 Patrick 现有体系的映射:</strong>
+    <ul style="color: var(--text-dim); margin-top: 6px; padding-left: 24px;">
+      <li><code>/goal</code> ≈ <code>autonomous-ai-agents/agent-orchestration</code> 的 "orchestrator spawns workers" 范式</li>
+      <li><code>/loop</code> ≈ <code>devops/patricks-publish-pipeline-watchdog</code> 的 cron + auto-promote</li>
+      <li><code>ledger.md</code> ≈ human-in-loop checkpoint,跟 <code>productivity/human-validation-zones</code> 同源</li>
+      <li>wargame 文件夹 ≈ file-system 实现 KG,跟 <code>knowledge-synthesis/graphify</code> 同源</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ TAB 6: USE CASES ============ -->
+<div class="tab-content" data-tab-content="usecases">
+  <h2 class="section">🛠️ 5 个 Use Case 模板(填空即用)</h2>
+
+  <table>
+    <tr><th>#</th><th>Use Case</th><th>填空字段</th><th>Mark 演示深度</th></tr>
+    <tr>
+      <td><strong>1</strong></td>
+      <td><strong>Website marketing build</strong></td>
+      <td>
+        <code>business</code> / <code>problem</code> / <code>ICP</code> / <code>CTA</code> / <code>framework</code> / <code>sections</code> / <code>URL</code> / <code>mobile-first</code>
+      </td>
+      <td><span class="badge mitig">✅ 完整模板</span>(7:42-8:22)</td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td><strong>Copy 撰写</strong></td>
+      <td>
+        <code>ICP</code> / <code>mental state</code>(读者此刻心态)/ <code>brand voice</code> / 每 section(标题/正文/CTA)
+      </td>
+      <td><span class="badge warn">⚠️ 口头提及</span>(8:22-8:44)</td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td><strong>本地 AI setup</strong></td>
+      <td>
+        <code>chip/RAM/GPU/disk</code> → 选 runtime → 找最佳 model → 测 tokens/sec → 集成 tax advisor
+      </td>
+      <td><span class="badge warn">⚠️ 口头提及</span>(8:44-9:33)</td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td><strong>Tax optimization</strong></td>
+      <td>
+        现有业务 / accountant 视角 / 现有 tax 优化 / 探索新优化路径
+      </td>
+      <td><span class="badge warn">⚠️ 口头提及</span>(9:33-9:52)</td>
+    </tr>
+    <tr>
+      <td><strong>5</strong></td>
+      <td><strong>Chatbot self-teaching</strong></td>
+      <td>
+        现有 chatbot / 历史 mistake 库 / self-teaching 机制设计
+      </td>
+      <td><span class="badge warn">⚠️ 口头提及</span>(9:52-10:14)</td>
+    </tr>
+  </table>
+
+  <h3>Mark 没明说的 use cases(实战时自行扩展)</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>🐛 Bug fixing</h4>
+      <p>已有 issue 描述 + stack trace → wargame 出"所有可能的 root cause + 验证方法 + fix 路径"。给 Opus 4.8 拿着 brief 排查,不用 Fable 5 现场推理。</p>
+    </div>
+    <div class="card">
+      <h4>📊 财务模型</h4>
+      <p>SaaS pricing / unit economics / runway model → wargame 出"每个假设的敏感性 + 失败时的应对"。</p>
+    </div>
+    <div class="card">
+      <h4>🔍 竞品分析</h4>
+      <p>3-5 个竞品 → wargame 出"每个竞品的每个 feature 维度 + 我们能不能做 + 怎么做"。</p>
+    </div>
+    <div class="card">
+      <h4>🧑‍💼 Advisor council</h4>
+      <p>"混合使用 Claude + Codex + 开源模型" - 多个模型的协同 wargame,看哪种 task 组合最优化。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>📌 Patrick 实战映射(候选):</strong>
+    <ul style="color: var(--text-dim); margin-top: 6px; padding-left: 24px;">
+      <li><strong>Use case 1 (website)</strong> → <code>xjb v7/v5</code> 营销页 + <code>agentic-os-dashboard</code></li>
+      <li><strong>Use case 3 (本地 AI)</strong> → <code>mlops/apple-silicon-llama-server</code> setup 决策树</li>
+      <li><strong>Use case 5 (chatbot self-teaching)</strong> → Hermes cron 错误累积 + self-improve loop</li>
+      <li><strong>Bug fixing (扩展)</strong> → <code>publish-pipeline-watchdog</code> 出错时触发 wargame 给 Codex CLI 完整 failure-tree brief</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ TAB 7: RELATED (17 cards) ============ -->
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🔗 与 Patrick 工作的关联(17-card roster)</h2>
+
+  <h3>Tier 1 - 8 个核心 skill 关联(完全同源 / 同源)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>media/video-to-knowledge-dashboard</h4>
+      <p>Fable 系列第 5 部(继 Karpathy / Ondřej / Jay E / Peter Yang / Jack Roberts 之后)。Mark 的 wargame 模板 = 比 plan 更高保真的 brief,可作为下游任意模型输入。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>knowledge-synthesis/graphify</h4>
+      <p>graphify 把 codebase 转 KG,Mark wargame 把 project 转 executable KG。本质:<strong>structured-knowledge-as-handoff-format</strong>。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>knowledge-synthesis/understand-anything</h4>
+      <p>understand-anything 给 codebase 交互式地图;wargame 给 project 决策树地图。同一个"把复杂系统结构化"哲学。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>autonomous-ai-agents/agent-orchestration</h4>
+      <p><code>/goal</code> + <code>/loop</code> 双命令本质 = <strong>2 层 fan-out orchestration</strong>(一次性 fan-out + 周期性 loop),跟 orchestrator spawns workers 同范式。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>autonomous-ai-agents/fable-vs-hermes-capability-gap</h4>
+      <p>Hermes Agent 已用 "cheap model + structured prompt" 范式(见 <code>claude-api-pitfalls</code>)。Mark wargame = 这个范式的 Fable 5 终局版。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>research/llm-wiki</h4>
+      <p>Karpathy LLM Wiki 强调"结构化知识"。Mark wargame 是<strong>结构化执行知识</strong>,可视为 LLM Wiki 在 execution 维度的延伸。</p>
+      <div class="badge-row"><span class="badge source">同源警示</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>agentic-os/llm-protocol-router</h4>
+      <p>"a cheaper executor model will run the brief below" = explicit routing instruction,跟 llm-protocol-router 按任务类型选模型同思想。</p>
+      <div class="badge-row"><span class="badge source">同源</span></div>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>devops/patricks-publish-pipeline-watchdog</h4>
+      <p>已有 "cron + watchdog + auto-promote" 三件套。Mark 的 <code>/loop</code> 命令 = 同样的周期性 self-iteration。</p>
+      <div class="badge-row"><span class="badge source">同源警示</span></div>
+    </div>
+  </div>
+
+  <h3>Tier 2 - 5 个 conditional skill</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>media/video-bidirectional-mapping</h4>
+      <p>Mark 视频承诺 5 个 use case 但只 wargame 1 个(website) - 4 个只口头提,典型的"标题深度 vs 内容深度"模式,值得在 Tier 4 标 BLIND SPOT。</p>
+      <div class="badge-row"><span class="badge source">同源</span></div>
+    </div>
+    <div class="card">
+      <h4>creative/rich-html-output</h4>
+      <p>wargame markdown 输出格式跟 HTML 无关,但 Composition Pattern F 的"结构化文档优先"理念适用。</p>
+      <div class="badge-row"><span class="badge neutral">中性</span></div>
+    </div>
+    <div class="card">
+      <h4>knowledge-synthesis/graphify-obsidian-baseline</h4>
+      <p>wargame folder(<code>tasks/</code> + <code>war-games/</code> + <code>ledger.md</code>)就是 <strong>node-edge-node graph</strong> 的 file-system 实现。</p>
+      <div class="badge-row"><span class="badge source">同源</span></div>
+    </div>
+    <div class="card">
+      <h4>meta/how-to-sell</h4>
+      <p>Mark 没有 sell 自己产品(虽然结尾推 community),比 Peter Yang / Jack Roberts 都克制 - 体现"内容为王"哲学。</p>
+      <div class="badge-row"><span class="badge neutral">中性</span></div>
+    </div>
+    <div class="card">
+      <h4>agentic-os/gstack</h4>
+      <p>23 specialists 跟"用便宜 executor 跑 wargame"是同一思想:GStack = many cheap specialists under one orchestration。</p>
+      <div class="badge-row"><span class="badge source">同源</span></div>
+    </div>
+  </div>
+
+  <h3>Tier 3 - 4 个 context skill</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>research/distributed-research-playbook</h4>
+      <p>wargame 是 short-term project 工具,不是 10-year research 范式。</p>
+      <div class="badge-row"><span class="badge neutral">中性</span></div>
+    </div>
+    <div class="card">
+      <h4>extract-youtube-video</h4>
+      <p>视频底层提取是所有 video-to-knowledge-dashboard 的前置(本 dashboard 也跑过)。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card">
+      <h4>mlops/apple-silicon-llama-server</h4>
+      <p>Mark "本地 AI setup" use case 直接对应 llama-server。Mark 说 "obvious in the not-so-distant future, we're going to be offloading more tasks to open-source and very cheap models" = Patrick 已在做的方向。</p>
+      <div class="badge-row"><span class="badge mitig">完全同源</span></div>
+    </div>
+    <div class="card">
+      <h4>autonomous-ai-agents/dual-ai-peer-review</h4>
+      <p>wargame 输出未经过 peer review,可能漏关键 counteraction。建议 wargame 完成后走 dual-ai review(Claude + Codex)。</p>
+      <div class="badge-row"><span class="badge neutral">中性</span></div>
+    </div>
+  </div>
+</div><!-- ============ TAB 8: TIER 4 ANTI-MAPPING ============ -->
+<div class="tab-content" data-tab-content="tier4">
+  <h2 class="section">⚔️ Tier 4:视频承诺 vs 实际交付(7 项反差)</h2>
+
+  <p style="color: var(--text-dim); margin-bottom: 16px;">
+    以下是 Mark 视频里的 7 个 BLIND SPOT - 有些他承认(假设值、20 分钟硬编码、未 benchmark),有些是隐含 gap(没解释的部分)。Patrick 实战时必须警惕,不能照搬。
+  </p>
+
+  <h3>Gap 1:5 个 Use Case 只详细 1 个</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ 视频承诺</h5>
+      <p>5 个 use case 模板(website / copy / 本地 AI / tax / chatbot)。</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--yellow);">
+      <h5>⚠️ 实际交付</h5>
+      <p>只有 website 有完整 prompt 模板 demo(7:42-8:22),其他 4 个口头提"fill in the blanks" - <strong>没 demo 输出</strong>。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>真用时必须自己跑另外 4 个 - 把每个 use case 第一个 wargame 先写到 war-games/,验证模板可行。Patrick candidate = 优先跑 <strong>Use case 3 (本地 AI)</strong> 跟 llama-server 实战对齐。
+  </div>
+
+  <h3>Gap 2:Demo 用假设值,真生产必须填 ledger</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ Mark 自己承认 [12:42]</h5>
+      <p>"I asked it to assume different values for those variables" - 他的 demo 让 Fable 5 假设 business type / audience / problem。</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--red);">
+      <h5>⚠️ 实际影响</h5>
+      <p>真实 wargame 缺这些值会卡住,Fable 5 不知道推到哪一步。<strong>必须填 ledger.md 的 &lt;var_name&gt; placeholder</strong>,否则 wargame 输出半残。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>Patrick 写 wargame 任务前先在 <code>tasks/&lt;name&gt;.md</code> 把 8-12 个关键变量写明(参考 Mark 模板的填空字段),不让 Fable 5 假设。
+  </div>
+
+  <h3>Gap 3:/loop 的 20 分钟硬编码无解释</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ 视频承诺</h5>
+      <p>/loop every 20 minutes,loop through every first draft。</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--red);">
+      <h5>⚠️ 实际</h5>
+      <p><strong>为什么是 20 分钟?</strong>没数据支撑。推测是 token cost 平衡或 Fable 5 自己的 polling interval,但 Mark 没解释。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>Patrick 实战先跑短 wargame(5 个 task)测不同 interval(10/20/60 min),看 polish 质量增益 vs token cost。/loop 频率是经验参数,不是定律。
+  </div>
+
+  <h3>Gap 4:"Opus 4.8 / GPT 5.5 / GLM" 都未实测 benchmark</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ 视频承诺</h5>
+      <p>"give this same plan to something like an Opus 4.8 or a GPT 5.5 or maybe even a very sophisticated open-source model like GLM"</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--red);">
+      <h5>⚠️ 实际</h5>
+      <p><strong>三个模型都没实测对比</strong>。具体哪个最适合 wargame brief 执行?不知道。Opus 4.8 是不是真比 GLM 在 brief-following 上更强?Mark 没回答。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>Patrick 实战 = 同一 wargame brief 喂 3 个模型(Opus 4.8 / GPT 5.5 / GLM-5.2),对比完成率 / 错误率 / token 成本。这是 Action plan #3 的核心。
+  </div>
+
+  <h3>Gap 5:Sonnet 5 在 [12:47] 提到,但官方未发布</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ 视频说</h5>
+      <p>"tailor this war game to exactly how Sonnet 5 would execute it"</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--yellow);">
+      <h5>⚠️ 实际</h5>
+      <p>Anthropic 截至 2026-07 仍未公开发布 Sonnet 5 - Mark 是<strong>预测/泄露</strong>,需 verify。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>Patrick 实战前先 <code>curl anthropic.com/release-notes</code> 看 Sonnet 5 是否发布,没发布则用 Sonnet 4.6 / Opus 4.8 代替。
+  </div>
+
+  <h3>Gap 6:Claude Code Guide sub-agent 也没实测</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ 视频说</h5>
+      <p>"tag a Claude Code Guide agent and tailor this war game to exactly how Sonnet 5 would execute"</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--red);">
+      <h5>⚠️ 实际</h5>
+      <p>Claude Code Guide agent 的 capability、context window、能否读 Sonnet 5 system card - <strong>都没 demo</strong>。Mark 跳过了这一段的实际验证。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>这是 Mark 的"layer 2 增强"建议,Patrick 可先跳过 - <strong>先验证 layer 1 (wargame brief 是否有效)</strong>,layer 2 后面再说。
+  </div>
+
+  <h3>Gap 7:结尾推 community 但没量化价值</h3>
+  <div class="card-grid">
+    <div class="cmp bad">
+      <h5>❌ Mark 提</h5>
+      <p>"drop all kinds of nuggets that you'll never see on YouTube in my early adopters community"</p>
+    </div>
+    <div class="cmp good" style="border-left-color: var(--green);">
+      <h5>⚠️ 实际</h5>
+      <p><strong>没价格、没成员数、没具体收益</strong>。比 Peter Yang / Jack Roberts 都克制 - 反而更可信,但 Patrick 无法判断是否值得加入。</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Mitigation:</strong>Patrick 决策前先 <code>search "AI with Mark" community review</code> + 查 Reddit / X 反馈,不要被"克制"打动就加入。
+  </div>
+
+  <div class="callout" style="background: rgba(74, 222, 128, 0.08); border-color: rgba(74, 222, 128, 0.3);">
+    <strong>📊 Tier 4 总评:</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">Mark 视频<strong>框架完整(7 段 prompt + 4 件套 + 双命令)</strong>但<strong>细节验证不全(5 个 use case 只 1 个实测、3 个 executor 模型无 benchmark、Sonnet 5 未知)</strong>。<strong>推荐使用度:7/10</strong>(框架值得 copy,具体数字/参数需要 Patrick 实战校准)。</p>
+  </div>
+</div>
+
+<!-- ============ TAB 9: QUOTES ============ -->
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 双语金句库(15 quotes · 4 大类)</h2>
+
+  <p style="color: var(--text-dim); margin-bottom: 16px;">完整双语对照见 vault: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/bilingual-quotes.md</code></p>
+
+  <h3>一、哲学类 (Philosophy) - Q1-Q5</h3>
+  <div class="quote-grid">
+    <div class="quote-card yellow">
+      <div class="q-en">"if you're paying for Claude right now, you have a couple days left to use Fable 5 as a part of your existing subscription, at least for now."</div>
+      <div class="q-zh">"如果你现在正付费用 Claude,你还有几天时间可以在现有订阅里用 Fable 5,至少目前是这样。"</div>
+      <div class="q-meta">[00:01] · 时效性视频定调 · 开门见山</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="q-en">"the goal of this video is I want to give you a third move. One that takes the single most valuable thing that I find about Fable 5 and allows you to use it well after it's out of your subscription."</div>
+      <div class="q-zh">"这个视频的目标是给你第三种选择。一种能把 Fable 5 我觉得最有价值的那个特质拿出来,让你在订阅里没有它之后还能用得很好。"</div>
+      <div class="q-meta">[00:22] · 拒绝 binary choice · 给出第三种打法</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="q-en">"you can implore and elicit models like Fable in the time that you have to pull these questions out and guide you in areas where you would never have thought to go before."</div>
+      <div class="q-zh">"你可以恳请并引出像 Fable 这样的模型,在你还有的时间里把这些问题拉出来,引导你去往你之前绝不会想到的方向。"</div>
+      <div class="q-meta">[02:29] · <strong>核心论点</strong> · elicit Unknown Unknowns</div>
+    </div>
+    <div class="quote-card purple">
+      <div class="q-en">"It is not rocket science, but it's really taking the paradigm of planning and taking it to its natural extreme, where you can take all the benefit and the raw intelligence of Fable to pull out how it would do something and just emulate that with existing models that are way cheaper and hopefully won't just disappear in the snap of a finger."</div>
+      <div class="q-zh">"这并不高深,但它真的是把 planning 这个范式推到自然极限 - 你能拿走 Fable 的全部好处和原始智力,提取它会怎么做一件事,然后用便宜得多、希望不会一夜消失的现有模型来仿真它。"</div>
+      <div class="q-meta">[13:11] · 终极总结 · planning 的自然极限 = wargame</div>
+    </div>
+    <div class="quote-card blue">
+      <div class="q-en">"The whole point of war-gaming is that you have the AI break down every course of action move by move and every possible scenario that it could encounter based on its prior experience."</div>
+      <div class="q-zh">"Wargame 的全部要点就是让 AI 按回合拆解每个行动和它基于过往经验可能遇到的每个场景。"</div>
+      <div class="q-meta">[03:06] · <strong>Wargame 定义</strong> · "按回合"是关键</div>
+    </div>
+  </div>
+
+  <h3>二、架构类 (Architecture) - Q6-Q10</h3>
+  <div class="quote-grid">
+    <div class="quote-card green">
+      <div class="q-en">"with a model this capable, you're no longer held back by raw intelligence. You're held back by the things that you don't know as the orchestrator."</div>
+      <div class="q-zh">"在这么能干的模型面前,你不再被原始智力卡住。你被作为 orchestrator 不知道的事情卡住。"</div>
+      <div class="q-meta">[01:51] · 引用 Anthropic 工程师文章 · orchestrator 盲区 > 模型智力</div>
+    </div>
+    <div class="quote-card green">
+      <div class="q-en">"it's the equivalent of bringing a top-rated surgeon and asking them to write you a diagram of how you would operate on someone versus actually having them do."</div>
+      <div class="q-zh">"这相当于请一个顶级外科医生来,让他给你画一张手术示意图,而不是真的让他做手术。"</div>
+      <div class="q-meta">[01:30] · Plan vs Execution 类比 · 让 Fable 写 plan 是浪费</div>
+    </div>
+    <div class="quote-card">
+      <div class="q-en">"you have action, reaction, and counteraction. So, the AI makes a move, and then reality humbles it by throwing some form of error, and then it has to take some form of counteraction to try to resolve this error. And this is what we call the modern-day agentic loop."</div>
+      <div class="q-zh">"你有动作、反应、和反制。所以 AI 走一步,然后现实给它一个错误让它谦虚一下,然后它必须采取某种反制来尝试解决这个错误。这就是我们说的现代 agentic loop。"</div>
+      <div class="q-meta">[03:19] · <strong>三大元素定义</strong> · 跟 Hermes agent loop 同源</div>
+    </div>
+    <div class="quote-card">
+      <div class="q-en">"If you give this same plan to something like an Opus 4.8 or a GPT 5.5 or maybe even a very sophisticated open-source model like GLM, then most likely it would have a much easier time to combine its harness with understanding all the possible realities that have already been simulated by Fable and execute them much more confidently."</div>
+      <div class="q-zh">"如果你把同一份 plan 给 Opus 4.8 或 GPT 5.5 甚至非常复杂的开源模型如 GLM,大概率它们能更容易把自己的 harness 跟 Fable 5 已经模拟过的所有可能现实结合起来,更自信地执行。"</div>
+      <div class="q-meta">[03:57] · <strong>便宜模型在 wargame 后执行更强</strong></div>
+    </div>
+    <div class="quote-card">
+      <div class="q-en">"And this is the part where you come in and you decide how far to war-game a certain scenario."</div>
+      <div class="q-zh">"而这是你介入的地方,你决定把某个场景推演到什么层级。"</div>
+      <div class="q-meta">[04:46] · Second/third/fourth order consequence 由你决定深度</div>
+    </div>
+  </div>
+
+  <h3>三、命令/模板类 (Commands) - Q11-Q13</h3>
+  <div class="quote-grid">
+    <div class="quote-card green">
+      <div class="q-en">"War-game order. You are not executing this mission, you are purely war-gaming it."</div>
+      <div class="q-zh">"Wargame 命令。你不是在执行这个任务,你只是在推演它。"</div>
+      <div class="q-meta">[05:37] · <strong>Prompt 第 1 段固定</strong> · 锁死 Fable 不执行</div>
+    </div>
+    <div class="quote-card green">
+      <div class="q-en">"Then fight the mission on paper move by move and write it to war-games/&lt;name&gt;.markdown"</div>
+      <div class="q-zh">"然后在纸上按回合拆解这个任务,写到 war-games/&lt;name&gt;.markdown。"</div>
+      <div class="q-meta">[06:03] · <strong>第 2 段</strong> · 强制文件输出</div>
+    </div>
+    <div class="quote-card">
+      <div class="q-en">"Every mission file in /tasks has a first draft war game. Go through each one, loop through, and do the recon mission for each mission, write a war games file, and then draft all 10 before polishing any."</div>
+      <div class="q-zh">"/tasks 里的每个任务文件都有第一版 wargame draft。逐个走一遍,执行侦察任务,写 wargame 文件,然后 <strong>先把 10 个全部 draft 完再 polish 任何一个</strong>。"</div>
+      <div class="q-meta">[11:24] · <strong>/goal 命令</strong> · 避免单点 polish 浪费</div>
+    </div>
+  </div>
+
+  <h3>四、局限/警示类 (Limits) - Q14-Q15</h3>
+  <div class="quote-grid">
+    <div class="quote-card yellow">
+      <div class="q-en">"In my case, since I'm just walking you through this as a demo, I asked it to assume different values for those variables."</div>
+      <div class="q-zh">"在我这里,因为只是 demo 演示,我让它假设了那些变量的不同值。"</div>
+      <div class="q-meta">[12:42] · <strong>Mark 承认 demo 假设值</strong> · 真生产必须填 ledger</div>
+    </div>
+    <div class="quote-card yellow">
+      <div class="q-en">"they're either panicking and throwing hundreds of thousands of tokens at random tasks before the clock runs out, or they're just shrugging and barely using it to begin with."</div>
+      <div class="q-zh">"他们要么在最后期限前疯狂把几十万 token 砸到随机任务上,要么就是摆烂,从一开始就没怎么用。"</div>
+      <div class="q-meta">[00:14] · 描述第一种+第二种打法 · Mark 反对两种</div>
+    </div>
+  </div>
+</div><!-- ============ TAB 10: TIMELINE ============ -->
+<div class="tab-content" data-tab-content="timeline">
+  <h2 class="section">⏱️ 完整时间戳(39 entries)</h2>
+
+  <p style="color: var(--text-dim); margin-bottom: 16px;">来源:vault note §六、完整时间戳。逐条标注重点。</p>
+
+  <div class="timeline">
+    <div class="tl-item"><span class="tl-time">[00:01]</span><span class="tl-what">Fable 5 几天后撤出 Claude 订阅</span></div>
+    <div class="tl-item"><span class="tl-time">[00:09]</span><span class="tl-what">大多数人会因为 token 价格离谱而少用</span></div>
+    <div class="tl-item"><span class="tl-time">[00:14]</span><span class="tl-what">两种反应:panic 囤 token vs 摆烂</span></div>
+    <div class="tl-item"><span class="tl-time">[00:22]</span><span class="tl-what">第三种打法:抢救 Fable 5 最具杠杆的特质</span></div>
+    <div class="tl-item"><span class="tl-time">[00:33]</span><span class="tl-what">Mark 之前发过"如何从历史对话提取 raw intelligence"视频</span></div>
+    <div class="tl-item"><span class="tl-time">[00:49]</span><span class="tl-what">比 build every idea / simple plan 更强:<strong>任何模型都能执行的详尽 brief</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[01:04]</span><span class="tl-what">Anthropic 官方:Fable 是 long-range task executor,<strong>不是 plan writer</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[01:30]</span><span class="tl-what">Plan vs execution 类比:让外科医生画手术图 vs 让他真的做手术</span></div>
+    <div class="tl-item"><span class="tl-time">[01:37]</span><span class="tl-what">Anthropic 工程师发文:模型不再被 intelligence 卡住,<strong>被 orchestrator 盲区卡住</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[02:00]</span><span class="tl-what">Known Knowns / Known Unknowns / <strong>Unknown Knowns</strong> / <strong>Unknown Unknowns</strong> 框架</span></div>
+    <div class="tl-item"><span class="tl-time">[02:29]</span><span class="tl-what"><strong>Fable 5 真正不可替代</strong>:elicit Unknown Unknowns</span></div>
+    <div class="tl-item"><span class="tl-time">[02:41]</span><span class="tl-what">开始实操 demo</span></div>
+    <div class="tl-item"><span class="tl-time">[02:56]</span><span class="tl-what">Plan 假设线性成功,wargame 枚举分支</span></div>
+    <div class="tl-item"><span class="tl-time">[03:06]</span><span class="tl-what"><strong>Wargame 定义</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[03:19]</span><span class="tl-what">三大元素:action / reaction / counteraction</span></div>
+    <div class="tl-item"><span class="tl-time">[03:33]</span><span class="tl-what">具体例子:website API endpoint build</span></div>
+    <div class="tl-item"><span class="tl-time">[03:57]</span><span class="tl-what"><strong>便宜模型在 wargame 后执行更强</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[04:20]</span><span class="tl-what">Second/third/fourth order consequence - 模拟多层级后果</span></div>
+    <div class="tl-item"><span class="tl-time">[04:46]</span><span class="tl-what">大多数人 2026-07-08 后 = 80% 完成 + 20% 烂尾</span></div>
+    <div class="tl-item"><span class="tl-time">[04:52]</span><span class="tl-what">Wargame 输出 = 10 个完整 blueprint 任何时候都能跑</span></div>
+    <div class="tl-item"><span class="tl-time">[05:35]</span><span class="tl-what"><strong>Prompt 第 1 段模板</strong>:"War-game order. You are not executing..."</span></div>
+    <div class="tl-item"><span class="tl-time">[06:03]</span><span class="tl-what"><strong>第 2 段模板</strong>:"fight the mission on paper move by move..."</span></div>
+    <div class="tl-item"><span class="tl-time">[06:15]</span><span class="tl-what"><strong>不要 implement separately</strong> - 一次跑所有 wargame</span></div>
+    <div class="tl-item"><span class="tl-time">[06:38]</span><span class="tl-what"><strong>每个 move 4 元素</strong>:expected observation / failure signal / failure cause / countermove</span></div>
+    <div class="tl-item"><span class="tl-time">[06:57]</span><span class="tl-what">Opus 4.8 等模型的弱点:看不够远,需要 Codex over-shoulder 检查</span></div>
+    <div class="tl-item"><span class="tl-time">[07:10]</span><span class="tl-what">类比迷宫:每个 fork 有 trigger,observe X → take route Y</span></div>
+    <div class="tl-item"><span class="tl-time">[07:19]</span><span class="tl-what">Assumptions flag 给用户确认</span></div>
+    <div class="tl-item"><span class="tl-time">[07:24]</span><span class="tl-what"><strong>Abort conditions</strong> - 什么情况整个 plan 停</span></div>
+    <div class="tl-item"><span class="tl-time">[07:42]</span><span class="tl-what">Use case 1:<strong>Website marketing build 模板</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[08:22]</span><span class="tl-what">Use case 2:<strong>Copy 撰写 模板</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[08:44]</span><span class="tl-what">Use case 3:<strong>本地 AI setup 模板</strong>(chip/RAM/GPU/选模型/tokens-per-second)</span></div>
+    <div class="tl-item"><span class="tl-time">[09:33]</span><span class="tl-what">Use case 4:<strong>Tax optimization 模板</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[09:52]</span><span class="tl-what">Use case 5:<strong>Chatbot self-teaching 模板</strong></span></div>
+    <div class="tl-item"><span class="tl-time">[10:14]</span><span class="tl-what">Advisor council:混合使用 Claude + Codex + 开源模型</span></div>
+    <div class="tl-item"><span class="tl-time">[10:31]</span><span class="tl-what">文件夹结构:<code>tasks/</code> + <code>war-games/</code> + <code>success.md</code> + <code>ledger.md</code></span></div>
+    <div class="tl-item"><span class="tl-time">[10:54]</span><span class="tl-what">Success.md 内容:你定义的成功判据</span></div>
+    <div class="tl-item"><span class="tl-time">[11:06]</span><span class="tl-what">Ledger 的核心作用:卡住的 variable 填 placeholder</span></div>
+    <div class="tl-item"><span class="tl-time">[12:42]</span><span class="tl-what"><span class="badge warn">⚠️ Mark 自己 demo 时假设值</span> - 真生产必须填 ledger</span></div>
+    <div class="tl-item"><span class="tl-time">[13:11]</span><span class="tl-what">终极论点 - "planning 的自然极限"</span></div>
+  </div>
+</div>
+
+<!-- ============ TAB 11: ACTION PLAN ============ -->
+<div class="tab-content" data-tab-content="action">
+  <h2 class="section">🗺️ 实战路线(8 actions · 3 时段)</h2>
+
+  <h3>Immediate - 本周 (3 项)</h3>
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>① 把 wargame 模板写进 Hermes skill</h4>
+      <p>新 skill <code>~/.hermes/skills/agentic-os/fable-wargame-template/</code>,含 5 个 use case 模板 + <code>/goal</code> + <code>/loop</code> 命令实现 + <code>ledger.md</code> 协议。</p>
+      <p style="margin-top: 8px; color: var(--text-dim);">⚡ <strong>优先级 HIGH</strong> - Fable 5 还有 2-3 天,先固化模板</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>② 跑一次实验</h4>
+      <p>选 Patrick 当前 1 个未完成项目(候选 = Neo Labs tracker 月度报告 / 驾迹 v0.2 / agentic-os-dashboard),用 wargame 模板跑一遍,跟之前 plan-based 输出对比。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <h4>③ 比较 result (3 executor 模型)</h4>
+      <p>wargame 输出的 brief 给 <strong>Hermes-M2</strong>(便宜)vs <strong>Opus 4.6</strong>(中等)vs <strong>GLM-5.2</strong>(开源)分别执行,对比 (a) 完成率 (b) 错误率 (c) token 成本。</p>
+    </div>
+  </div>
+
+  <h3>Short-term - 本月 (3 项)</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>④ 跟 cron 集成</h4>
+      <p><code>/loop</code> 命令语义跟 cron 重复触发一致。考虑加 cron <code>wargame-refresh-daily</code> = 每晚自动对 in-progress wargame 跑一次新 draft。</p>
+    </div>
+    <div class="card">
+      <h4>⑤ 跟 publish-pipeline-watchdog 协同</h4>
+      <p>publish pipeline 出问题时,触发 wargame 模式给 Codex CLI / Claude Code 一个<strong>完整 failure-tree brief</strong>,而不是一句"请修"。</p>
+    </div>
+    <div class="card">
+      <h4>⑥ 跟 dual-ai-peer-review 集成</h4>
+      <p>wargame 输出走 dual-ai review(Claude + Gemini / Claude + Codex),降低"漏 counteraction"风险。</p>
+    </div>
+  </div>
+
+  <h3>Long-term - 季度 (2 项)</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>⑦ 建立 wargame library</h4>
+      <p>每个已完成项目的 wargame 沉淀进 <code>research/llm-wiki</code> 子目录,作为后续项目的模板参考(类似代码 snippet library)。</p>
+    </div>
+    <div class="card">
+      <h4>⑧ 评估 Sonnet 5 + GLM 5.2 适配</h4>
+      <p>Claude Code Guide agent 的"tailor to specific model"思路值得推广到其他目标模型(尤其 Hermes-M3 / Sonnet 5 / GLM 5.2 等非 Opus 系列)。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>📌 推荐优先级:</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">① (本周) > ⑤ (跟现有体系整合,杠杆最大) > ③ (验证 gap 4) > 其他。</p>
+  </div>
+</div>
+
+<!-- ============ TAB 12: VIDEO LIMITS ============ -->
+<div class="tab-content" data-tab-content="limits">
+  <h2 class="section">⚠️ 视频本身的局限(Patrick 自己解析,非视频内容)</h2>
+
+  <p style="color: var(--text-dim); margin-bottom: 16px;">这 6 条是 Patrick 解构视角发现的"视频没说 / 没说透"的部分,不是视频内容,实战时必须警惕。</p>
+
+  <div class="card-grid">
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>1. Mark 自己 demo 时让 Fable 假设值 <span class="badge warn">[12:42]</span></h4>
+      <p>他说 "I asked it to assume different values" - 真生产环境你必须填 ledger.md 的 <code>&lt;var&gt;</code>,不能 demo 模式。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>2. 5 个 use case 只 wargame 了 1 个</h4>
+      <p>website 有详细模板,其他 4 个 (copy/本地 AI/tax/chatbot) 只口头提及 fill-in-the-blanks,<strong>没有 demo 输出</strong> - 真用时需要补。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>3. /loop 的 20 分钟硬编码</h4>
+      <p>没解释为什么是 20 分钟 - 可能跟 token cost 平衡,但没数据支撑。先实测再调。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>4. "Opus 4.8 / GPT 5.5 / GLM" 都未实测</h4>
+      <p>Mark 推荐这些模型作 executor 但没跑 benchmark - 真用时建议先小批测试 3 个对比。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--red);">
+      <h4>5. Sonnet 5 在 [12:47] 提到,但 Anthropic 官方发布列表截至 2026-07 仍未公开 Sonnet 5</h4>
+      <p>这是 Mark 的预测/泄露,需要 verify - 没发布前用 Sonnet 4.6 代替。</p>
+    </div>
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <h4>6. 结尾推 community 没量化价值</h4>
+      <p>不像 Peter Yang 那种具体销售数字。"克制"反而让 Patrick 无法判断是否值得加入。</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>📊 总结:</strong>
+    <p style="color: var(--text-dim); margin-top: 6px;">Mark 视频 <strong>框架完整(7/10)</strong> 但 <strong>细节验证不全(5/10)</strong>。<strong>可借鉴度 7/10</strong>:模板 + 文件夹结构 + 双命令直接 copy,具体数字(/loop interval)+ benchmark(executor 模型)+ 5 个 use case demo 需要 Patrick 自己跑一遍补全。</p>
+  </div>
+</div>
+
+<!-- ============ TAB 13: VENDORS ============ -->
+<div class="tab-content" data-tab-content="vendors">
+  <h2 class="section">📊 Vendor 提及表(Pitfall 60 - 第三方 product 不等于 Patrick 已用)</h2>
+
+  <p style="color: var(--text-dim); margin-bottom: 16px;">Mark 视频里出现的所有第三方产品,逐条 disambiguate - 避免误以为 Patrick 也实现。</p>
+
+  <table>
+    <tr><th>Mention</th><th>真实身份</th><th>URL</th><th>Patrick 现状</th></tr>
+    <tr>
+      <td>Claude (general)</td>
+      <td>Anthropic LLM 品牌总称</td>
+      <td><a href="https://www.anthropic.com" target="_blank">anthropic.com</a></td>
+      <td><span class="badge mitig">✅ 在用</span> (primary LLM)</td>
+    </tr>
+    <tr>
+      <td>Fable 5 / Fable</td>
+      <td>Anthropic model variant,7/8 起从 Pro/Max 订阅撤出</td>
+      <td><a href="https://www.anthropic.com/news/redeploying-fable-5" target="_blank">anthropic.com/news/redeploying-fable-5</a></td>
+      <td><span class="badge warn">⏰ 2-3 天后失去</span></td>
+    </tr>
+    <tr>
+      <td>Opus 4.8</td>
+      <td>Anthropic model,7/2026 发布</td>
+      <td><a href="https://www.anthropic.com/claude/opus" target="_blank">anthropic.com/claude/opus</a></td>
+      <td><span class="badge mitig">✅ 在用</span></td>
+    </tr>
+    <tr>
+      <td>Sonnet 4.6</td>
+      <td>Anthropic model,current generation</td>
+      <td><a href="https://www.anthropic.com/claude/sonnet" target="_blank">anthropic.com/claude/sonnet</a></td>
+      <td><span class="badge mitig">✅ 在用</span></td>
+    </tr>
+    <tr>
+      <td>Sonnet 5</td>
+      <td><span class="badge warn">⚠️ 推测/泄露</span>,Anthropic 未正式发布</td>
+      <td>-</td>
+      <td><span class="badge gap">❌ 未发布</span></td>
+    </tr>
+    <tr>
+      <td>GPT 5.5</td>
+      <td>OpenAI model</td>
+      <td><a href="https://openai.com" target="_blank">openai.com</a></td>
+      <td><span class="badge neutral">🟡 可用但非主用</span></td>
+    </tr>
+    <tr>
+      <td>Codex CLI</td>
+      <td>OpenAI Codex CLI(Patrick 已在用)</td>
+      <td><a href="https://github.com/openai/codex" target="_blank">github.com/openai/codex</a></td>
+      <td><span class="badge mitig">✅ 在用</span></td>
+    </tr>
+    <tr>
+      <td>GLM</td>
+      <td>Zhipu AI(智谱)开源 model,Mark 称为"very sophisticated open-source model"</td>
+      <td><a href="https://github.com/THUDM" target="_blank">github.com/THUDM</a></td>
+      <td><span class="badge warn">⚠️ 未实测</span></td>
+    </tr>
+    <tr>
+      <td>Claude Code</td>
+      <td>Anthropic 的 CLI coding tool</td>
+      <td><a href="https://www.anthropic.com/claude-code" target="_blank">anthropic.com/claude-code</a></td>
+      <td><span class="badge mitig">✅ 在用</span></td>
+    </tr>
+    <tr>
+      <td>Claude Code Guide agent</td>
+      <td>Anthropic 提供 sub-agent,读 Sonnet 5 system card</td>
+      <td><a href="https://docs.claude.com/en/docs/claude-code/sub-agents" target="_blank">docs.claude.com/en/docs/claude-code/sub-agents</a></td>
+      <td><span class="badge neutral">🟡 概念存在,未实测</span></td>
+    </tr>
+    <tr>
+      <td>LM Studio</td>
+      <td>开源 desktop LLM runner</td>
+      <td><a href="https://lmstudio.ai" target="_blank">lmstudio.ai</a></td>
+      <td><span class="badge gap">❌ 未用</span>(Patrick 用 llama.cpp / ollama)</td>
+    </tr>
+    <tr>
+      <td>"AI with Mark" community</td>
+      <td>Mark Kashef 的 paid community,2026-07 仍未公开价格/成员数</td>
+      <td>-</td>
+      <td><span class="badge gap">❌ 未评估</span></td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <strong>📌 备注:</strong>
+    <ul style="color: var(--text-dim); margin-top: 6px; padding-left: 24px;">
+      <li>Mark 提到的所有 "Claude X" 全部 = Anthropic,非 Patrick 实现</li>
+      <li>Sonnet 5 / GPT 5.5 / GLM 等数字型号需要 verify 当前最新版本号</li>
+      <li>Claude Code Guide agent 的能力边界需要官方 docs 二次确认</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ TAB 14: SUMMARY ============ -->
+<div class="tab-content" data-tab-content="summary">
+  <h2 class="section">🎓 一行启示 + Cross-references</h2>
+
+  <h3>一行启示</h3>
+  <blockquote style="font-size: 17px;">
+    <strong>Fable 5 不可替代的不是智力,而是它能把你的 Unknown Unknowns 显式化。Wargame 是把这个能力外化给便宜模型的最优路径。</strong>
+  </blockquote>
+
+  <h3>📚 Cross-references(必看)</h3>
+  <table>
+    <tr><th>资源</th><th>路径 / 链接</th></tr>
+    <tr><td>Fable 5 系列第 1 部 - Peter Yang "7 levels"</td><td><a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/2026-07-04-peter-yang-fable5-7levels/index.md">vault · Peter Yang Fable 7 Levels</a></td></tr>
+    <tr><td>Fable 5 系列第 1.5 部 - Karpathy LLM Wiki 实战</td><td><a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/fable5-karpathy-llm-wiki/index.md">vault · Karpathy LLM Wiki</a></td></tr>
+    <tr><td>Fable 5 系列第 2 部 - Jack Roberts 7 Levels 网站详解</td><td><a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/2026-07-06-jack-roberts-fable5-websites-levels.md">vault · Jack Roberts Fable 5</a></td></tr>
+    <tr><td>Claude Code instrumentalized claim 案例</td><td><a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/2026-07-02-instrumentalized-claim/index.md">vault · Instrumentalized Claim</a></td></tr>
+    <tr><td>Agents = New SaaS 框架 (Greg Isenberg)</td><td><a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/2026-07-03-greg-isenberg-agents-new-saas/index.md">vault · Agents New SaaS</a></td></tr>
+    <tr><td>Skill: video-to-knowledge-dashboard</td><td><code>~/.hermes/skills/media/video-to-knowledge-dashboard/</code></td></tr>
+    <tr><td>Skill: agent-orchestration</td><td><code>~/.hermes/skills/autonomous-ai-agents/agent-orchestration/</code></td></tr>
+    <tr><td>Skill: graphify</td><td><code>~/.hermes/skills/knowledge-synthesis/graphify/</code></td></tr>
+    <tr><td>Skill: apple-silicon-llama-server</td><td><code>~/.hermes/skills/mlops/apple-silicon-llama-server/</code></td></tr>
+  </table>
+
+  <div class="callout">
+    <strong>📊 本 dashboard metadata</strong>
+    <ul style="color: var(--text-dim); margin-top: 6px; padding-left: 24px; list-style: none;">
+      <li>Source: <a href="https://www.youtube.com/watch?v=nuwlyQXrADg" target="_blank">https://www.youtube.com/watch?v=nuwlyQXrADg</a></li>
+      <li>Vault note: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/index.md</code></li>
+      <li>中文 summary: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/zh-summary.md</code></li>
+      <li>Bilingual quotes: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/bilingual-quotes.md</code></li>
+      <li>Dashboard: <a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/papers/mark-kashef-fable5-save-2026-07-06/dashboard.html">vault copy</a></li>
+      <li>Public: https://2017zyl.xyz/daily-reports/mark-kashef-fable5-save-2026-07-06.html</li>
+      <li>Built: 2026-07-06 · Pipeline: video-to-knowledge-dashboard v1.5.32 · Pitfall 59 (existing v(N) check) · Pitfall 64 (master-takeover)</li>
+      <li>Series position: <strong>Fable 5 dashboard 第 5 部</strong>(Karpathy → Ondřej → Jay E → Peter Yang → Jack Roberts → Mark Kashef)</li>
+    </ul>
+  </div>
+</div>
+
+<footer>
+  <p>
+    <strong>Mark Kashef Fable 5 War-gaming 实操</strong> · 2026-07-06 · 
+    Built by Hermes Agent via <code>video-to-knowledge-dashboard</code> v1.5.32
+  </p>
+  <p style="margin-top: 8px;">
+    ⚠️ 本 dashboard 引用 vault note 已有的 3 件套 (index.md / zh-summary.md / bilingual-quotes.md),未重写内容 - Pitfall 59 (existing v(N)) + Patrick "旧版也留着" PREFERENCE。
+  </p>
+  <p style="margin-top: 8px;">
+    Tier 4 反差分析(7 gaps)为 Patrick 解构视角发现,非 Mark 原视频内容。
+  </p>
+</footer>
+
+<script>
+// TOC v1.4.4 collapsible - Pitfall 38/52 (Pitfall-aware)
+(function() {
+  const toc = document.getElementById('toc');
+  const toggle = document.getElementById('toc-toggle');
+  const STORAGE_KEY = 'mark-kashef-fable5-2026-07-06-toc-collapsed';
+
+  // Restore state from localStorage
+  const isCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
+  if (isCollapsed) {
+    toc.classList.add('collapsed');
+    document.body.classList.add('toc-collapsed');
+  }
+
+  toggle.addEventListener('click', function() {
+    toc.classList.toggle('collapsed');
+    document.body.classList.toggle('toc-collapsed');
+    const nowCollapsed = toc.classList.contains('collapsed');
+    localStorage.setItem(STORAGE_KEY, nowCollapsed ? '1' : '0');
+  });
+
+  // Tab switching + hash routing (v1.4.2 + 2026-06-26 upgrade)
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  const tocLinks = document.querySelectorAll('.toc a');
+
+  tabs.forEach(function(t) {
+    t.addEventListener('click', function() {
+      tabs.forEach(function(x) { x.classList.toggle('active', x === t); });
+      contents.forEach(function(c) { c.classList.toggle('active', c.dataset.tabContent === t.dataset.tab); });
+      history.replaceState(null, '', '#' + t.dataset.tab);
+      syncTocActive(t.dataset.tab);
+    });
+  });
+
+  function syncTocActive(tabName) {
+    tocLinks.forEach(function(a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + tabName);
+    });
+  }
+
+  // Init from URL hash on load
+  const initHash = location.hash.replace('#', '');
+  if (initHash) {
+    const target = document.querySelector('[data-tab="' + initHash + '"]');
+    if (target) target.click();
+    else syncTocActive('core');
+  } else {
+    syncTocActive('core');
+  }
+
+  // TOC click -> tab activation
+  tocLinks.forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      const hash = a.getAttribute('href').replace('#', '');
+      const target = document.querySelector('[data-tab="' + hash + '"]');
+      if (target) {
+        target.click();
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

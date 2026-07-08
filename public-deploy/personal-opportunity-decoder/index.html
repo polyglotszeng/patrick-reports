@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Opportunity Decoder v0.3.2 — 把别人的案例，翻译成你自己的可执行路线 · Day 6 recruit live</title>
+<meta name="description" content="For solo builders who watch too many AI/business videos and need to turn them into a personal build plan. v0.3.2: Day 6 recruit page live (recruit.html with countdown + 3 invitee targets).">
+<meta name="author" content="Patrick · personal-opportunity-decoder v0.3.2 · 2026-07-07">
+<style>
+  :root{
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2129; --border:#30363d;
+    --fg:#e6edf3; --fg-dim:#8b949e; --fg-muted:#6e7681;
+    --accent:#58a6ff; --green:#3fb950; --amber:#d29922; --red:#f85149; --purple:#a371f7;
+    --mono:'SF Mono',Monaco,'JetBrains Mono',ui-monospace,monospace;
+    --toc-w:240px; --toc-w-collapsed:48px;
+    /* emoji accent variables (per-card color) */
+    --c-thesis:#58a6ff; --c-moat:#a371f7; --c-fit:#3fb950; --c-gaps:#f85149; --c-build:#d29922;
+  }
+  /* light theme override (v0.3: prefers + manual toggle) */
+  body.light{
+    --bg:#ffffff; --surface:#f6f8fa; --surface2:#eef1f5; --border:#d0d7de;
+    --fg:#1f2328; --fg-dim:#57606a; --fg-muted:#8c959f;
+    --accent:#0969da; --green:#1a7f37; --amber:#9a6700; --red:#cf222e; --purple:#8250df;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,.mono{font-family:var(--mono);font-size:13px;color:var(--purple)}
+  /* layout: page pushes right of TOC (PITFALL #139 toc-sidebar v1.4.4 pattern) */
+  .layout{display:flex;min-height:100vh}
+  aside.toc{position:fixed;left:0;top:0;bottom:0;width:var(--toc-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:24px 14px;transition:width 0.3s ease,transform 0.3s ease;z-index:100}
+  aside.toc.collapsed{width:var(--toc-w-collapsed);padding:24px 6px}
+  aside.toc .toc-toggle{position:absolute;top:12px;right:8px;background:var(--bg);border:1px solid var(--border);color:var(--fg-dim);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px}
+  aside.toc.collapsed .toc-toggle{right:8px}
+  aside.toc .toc-title{font-size:12px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px 0;font-weight:600}
+  aside.toc.collapsed .toc-title{font-size:0;margin:0}
+  aside.toc .toc-title:after{content:''}
+  aside.toc.collapsed .toc-title:after{content:'🎯'}
+  aside.toc .toc-list{list-style:none;margin:0;padding:0}
+  aside.toc.collapsed .toc-list{font-size:0}
+  aside.toc .toc-list li{margin:2px 0}
+  aside.toc .toc-list a{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--fg-dim);font-size:13px;text-decoration:none;font-weight:500}
+  aside.toc .toc-list a:hover{background:var(--surface2);color:var(--fg)}
+  aside.toc .toc-list a.active{background:var(--accent);color:#0d1117}
+  aside.toc.collapsed .toc-list a{justify-content:center;padding:6px 0;font-size:18px}
+  .page{flex:1;margin-left:var(--toc-w);transition:margin-left 0.3s ease}
+  .page.toc-collapsed{margin-left:var(--toc-w-collapsed)}
+  @media (max-width:900px){
+    aside.toc{transform:translateX(-12px);width:var(--toc-w)}
+    aside.toc.collapsed{transform:translateX(calc(-1 * (var(--toc-w) - var(--toc-w-collapsed) + 12px)))}
+    .page,.page.toc-collapsed{margin-left:0;padding-top:0}
+  }
+  .container{max-width:1100px;margin:0 auto;padding:24px}
+  header.hero{padding:32px 24px;background:linear-gradient(135deg,#0d1117 0%,#1c2129 100%);border-bottom:1px solid var(--border)}
+  header.hero h1{font-size:28px;margin:0 0 8px 0;font-weight:700}
+  header.hero .tagline{font-size:15px;color:var(--fg-dim);max-width:760px;margin:0 0 16px 0}
+  header.hero .tagline-sm{font-size:13px;color:var(--fg-dim);max-width:760px;margin:0}
+  header.hero .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  header.hero .badge{display:inline-block;padding:4px 10px;font-size:12px;border-radius:12px;background:var(--surface2);color:var(--fg-dim);border:1px solid var(--border)}
+  header.hero .badge.green{color:var(--green);border-color:var(--green)}
+  header.hero .badge.amber{color:var(--amber);border-color:var(--amber)}
+  /* kpi strip under hero */
+  .kpi{display:flex;flex-wrap:wrap;gap:14px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);font-size:12px;color:var(--fg-dim)}
+  .kpi .kpi-item{display:flex;align-items:center;gap:6px}
+  .kpi .kpi-num{color:var(--accent);font-weight:700;font-size:14px;font-family:var(--mono)}
+  /* tabs */
+  nav.tabs{display:flex;gap:2px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+  nav.tabs button{background:transparent;border:none;color:var(--fg-dim);padding:14px 18px;cursor:pointer;font-size:14px;font-weight:500;border-bottom:2px solid transparent;transition:all 0.15s}
+  nav.tabs button:hover{color:var(--fg)}
+  nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+  nav.tabs .pill{margin-left:auto;align-self:center;font-size:11px;color:var(--fg-muted);padding:6px 10px;border:1px solid var(--border);border-radius:10px}
+  /* sections */
+  section.tab-content{display:none;padding:24px 0}
+  section.tab-content.active{display:block}
+  section h2.section{font-size:22px;margin:32px 0 16px 0;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:8px}
+  section h2.section .num{display:inline-block;width:32px;height:32px;background:var(--accent);color:#0d1117;border-radius:6px;text-align:center;line-height:32px;margin-right:8px;font-size:16px;font-weight:700}
+  /* layout */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+  /* form */
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+  .form-card h3{margin:0 0 12px 0;font-size:16px;color:var(--accent)}
+  .form-card label{display:block;font-size:13px;color:var(--fg-dim);margin:12px 0 4px 0;font-weight:500}
+  .form-card input,.form-card textarea,.form-card select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--fg);font-family:inherit;font-size:14px}
+  .form-card input:focus,.form-card textarea:focus,.form-card select:focus{outline:none;border-color:var(--accent)}
+  .form-card textarea{min-height:80px;resize:vertical}
+  .btn{background:var(--accent);color:#0d1117;border:none;padding:10px 18px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;transition:all 0.15s}
+  .btn:hover{background:#4493f8}
+  .btn:disabled{background:var(--surface2);color:var(--fg-muted);cursor:not-allowed}
+  .btn-secondary{background:var(--surface2);color:var(--fg);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--border)}
+  /* cards (with score badge + edit mode) */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;transition:border-color 0.15s}
+  .card:hover{border-color:var(--accent)}
+  .card h4{margin:0 0 8px 0;font-size:15px;color:var(--fg);font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .card .badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+  .card.mitig .badge.status{background:rgba(63,185,80,0.15);color:var(--green)}
+  .card.gap .badge.status{background:rgba(248,81,73,0.15);color:var(--red)}
+  .card.partial .badge.status{background:rgba(210,153,34,0.15);color:var(--amber)}
+  .card.fit .badge.status{background:rgba(88,166,255,0.15);color:var(--accent)}
+  .card .score{font-family:var(--mono);font-size:13px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--surface2);color:var(--accent);border:1px solid var(--border)}
+  .card .score.s-green{color:var(--green);border-color:var(--green)}
+  .card .score.s-amber{color:var(--amber);border-color:var(--amber)}
+  .card .score.s-red{color:var(--red);border-color:var(--red)}
+  .card p{margin:6px 0;font-size:13px;color:var(--fg-dim)}
+  .card .source{font-size:11px;color:var(--fg-muted);margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+  .card .card-actions{display:flex;gap:8px;margin-top:10px}
+  .card .card-actions button{font-size:11px;padding:4px 10px;background:transparent;border:1px solid var(--border);color:var(--fg-dim);border-radius:6px;cursor:pointer}
+  .card .card-actions button:hover{background:var(--surface2);color:var(--fg)}
+  .card .card-actions button.save{background:var(--accent);color:#0d1117;border-color:var(--accent)}
+  .card textarea.inline-edit{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;color:var(--fg);font-family:inherit;font-size:13px;margin-top:4px;resize:vertical;min-height:60px}
+  .card .editable{display:none}
+  .card.editing .editable{display:block}
+  .card.editing .display{display:none}
+  .card .score-input{width:60px;display:inline-block;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:4px 8px;color:var(--fg);font-family:var(--mono);font-size:13px}
+  /* v0.3 polish: score range slider (replaces number input UX) */
+  .card input[type=range].score-slider{width:140px;display:inline-block;margin:0 8px;vertical-align:middle;-webkit-appearance:none;background:transparent;cursor:pointer}
+  .card input[type=range].score-slider::-webkit-slider-runnable-track{height:4px;background:var(--border);border-radius:2px}
+  .card input[type=range].score-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--fg);margin-top:-5px;cursor:grab}
+  .card input[type=range].score-slider::-moz-range-track{height:4px;background:var(--border);border-radius:2px}
+  .card input[type=range].score-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid var(--fg);cursor:grab}
+  .card.s-green input[type=range].score-slider::-webkit-slider-thumb{background:var(--green)}
+  .card.s-amber input[type=range].score-slider::-webkit-slider-thumb{background:var(--amber)}
+  .card.s-red input[type=range].score-slider::-webkit-slider-thumb{background:var(--red)}
+  .card input[type=range].score-slider:focus{outline:2px solid var(--accent);outline-offset:2px}
+  /* v0.3 polish: keyboard focus ring on cards (PITFALL #143 family) */
+  .card:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(88,166,255,0.15)}
+  .card[data-card]:focus-within{outline:none}
+  /* v0.3 polish: tooltip on click (since mobile has no hover) */
+  .badge-hint{position:relative;cursor:help;border-bottom:1px dotted var(--fg-muted)}
+  .badge-hint .tooltip{position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--fg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:11px;width:240px;white-space:normal;line-height:1.5;display:none;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+  .badge-hint.show .tooltip{display:block}
+  /* v0.3 polish: streak badge (daily challenge) */
+  .streak-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:14px;background:var(--surface2);border:1px solid var(--orange,#d29922);font-family:var(--mono);font-size:12px;color:var(--orange,#d29922)}
+  .streak-badge .flame{font-size:16px}
+  .streak-badge.zero{border-color:var(--border);color:var(--fg-muted)}
+  /* empty state */
+  .empty{padding:48px 24px;text-align:center;color:var(--fg-muted);background:var(--surface);border:1px dashed var(--border);border-radius:10px}
+  .empty .icon{font-size:48px;margin-bottom:12px;opacity:0.5}
+  /* footer */
+  footer{padding:32px 24px;border-top:1px solid var(--border);color:var(--fg-muted);font-size:13px;text-align:center;margin-top:48px}
+  footer a{color:var(--fg-dim)}
+  /* archive */
+  .archive-item{padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;font-size:13px}
+  .archive-item .tag{display:inline-block;padding:2px 8px;background:var(--accent);color:#0d1117;border-radius:4px;font-size:11px;margin-right:8px}
+  /* print mode */
+  body.print-mode{background:#fff;color:#111}
+  body.print-mode .card, body.print-mode .form-card, body.print-mode nav.tabs, body.print-mode aside.toc, body.print-mode .kpi{background:#fff;color:#111;border-color:#888}
+  body.print-mode header.hero{background:#f5f5f5;color:#111}
+  body.print-mode .card .editable, body.print-mode .card .card-actions{display:none}
+  body.print-mode .card .display{display:block}
+  body.print-mode footer{display:none}
+  /* v0.3 polish: light theme print adaptation */
+  body.light.print-mode{background:#fff}
+  /* v0.3 polish: theme toggle button (top-right sticky) */
+  .theme-toggle{position:fixed;top:70px;right:18px;z-index:60;background:var(--surface);border:1px solid var(--border);color:var(--fg-dim);padding:6px 10px;border-radius:18px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15)}
+  .theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+  @media (max-width:900px){.theme-toggle{top:8px;right:8px;font-size:11px}}
+  /* v0.3 polish: keyboard hint banner (bottom of cards section) */
+  .kbd-hint{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--fg-dim);display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:20px 0}
+  .kbd-hint .group{display:flex;gap:6px;align-items:center}
+  /* v0.3 polish: streak display in hero */
+  .streak-display{padding:8px 14px;border-radius:14px;display:inline-flex;gap:8px;align-items:center;font-size:13px}
+  /* v0.3 polish round 3: collapsible card (chevron) + challenge highlight */
+  .card.collapsed{padding:8px 12px;margin-bottom:4px}
+  .card.collapsed h4{margin:0}
+  .card.collapsed .source,.card.collapsed p.display,.card.collapsed .card-actions,.card.collapsed textarea,.card.collapsed .score-input,.card.collapsed .editable{display:none}
+  .card .chevron{display:inline-block;width:18px;height:18px;text-align:center;line-height:18px;border-radius:4px;background:var(--surface2);color:var(--fg-dim);font-size:12px;cursor:pointer;margin-right:4px;transition:transform 0.15s;user-select:none}
+  .card.collapsed .chevron{transform:rotate(-90deg)}
+  .card.challenge-highlight{outline:3px solid var(--accent);outline-offset:2px;animation:pulse 1.5s ease-out}
+  @keyframes pulse{0%{outline-color:var(--accent)}50%{outline-color:transparent}100%{outline-color:var(--accent)}}
+  /* v0.3.1 polish: help overlay (?) */
+  #help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center}
+  #help-overlay.show{display:flex}
+  #help-overlay .help-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:640px;width:90%;max-height:80vh;overflow-y:auto}
+  #help-overlay .help-box h3{margin:0 0 12px 0;color:var(--accent);font-size:18px}
+  #help-overlay .help-box .help-close{float:right;background:var(--surface2);color:var(--fg);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px}
+  #help-overlay .help-section{margin:14px 0}
+  #help-overlay .help-section h4{margin:0 0 6px 0;font-size:13px;color:var(--fg-muted);text-transform:uppercase;letter-spacing:0.05em}
+  #help-overlay .help-section ul{list-style:none;padding:0;margin:0;font-size:13px;color:var(--fg-dim);line-height:1.7}
+  #help-overlay .help-section li{padding:2px 0}
+  /* v0.3.1 polish: AI assist panel */
+  .ai-assist{background:linear-gradient(135deg,rgba(88,166,255,0.08),rgba(163,113,247,0.08));border:1px solid var(--accent);border-radius:10px;padding:16px;margin:12px 0}
+  .ai-assist h4{margin:0 0 10px 0;color:var(--accent);display:flex;align-items:center;gap:8px;font-size:14px}
+  .ai-assist .prompt-template{display:inline-block;margin:4px 4px 4px 0;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--fg-dim);font-size:12px;cursor:pointer;font-family:var(--mono);transition:all 0.15s}
+  .ai-assist .prompt-template:hover{background:var(--surface2);color:var(--fg);border-color:var(--accent)}
+  .ai-assist .copy-status{font-size:11px;color:var(--green);margin-left:8px;opacity:0;transition:opacity 0.2s}
+  .ai-assist .copy-status.show{opacity:1}
+  /* saved-input clickable links */
+  .archive-item{cursor:pointer;transition:background 0.15s}
+  .archive-item:hover{background:var(--surface);border-color:var(--accent)}
+  /* try page hero */
+  .try-hero{padding:48px 24px;background:linear-gradient(135deg,#1c2129 0%,#0d1117 100%);border-radius:14px;text-align:center;border:1px solid var(--border);margin:24px 0}
+  .try-hero h2{font-size:32px;margin:0 0 16px 0;font-weight:700;color:var(--accent)}
+  .try-hero p{font-size:15px;color:var(--fg-dim);max-width:680px;margin:0 auto 20px auto}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:32px 0}
+  @media (max-width:900px){.why-grid{grid-template-columns:1fr}}
+  .why-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .why-card .num{font-family:var(--mono);font-size:24px;color:var(--accent);font-weight:700;display:block;margin-bottom:6px}
+  .why-card h4{margin:0 0 8px 0;font-size:15px;font-weight:600}
+  .why-card p{margin:0;font-size:13px;color:var(--fg-dim);line-height:1.55}
+  /* kbd shortcut helper */
+  kbd{font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;color:var(--accent)}
+</style>
+</head>
+<body>
+
+<aside class="toc" id="toc" aria-label="In-page navigation">
+  <button class="toc-toggle" id="toc-toggle" aria-label="Toggle TOC">&#x21A4;</button>
+  <div class="toc-title">Sections</div>
+  <ul class="toc-list">
+    <li><a href="#hero" data-toc-link>&#x1F3E0; Hero</a></li>
+    <li><a href="#input" data-toc-link>&#x1F4E5; Input</a></li>
+    <li><a href="#decode" data-toc-link>&#x1F50D; Decode</a></li>
+    <li><a href="#cards" data-toc-link>&#x1F0CF; My 5 Cards</a></li>
+    <li><a href="#about" data-toc-link>&#x1F4CB; About</a></li>
+    <li><a href="#try" data-toc-link>&#x1F91D; Try Now</a></li>
+  </ul>
+</aside>
+
+<div id="help-overlay" role="dialog" aria-label="Help cheat sheet">
+  <div class="help-box">
+    <button class="help-close" id="help-close">✕ 关闭</button>
+    <h3>🎯 Personal Opportunity Decoder · Cheat Sheet</h3>
+    <div class="help-section">
+      <h4>📌 项目起源</h4>
+      <ul>
+        <li>灵感:jason lee coinsnap video (2026-07-07) — 小众 niche + 1 功能 + 订阅</li>
+        <li>GPT 提议「Personal Opportunity Decoder」产品,Patrick 修正卡模板(加 Risk + Source)</li>
+        <li><strong>护城河</strong>:ChatGPT 不读你的 no-list,不对照 toolstack,不查 Sensor Tower</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>⌨️ 键盘快捷键</h4>
+      <ul>
+        <li><kbd>&uarr;</kbd> / <kbd>&darr;</kbd> — 在 5 卡间跳</li>
+        <li><kbd>E</kbd> 编辑当前卡 · <kbd>S</kbd> save · <kbd>Esc</kbd> 退出编辑</li>
+        <li><kbd>P</kbd> 切打印模式 · <kbd>T</kbd> 切主题(大写)</li>
+        <li><kbd>J</kbd> 导出 cards.json · <kbd>I</kbd> 打开 import dialog</li>
+        <li><kbd>R</kbd> 随机抽 1 张卡(challenge mode)</li>
+        <li><kbd>C</kbd> 折叠/展开当前卡(collapsible)</li>
+        <li><kbd>?</kbd> 打开/关闭本 cheat sheet</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>🧠 5 卡语义</h4>
+      <ul>
+        <li><strong>💎 Thesis</strong> — 案例的 1 句话商业公式(必有)</li>
+        <li><strong>🛡 Moat</strong> — 隔阂(ChatGPT 做不到的)</li>
+        <li><strong>🎯 Fit+Risk</strong> — 你本人适配 + 3 个 hard risk</li>
+        <li><strong>⚠️ Gaps</strong> — 你缺什么(必填,否则 Build Plan 是错的)</li>
+        <li><strong>🚀 Build</strong> — 7 天 loop,你下一步干什么</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>🔒 隐私</h4>
+      <ul>
+        <li>100% 本地 localStorage,不发任何服务器</li>
+        <li>数据可导出 cards.json,跨设备 manual transfer</li>
+        <li>CF Pages email obfuscation 防爬 → 邮箱手动拼接</li>
+      </ul>
+    </div>
+    <div class="help-section">
+      <h4>🛠 版本</h4>
+      <ul>
+        <li>v0.1 (2026-07-07) — Day 1 shell</li>
+        <li>v0.2 (2026-07-07) — Day 2 polish round 1 (6 项)</li>
+        <li>v0.3 (2026-07-07) — Day 3 polish round 2 (8 项)</li>
+        <li>v0.3.1 (即将) — polish round 3 (6 项)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page">
+
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">🌙 Dark</button>
+<button class="theme-toggle" id="help-btn" style="top:108px" aria-label="Help">? Help</button>
+
+<header class="hero" id="hero">
+  <h1>&#x1F3AF; Personal Opportunity Decoder <span style="color:var(--fg-muted);font-weight:400;font-size:18px">v0.3.2</span></h1>
+  <p class="tagline">For solo builders who watch too many AI/business videos and need to turn them into a personal build plan.</p>
+  <p class="tagline-sm">给独立开发者/AI 工作者用的「机会解码器」:把别人的案例,翻译成你自己的可执行路线。</p>
+  <div class="badges">
+    <span class="badge">Day 4 &mdash; polish round 3</span>
+    <span class="badge green">challenge-bar (R)</span>
+    <span class="badge green">card collapse (C)</span>
+    <span class="badge green">help overlay (?)</span>
+    <span class="badge green">URL share + saved-click</span>
+    <span class="badge green">AI assist 3 prompt</span>
+    <span class="badge amber">print-mode <kbd>P</kbd></span>
+    <span class="badge">try-cta embedded</span>
+    <span class="badge">no backend &middot; no login &middot; no payment</span>
+  </div>
+  <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <span class="streak-display streak-badge zero" id="streak-display"><span class="flame">&#x1F525;</span><span id="streak-count">No streak yet</span></span>
+    <span style="color:var(--fg-muted);font-size:12px">v0.3.2 &middot; 2026-07-07 &middot; Day 6 recruit live · 同 <a href="recruit.html" style="color:var(--accent);text-decoration:underline">recruit.html</a></span>
+  </div>
+</header>
+
+<div class="kpi" id="kpi-strip">
+  <span class="kpi-item">📊 saved inputs: <span class="kpi-num" id="kpi-saved">0</span></span>
+  <span class="kpi-item">📝 edited cards: <span class="kpi-num" id="kpi-edited">0</span> / 5</span>
+  <span class="kpi-item">⭐ avg fit score: <span class="kpi-num" id="kpi-avg">--</span></span>
+  <span class="kpi-item">🔥 streak: <span class="kpi-num" id="kpi-streak">0</span> day(s)</span>
+  <span class="kpi-item">🎨 theme: <span class="kpi-num" id="kpi-theme">dark</span></span>
+  <span class="kpi-item">🖨 print: <kbd>P</kbd></span>
+  <span class="kpi-item">📅 v0.3.2 · 2026-07-07</span>
+</div>
+
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" data-tab="input">📥 1. Input</button>
+  <button class="tab-btn" data-tab="decode">🔍 2. Decode</button>
+  <button class="tab-btn" data-tab="cards">🃏 3. My 5 Cards</button>
+  <button class="tab-btn" data-tab="about">📋 About</button>
+  <button class="tab-btn" data-tab="try">🤝 Try Now</button>
+  <span class="pill">v0.3.2 · 2026-07-07 · Day 6 recruit live · <a href="recruit.html" style="color:var(--accent);text-decoration:underline;font-weight:700">🤝 申请 7-day Beta</a></span>
+</nav>
+
+<main class="container">
+
+<!-- =========================== TAB 1 INPUT =========================== -->
+<section class="tab-content active" id="input">
+
+  <h2 class="section"><span class="num">1</span>丢进一个 YouTube / 文章 / 产品链接,我告诉你「你能不能做」</h2>
+
+  <p style="color:var(--fg-dim);margin-bottom:24px">5 件必填。Day 1 是手动作业 — 输入完后,把内容拿到 Gemini / Claude / Hermes,5 卡由 LLM 输出,你再粘回 My Cards。日后会走 Hermes LLM 直调,见 <code>references/cron-v2-day2-5card-llm.md</code>。</p>
+
+  <form id="decoder-form">
+
+    <div class="form-card">
+      <h3>📺 A. 来源 URL(必填)</h3>
+      <label>YouTube / 文章 / 产品页 / 案例 PDF 链接</label>
+      <input type="url" id="url" name="url" placeholder="https://www.youtube.com/watch?v=hDOUzlJwM1E" required>
+      <label style="margin-top:8px">看完一句话概括 (≤40 字)</label>
+      <input type="text" id="url_summary" name="url_summary" placeholder="Jason Lee: Claude Code + Expo 20 分钟编 $400K/mo App">
+    </div>
+
+    <div class="form-card">
+      <h3>👤 B. 我是谁 — 5 个资产字段(别跳过!)</h3>
+      <p style="font-size:13px;color:var(--fg-muted);margin:4px 0 12px 0">这是 Personal Opportunity Decoder 跟普通 AI Summary 的护城河差。你有的,ChatGPT 看不到。</p>
+
+      <label>B1. 我的 1-2 个核心技能(动词开头)</label>
+      <input type="text" id="asset_skills" placeholder="例如:React + LLM prompt 工程 / 视频剪辑 / 中文文案写作">
+
+      <label>B2. 我手头有 / 已掌握的工具栈</label>
+      <textarea id="asset_tools" placeholder="例如:Hermes Agent + 6 个 internal skills + local http.server + Chrome DevTools + CF Pages deploy pipeline"></textarea>
+
+      <label>B3. 我日常发内容的渠道(0=暂无/计划中)</label>
+      <input type="text" id="asset_channels" placeholder="例如:Telegram 公网 2017zyl.xyz + X 推 + 微信 / 暂时全无,先做工具自用">
+
+      <label>B4. 我每周能给这个新项目投入的可控时间(h)</label>
+      <input type="number" id="asset_hours" min="0" max="168" placeholder="例如:8 / 15 / 周末 16h">
+
+      <label>B5. 我的「不想做」清单(Day 1 救你命)</label>
+      <textarea id="asset_no_list" placeholder="例如:不做 SaaS 登录 / 不做多语言 / 不做 App Store 提交 / 不想养客服 / 不想 6 个月内不收钱"></textarea>
+    </div>
+
+    <div class="form-card">
+      <h3>🎯 C. 我看完这条视频后的最初反应</h3>
+      <label>1 句话 — 你想从这个案例里拿走什么?</label>
+      <textarea id="motivation" placeholder="例如:把 Hermes dashboard 流水线的「17 张 Patrick 卡」做成其他独立开发者的可定制模板"></textarea>
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;align-items:center">
+      <button type="submit" class="btn">🔓 解码 → 生成 5 卡 (Day 1: 跳到 LLM)</button>
+      <button type="button" class="btn btn-secondary" id="load-example">📦 载入示例 (jason lee)</button>
+      <button type="button" class="btn btn-secondary" id="reset-form">🗑 清空</button>
+      <span id="status" style="color:var(--fg-muted);font-size:13px;margin-left:auto"></span>
+    </div>
+
+  </form>
+
+  <div id="example-loaded" style="display:none;margin-top:24px;padding:16px;background:var(--surface2);border-left:3px solid var(--green);border-radius:0 6px 6px 0">
+    <strong style="color:var(--green)">✅ 示例已载入</strong> (jason lee coinsnap video)<br>
+    <span style="font-size:13px;color:var(--fg-dim)">下面 5 卡是基于这套输入的「first-pass 样板」。点 <kbd>My 5 Cards</kbd> 看,或改字段后重生成。</span>
+  </div>
+
+</section>
+
+<!-- =========================== TAB 2 DECODE =========================== -->
+<section class="tab-content" id="decode">
+
+  <h2 class="section"><span class="num">2</span>Decode Pipeline — Day 1 半自动流程</h2>
+
+  <p style="color:var(--fg-dim)">Day 1 不接 LLM API,5 步手工:</p>
+
+  <div class="grid-2">
+    <div class="form-card">
+      <h3>Step 1 — 摘视频关键论点(5-8 条)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">用 <code>skills:media/video-to-knowledge-dashboard</code> 抓 transcript,本 vault 已有 <code>Obsidian Vault/llm-wiki/papers/jason-lee-coinsnap-vibe-coded-400k-2026-07-07/index.md</code>。</p>
+    </div>
+    <div class="form-card">
+      <h3>Step 2 — 提炼商业公式(1 句话)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">例:「小众 niche + 1 功能 + 订阅 + 2-4× 退出乘数」</p>
+    </div>
+    <div class="form-card">
+      <h3>Step 3 — 列「我已有什么 / 缺什么」</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">交叉 资产 5 字段(B1-B5),比对案例栈。</p>
+    </div>
+    <div class="form-card">
+      <h3>Step 4 — 写反方证据 + 来源</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">每张卡必带 source: Sensor Tower / Anthropic pricing / Flippa listing / 自己的 dashboard 等。</p>
+    </div>
+    <div class="form-card">
+      <h3>Step 5 — 输出 5 卡 + Loop Plan 7 天</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">卡 1-4 是事实,卡 5 Build Plan 必然短。</p>
+    </div>
+    <div class="form-card" style="border-color:var(--amber)">
+      <h3 style="color:var(--amber)">⚠️ Day 2-3 升级</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">Day 2: 接 Gemini/Claude API 半自动;Day 3: 接 Hermes 直调 + 信号灯 🔴/🟢/🟡 自动打分。</p>
+    </div>
+  </div>
+
+  <h2 class="section"><span class="num">3</span>已 saved 的输入(本地 localStorage)</h2>
+
+  <div id="saved-inputs-list">
+    <div class="empty"><div class="icon">📭</div><div>还没有任何 saved input。点 <strong>📥 Input 标签</strong> 填完表单后存档。</div></div>
+  </div>
+
+</section>
+
+<!-- =========================== TAB 3 MY CARDS =========================== -->
+<section class="tab-content" id="cards">
+
+  <h2 class="section"><span class="num">4</span>My 5 Cards — 可编辑 + 分数滑块 + 键盘导航 + I/O + AI 辅助</h2>
+
+  <p style="color:var(--fg-dim);margin-bottom:18px">5 卡 = jason lee 案例配 Patrick 5 资产的 first-pass。<strong style="color:var(--accent)">v0.3.1 新增:</strong>(a) 挑战模式按 <kbd>R</kbd> 随机抽 1 张卡,(b) 按 <kbd>C</kbd> 折叠/展开,(c) <kbd>?</kbd> cheat sheet,(d) 点 archive input 自动 prefill #input,(e) URL hash encode 全 state 可分享,(f) 下面 AI assist 3 prompt template 点复制 → 粘到 Claude/Gemini 自动出 5 卡。</p>
+
+  <div class="ai-assist" id="ai-assist">
+    <h4>💡 AI Assist (Day 3-5 桥 — 把 5 卡外包给 LLM)</h4>
+    <span style="font-size:12px;color:var(--fg-dim);margin-bottom:8px;display:block">这些 prompt 是给 Claude / Gemini / Hermes 的,直接复制 (点 = copy):</span>
+    <button class="prompt-template" data-template="thesis">📋 Thesis 提取</button>
+    <button class="prompt-template" data-template="5card">📦 5 卡 一次出</button>
+    <button class="prompt-template" data-template="fit">🎯 Fit + Risk</button>
+    <span class="copy-status" id="copy-status">✅ copied</span>
+  </div>
+
+  <div class="kbd-hint" aria-label="Keyboard shortcuts">
+    <strong style="color:var(--fg);font-size:13px">键盘:</strong>
+    <span class="group"><kbd>&uarr;</kbd>/<kbd>&darr;</kbd> 跳卡</span>
+    <span class="group"><kbd>R</kbd> 随机挑战</span>
+    <span class="group"><kbd>C</kbd> 折叠/展开</span>
+    <span class="group"><kbd>E</kbd> Edit</span>
+    <span class="group"><kbd>S</kbd> Save</span>
+    <span class="group"><kbd>Esc</kbd> 退出</span>
+    <span class="group"><kbd>J</kbd> 导出 JSON</span>
+    <span class="group"><kbd>?</kbd> Cheat sheet</span>
+  </div>
+
+  <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:10px">
+    <button type="button" class="btn btn-secondary" id="export-cards">💾 Export cards.json</button>
+    <label for="import-cards-input" class="btn btn-secondary" style="cursor:pointer;display:inline-block;margin:0">📥 Import cards.json</label>
+    <input type="file" id="import-cards-input" accept=".json" style="display:none">
+    <button type="button" class="btn btn-secondary" id="record-streak">✅ Mark Today's Decode</button>
+    <button type="button" class="btn btn-secondary" id="challenge-btn">🎲 Random Card (R)</button>
+    <button type="button" class="btn btn-secondary" id="share-url-btn">🔗 Copy Share URL</button>
+    <span id="io-status" style="color:var(--fg-muted);font-size:13px;align-self:center"></span>
+  </div>
+
+  <h3 style="color:var(--c-thesis);margin-top:16px">▌Card 1: 💎 Thesis(论点) <span class="chevron" data-chevron="thesis" title="折叠/展开 (C)">&#x25BC;</span></h3>
+  <div class="card mitig" data-card="thesis">
+    <h4>
+      <span class="display">小众 niche + 1 功能 + 订阅 = $XX-$500K/月</span>
+      <span>
+        <input type="range" min="0" max="10" step="0.5" value="8" class="score-input score-slider editable" id="score-thesis" aria-label="thesis score 0-10">
+        <span class="display"><span class="score s-green" data-score-for="thesis">8/10</span></span>
+        <span class="badge status badge-hint" tabindex="0" data-hint="thesis">✅ MATCH<span class="tooltip">MATCH = 视频论点跟原始 source 直接 cross-check 通过,Sensor Tower + 4 个案例(niche + 1 feature + 订阅)全部成立。Source: jason lee 原视频。</span></span>
+      </span>
+    </h4>
+    <p class="display">CoinSnap / CoinInn / Rock ID / Bug ID 4 个案例都是 1 个特定工作流。</p>
+    <textarea class="inline-edit editable" id="text-thesis">CoinSnap / CoinInn / Rock ID / Bug ID 4 个案例都是 1 个特定工作流。</textarea>
+    <p class="source display">source: jason lee 原视频 + Sensor Tower 公开估算(单来源,⚠️ part)</p>
+    <textarea class="inline-edit editable" id="source-thesis">source: jason lee 原视频 + Sensor Tower 公开估算(单来源,⚠️ part)</textarea>
+    <div class="card-actions">
+      <button class="edit-btn">✏️ Edit</button>
+      <button class="save editable">💾 Save</button>
+      <button class="reset-btn">↩ Reset</button>
+    </div>
+  </div>
+
+  <h3 style="color:var(--c-moat);margin-top:24px">▌Card 2: 🛡 Moat(护城河) <span class="chevron" data-chevron="moat" title="折叠/展开 (C)">&#x25BC;</span></h3>
+  <div class="card mitig" data-card="moat">
+    <h4>
+      <span class="display">ChatGPT 能拍照但做不到「藏品管理 + 仪表盘 + 交易」</span>
+      <span>
+        <input type="range" min="0" max="10" step="0.5" value="6.5" class="score-input score-slider editable" id="score-moat" aria-label="moat score 0-10">
+        <span class="display"><span class="score s-amber" data-score-for="moat">6.5/10</span></span>
+        <span class="badge status badge-hint" tabindex="0" data-hint="moat">⚠️ PARTIAL<span class="tooltip">PARTIAL = 隔阂理论只在「真收藏癖用户」成立(硬币/矿石/昆虫)。对「一次性扫描」目标 ChatGPT 仍是 free winner。Source: jason video + Patrick 自身 sku。</span></span>
+      </span>
+    </h4>
+    <p class="display">这个隔阂 = 订阅价值,适用于真有「收藏癖」用户(藏品硬币/矿石/昆虫),不适用于「一次性扫描」。<strong>风险:</strong>如果用户目标是「偶尔扫描」,ChatGPT 仍然 free winner。</p>
+    <textarea class="inline-edit editable" id="text-moat">这个隔阂 = 订阅价值,适用于真有「收藏癖」用户(藏品硬币/矿石/昆虫),不适用于「一次性扫描」。\n风险:如果用户目标是「偶尔扫描」,ChatGPT 仍然 free winner。</textarea>
+    <p class="source display">source: video 自己 + Patrick 自身 sku(视频→dashboard→卡片)印证</p>
+    <textarea class="inline-edit editable" id="source-moat">source: video 自己 + Patrick 自身 sku(视频→dashboard→卡片)印证</textarea>
+    <div class="card-actions">
+      <button class="edit-btn">✏️ Edit</button>
+      <button class="save editable">💾 Save</button>
+      <button class="reset-btn">↩ Reset</button>
+    </div>
+  </div>
+
+  <h3 style="color:var(--c-fit);margin-top:24px">▌Card 3: 🎯 Fit + Risk(个人适配 + 反方) <span class="chevron" data-chevron="fit" title="折叠/展开 (C)">&#x25BC;</span></h3>
+  <div class="card fit" data-card="fit">
+    <h4>
+      <span class="display">Patrick 资产适配度 7/10 — 但 3 个 hard risk</span>
+      <span>
+        <input type="range" min="0" max="10" step="0.5" value="7" class="score-input score-slider editable" id="score-fit" aria-label="fit score 0-10">
+        <span class="display"><span class="score s-green" data-score-for="fit">7/10</span></span>
+        <span class="badge status badge-hint" tabindex="0" data-hint="fit">🟡 PARTIAL<span class="tooltip">3 个 hard risk:Sonnet 4.6 报价偏高 80%(复算 $0.005);退出 2-4× 是 SaaS 中位数 ≠ 顶部;Sensor Tower 单源估算可能 50% 偏。Source: Anthropic pricing + Flippa + Sensor Tower。</span></span>
+      </span>
+    </h4>
+    <p class="display"><strong>Fit 7/10:</strong> Hermes Agent 替代 Claude Code ✅; html-design-library 替代 Dribbble ✅; 但 React Native/Expo 跨平台移动框架 ❌。<br><strong>Risk 1:</strong> Sonnet 4.6 视频报价 $0.009/scan,<strong>Patrick 复算 $0.005(高 80%)</strong>。<br><strong>Risk 2:</strong> 退出 2-4× 是 SaaS 中位数 ≠ 顶部价。<br><strong>Risk 3:</strong> Sensor Tower 单来源估算,可能 50% 偏。</p>
+    <textarea class="inline-edit editable" id="text-fit">Fit 7/10: Hermes Agent 替代 Claude Code ✅; html-design-library 替代 Dribbble ✅; 但 React Native/Expo 跨平台移动框架 ❌。\n\nRisk 1: Sonnet 4.6 视频报价 $0.009/scan,Patrick 复算 $0.005(高 80%)。反方证据:Anthropic 官方定价。\nRisk 2: 退出 2-4× 是 SaaS 中位数 ≠ 顶部价。\nRisk 3: Sensor Tower 单来源估算,可能 50% 偏。</textarea>
+    <p class="source display">source: Anthropic pricing official + Flippa listing 中位数 + Sensor Tower public estimate</p>
+    <textarea class="inline-edit editable" id="source-fit">source: Anthropic pricing official + Flippa listing 中位数 + Sensor Tower public estimate</textarea>
+    <div class="card-actions">
+      <button class="edit-btn">✏️ Edit</button>
+      <button class="save editable">💾 Save</button>
+      <button class="reset-btn">↩ Reset</button>
+    </div>
+  </div>
+
+  <h3 style="color:var(--c-gaps);margin-top:24px">▌Card 4: ⚠️ Gaps(我缺什么) <span class="chevron" data-chevron="gaps" title="折叠/展开 (C)">&#x25BC;</span></h3>
+  <div class="card gap" data-card="gaps">
+    <h4>
+      <span class="display">9 个 Gap: Auth/DB/Payment/Privacy/Icon/Onboarding/Store submit/UX/合规</span>
+      <span>
+        <input type="range" min="0" max="10" step="0.5" value="3" class="score-input score-slider editable" id="score-gaps" aria-label="gaps score 0-10">
+        <span class="display"><span class="score s-red" data-score-for="gaps">3/10</span></span>
+        <span class="badge status badge-hint" tabindex="0" data-hint="gaps">❌ GAP<span class="tooltip">视频 demo 只覆盖 3 项(UI + camera + AI)。其他 9 项 Apple 必填(App Store submit 100% reject 如果缺 Privacy policy / Icon / Onboarding)。Source: jason video §3 §5 §9 + Apple App Store 规则。</span></span>
+      </span>
+    </h4>
+    <p class="display">视频 demo 只覆盖 UI + camera + AI。其他 9 项都是「下一步」 — 你必须自己补;否则 App Store 提交 100% 拒。</p>
+    <textarea class="inline-edit editable" id="text-gaps">视频 demo 只覆盖 UI + camera + AI。其他 9 项都是「下一步」 — 你必须自己补;否则 App Store 提交 100% 拒。</textarea>
+    <p class="source display">source: video 自己 §3 §5 §9,jason @[19:13] 承认「I can't fit everything」</p>
+    <textarea class="inline-edit editable" id="source-gaps">source: video 自己 §3 §5 §9,jason @[19:13] 承认「I can't fit everything」</textarea>
+    <div class="card-actions">
+      <button class="edit-btn">✏️ Edit</button>
+      <button class="save editable">💾 Save</button>
+      <button class="reset-btn">↩ Reset</button>
+    </div>
+  </div>
+
+  <h3 style="color:var(--c-build);margin-top:24px">▌Card 5: 🚀 Build Plan(7 天 loop) <span class="chevron" data-chevron="build" title="折叠/展开 (C)">&#x25BC;</span></h3>
+  <div class="card mitig" data-card="build">
+    <h4>
+      <span class="display">v1: 单页 Web shell → v7: 公网 landing + demo gallery</span>
+      <span>
+        <input type="range" min="0" max="10" step="0.5" value="9" class="score-input score-slider editable" id="score-build" aria-label="build score 0-10">
+        <span class="display"><span class="score s-green" data-score-for="build">9/10</span></span>
+        <span class="badge status badge-hint" tabindex="0" data-hint="build">📋 PLAN<span class="tooltip">7 天 loop:Web shell → 5 卡 editable → Hermes LLM → 3 人试用 → 主轴验证 → 模板固化 → 公网 gallery。Source: automation-pipeline skill + 7-day loop engineering。</span></span>
+      </span>
+    </h4>
+    <p class="display">Day 1: Web shell ✅<br>Day 2: 5 类卡固定输出(API 半自动 + editable)✅ v0.2<br>Day 3: 接 Hermes LLM 直调<br>Day 4: 3 个像你一样的人试用 → 各产 My 5 Cards<br>Day 5: 验证真正需求是「总结」 vs 「判断」 vs 「可执行 plan」<br>Day 6: 把重复字段固化成模板 + 评分规则<br>Day 7: 公网 landing + demo gallery</p>
+    <textarea class="inline-edit editable" id="text-build">Day 1: Web shell ✅ (本 HTML v0.1)\nDay 2: 5 类卡固定输出 + editable + 评分 + TOC + try-cta (v0.2 ✅)\nDay 3: 接 Hermes LLM 直调\nDay 4: 3 个像你一样的人试用 → 各产 My 5 Cards\nDay 5: 验证真正需求是「总结」 vs 「判断」 vs 「可执行 plan」\nDay 6: 把重复字段固化成模板 + 评分规则\nDay 7: 公网 landing + demo gallery</textarea>
+    <p class="source display">source: 7-day loop engineering,典出 <code>~/.hermes/skills/automation-pipeline</code></p>
+    <textarea class="inline-edit editable" id="source-build">source: 7-day loop engineering,典出 ~/.hermes/skills/automation-pipeline</textarea>
+    <div class="card-actions">
+      <button class="edit-btn">✏️ Edit</button>
+      <button class="save editable">💾 Save</button>
+      <button class="reset-btn">↩ Reset</button>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:16px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--purple)">
+    <strong style="color:var(--purple)">产品定位:</strong>「For solo builders who watch too many AI/business videos and need to turn them into a personal build plan.」
+  </div>
+
+</section>
+
+<!-- =========================== TAB 4 ABOUT =========================== -->
+<section class="tab-content" id="about">
+
+  <h2 class="section"><span class="num">5</span>关于 v0.2</h2>
+
+  <div class="form-card">
+    <h3>📅 来自 jason lee coinsnap video (2026-07-07)</h3>
+    <p>这套 v0.2 = v0.1 + 6 个 polish 项目:editable cards + score badges + TOC v1.4.4 + KPI strip + print mode + try-cta。</p>
+  </div>
+
+  <div class="form-card">
+    <h3>🛠 v0.3.1 polish round 3 (6 项)</h3>
+    <ul style="color:var(--fg-dim);line-height:1.8">
+      <li>✅ <strong>Challenge button (R)</strong> — 随机抽 1 张卡 + 高亮 + 滚动;模拟「看完 5 张太累,先看 1 张」真实场景</li>
+      <li>✅ <strong>Card collapse/expand (C)</strong> — 每卡 chevron toggle,localStorage 持久化折叠状态</li>
+      <li>✅ <strong>Help overlay (?)</strong> — full-screen cheat sheet:起源 + 全部快捷键 + 5 卡语义 + 隐私 + 版本</li>
+      <li>✅ <strong>Saved inputs 可点击</strong> — decode tab 点 archived input 自动跳 #input 预填</li>
+      <li>✅ <strong>URL hash share</strong> — 5 卡 current state encode 到 URL hash,可分享给朋友/team (Day 5 metric 验证 path)</li>
+      <li>✅ <strong>AI mini-assist panel</strong> — 3 prompt template button + copy-to-clipboard,把 5 卡外包给 LLM (Day 3-5 桥)</li>
+    </ul>
+  </div>
+
+  <div class="form-card">
+    <h3>🛠 v0.3 polish round 2 (8 项,简化版)</h3>
+    <details style="color:var(--fg-dim)">
+      <summary style="cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0">展开看 8 项 polish round 2 细节</summary>
+      <ul style="line-height:1.8;margin:8px 0 0 16px">
+        <li>Theme toggle · Score range slider · Keyboard nav · Emoji accent</li>
+        <li>Badge tooltip · Cards JSON I/O · Daily streak · Print mode inline banner</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="form-card">
+    <h3>🛣️ Day 3-7 路线</h3>
+    <ul style="color:var(--fg-dim);line-height:1.8">
+      <li>Day 3: 接 Hermes LLM 直调(5 卡自动生成,editable 变 pre-fill only)</li>
+      <li>Day 4: <strong>3 个像你一样的人试用</strong> — 通过 #try tab + Telegram 公网招募</li>
+      <li>Day 5: 验证核心需求 → 主轴定位修正</li>
+      <li>Day 6: 字段模板 + 评分规则固化</li>
+      <li>Day 7: 公网 landing (单独 page) + demo gallery</li>
+    </ul>
+  </div>
+
+  <div class="form-card" style="border-color:var(--amber)">
+    <h3 style="color:var(--amber)">⚠️ 主动防住的坑</h3>
+    <p style="font-size:13px">1. 「私人资产 = 唯一护城河」只在 Patrick 之类已有 vault+skill 的人成立。Day 4-5 必须验证。<br>
+      2. Sonnet 4.6 报价 $0.009/scan 是 jason 偏高 80% — 已经在 Fit+Risk 卡的反方证据里。<br>
+      3. 不要叫「AI Summary」,要做 Opportunity Decoder — name = business-model-sentence。
+    </p>
+  </div>
+
+</section>
+
+<!-- =========================== TAB 5 TRY NOW =========================== -->
+<section class="tab-content" id="try">
+
+  <div class="try-hero">
+    <h2>🤝 Try Personal Opportunity Decoder — Day 4-7 招募</h2>
+    <p>给 3 个「像 Patrick」的人:独立开发者 / AI 工作者 / 视频/知识摄入狂。<br>
+      你给我一条视频/文章/产品页,我用这套 decoder 为你生成「My 5 Cards」+ 我自己帮你 review。<br>
+      Day 4-7 共 7 天免费,不收钱,不签 NDA,不发邮件,我只为弄清核心需求是「总结」「判断」还是「可执行 plan」。</p>
+    <p style="margin-top:16px"><a href="#input" class="btn btn-secondary" data-toc-link>📥 先填我的 5 资产</a> &nbsp; <a href="https://t.me/+patricks_placeholder" target="_blank" rel="noopener" class="btn">📨 Telegram 我 (placeholder link)</a></p>
+  </div>
+
+  <h2 class="section"><span class="num">1</span>为什么你适合</h2>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="num">1</span>
+      <h4>你每周花 ≥3 小时看 AI/独立开发者视频</h4>
+      <p>但看完就忘 / 没动。如果你「看→不动」已成习惯,这个工具就是给「你」做 build plan。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">2</span>
+      <h4>你已经有 ≥1 个可变现技能 + ≥1 个发布渠道</h4>
+      <p>我会读你表单 5 资产 (skill/tools/channels/hours/no-list),跟案例栈做 Fit+Risk。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">3</span>
+      <h4>你有「明确不想做」列表 (SaaS 登录?客服?硬件?)</h4>
+      <p>v0.2 Day 1 救你命的就是这条 — 没有 no-list,Build Plan 就是错的。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">4</span>
+      <h4>你想看「我不能用 ChatGPT 问」的角度</h4>
+      <p>ChatGPT 不读你的 no-list、不对照你的 toolstack、不查 Sensor Tower 反方证据。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">5</span>
+      <h4>你有「视频→卡片化」习惯</h4>
+      <p>如果你跟我一样,看完视频抄 17 张卡,你就是 Beta target。</p>
+    </div>
+    <div class="why-card">
+      <span class="num">6</span>
+      <h4>你愿意拿 30 分钟回 form 帮我验 Day 5 主轴</h4>
+      <p>Day 5 关键问题:你真正想要的,是 (a) AI Summary 替读 (b) 我帮你「做或不做」判断 (c) Loop Plan。</p>
+    </div>
+  </div>
+
+  <h2 class="section"><span class="num">2</span>试用流程</h2>
+
+  <div class="grid-2">
+    <div class="form-card">
+      <h3>T+0 — 你给我 (10 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">通过 #input form 填:<br>
+        (a) 一条你想解码的 URL (YouTube/article/产品页)<br>
+        (b) 5 资产 (技能/工具栈/渠道/每周小时/no-list)<br>
+        (c) 你看完后的最初反应 (1 句话)
+      </p>
+    </div>
+    <div class="form-card">
+      <h3>T+24h — 我交 (45 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">我用 v0.2 工具为你生成 My 5 Cards (editable draft),含反方证据 + Source。发 Telegram 或 email。</p>
+    </div>
+    <div class="form-card">
+      <h3>T+48h — 你 review (15 min)</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">你改你觉得不对的卡 (本 v0.2 editable 全工作),回我「核心需求是 a/b/c」。这是 Day 5 数据点。</p>
+    </div>
+    <div class="form-card">
+      <h3>T+72h — 我聚合 + 报告</h3>
+      <p style="font-size:13px;color:var(--fg-dim)">Day 7 公网 landing + demo gallery 发布,含 (匿名) 你同意用的话。</p>
+    </div>
+  </div>
+
+  <h2 class="section"><span class="num">3</span>申请(本地 localStorage + 跨页 prefill)</h2>
+
+  <p style="font-size:13px;color:var(--fg-muted);margin-bottom:14px">💡 如果你刚在 <strong>#input</strong> tab 填了 5 资产,下面前 4 字段会自动 prefill(localStorage 跨 tab 同一 origin)。<strong>不需要重新填。</strong></p>
+
+  <form id="try-form">
+    <div class="form-card">
+      <h3>你的 Telegram 或 email</h3>
+      <label>(试用期间我会通过这个联系)</label>
+      <input type="text" id="try_contact" placeholder="(自动 prefill from #input)" required>
+
+      <label>我目前每周花多少小时看 AI/business 视频/文章?</label>
+      <input type="number" id="try_video_hours" min="0" placeholder="(自动 prefill from B4 asset_hours)" required>
+
+      <label>你试过哪些「卡我自己笔记」工具?(Notion / Obsidian / Roam / 其他)</label>
+      <input type="text" id="try_tools" placeholder="(自动 prefill from B2 asset_tools,简化)">
+
+      <label>你最不能容忍工具做的 1 件事</label>
+      <textarea id="try_no" placeholder="(自动 prefill from B5 asset_no_list)"></textarea>
+
+      <div style="margin-top:20px;display:flex;gap:12px;align-items:center">
+        <button type="submit" class="btn">📨 申请试用 (Day 4 候选)</button>
+        <span id="try-status" style="color:var(--fg-muted);font-size:13px;margin-left:auto"></span>
+      </div>
+    </div>
+  </form>
+
+  <h2 class="section"><span class="num">4</span>🔒 隐私</h2>
+  <div class="form-card">
+    <p style="font-size:13px;color:var(--fg-dim);line-height:1.7">
+      <strong style="color:var(--fg)">全部 100% 本地 (browser localStorage):</strong>
+      所有表单数据只存你的浏览器,不会发到任何服务器。我(Patrick)只在 Telegram 联系你时,才看到你手动发给我的内容。<br><br>
+      <strong style="color:var(--fg)">Day 5 匿名聚合:</strong>
+      我会做 day 5 「核心需求是 a/b/c」统计,只公开 % 结果,不发个人数据。<br><br>
+      <strong style="color:var(--fg)">不收钱:</strong>
+      v0.2 阶段完全无价。Day 7 后可能做付费,但你试用期间所有 deliverable 免费 + 不收费。<br><br>
+      <strong style="color:var(--fg)">不签 NDA:</strong>
+      因为没什么可藏的 — 你帮我试,我帮你用工具。
+    </p>
+  </div>
+
+  <h2 class="section"><span class="num">5</span>📜 What's NOT promised</h2>
+  <div class="form-card" style="border-color:var(--amber)">
+    <p style="font-size:13px;color:var(--fg-dim);line-height:1.7">
+      ❌ <strong style="color:var(--fg)">不承诺你能赚到钱。</strong>这是个「可执行 build plan」,不是「保证 ROI」。<br>
+      ❌ <strong style="color:var(--fg)">不承诺 24h 内交付。</strong>通常 T+24h,我重写或问 follow-up 都会拖到 48h。<br>
+      ❌ <strong style="color:var(--fg)">不承诺做 mobile App 或 App Store 提交。</strong>本产品只到「Build Plan」层。<br>
+      ❌ <strong style="color:var(--fg)">不承诺给「真」内部数据。</strong>所有反方证据来自公开 source,不是 ground truth。
+    </p>
+  </div>
+
+</section>
+
+</main>
+
+<div id="print-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--green);color:#0d1117;padding:10px 16px;text-align:center;font-weight:600;z-index:1000">🖨 打印模式已开启 — 隐藏 editing UI,只剩 display text。可直接 Cmd+P / Ctrl+P 导出 PDF。<button id="print-cancel" style="background:#0d1117;color:var(--green);border:none;padding:4px 10px;border-radius:4px;margin-left:12px;cursor:pointer">退出打印</button></div>
+
+<footer>
+  Personal Opportunity Decoder v0.3.2 · 2026-07-07 · built by Patrick Day 2 + Day 3 + Day 4 polish + Day 6 recruit · single HTML · no backend<br>
+  Source: <a href="https://www.youtube.com/watch?v=hDOUzlJwM1E">jason lee coinsnap</a> · GPT proposal + Patrick 14x polish<br>
+  Deploy target: 2017zyl.xyz/personal-opportunity-decoder/ (PITFALL #118 + #145 + #146)
+</footer>
+
+</div>
+
+<script>
+  // === TOC v1.4.4 collapsible ===
+  (function(){
+    const toc = document.getElementById('toc');
+    const page = document.getElementById('page');
+    const btn = document.getElementById('toc-toggle');
+    const KEY = 'pod_v0_2_toc_collapsed';
+    function apply(state){
+      toc.classList.toggle('collapsed', state);
+      page.classList.toggle('toc-collapsed', state);
+      btn.textContent = state ? '\u21A5' : '\u21A4';
+    }
+    const saved = localStorage.getItem(KEY);
+    apply(saved === '1');
+    btn.addEventListener('click', () => {
+      const next = !toc.classList.contains('collapsed');
+      apply(next);
+      localStorage.setItem(KEY, next ? '1' : '0');
+    });
+    // TOC links -> scroll to sections
+    document.querySelectorAll('[data-toc-link]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href') || '';
+        if (href.startsWith('#')) {
+          const target = href.slice(1);
+          // if it's a tab, switch first
+          const TABS = ['input','decode','cards','about','try'];
+          if (TABS.indexOf(target) >= 0) {
+            e.preventDefault();
+            location.hash = target;
+          }
+        }
+      });
+    });
+  })();
+
+  // === TABS - extended to 5 including 'try' ===
+  const TABS = ['input','decode','cards','about','try'];
+  const TAB_LABELS = {
+    'input':'\u{1F4E5} 1. Input',
+    'decode':'\u{1F50D} 2. Decode',
+    'cards':'\u{1F0CF} 3. My 5 Cards',
+    'about':'\u{1F4CB} About',
+    'try':'\u{1F91D} Try Now'
+  };
+  function activateTab(tab){
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    TABS.forEach(t => {
+      const el = document.getElementById(t);
+      if (el) el.classList.toggle('active', t === tab);
+    });
+    const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.scrollIntoView({behavior:'instant', block:'nearest', inline:'center'});
+    updateKPI();
+    // TOC active highlight (different from tab buttons)
+    document.querySelectorAll('[data-toc-link]').forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + tab);
+    });
+  }
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (TABS.indexOf(tab) >= 0) {
+        location.hash = tab;
+        activateTab(tab);
+      }
+    });
+  });
+
+  // === hash routing (silent fallback PITFALL single-file-spa v1.4.0) ===
+  function parseHash(){
+    let hash = location.hash.replace(/^#/,'');
+    if (TABS.indexOf(hash) === -1) hash = 'input';
+    activateTab(hash);
+    document.title = `${TAB_LABELS[hash] || hash} \u00b7 Personal Opportunity Decoder v0.3.2`;
+  }
+  window.addEventListener('hashchange', parseHash);
+  parseHash();
+
+  // === form save (localStorage) ===
+  const STORAGE_KEY = 'pod_v0_2_form';
+  const TABS_FIELDS = ['url','url_summary','asset_skills','asset_tools','asset_channels','asset_hours','asset_no_list','motivation'];
+
+  function loadForm(){
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      Object.entries(data).forEach(([k,v]) => {
+        const el = document.getElementById(k);
+        if (el && v != null) el.value = v;
+      });
+    } catch(e) {}
+  }
+  function saveForm(){
+    const data = {};
+    TABS_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  document.getElementById('decoder-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveForm();
+    const savedInputs = JSON.parse(localStorage.getItem('pod_v0_2_saved') || '[]');
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+    const snapshot = {ts: now, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')};
+    savedInputs.push(snapshot);
+    localStorage.setItem('pod_v0_2_saved', JSON.stringify(savedInputs));
+    renderSavedInputs();
+    updateKPI();
+    const url = document.getElementById('url').value;
+    document.getElementById('status').textContent = `\u2705 saved at ${now} (${savedInputs.length} total)`;
+    if (!url) return;
+    document.getElementById('example-loaded').style.display = 'block';
+  });
+
+  function renderSavedInputs(){
+    const savedInputs = JSON.parse(localStorage.getItem('pod_v0_2_saved') || '[]');
+    const wrap = document.getElementById('saved-inputs-list');
+    if (!savedInputs.length) {
+      wrap.innerHTML = '<div class="empty"><div class="icon">\u{1F4ED}</div><div>\u8fd8\u6ca1\u6709\u4efb\u4f55 saved input\u3002\u70b9 <strong>\u{1F4E5} Input \u6807\u7b7e</strong> \u586b\u5b8c\u8868\u5355\u540e\u5b58\u6863\u3002</div></div>';
+      return;
+    }
+    wrap.innerHTML = savedInputs.slice().reverse().map((it, i) => {
+      const idx = savedInputs.length - 1 - i;
+      return `<div class="archive-item"><span class="tag">#${idx+1}</span><strong>${escapeHtml(it.url || '(no url)')}</strong> \u00b7 <span style="color:var(--fg-muted)">${escapeHtml(it.url_summary || '')}</span><br><span style="font-size:11px;color:var(--fg-muted)">${escapeHtml(it.ts)}</span></div>`;
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // === load example ===
+  document.getElementById('load-example').addEventListener('click', () => {
+    document.getElementById('url').value = 'https://www.youtube.com/watch?v=hDOUzlJwM1E';
+    document.getElementById('url_summary').value = 'Jason Lee: Claude Code + Expo 20 分钟编 $400K/mo App';
+    document.getElementById('asset_skills').value = '\u89c6\u9891 dashboard \u5236\u4f5c + LLM prompt \u5de5\u7a0b + \u516c\u7f51 HTML deploy (2017zyl.xyz)';
+    document.getElementById('asset_tools').value = 'Hermes Agent + 6 \u4e2a internal skills (cron/build/dashboard) + local http.server + CF Pages deploy pipeline + Claude API \u8d70 ~/.hermes/claude_api.py';
+    document.getElementById('asset_channels').value = '2017zyl.xyz \u516c\u7f51 + Telegram \u516c\u7f51 + X \u63a8 + \u5fae\u4fe1 (\u672c\u4eba founder)';
+    document.getElementById('asset_hours').value = '12';
+    document.getElementById('asset_no_list').value = '\u4e0d\u505a\u79fb\u52a8 App / \u4e0d\u505a App Store \u63d0\u4ea4 / \u4e0d\u505a SaaS \u591a\u8d26\u53f7 / \u4e0d\u505a\u5ba2\u670d\u4e2d\u5fc3 / \u4e0d\u60f3\u505a\u786c\u4ef6 SKU';
+    document.getElementById('motivation').value = '\u628a\u201cHermes dashboard \u6d41\u6c34\u7ebf\u7684 17 \u5f20 Patrick \u5361\u201d\u505a\u6210\u5176\u4ed6\u72ec\u7acb\u5f00\u53d1\u8005\u7684\u53ef\u5b9a\u5236\u6a21\u677f';
+    document.getElementById('example-loaded').style.display = 'block';
+    document.getElementById('status').textContent = '\u{1F4E6} \u793a\u4f8b\u5df2\u8f7d\u5165,\u7ee7\u7eed\u7f16\u8f91\u6216\u70b9 \u{1F513} \u89e3\u7801';
+    saveForm();
+  });
+
+  // === reset form === (PITFALL #143B family: removed confirm())
+  document.getElementById('reset-form').addEventListener('click', () => {
+    TABS_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('example-loaded').style.display = 'none';
+    document.getElementById('status').textContent = '\u{1F5D1} \u5df2\u6e05\u7a7a';
+    localStorage.removeItem(STORAGE_KEY);
+  });
+
+  // === editable cards (v0.2 polish #3) ===
+  function loadCardEdits(){
+    const cards = ['thesis','moat','fit','gaps','build'];
+    cards.forEach(name => {
+      const savedText = localStorage.getItem('pod_v0_2_card_' + name + '_text');
+      const savedSrc = localStorage.getItem('pod_v0_2_card_' + name + '_source');
+      const savedScore = localStorage.getItem('pod_v0_2_card_' + name + '_score');
+      if (savedText != null) {
+        const ta = document.getElementById('text-' + name);
+        if (ta) ta.value = savedText;
+        // also apply to display paragraph (first line only / full text)
+        const card = document.querySelector(`.card[data-card="${name}"]`);
+        if (card) {
+          const p = card.querySelector('p.display');
+          if (p) p.innerHTML = escapeHtml(savedText).replace(/\n/g, '<br>');
+        }
+      }
+      if (savedSrc != null) {
+        const ta = document.getElementById('source-' + name);
+        if (ta) ta.value = savedSrc;
+        const card = document.querySelector(`.card[data-card="${name}"]`);
+        if (card) {
+          const p = card.querySelector('p.source.display');
+          if (p) p.textContent = savedSrc;
+        }
+      }
+      if (savedScore != null) {
+        const inp = document.getElementById('score-' + name);
+        if (inp) inp.value = savedScore;
+        updateScoreDisplay(name, parseFloat(savedScore));
+      }
+    });
+  }
+  function updateScoreDisplay(name, score){
+    const card = document.querySelector(`.card[data-card="${name}"]`);
+    if (!card) return;
+    const span = card.querySelector('.score');
+    if (!span) return;
+    span.textContent = score + '/10';
+    span.classList.remove('s-green','s-amber','s-red');
+    if (score >= 7) span.classList.add('s-green');
+    else if (score >= 4) span.classList.add('s-amber');
+    else span.classList.add('s-red');
+  }
+  document.querySelectorAll('.card').forEach(card => {
+    const name = card.dataset.card;
+    const editBtn = card.querySelector('.edit-btn');
+    const saveBtn = card.querySelector('.save.editable');
+    const resetBtn = card.querySelector('.reset-btn');
+    if (editBtn) editBtn.addEventListener('click', () => {
+      card.classList.add('editing');
+    });
+    if (saveBtn) saveBtn.addEventListener('click', () => {
+      const tEl = document.getElementById('text-' + name);
+      const sEl = document.getElementById('source-' + name);
+      const scEl = document.getElementById('score-' + name);
+      const t = tEl ? tEl.value : '';
+      const s = sEl ? sEl.value : '';
+      const sc = scEl ? scEl.value : '';
+      localStorage.setItem('pod_v0_2_card_' + name + '_text', t);
+      localStorage.setItem('pod_v0_2_card_' + name + '_source', s);
+      localStorage.setItem('pod_v0_2_card_' + name + '_score', sc);
+      // update display p
+      const pDisp = card.querySelector('p.display');
+      if (pDisp) pDisp.innerHTML = escapeHtml(t).replace(/\n/g, '<br>');
+      const pSrc = card.querySelector('p.source.display');
+      if (pSrc) pSrc.textContent = s;
+      updateScoreDisplay(name, parseFloat(sc));
+      card.classList.remove('editing');
+      updateKPI();
+    });
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      localStorage.removeItem('pod_v0_2_card_' + name + '_text');
+      localStorage.removeItem('pod_v0_2_card_' + name + '_source');
+      localStorage.removeItem('pod_v0_2_card_' + name + '_score');
+      location.reload();
+    });
+    // score input live update (within edit mode)
+    const scEl = card.querySelector('.score-input');
+    if (scEl) {
+      scEl.addEventListener('input', () => {
+        const v = parseFloat(scEl.value);
+        if (!isNaN(v)) updateScoreDisplay(name, v);
+      });
+    }
+  });
+
+  // === KPI strip live update ===
+  function updateKPI(){
+    const saved = JSON.parse(localStorage.getItem('pod_v0_2_saved') || '[]');
+    document.getElementById('kpi-saved').textContent = saved.length;
+    let edited = 0;
+    ['thesis','moat','fit','gaps','build'].forEach(n => {
+      if (localStorage.getItem('pod_v0_2_card_' + n + '_text') != null ||
+          localStorage.getItem('pod_v0_2_card_' + n + '_score') != null) edited++;
+    });
+    document.getElementById('kpi-edited').textContent = edited;
+    // avg fit score
+    let sum = 0, n = 0;
+    ['thesis','moat','fit','gaps','build'].forEach(name => {
+      const sv = localStorage.getItem('pod_v0_2_card_' + name + '_score');
+      const v = parseFloat(sv);
+      if (!isNaN(v)) { sum += v; n++; }
+    });
+    document.getElementById('kpi-avg').textContent = n ? (sum/n).toFixed(1) : '--';
+  }
+
+  // === print mode toggle (P) === (v0.3: inline status banner instead of confirm - PITFALL #143B)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'p' || e.key === 'P') {
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+      e.preventDefault();
+      document.body.classList.toggle('print-mode');
+      const pb = document.getElementById('print-banner');
+      if (pb) pb.style.display = document.body.classList.contains('print-mode') ? 'block' : 'none';
+    }
+  });
+
+  // === try form === (cross-page prefill from input + no alert() PITFALL #143B)
+  function prefillTryForm(){
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      // contact → use asset_channels (likely contains telegram/email)
+      const contactEl = document.getElementById('try_contact');
+      if (contactEl && !contactEl.value && data.asset_channels) {
+        contactEl.value = data.asset_channels.split(/[,/;]/)[0].trim();
+      }
+      const hoursEl = document.getElementById('try_video_hours');
+      if (hoursEl && !hoursEl.value && data.asset_hours) hoursEl.value = data.asset_hours;
+      const toolsEl = document.getElementById('try_tools');
+      if (toolsEl && !toolsEl.value && data.asset_tools) {
+        // shorten to ~80 chars if too long
+        let t = data.asset_tools;
+        if (t.length > 80) t = t.slice(0, 80) + '...';
+        toolsEl.value = t;
+      }
+      const noEl = document.getElementById('try_no');
+      if (noEl && !noEl.value && data.asset_no_list) noEl.value = data.asset_no_list;
+    } catch(e) {}
+  }
+  // CF auto-obfuscate won't touch string concat pieces (Pitfall #146 family)
+  function authorEmail(){
+    const user = 'patrick.l.zeng';
+    const dom = 'gmail';
+    const tld = 'com';
+    return user + String.fromCharCode(64) + dom + '.' + tld;
+  }
+  document.getElementById('try-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const apps = JSON.parse(localStorage.getItem('pod_v0_3_try_apps') || '[]');
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+    apps.push({
+      ts: now,
+      contact: document.getElementById('try_contact').value,
+      video_hours: document.getElementById('try_video_hours').value,
+      tools: document.getElementById('try_tools').value,
+      no: document.getElementById('try_no').value,
+    });
+    localStorage.setItem('pod_v0_3_try_apps', JSON.stringify(apps));
+    const status = document.getElementById('try-status');
+    const em = authorEmail();
+    status.innerHTML = `\u2705 \u7533\u8bf7\u5df2\u5b58\u6863 (${apps.length}). \u73b0\u5728\u53d1 email \u7ed9 <code style="background:var(--surface2);padding:2px 6px;border-radius:4px">${em}</code>(\u624b\u52a8\u62fc\u51fa,CF \u9632\u722c\u4fdd\u62a4)\u3002`;
+    status.style.color = '#3fb950';
+  });
+
+  // === init ===
+  loadForm();
+  loadCardEdits();
+  renderSavedInputs();
+  updateKPI();
+
+  // === diagnostic banner marker (PITFALL #139 cf pattern) ===
+  document.title = '[v0.3.2 OK] ' + document.title;
+
+  // ===================================================================
+  // v0.3 polish round 2: 8 个新功能
+  // ===================================================================
+
+  // === (1) Theme toggle (light/dark) ===
+  (function(){
+    const KEY = 'pod_v0_3_theme';
+    const btn = document.getElementById('theme-toggle');
+    function apply(theme){
+      document.body.classList.toggle('light', theme === 'light');
+      btn.textContent = theme === 'light' ? '\u2600\ufe0f Light' : '\u{1F319} Dark';
+      btn.setAttribute('data-theme', theme);
+      const k = document.getElementById('kpi-theme');
+      if (k) k.textContent = theme;
+    }
+    const saved = localStorage.getItem(KEY);
+    // default to OS preference if not saved
+    let initial = saved;
+    if (!initial) {
+      initial = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    apply(initial);
+    btn.addEventListener('click', () => {
+      const next = document.body.classList.contains('light') ? 'dark' : 'light';
+      apply(next);
+      localStorage.setItem(KEY, next);
+    });
+  })();
+
+  // === (2) Score slider live preview + (3) keyboard nav ===
+  (function(){
+    const CARDS = ['thesis','moat','fit','gaps','build'];
+    let focusIdx = -1;
+
+    function getCardEl(idx){ return document.querySelectorAll('.card[data-card]')[idx] || null; }
+    function setFocus(idx){
+      focusIdx = Math.max(0, Math.min(CARDS.length - 1, idx));
+      const el = getCardEl(focusIdx);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'center'});
+      // visual highlight
+      CARDS.forEach((n, i) => {
+        const c = document.querySelector(`.card[data-card="${n}"]`);
+        if (c) c.style.outline = (i === focusIdx) ? '2px solid var(--accent)' : '';
+      });
+    }
+
+    // slider input → live update + sync hidden number
+    CARDS.forEach(name => {
+      const slider = document.getElementById('score-' + name);
+      if (!slider) return;
+      slider.addEventListener('input', () => {
+        const v = parseFloat(slider.value);
+        updateScoreDisplay(name, v);
+        // also update card top border color
+        const card = document.querySelector(`.card[data-card="${name}"]`);
+        if (card) {
+          card.classList.toggle('s-green', v >= 7);
+          card.classList.toggle('s-amber', v >= 4 && v < 7);
+          card.classList.toggle('s-red', v < 4);
+        }
+      });
+    });
+
+    // === Badge tooltip (click/Enter toggle) ===
+    document.querySelectorAll('.badge-hint').forEach(b => {
+      const toggle = (e) => {
+        e.stopPropagation();
+        b.classList.toggle('show');
+      };
+      b.addEventListener('click', toggle);
+      b.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(e); }
+      });
+    });
+    // click outside dismisses all tooltips
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.badge-hint.show').forEach(b => b.classList.remove('show'));
+    });
+
+    // === global keydown handler (PITFALL #143 family: skip if in input) ===
+    document.addEventListener('keydown', (e) => {
+      const ae = document.activeElement;
+      const inForm = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+      const k = e.key;
+
+      // always-allowed: Escape
+      if (k === 'Escape') {
+        document.querySelectorAll('.card.editing').forEach(c => c.classList.remove('editing'));
+        document.querySelectorAll('.badge-hint.show').forEach(b => b.classList.remove('show'));
+        document.body.classList.remove('print-mode');
+        const pb = document.getElementById('print-banner'); if (pb) pb.style.display = 'none';
+        if (inForm && ae.blur) ae.blur();
+        return;
+      }
+      if (inForm) return;
+
+      // letter shortcuts (without modifiers)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const lc = k.toLowerCase();
+      if (k === 'ArrowUp' || lc === 'w') { e.preventDefault(); setFocus(focusIdx - 1); return; }
+      if (k === 'ArrowDown' || lc === 's' && focusIdx >= 0 && document.querySelector('.card.editing')) {
+        // 's' inside card-edit handled in save-btn click
+        if (document.querySelector('.card.editing')) return;
+        e.preventDefault(); setFocus(focusIdx + 1); return;
+      }
+
+      // shortcut mapping
+      switch(lc){
+        case 'e': {
+          if (focusIdx < 0) return;
+          e.preventDefault();
+          const card = getCardEl(focusIdx);
+          if (card) card.classList.add('editing');
+          const slider = card && card.querySelector('.score-input');
+          if (slider) slider && slider.focus();
+          break;
+        }
+        case 's': {
+          if (focusIdx < 0) return;
+          e.preventDefault();
+          const card = getCardEl(focusIdx);
+          if (!card) return;
+          const tEl = document.getElementById('text-' + CARDS[focusIdx]);
+          const sEl = document.getElementById('source-' + CARDS[focusIdx]);
+          const scEl = document.getElementById('score-' + CARDS[focusIdx]);
+          const t = tEl ? tEl.value : '';
+          const s = sEl ? sEl.value : '';
+          const sc = scEl ? scEl.value : '';
+          localStorage.setItem('pod_v0_3_card_' + CARDS[focusIdx] + '_text', t);
+          localStorage.setItem('pod_v0_3_card_' + CARDS[focusIdx] + '_source', s);
+          localStorage.setItem('pod_v0_3_card_' + CARDS[focusIdx] + '_score', sc);
+          const pDisp = card.querySelector('p.display');
+          if (pDisp) pDisp.innerHTML = escapeHtml(t).replace(/\n/g, '<br>');
+          const pSrc = card.querySelector('p.source.display');
+          if (pSrc) pSrc.textContent = s;
+          updateScoreDisplay(CARDS[focusIdx], parseFloat(sc));
+          card.classList.remove('editing');
+          updateKPI();
+          const ioStatus = document.getElementById('io-status');
+          if (ioStatus) ioStatus.textContent = '\u2705 saved (s)';
+          break;
+        }
+        case 'p': {
+          e.preventDefault();
+          document.body.classList.toggle('print-mode');
+          const pb = document.getElementById('print-banner');
+          if (pb) pb.style.display = document.body.classList.contains('print-mode') ? 'block' : 'none';
+          break;
+        }
+        case 't': {
+          // 'T' theme toggle (uppercase key only to avoid typing 't' in textareas accidentally)
+          if (k === 'T') { e.preventDefault(); document.getElementById('theme-toggle').click(); }
+          break;
+        }
+        case 'j': {
+          e.preventDefault();
+          document.getElementById('export-cards').click();
+          break;
+        }
+      }
+    });
+
+    // print-banner cancel button
+    const printCancel = document.getElementById('print-cancel');
+    if (printCancel) printCancel.addEventListener('click', () => {
+      document.body.classList.remove('print-mode');
+      document.getElementById('print-banner').style.display = 'none';
+    });
+  })();
+
+  // === (6) Cards JSON I/O ===
+  (function(){
+    const exportBtn = document.getElementById('export-cards');
+    const importInput = document.getElementById('import-cards-input');
+    const status = document.getElementById('io-status');
+    const CARDS = ['thesis','moat','fit','gaps','build'];
+
+    function collectCards(){
+      const out = {version:'v0.3', exported_at: new Date().toISOString(), cards:{}};
+      CARDS.forEach(name => {
+        const tEl = document.getElementById('text-' + name);
+        const sEl = document.getElementById('source-' + name);
+        const scEl = document.getElementById('score-' + name);
+        out.cards[name] = {
+          text: tEl ? tEl.value : '',
+          source: sEl ? sEl.value : '',
+          score: scEl ? parseFloat(scEl.value) : null,
+        };
+      });
+      // also include form data
+      const formRaw = localStorage.getItem(STORAGE_KEY);
+      if (formRaw) {
+        try { out.form = JSON.parse(formRaw); } catch(e) {}
+      }
+      return out;
+    }
+    function applyCards(data){
+      if (!data.cards) throw new Error('No cards key in JSON');
+      CARDS.forEach(name => {
+        if (data.cards[name]) {
+          const c = data.cards[name];
+          const tEl = document.getElementById('text-' + name);
+          const sEl = document.getElementById('source-' + name);
+          const scEl = document.getElementById('score-' + name);
+          if (tEl) tEl.value = c.text || '';
+          if (sEl) sEl.value = c.source || '';
+          if (scEl && c.score != null) scEl.value = c.score;
+          // also localStorage
+          if (c.text != null) localStorage.setItem('pod_v0_3_card_' + name + '_text', c.text);
+          if (c.source != null) localStorage.setItem('pod_v0_3_card_' + name + '_source', c.source);
+          if (c.score != null) localStorage.setItem('pod_v0_3_card_' + name + '_score', c.score);
+          // update display
+          const card = document.querySelector(`.card[data-card="${name}"]`);
+          if (card) {
+            const pDisp = card.querySelector('p.display');
+            if (pDisp) pDisp.innerHTML = escapeHtml(c.text || '').replace(/\n/g, '<br>');
+            const pSrc = card.querySelector('p.source.display');
+            if (pSrc) pSrc.textContent = c.source || '';
+            if (c.score != null) updateScoreDisplay(name, c.score);
+          }
+        }
+      });
+    }
+
+    if (exportBtn) exportBtn.addEventListener('click', () => {
+      const data = collectCards();
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'personal-opportunity-decoder-cards-' + new Date().toISOString().slice(0,10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      if (status) status.textContent = '\u2705 exported ' + a.download + ' (' + json.length + ' bytes)';
+    });
+
+    if (importInput) importInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          applyCards(data);
+          updateKPI();
+          if (status) status.textContent = '\u2705 imported ' + file.name;
+        } catch(err) {
+          if (status) status.textContent = '\u274C import failed: ' + err.message;
+        }
+      };
+      reader.readAsText(file);
+    });
+  })();
+
+  // === (7) Daily streak ===
+  (function(){
+    const KEY = 'pod_v0_3_streak';
+    const btn = document.getElementById('record-streak');
+    const display = document.getElementById('streak-display');
+    const countEl = document.getElementById('streak-count');
+    const kpiStreak = document.getElementById('kpi-streak');
+
+    function todayKey(){
+      return new Date().toISOString().slice(0,10);  // YYYY-MM-DD
+    }
+    function load(){
+      try { return JSON.parse(localStorage.getItem(KEY) || '{"dates":[],"last":null,"current":0}'); }
+      catch(e) { return {dates:[], last:null, current:0}; }
+    }
+    function save(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
+    function recompute(d){
+      const dates = (d.dates || []).slice().sort();
+      if (!dates.length) { d.current = 0; return; }
+      // current = consecutive days ending today or yesterday
+      const today = todayKey();
+      const yesterday = new Date(Date.now() - 86400_000).toISOString().slice(0,10);
+      let expected = (dates[dates.length-1] === today) ? today : yesterday;
+      let cur = 0;
+      for (let i = dates.length - 1; i >= 0; i--) {
+        if (dates[i] === expected) { cur++; expected = new Date(new Date(expected).getTime() - 86400_000).toISOString().slice(0,10); }
+        else break;
+      }
+      d.current = cur;
+    }
+    function render(){
+      const d = load();
+      recompute(d);
+      save(d);
+      if (countEl) countEl.textContent = d.current > 0 ? (d.current + ' day streak!') : 'No streak yet';
+      if (display) display.classList.toggle('zero', d.current === 0);
+      if (kpiStreak) kpiStreak.textContent = d.current;
+    }
+    if (btn) btn.addEventListener('click', () => {
+      const d = load();
+      const tk = todayKey();
+      if (!d.dates.includes(tk)) d.dates.push(tk);
+      d.last = tk;
+      recompute(d);
+      save(d);
+      render();
+      const status = document.getElementById('io-status');
+      if (status) status.textContent = '\u2705 marked ' + tk + ' (\u7d2f\u8ba1 ' + d.dates.length + ' \u5929)';
+    });
+    render();
+  })();
+
+  // === (8) prefill try form on try tab activation ===
+  (function(){
+    let prefilled = false;
+    const observer = new MutationObserver(() => {
+      const active = document.querySelector('section#try.tab-content.active');
+      if (active && !prefilled) { prefilled = true; prefillTryForm(); }
+    });
+    observer.observe(document.body, {subtree: true, attributes: true, attributeFilter: ['class']});
+  })();
+
+  // ===================================================================
+  // v0.3.1 polish round 3: 6 个新功能
+  // ===================================================================
+
+  // === (R1) Card collapse/expand (chevron toggle + localStorage) ===
+  (function(){
+    const KEY = 'pod_v0_3_1_collapsed';
+    function loadCollapsed(){
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+      catch(e) { return []; }
+    }
+    function saveCollapsed(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
+    function isCollapsed(name){ return loadCollapsed().indexOf(name) >= 0; }
+    function toggle(name){
+      const arr = loadCollapsed();
+      const i = arr.indexOf(name);
+      if (i >= 0) arr.splice(i, 1); else arr.push(name);
+      saveCollapsed(arr);
+    }
+    document.querySelectorAll('[data-chevron]').forEach(chev => {
+      const name = chev.dataset.chevron;
+      const card = document.querySelector(`.card[data-card="${name}"]`);
+      if (!card) return;
+      // initial state
+      if (isCollapsed(name)) card.classList.add('collapsed');
+      chev.addEventListener('click', (e) => {
+        e.stopPropagation();
+        card.classList.toggle('collapsed');
+        toggle(name);
+      });
+    });
+    // keyboard 'C' shortcut: toggle current focus card collapsed
+  })();
+
+  // === (R2) Challenge button (R) - random card highlight ===
+  (function(){
+    const btn = document.getElementById('challenge-btn');
+    if (!btn) return;
+    const CARDS = ['thesis','moat','fit','gaps','build'];
+    const LABELS = {'thesis':'\ud83d\udc8e Thesis','moat':'\ud83e\udde1 Moat','fit':'\ud83c\udfaf Fit+Risk','gaps':'\u26a0\ufe0f Gaps','build':'\ud83d\ude80 Build'};
+    function pick(){
+      // remove existing highlight
+      document.querySelectorAll('.card.challenge-highlight').forEach(c => c.classList.remove('challenge-highlight'));
+      // random pick weighted by lowest score (force focus on weakest)
+      const scores = CARDS.map(name => {
+        const sc = document.getElementById('score-' + name);
+        return sc ? parseFloat(sc.value) : 5;
+      });
+      const minScore = Math.min.apply(null, scores);
+      const candidates = CARDS.filter((n, i) => scores[i] === minScore);
+      const idx = Math.floor(Math.random() * candidates.length);
+      const finalName = candidates[idx];
+      const card = document.querySelector(`.card[data-card="${finalName}"]`);
+      if (card) {
+        card.classList.add('challenge-highlight');
+        // also un-collapse if collapsed (CSS .collapsed hides everything)
+        card.classList.remove('collapsed');
+        card.scrollIntoView({behavior:'smooth', block:'center'});
+        const status = document.getElementById('io-status');
+        if (status) status.textContent = '\ud83c\udfb2 challenge: ' + LABELS[finalName] + ' (score ' + scores[CARDS.indexOf(finalName)] + '/10)';
+        // re-render highlight in 3s if user didn't react
+        setTimeout(() => {
+          if (card.classList.contains('challenge-highlight')) card.classList.remove('challenge-highlight');
+        }, 5000);
+      }
+    }
+    btn.addEventListener('click', pick);
+    // Expose to keyboard listener
+    window.__podChallenge = pick;
+  })();
+
+  // === (R3) Help overlay (?) ===
+  (function(){
+    const btn = document.getElementById('help-btn');
+    const overlay = document.getElementById('help-overlay');
+    const close = document.getElementById('help-close');
+    if (!btn || !overlay) return;
+    function toggle(){
+      overlay.classList.toggle('show');
+    }
+    function hide(){
+      overlay.classList.remove('show');
+    }
+    btn.addEventListener('click', toggle);
+    if (close) close.addEventListener('click', hide);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) hide();
+    });
+    window.__podHelpToggle = toggle;
+  })();
+
+  // === (R4) Saved inputs clickable → prefill #input ===
+  (function(){
+    // override renderSavedInputs (already exists in v0.2) to add data-* attributes
+    const origRender = window.renderSavedInputs;
+    if (!origRender) return;
+    window.renderSavedInputs = function(){
+      origRender();
+      // after re-render, add click handlers
+      const wrap = document.getElementById('saved-inputs-list');
+      if (!wrap) return;
+      const items = wrap.querySelectorAll('.archive-item');
+      const arr = JSON.parse(localStorage.getItem('pod_v0_2_saved') || '[]');
+      items.forEach((item, idx) => {
+        item.dataset.idx = (arr.length - 1 - idx); // reverse order
+        item.addEventListener('click', () => {
+          const id = parseInt(item.dataset.idx, 10);
+          const data = arr[id];
+          if (!data) return;
+          // prefill #input fields from this snapshot
+          ['url','url_summary','asset_skills','asset_tools','asset_channels','asset_hours','asset_no_list','motivation'].forEach(k => {
+            const el = document.getElementById(k);
+            if (el && data[k] != null) el.value = data[k];
+          });
+          saveForm();
+          // jump to #input + scroll top
+          location.hash = 'input';
+          const status = document.getElementById('status');
+          if (status) status.textContent = '\u2705 loaded saved #' + (id + 1) + ' into input form';
+          // reset status after a few sec
+          setTimeout(() => { if (status) status.textContent = ''; }, 3000);
+        });
+      });
+    };
+    // re-render to attach handlers
+    if (typeof renderSavedInputs === 'function') renderSavedInputs();
+  })();
+
+  // === (R5) URL hash encode/decode for state share ===
+  (function(){
+    const CARDS = ['thesis','moat','fit','gaps','build'];
+    function collect(){
+      const out = {v:'0.3.1', cards:{}, form:null};
+      CARDS.forEach(name => {
+        const tEl = document.getElementById('text-' + name);
+        const sEl = document.getElementById('source-' + name);
+        const scEl = document.getElementById('score-' + name);
+        out.cards[name] = {
+          text: tEl ? tEl.value.slice(0, 200) : '',
+          source: sEl ? sEl.value.slice(0, 80) : '',
+          score: scEl ? parseFloat(scEl.value) : null,
+        };
+      });
+      const formRaw = localStorage.getItem(STORAGE_KEY);
+      if (formRaw) { try { out.form = JSON.parse(formRaw); } catch(e) {} }
+      return out;
+    }
+    function apply(snap){
+      if (!snap || snap.v !== '0.3.1') return;
+      CARDS.forEach(name => {
+        if (snap.cards && snap.cards[name]) {
+          const c = snap.cards[name];
+          if (c.text != null) {
+            const ta = document.getElementById('text-' + name);
+            if (ta) ta.value = c.text;
+          }
+          if (c.source != null) {
+            const ta = document.getElementById('source-' + name);
+            if (ta) ta.value = c.source;
+          }
+          if (c.score != null) {
+            const sc = document.getElementById('score-' + name);
+            if (sc) sc.value = c.score;
+            updateScoreDisplay(name, c.score);
+          }
+        }
+      });
+      if (snap.form) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snap.form));
+        loadForm();
+      }
+    }
+    function encode(){
+      const data = collect();
+      const json = JSON.stringify(data);
+      // base64 url-safe
+      const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      const url = location.origin + location.pathname + '#s=' + b64;
+      return url;
+    }
+    const shareBtn = document.getElementById('share-url-btn');
+    if (shareBtn) shareBtn.addEventListener('click', async () => {
+      const url = encode();
+      const status = document.getElementById('io-status');
+      try {
+        await navigator.clipboard.writeText(url);
+        if (status) status.textContent = '\u2705 share URL copied (' + url.length + ' chars)';
+      } catch(e) {
+        // fallback: prompt
+        if (status) status.textContent = '\u26a0\ufe0f clipboard blocked \u2014 copy manually: ' + url.slice(0, 50) + '...';
+        // show in prompt as fallback
+        if (typeof prompt === 'undefined') {
+          // no prompt API (sandbox/PITFALL #143B); show in status
+        } else {
+          prompt('Copy this share URL:', url);
+        }
+      }
+      // also update URL hash so users can copy from address bar
+      try { history.replaceState(null, '', '#s=' + url.split('#s=')[1]); } catch(e) {}
+    });
+    // decode on load
+    const m = (location.hash || '').match(/^#s=([A-Za-z0-9_-]+)/);
+    if (m) {
+      try {
+        let b64 = m[1].replace(/-/g,'+').replace(/_/g,'/');
+        while (b64.length % 4) b64 += '=';
+        const json = decodeURIComponent(escape(atob(b64)));
+        const snap = JSON.parse(json);
+        apply(snap);
+        const status = document.getElementById('io-status');
+        if (status) status.textContent = '\u2705 applied shared state (' + (m[1].length) + 'b64 chars)';
+      } catch(e) {
+        const status = document.getElementById('io-status');
+        if (status) status.textContent = '\u26a0\ufe0f failed to decode share hash: ' + e.message;
+      }
+    }
+  })();
+
+  // === (R6) AI assist - 3 prompt templates copy-to-clipboard ===
+  (function(){
+    const TEMPLATES = {
+      thesis: 'Read this URL/article and extract the 1-sentence business formula.\n\nURL: ${URL}\nMy 5 assets:\n- skills: ${SKILLS}\n- tools: ${TOOLS}\n- channels: ${CHANNELS}\n- weekly hours: ${HOURS}\n- hard nos: ${NO_LIST}\n\nOutput: 1 sentence naming the formula (e.g. "niche + 1 feature + subscription"). Be concrete. Cite 3 source URLs that prove it.',
+      '5card': 'Read this URL and produce 5 cards for me:\n\nURL: ${URL}\nMy 5 assets: skills=${SKILLS} tools=${TOOLS} channels=${CHANNELS} hours=${HOURS} nos=${NO_LIST}\n\nReturn ONLY valid JSON with this shape:\n{\n  "thesis": "1-sentence formula + 1 source URL",\n  "moat": "what ChatGPT cannot do + 1 source URL",\n  "fit": "0-10 score + 3 risks with sources",\n  "gaps": "9 things I must build + sources",\n  "build": "7-day loop plan (one line per day)"\n}\n\nNo commentary. JSON only.',
+      fit: 'Score 0-10 whether I personally should build this case. Read URL first.\n\nURL: ${URL}\nMy assets:\n- skills=${SKILLS}\n- tools=${TOOLS}\n- channels=${CHANNELS}\n- hours/week=${HOURS}\n- my hard nos=${NO_LIST}\n\nOutput JSON:\n{"score": 7.5, "fit_summary": "1 line", "risks": [{"name":"...", "severity":"high", "evidence":"URL or source"}, ...], "verdict":"build|wait|skip", "reason":"1 sentence"}'
+    };
+    function fillTemplate(t){
+      const form = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return t.replace(/\$\{(\w+)\}/g, (m, k) => (form['asset_' + k] || form[k] || form.url || ('[${' + k + '}]')));
+    }
+    const status = document.getElementById('copy-status');
+    document.querySelectorAll('.prompt-template').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const tpl = TEMPLATES[btn.dataset.template];
+        if (!tpl) return;
+        const filled = fillTemplate(tpl);
+        try {
+          await navigator.clipboard.writeText(filled);
+          if (status) {
+            status.textContent = '\u2705 ' + btn.textContent.trim() + ' copied (' + filled.length + ' chars)';
+            status.classList.add('show');
+            setTimeout(() => status.classList.remove('show'), 2000);
+          }
+        } catch(e) {
+          if (status) {
+            status.textContent = '\u26a0\ufe0f clipboard blocked \u2014 click help (?) for fallback';
+            status.classList.add('show');
+            setTimeout(() => status.classList.remove('show'), 3000);
+          }
+        }
+      });
+    });
+  })();
+
+  // === Extend global keydown handler with R/C/? shortcuts ===
+  (function(){
+    // re-bind keydown for new shortcuts (R/C/?) - separate handler to avoid overlapping with v0.3 handler
+    document.addEventListener('keydown', (e) => {
+      const ae = document.activeElement;
+      const inForm = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+      if (inForm) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key;
+      if (k === 'r' || k === 'R') {
+        e.preventDefault();
+        if (window.__podChallenge) window.__podChallenge();
+        return;
+      }
+      if (k === 'c' || k === 'C') {
+        e.preventDefault();
+        const focused = document.querySelector('.challenge-highlight');
+        const target = focused || document.querySelector('.card[data-card]');
+        if (target) {
+          target.classList.toggle('collapsed');
+          const name = target.dataset.card;
+          if (name) {
+            const KEY = 'pod_v0_3_1_collapsed';
+            const arr = (function(){ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e) { return []; }})();
+            const i = arr.indexOf(name);
+            if (target.classList.contains('collapsed')) {
+              if (i < 0) arr.push(name);
+            } else {
+              if (i >= 0) arr.splice(i, 1);
+            }
+            localStorage.setItem(KEY, JSON.stringify(arr));
+          }
+        }
+        return;
+      }
+      if (k === '?' || (k === '/' && e.shiftKey)) {
+        e.preventDefault();
+        if (window.__podHelpToggle) window.__podHelpToggle();
+        return;
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

@@ -199,21 +199,36 @@ SEARCH_DIRS = [
 ]
 
 def resolve_archive_href(filename: str) -> str:
-    """Return the public URL prefix + filename that actually exists in deploy bundle."""
+    """Return a root-relative public URL that exists in the deploy bundle."""
     if not filename:
         return "#"
-    candidates = [filename]
-    if not filename.endswith(".html"):
-        candidates.append(filename + ".html")
-    if filename.endswith(".html"):
-        candidates.append(filename[:-5])
+    raw = filename.lstrip("/")
+    bases = [raw]
+    if raw.startswith("daily-reports/"):
+        bases.append(raw[len("daily-reports/"):])
+
+    candidates = []
+    for base in bases:
+        if not base:
+            continue
+        candidates.append(base)
+        if not base.endswith(".html"):
+            candidates.append(base + ".html")
+        if base.endswith(".html"):
+            candidates.append(base[:-5])
+        candidates.append(re.sub(r"/index\.html$", "", base) + "/index.html")
+
+    seen = set()
+    candidates = [c for c in candidates if not (c in seen or seen.add(c))]
     for prefix, d in SEARCH_DIRS:
         if d.exists():
             for c in candidates:
-                if (d / c).exists():
-                    return prefix + c
-    # Fallback: root + raw filename (let CF Pages 404.html surface; safer than silent /reports/ 404)
-    return filename
+                p = d / c
+                if p.exists():
+                    if p.is_dir() and (p / "index.html").exists():
+                        return "/" + (prefix + c).rstrip("/") + "/"
+                    return "/" + prefix + c
+    return "/" + raw
 
 archive_rows_html = []
 for r in records:

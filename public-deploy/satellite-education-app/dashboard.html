@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title data-i18n="pageTitle">🛰️ 卫星教育 App · 项目仪表盘</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="build_dashboard_v2.py (i18n: zh-CN default + EN toggle)">
+<style>
+:root {
+  --bg: #0b1220;
+  --bg-elev: #131c30;
+  --bg-card: #18233d;
+  --fg: #e6edf7;
+  --fg-mute: #8a96b0;
+  --border: #243250;
+  --accent: #4f8cff;
+  --accent-2: #6ee7b7;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --ok: #10b981;
+  --todo: #6366f1;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font: 14px/1.55 -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', sans-serif; }
+body { padding-left: 260px; transition: padding-left 0.3s ease; }
+body.toc-collapsed { padding-left: 56px; }
+
+/* ---------- TOC sidebar ---------- */
+.toc { position: fixed; left: 0; top: 0; bottom: 0; width: 240px; background: var(--bg-elev); border-right: 1px solid var(--border); padding: 60px 0 20px 0; overflow-y: auto; transition: width 0.3s ease, transform 0.3s ease; z-index: 50; }
+.toc-collapsed .toc { width: 48px; }
+.toc ul { list-style: none; padding: 0; margin: 0; }
+.toc li a { display: flex; align-items: center; gap: 10px; padding: 9px 18px; color: var(--fg-mute); text-decoration: none; border-left: 3px solid transparent; font-size: 13px; }
+.toc li a:hover { color: var(--fg); background: var(--bg-card); }
+.toc li a.active { color: var(--accent); border-left-color: var(--accent); background: var(--bg-card); }
+.toc li a .ico { font-size: 16px; min-width: 20px; text-align: center; }
+.toc-collapsed .toc li a .label { display: none; }
+.toc-toggle { position: fixed; left: 8px; top: 8px; z-index: 60; background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); width: 36px; height: 36px; border-radius: 6px; cursor: pointer; font-size: 18px; }
+.toc-collapsed .toc-toggle { left: 8px; }
+
+/* ---------- Lang toggle ---------- */
+.lang-toggle { background: var(--accent); border: 1px solid var(--accent); color: #fff; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; margin-left: 8px; }
+.lang-toggle:hover { background: var(--accent-2); border-color: var(--accent-2); }
+
+/* ---------- Top bar ---------- */
+header.topbar { padding: 18px 32px 12px; border-bottom: 1px solid var(--border); background: var(--bg-elev); display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+header.topbar h1 { font-size: 20px; margin: 0; font-weight: 700; }
+header.topbar .meta { color: var(--fg-mute); font-size: 12px; }
+header.topbar .pill { background: var(--bg-card); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; font-size: 11px; }
+
+/* ---------- KPI row ---------- */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; padding: 18px 32px 4px; }
+.kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.kpi .label { font-size: 11px; color: var(--fg-mute); text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi .val { font-size: 22px; font-weight: 700; margin-top: 4px; color: var(--accent); }
+.kpi .val.ok { color: var(--ok); }
+.kpi .val.warn { color: var(--warn); }
+.kpi .val.danger { color: var(--danger); }
+.kpi .val.todo { color: var(--todo); }
+
+/* ---------- Main tabs ---------- */
+main { padding: 12px 32px 60px; max-width: 1400px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Section / card ---------- */
+section { margin-bottom: 36px; }
+section h2 { font-size: 16px; color: var(--accent-2); margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+section h3 { font-size: 14px; color: var(--fg); margin: 18px 0 8px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+.card.flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.card .id { color: var(--accent); font-family: 'SF Mono', Menlo, monospace; font-size: 12px; }
+.card .title { font-weight: 600; margin: 4px 0 8px; }
+.card .body { font-size: 13px; color: var(--fg-mute); line-height: 1.5; }
+.card .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: var(--bg-elev); color: var(--fg-mute); border: 1px solid var(--border); }
+.badge.ok { background: rgba(16, 185, 129, 0.12); color: var(--ok); border-color: var(--ok); }
+.badge.warn { background: rgba(251, 191, 36, 0.12); color: var(--warn); border-color: var(--warn); }
+.badge.danger { background: rgba(248, 113, 113, 0.12); color: var(--danger); border-color: var(--danger); }
+.badge.accent { background: rgba(79, 140, 255, 0.14); color: var(--accent); border-color: var(--accent); }
+
+/* ---------- Kanban columns ---------- */
+.kanban-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.kanban-col { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 8px; padding: 10px; min-height: 240px; }
+.kanban-col h4 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-mute); margin: 0 0 8px; display: flex; justify-content: space-between; }
+.kanban-col h4 .count { background: var(--bg-card); color: var(--accent); padding: 1px 8px; border-radius: 999px; font-size: 11px; }
+.kanban-col .task { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; cursor: pointer; transition: transform 0.08s ease; }
+.kanban-col .task:hover { transform: translateY(-1px); border-color: var(--accent); }
+.kanban-col .task .tid { color: var(--accent); font-family: 'SF Mono', Menlo, monospace; font-size: 11px; }
+.kanban-col .task .ttitle { font-size: 12px; font-weight: 600; margin-top: 2px; }
+.kanban-col .task .ttype { font-size: 10px; color: var(--fg-mute); margin-top: 4px; }
+.empty-state { color: var(--fg-mute); font-size: 12px; font-style: italic; padding: 12px 8px; text-align: center; }
+
+/* ---------- Phase grid ---------- */
+.phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.phase { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 14px 16px; }
+.phase h3 { font-size: 14px; margin: 0 0 8px; color: var(--accent); }
+.phase .goal { font-size: 12px; color: var(--fg-mute); margin-bottom: 10px; font-style: italic; }
+.phase ul { margin: 0; padding-left: 18px; font-size: 12px; }
+.phase ul li { margin-bottom: 4px; }
+
+/* ---------- Tables ---------- */
+table.data { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.data th { background: var(--bg-elev); color: var(--fg-mute); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+table.data td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+table.data tr:last-child td { border-bottom: none; }
+table.data tr:hover { background: var(--bg-elev); }
+table.data td .id-cell { font-family: 'SF Mono', Menlo, monospace; color: var(--accent); }
+
+/* ---------- Search / filter ---------- */
+.filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.filter-bar input { background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); padding: 7px 12px; border-radius: 6px; font-size: 13px; flex: 1; min-width: 200px; }
+.filter-bar button { background: var(--bg-card); border: 1px solid var(--border); color: var(--fg); padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.filter-bar button:hover { background: var(--bg-elev); border-color: var(--accent); color: var(--accent); }
+.filter-bar button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ---------- Footer ---------- */
+footer { padding: 24px 32px 60px; color: var(--fg-mute); font-size: 12px; border-top: 1px solid var(--border); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  body { padding-left: 0 !important; }
+  .toc { transform: translateX(-12px); width: 0; padding-left: 0; padding-right: 0; overflow: hidden; }
+  body:not(.toc-collapsed) .toc { transform: translateX(-100%); width: 240px; padding: 60px 0 20px 0; }
+  main, header.topbar, footer { padding-left: 16px; padding-right: 16px; }
+  .kanban-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<button class="toc-toggle" onclick="toggleToc()" aria-label="Toggle TOC">☰</button>
+
+<aside class="toc">
+  <ul id="toc-list"></ul>
+</aside>
+
+<header class="topbar">
+  <h1 data-i18n="appName">🛰️ Satellite Education App</h1>
+  <span class="pill" id="generated-at" data-i18n-prefix="generated">generated …</span>
+  <span class="pill" data-i18n="tagline">Project Tracking Dashboard</span>
+  <button id="lang-toggle" class="lang-toggle" onclick="window.toggleLang && window.toggleLang()" aria-label="Toggle language" title="Switch between Chinese and English">中 / EN</button>
+  <span class="pill">v1.0.0</span>
+  <span class="meta" style="margin-left:auto">
+    <span data-i18n="buildLabel">Build:</span> <code>build_dashboard_v2.py</code>
+    <span data-i18n="divider"> | </span>
+    <span data-i18n="readCount">Read 8 MD files</span>
+    <span data-i18n="divider"> | </span>
+    <span data-i18n="offline">100% offline</span>
+  </span>
+  <button class="lang-toggle" id="lang-toggle" onclick="toggleLang()" data-i18n="langToggle" style="background:var(--bg-card);border:1px solid var(--border);color:var(--fg);padding:4px 12px;border-radius:999px;font-size:11px;cursor:pointer;margin-left:8px">EN</button>
+</header>
+
+<div class="kpi-row" id="kpi-row"></div>
+
+<main>
+  <div class="tab-content active" id="tab-overview"></div>
+  <div class="tab-content" id="tab-kanban"></div>
+  <div class="tab-content" id="tab-roadmap"></div>
+  <div class="tab-content" id="tab-logbook"></div>
+  <div class="tab-content" id="tab-feedback"></div>
+  <div class="tab-content" id="tab-changes"></div>
+  <div class="tab-content" id="tab-decisions"></div>
+  <div class="tab-content" id="tab-rollback"></div>
+</main>
+
+<footer>
+  <p><strong data-i18n="footerSOT">数据源:</strong> <code>README.md</code>  |  <code>KANBAN.md</code>  |  <code>ROADMAP.md</code>  |  <code>LOGBOOK.md</code>  |  <code>FEEDBACK.md</code>  |  <code>CHANGES.md</code>  |  <code>DECISIONS.md</code>  |  <code>ROLLBACK.md</code> + 4 templates. <span data-i18n="footerRegen">修改 MD 后重新生成:</span> <code>python3 build_dashboard_v2.py</code>.</p>
+  <p><strong data-i18n="footerPattern">实现方式:</strong> <span data-i18n="footerPatternBody">读取 GitHub 风格 MD 表格 -&gt; 解析 -&gt; 嵌入 JSON -&gt; 渲染单文件 SPA,带可折叠目录。无外部依赖。JS 全部 ASCII 安全。</span></p>
+</footer>
+
+<script id="dash-data" type="application/json">{"generated_at": "2026-07-08T11:14:47", "kanban": {"backlog": [{"ID": "SAT-006", "Task": "Define canonical satellite subsystem taxonomy", "Type": "Curriculum", "Owner": "TBD", "Links": "ROADMAP Phase 1"}, {"ID": "SAT-007", "Task": "Create first CubeSat exploded-view part list", "Type": "3D Content", "Owner": "TBD", "Links": "SAT-006"}, {"ID": "SAT-008", "Task": "Choose 10 seed real satellites for the atlas", "Type": "Data", "Owner": "TBD", "Links": "ROADMAP Phase 1"}, {"ID": "SAT-009", "Task": "Design beginner/adult/engineering explanation schema", "Type": "Curriculum", "Owner": "TBD", "Links": "SAT-006"}, {"ID": "SAT-010", "Task": "Select orbit calculation stack for MVP", "Type": "Engineering", "Owner": "TBD", "Links": "DEC-001"}, {"ID": "SAT-011", "Task": "Draft classroom challenge format", "Type": "Learning Design", "Owner": "TBD", "Links": "ROADMAP Phase 2"}, {"ID": "SAT-012", "Task": "Define safety boundary for public satellite data use", "Type": "Policy", "Owner": "TBD", "Links": "README rules"}], "next": [{"ID": "SAT-001", "Task": "Lock MVP scope", "Type": "Product", "Owner": "TBD", "Exit Criteria": "MVP includes one CubeSat model, 10 satellite atlas entries, basic orbit demo, and design sandbox stub"}, {"ID": "SAT-002", "Task": "Build source inventory", "Type": "Research", "Owner": "TBD", "Exit Criteria": "Each source has URL, use case, license/terms note, and data fields"}, {"ID": "SAT-003", "Task": "Define app information architecture", "Type": "Product", "Owner": "TBD", "Exit Criteria": "Main screens and navigation are documented"}], "in_progress": [{"ID": "None", "Task": "No active task", "Type": "Project Ops", "Owner": "-", "Started": "-", "Notes": "Waiting for user review of the tracking workflow"}], "review": [{"ID": "SAT-005", "Task": "Validate project tracking workflow", "Type": "Project Ops", "Reviewer": "User", "Review Need": "Confirm whether the tracking files and process fit the way you want to work"}], "done": [{"ID": "SAT-000", "Task": "Define product direction", "Type": "Product", "Completed": "2026-07-08", "Evidence": "App concept: exploded 3D satellite education lab, real satellite atlas, orbit demo, design sandbox"}, {"ID": "SAT-004", "Task": "Set up project tracking board", "Type": "Project Ops", "Completed": "2026-07-08", "Evidence": "Initial board, logs, templates, local git repo, and rollback checkpoint"}]}, "phases": [{"title": "Phase 0: Project Tracking Foundation", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 0}, {"title": "Phase 1: Educational Knowledge Base", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 1}, {"title": "Phase 2: MVP Interaction Design", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 2}, {"title": "Phase 3: Prototype Build", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 3}, {"title": "Phase 4: Classroom Mode", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 4}, {"title": "Phase 5: Data and Simulation Upgrade", "goal": "", "exit_criteria": [], "initial_tasks": [], "phase_num": 5}], "logbook": [{"id": "LOG-001", "title": "Project tracking system created", "date": "2026-07-08", "related_tasks": "SAT-004, SAT-005", "status": "Completed for initial setup; awaiting user review", "summary": "Created a file-based project board with kanban, roadmap, feedback", "evidence": [], "next_action": "User reviews the workflow and asks for adjustments if needed."}, {"id": "LOG-002", "title": "First rollback checkpoint created", "date": "2026-07-08", "related_tasks": "SAT-004", "status": "Completed", "summary": "Initialized a local git repository and committed the initial project", "evidence": [], "next_action": "Future task completions should be committed and recorded in"}], "feedback": [{"ID": "FB-001", "Date": "2026-07-08", "Source": "User", "Feedback": "Build a trackable project board. Every completed phase or small goal must be recorded. Every feedback and modification must leave records for rollback.", "Status": "Addressed", "Linked Changes": "CHG-001"}], "changes": [{"ID": "CHG-001", "Date": "2026-07-08", "Related Task": "SAT-004", "Related Feedback": "FB-001", "Change": "Created the initial project tracking board and documentation structure.", "Files/Areas Affected": "Project board Markdown files", "Rollback": "Revert initial project-board files or restore from the first git checkpoint"}, {"ID": "CHG-002", "Date": "2026-07-08", "Related Task": "SAT-004", "Related Feedback": "FB-001", "Change": "Initialized local git versioning and recorded the first rollback checkpoint.", "Files/Areas Affected": "Git repository metadata, `ROLLBACK.md`, `LOGBOOK.md`, `KANBAN.md`", "Rollback": "Revert the checkpoint-record update commit; keep or remove `.git` depending on whether version history is still needed"}], "decisions": [{"id": "DEC-001", "title": "Use a staged technical approach for orbital computation", "date": "2026-07-08", "status": "Proposed", "context": "The app needs orbit education early, but high-fidelity simulation can", "decision": "Start with simple visual orbit categories in the MVP. Add CelesTrak", "consequences": "MVP remains buildable quickly, while the architecture still"}, {"id": "DEC-002", "title": "Use public educational abstraction for satellite internals", "date": "2026-07-08", "status": "Proposed", "context": "The goal is education, not exposing sensitive spacecraft control or", "decision": "Model spacecraft using public subsystem concepts and representative", "consequences": "The app can teach engineering concepts safely while still being"}], "checkpoints": [{"Checkpoint": "RB-001", "Date": "2026-07-08", "Scope": "Initial project board", "Related Changes": "CHG-001", "Git Commit": "`dcfbec0`", "Rollback Command": "`git revert dcfbec0`"}], "rollback_levels": [{"level": "1", "title": "Content correction", "body": "Use when only wording, task status, or metadata is wrong.\n\nAction:\n- Edit the affected Markdown entry.\n- Add a new `CHG-*` entry explaining the correction."}, {"level": "2", "title": "Single change rollback", "body": "Use when one implementation or content change should be undone.\n\nAction:\n- Use `git revert <commit-hash>` if the change was committed.\n- Update `ROLLBACK.md` with the rollback result.\n- Add a `LOGBOOK.md` entry."}, {"level": "3", "title": "Phase rollback", "body": "Use when a whole phase direction is rejected.\n\nAction:\n- Identify all `CHG-*` entries in that phase.\n- Revert their commits in reverse chronological order.\n- Move affected kanban tasks back to `Backlog` or `Next`.\n- Add a decision entry explaining why the phase was rolled back."}], "counts": {"backlog": 7, "next": 3, "in_progress": 1, "review": 1, "done": 2, "phases": 6, "logbook": 2, "feedback": 1, "changes": 2, "decisions": 2, "checkpoints": 1}}</script>
+<script>
+(function () {
+  'use strict';
+  var data = JSON.parse(document.getElementById('dash-data').textContent);
+
+  // ---------- i18n ----------
+  var LANG_KEY = 'satellite-edu-lang';
+  var currentLang = (localStorage.getItem(LANG_KEY) === 'en') ? 'en' : 'zh';
+
+  var I18N = {
+    zh: {
+      pageTitle: '🛰️ 卫星教育 App · 项目仪表盘',
+      appName: '🛰️ 卫星教育 App',
+      tagline: '项目追踪仪表盘',
+      langToggle: 'EN',
+      buildLabel: '构建工具:',
+      divider: ' | ',
+      readCount: '读取 8 个 MD 文件',
+      pillPhase: '阶段',
+      pillStatus: '状态',
+      docMd: '原始 MD 已生成 ',
+      offline: '100% 离线',
+      generatedPrefix: '生成于 ',
+      footerSOT: '数据源:',
+      footerRegen: '修改 MD 后重新生成:',
+      footerPattern: '实现方式:',
+      footerPatternBody: '读取 GitHub 风格 MD 表格 -&gt; 解析 -&gt; 嵌入 JSON -&gt; 渲染单文件 SPA,带可折叠目录。无外部依赖。JS 全部 ASCII 安全。',
+      kpiBacklog: '待办',          kpiNext: '下一步',     kpiInProgress: '进行中',
+      kpiReview: '审核',          kpiDone: '已完成',     kpiPhases: '阶段',
+      kpiLogbook: '日志',         kpiFeedback: '反馈',       kpiChanges: '变更',
+      kpiDecisions: '决策',       kpiCheckpoints: '检查点',
+      secOverviewGoal: '项目目标',
+      overviewGoalBody: '打造一款教育应用,让儿童与成人可以探索直观的 3D 爆裂式卫星模型,对比真实的人造卫星,理解宇航器的核心子系统,最终能设计自己的简单卫星概念。',
+      secCurrentState: '当前状态 · 快照',
+      csPhase: '阶段:',           csPhaseVal: 'Phase 0 · 项目追踪基础 (已完成初步搭建,等待用户审阅)',
+      csNextStep: '下一关键步骤:', csNextStepVal: '在启动 Phase 1 之前,验证追踪工作流 (SAT-005)。',
+      csRollback: '回滚检查点:', csDecisionsPending: '待审决策:',
+      secPhasePipeline: '阶段流水线', secExit: '退出条件:', secInitTasks: '初始任务:',
+      secRecentLogbook: '最近日志',
+      filterSearchPh: '按 ID / 标题 / 类型 / 负责人搜索',
+      clearBtn: '清除',
+      kanbanBacklog: '待办',      kanbanNext: '下一步',
+      kanbanInProg: '进行中', kanbanReview: '审核', kanbanDone: '已完成',
+      emptyCol: '空', emptyNoMatch: '无匹配',
+      secRoadmap: '路线图 · N 个阶段',
+      secLogbook: '日志 · 按时间顺序记录的工作日志',
+      logbookEmpty: '还没有日志条目。',
+      lbTasks: '任务:', lbEvidence: '证据:', lbNext: '下一步:',
+      secFeedback: '反馈记录', fbEmpty: '还没有反馈条目。',
+      secChanges: '变更记录', chEmpty: '还没有变更。',
+      secDecisions: '决策记录', dcEmpty: '还没有决策。',
+      dcContext: '背景:', dcDecision: '决定:', dcConsequences: '后果:',
+      secRollback: '回滚检查点', rbEmpty: '还没有检查点。',
+      secRollbackLevels: '回滚等级', rbLevel: '等级',
+    },
+    en: {
+      pageTitle: '🛰️ Satellite Education App · Project Dashboard',
+      appName: '🛰️ Satellite Education App',
+      tagline: 'Project Tracking Dashboard',
+      langToggle: '中',
+      buildLabel: 'Build:',
+      divider: ' | ',
+      readCount: 'Read 8 MD files',
+      offline: '100% offline',
+      generatedPrefix: 'generated ',
+      footerSOT: 'Source of truth:',
+      footerRegen: 'To regenerate dashboard after any MD edit:',
+      footerPattern: 'Pattern:',
+      footerPatternBody: 'Read GitHub-flavored MD tables -> parse -> embed JSON -> render single-file SPA with collapsible TOC. No external deps. All ASCII-safe JS.',
+      kpiBacklog: 'Backlog',          kpiNext: 'Next',          kpiInProgress: 'In Progress',
+      kpiReview: 'Review',            kpiDone: 'Done',          kpiPhases: 'Phases',
+      kpiLogbook: 'Logbook',          kpiFeedback: 'Feedback',   kpiChanges: 'Changes',
+      kpiDecisions: 'Decisions',      kpiCheckpoints: 'Checkpoints',
+      secOverviewGoal: 'Project Goal',
+      overviewGoalBody: 'Build an educational app where children and adults can explore intuitive 3D exploded satellite models, compare real artificial satellites, understand core spacecraft subsystems, and eventually design a simple satellite concept of their own.',
+      secCurrentState: 'Current State  -  Snapshot',
+      csPhase: 'Phase:', csPhaseVal: 'Phase 0  -  Project Tracking Foundation (Completed initial setup, awaiting user review)',
+      csNextStep: 'Next critical step:', csNextStepVal: 'Validate tracking workflow (SAT-005) before kicking off Phase 1.',
+      csRollback: 'Rollback checkpoint:', csDecisionsPending: 'Decisions pending review:',
+      secPhasePipeline: 'Phase Pipeline', secExit: 'Exit Criteria:', secInitTasks: 'Initial Tasks:',
+      secRecentLogbook: 'Recent Logbook Activity',
+      filterSearchPh: 'Search tasks by ID, title, type, owner',
+      clearBtn: 'Clear',
+      kanbanBacklog: 'Backlog', kanbanNext: 'Next', kanbanInProg: 'In Progress', kanbanReview: 'Review', kanbanDone: 'Done',
+      emptyCol: 'empty', emptyNoMatch: 'no match',
+      secRoadmap: 'Roadmap  -  ' + '累计阶段数',       // placeholder; replaced via count
+      secLogbook: 'Logbook  -  Chronological Work Journal',
+      logbookEmpty: 'No logbook entries yet.',
+      lbTasks: 'tasks: ', lbEvidence: 'Evidence:', lbNext: 'Next:',
+      secFeedback: 'Feedback Log', fbEmpty: 'No feedback items yet.',
+      secChanges: 'Change Log', chEmpty: 'No changes yet.',
+      secDecisions: 'Decision Log', dcEmpty: 'No decisions logged yet.',
+      dcContext: 'Context:', dcDecision: 'Decision:', dcConsequences: 'Consequences:',
+      secRollback: 'Rollback Checkpoints', rbEmpty: 'No checkpoints recorded yet.',
+      secRollbackLevels: 'Rollback Levels', rbLevel: 'Level',
+    }
+  };
+
+  function t(key) { return I18N[currentLang][key] || I18N.zh[key] || key; }
+  // Patch secRoadmap to include live phase count
+  Object.defineProperty(I18N.en, 'secRoadmap', {
+    get: function () { return 'Roadmap  -  ' + data.phases.length + ' Phases'; }
+  });
+  Object.defineProperty(I18N.zh, 'secRoadmap', {
+    get: function () { return '路线图 · 共 ' + data.phases.length + ' 个阶段'; }
+  });
+
+  function applyI18n() {
+    var d = I18N[currentLang];
+    document.documentElement.setAttribute('lang', currentLang === 'zh' ? 'zh-CN' : 'en');
+
+    var titleEl = document.querySelector('title[data-i18n]');
+    if (titleEl) {
+      var t = I18N[currentLang][titleEl.getAttribute('data-i18n')];
+      if (t) document.title = t;
+    }
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n');
+      if (d[k] != null) el.textContent = d[k];
+    });
+    // generated-at pill gets a special prefix
+    var gp = document.getElementById('generated-at');
+    if (gp) {
+      var ts = gp.getAttribute('data-ts') || '…';
+      gp.textContent = (currentLang === 'zh' ? '🕐 生成于 ' : '🕐 generated ') + ts;
+    }
+    // refresh TOC, sections, kanban
+    renderToc();
+    // update eyebrow labels (re-render sections that depend on text)
+    document.querySelectorAll('.tab-content').forEach(function (el) { el.innerHTML = ''; });
+    document.getElementById('tab-overview').innerHTML  = renderOverview();
+    document.getElementById('tab-kanban').innerHTML    = renderKanban();
+    document.getElementById('tab-roadmap').innerHTML   = renderRoadmap();
+    document.getElementById('tab-logbook').innerHTML   = renderLogbook();
+    document.getElementById('tab-feedback').innerHTML  = renderFeedback();
+    document.getElementById('tab-changes').innerHTML   = renderChanges();
+    document.getElementById('tab-decisions').innerHTML = renderDecisions();
+    document.getElementById('tab-rollback').innerHTML  = renderRollback();
+    renderKpis();
+    renderKanbanView();
+    // re-bind kanban search + clear after re-render
+    var kbi = document.getElementById('kanban-search');
+    if (kbi) kbi.addEventListener('input', renderKanbanView);
+    var cb = document.querySelector('button[data-action="clear-search"]');
+    if (cb) cb.addEventListener('click', function () {
+      if (kbi) kbi.value = '';
+      renderKanbanView();
+    });
+    // restore active tab
+    var active = (document.querySelector('.toc a.active') || {}).dataset && (document.querySelector('.toc a.active') || {}).dataset.tab;
+    if (!active) active = (location.hash || '').slice(1);
+    if (!active || !TABS.some(function (x) { return x.id === active; })) active = 'overview';
+    switchTab(active);
+    // refresh lang toggle label
+    var lt = document.getElementById('lang-toggle');
+    if (lt) lt.textContent = d.langToggle;
+  }
+
+  window.toggleLang = function () {
+    currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+    localStorage.setItem(LANG_KEY, currentLang);
+
+    // re-render every tab body (English <-> Chinese change)
+    var _overview = document.getElementById('tab-overview');
+    if (_overview) _overview.innerHTML = renderOverview();
+    var _kanban = document.getElementById('tab-kanban');
+    if (_kanban) _kanban.innerHTML = renderKanban();
+    var _road = document.getElementById('tab-roadmap');
+    if (_road) _road.innerHTML = renderRoadmap();
+    var _log = document.getElementById('tab-logbook');
+    if (_log) _log.innerHTML = renderLogbook();
+    var _fb = document.getElementById('tab-feedback');
+    if (_fb) _fb.innerHTML = renderFeedback();
+    var _ch = document.getElementById('tab-changes');
+    if (_ch) _ch.innerHTML = renderChanges();
+    var _dc = document.getElementById('tab-decisions');
+    if (_dc) _dc.innerHTML = renderDecisions();
+    var _rb = document.getElementById('tab-rollback');
+    if (_rb) _rb.innerHTML = renderRollback();
+
+    // wire kanban search (newly inserted DOM after re-render)
+    var k = document.getElementById('kanban-search');
+    if (k) {
+      k.addEventListener('input', renderKanbanView);
+    }
+    var clearBtn = document.querySelector('button[data-action="clear-search"]');
+    if (clearBtn) clearBtn.addEventListener('click', function () {
+      var ki = document.getElementById('kanban-search');
+      if (ki) ki.value = '';
+      renderKanbanView();
+    });
+
+    renderKanbanView();
+    applyI18n();
+  };
+
+  // ---------- TOC ----------
+  var TABS = [
+    { id: 'overview',  ico: '📊', zh: '概览',     en: 'Overview'  },
+    { id: 'kanban',    ico: '📋', zh: '看板',     en: 'Kanban'    },
+    { id: 'roadmap',   ico: '🗺', zh: '路线图',   en: 'Roadmap'   },
+    { id: 'logbook',   ico: '📓', zh: '工作日志', en: 'Logbook'   },
+    { id: 'feedback',  ico: '💬', zh: '反馈',     en: 'Feedback'  },
+    { id: 'changes',   ico: '🔧', zh: '变更',     en: 'Changes'   },
+    { id: 'decisions', ico: '⚖️', zh: '决策',     en: 'Decisions' },
+    { id: 'rollback',  ico: '↩️', zh: '回滚',     en: 'Rollback'  },
+  ];
+
+  function renderToc() {
+    var ul = document.getElementById('toc-list');
+    ul.innerHTML = '';
+    TABS.forEach(function (t) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = '#' + t.id;
+      a.dataset.tab = t.id;
+      var lbl = (currentLang === 'zh') ? t.zh : t.en;
+      a.innerHTML = '<span class="ico">' + t.ico + '</span><span class="label">' + esc(lbl) + '</span>';
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        switchTab(t.id);
+        location.hash = t.id;
+      });
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+  }
+
+  function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(function (el) { el.classList.remove('active'); });
+    document.querySelectorAll('.toc a').forEach(function (el) { el.classList.remove('active'); });
+    var target = document.getElementById('tab-' + id);
+    if (target) target.classList.add('active');
+    var link = document.querySelector('.toc a[data-tab="' + id + '"]');
+    if (link) link.classList.add('active');
+  }
+
+  // TOC collapse / expand with localStorage persistence
+  var COLLAPSE_KEY = 'satellite-edu-toc-collapsed';
+  function applyTocState() {
+    var collapsed = localStorage.getItem(COLLAPSE_KEY) === '1';
+    document.body.classList.toggle('toc-collapsed', collapsed);
+  }
+  window.toggleToc = function () {
+    var collapsed = !document.body.classList.contains('toc-collapsed');
+    document.body.classList.toggle('toc-collapsed', collapsed);
+    localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+  };
+
+  // ---------- KPI ----------
+  function renderKpis() {
+    var c = data.counts;
+    var row = document.getElementById('kpi-row');
+    var html = '';
+    html += kpi(t('kpiBacklog'),         c.backlog,    'todo');
+    html += kpi(t('kpiNext'),            c.next,       'accent');
+    html += kpi(t('kpiInProgress'),      c.in_progress,'warn');
+    html += kpi(t('kpiReview'),          c.review,     'accent');
+    html += kpi(t('kpiDone'),            c.done,       'ok');
+    html += kpi(t('kpiPhases'),          c.phases,     'accent');
+    html += kpi(t('kpiLogbook'),         c.logbook,    'ok');
+    html += kpi(t('kpiFeedback'),        c.feedback,   'accent');
+    html += kpi(t('kpiChanges'),         c.changes,    'warn');
+    html += kpi(t('kpiDecisions'),       c.decisions,  'accent');
+    html += kpi(t('kpiCheckpoints'),     c.checkpoints,'ok');
+    row.innerHTML = html;
+  }
+  function kpi(label, val, color) {
+    return '<div class="kpi"><div class="label">' + label + '</div><div class="val ' + color + '">' + val + '</div></div>';
+  }
+
+  // ---------- Escape helper ----------
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  // ---------- OVERVIEW ----------
+  function renderOverview() {
+    var html = '';
+    html += '<section><h2>' + esc(t('secOverviewGoal')) + '</h2>';
+    html += '<p style="font-size:13px;line-height:1.6">' + esc(t('overviewGoalBody')) + '</p></section>';
+
+    html += '<section><h2>' + esc(t('secCurrentState')) + '</h2>';
+    html += '<div class="card"><div class="body">';
+    html += '<strong>' + esc(t('csPhase')) + '</strong> ' + esc(t('csPhaseVal')) + '<br>';
+    html += '<strong>' + esc(t('csNextStep')) + '</strong> ' + esc(t('csNextStepVal')) + '<br>';
+    html += '<strong>' + esc(t('csRollback')) + '</strong> ' + (data.checkpoints[0] ? data.checkpoints[0]['Git Commit'] + ' (' + data.checkpoints[0]['Checkpoint'] + ')' : (currentLang === 'zh' ? '无' : 'none')) + '<br>';
+    html += '<strong>' + esc(t('csDecisionsPending')) + '</strong> ' + data.decisions.length + ' (all status: Proposed).<br>';
+    html += '</div></div></section>';
+
+    html += '<section><h2>' + esc(t('secPhasePipeline')) + '</h2><div class="phase-grid">';
+    data.phases.forEach(function (p) {
+      html += '<div class="phase">';
+      html += '<h3>' + esc(p.title) + '</h3>';
+      html += '<div class="goal">' + esc(p.goal) + '</div>';
+      html += '<strong style="font-size:11px;color:var(--fg-mute)">' + esc(t('secExit')) + '</strong><ul>';
+      p.exit_criteria.forEach(function (e) { html += '<li>' + esc(e) + '</li>'; });
+      html += '</ul>';
+      if (p.initial_tasks.length) {
+        html += '<strong style="font-size:11px;color:var(--fg-mute)">' + esc(t('secInitTasks')) + '</strong><ul>';
+        p.initial_tasks.forEach(function (t) { html += '<li>' + esc(t) + '</li>'; });
+        html += '</ul>';
+      }
+      html += '</div>';
+    });
+    html += '</div></section>';
+
+    html += '<section><h2>' + esc(t('secRecentLogbook')) + '</h2>';
+    data.logbook.slice(-5).reverse().forEach(function (l) {
+      html += '<div class="card"><div class="id">' + esc(l.id) + '  |  ' + esc(l.date) + '</div>';
+      html += '<div class="title">' + esc(l.title) + '</div>';
+      html += '<div class="body">' + esc(l.summary) + '</div>';
+      html += '<div class="meta-row"><span class="badge accent">' + esc(t('lbTasks')) + ' ' + esc(l.related_tasks) + '</span><span class="badge">' + esc(l.status) + '</span></div>';
+      html += '</div>';
+    });
+    html += '</section>';
+
+    return html;
+  }
+
+  // ---------- KANBAN ----------
+  function renderKanban() {
+    var html = '<section><h2>' + esc(t('kanbanBacklog')) + ' / ' + esc(t('kanbanDone')) + '</h2>';
+    html += '<div class="filter-bar"><input id="kanban-search" placeholder="' + esc(t('filterSearchPh')) + '" /><button data-action="clear-search">' + esc(t('clearBtn')) + '</button></div>';
+    html += '<div class="kanban-grid" id="kanban-grid"></div>';
+    html += '</section>';
+    return html;
+  }
+  window.renderKanbanView = function () {
+    var q = (document.getElementById('kanban-search').value || '').toLowerCase();
+    var cols = [
+      { key: 'backlog',    name: t('kanbanBacklog'), data: data.kanban.backlog },
+      { key: 'next',       name: t('kanbanNext'),    data: data.kanban.next },
+      { key: 'in_progress',name: t('kanbanInProg'), data: data.kanban.in_progress },
+      { key: 'review',     name: t('kanbanReview'),  data: data.kanban.review },
+      { key: 'done',       name: t('kanbanDone'),    data: data.kanban.done },
+    ];
+    var grid = document.getElementById('kanban-grid');
+    var html = '';
+    cols.forEach(function (col) {
+      html += '<div class="kanban-col"><h4>' + esc(col.name) + ' <span class="count">' + col.data.length + '</span></h4>';
+      var visible = 0;
+      col.data.forEach(function (task) {
+        var blob = JSON.stringify(task).toLowerCase();
+        if (q && blob.indexOf(q) === -1) return;
+        visible++;
+        html += '<div class="task" title="Click for details">';
+        html += '<div class="tid">' + esc(task.ID || task.id || '') + '</div>';
+        html += '<div class="ttitle">' + esc(task.Task || task.title || '') + '</div>';
+        html += '<div class="ttype">' + esc(task.Type || task.type || '') + '</div>';
+        html += '</div>';
+      });
+      if (visible === 0) html += '<div class="empty-state">' + (col.data.length === 0 ? esc(t('emptyCol')) : esc(t('emptyNoMatch'))) + '</div>';
+      html += '</div>';
+    });
+    grid.innerHTML = html;
+  };
+
+  // ---------- ROADMAP ----------
+  function renderRoadmap() {
+    var html = '<section><h2>' + esc(t('secRoadmap')).replace('N', data.phases.length) + '</h2>';
+    data.phases.forEach(function (p) {
+      html += '<div class="card flex"><div style="flex:1"><div class="id">' + esc(p.title) + '</div>';
+      html += '<div class="body" style="margin:6px 0 10px"><strong>Goal:</strong> ' + esc(p.goal) + '</div>';
+      html += '<strong style="font-size:11px;color:var(--fg-mute)">' + esc(t('secExit')) + '</strong><ul style="margin:4px 0 8px;padding-left:18px;font-size:12px">';
+      p.exit_criteria.forEach(function (e) { html += '<li>' + esc(e) + '</li>'; });
+      html += '</ul>';
+      if (p.initial_tasks.length) {
+        html += '<strong style="font-size:11px;color:var(--fg-mute)">' + esc(t('secInitTasks')) + '</strong><ul style="margin:4px 0 0;padding-left:18px;font-size:12px">';
+        p.initial_tasks.forEach(function (task) { html += '<li>' + esc(task) + '</li>'; });
+        html += '</ul>';
+      }
+      html += '</div></div>';
+    });
+    html += '</section>';
+    return html;
+  }
+
+  // ---------- LOGBOOK ----------
+  function renderLogbook() {
+    var html = '<section><h2>' + esc(t('secLogbook')) + '</h2>';
+    if (data.logbook.length === 0) html += '<div class="empty-state">' + esc(t('logbookEmpty')) + '</div>';
+    data.logbook.slice().reverse().forEach(function (l) {
+      html += '<div class="card"><div class="id">' + esc(l.id) + '  |  ' + esc(l.date) + '</div>';
+      html += '<div class="title">' + esc(l.title) + '</div>';
+      html += '<div class="body">' + esc(l.summary) + '</div>';
+      html += '<div class="meta-row"><span class="badge accent">' + esc(t('lbTasks')) + ' ' + esc(l.related_tasks) + '</span><span class="badge">' + esc(l.status) + '</span></div>';
+      if (l.evidence.length) {
+        html += '<div style="margin-top:10px"><strong style="font-size:11px;color:var(--fg-mute)">' + esc(t('lbEvidence')) + '</strong><ul style="margin:4px 0;padding-left:18px;font-size:12px">';
+        l.evidence.forEach(function (e) { html += '<li><code>' + esc(e) + '</code></li>'; });
+        html += '</ul></div>';
+      }
+      if (l.next_action) html += '<div class="body" style="margin-top:8px"><strong style="color:var(--accent-2)">' + esc(t('lbNext')) + '</strong> ' + esc(l.next_action) + '</div>';
+      html += '</div>';
+    });
+    html += '</section>';
+    return html;
+  }
+
+  // ---------- FEEDBACK ----------
+  function renderFeedback() {
+    var html = '<section><h2>' + esc(t('secFeedback')) + '</h2>';
+    if (data.feedback.length === 0) { html += '<div class="empty-state">' + esc(t('fbEmpty')) + '</div>'; }
+    else {
+      html += '<table class="data"><thead><tr>';
+      var keys = Object.keys(data.feedback[0]);
+      keys.forEach(function (k) { html += '<th>' + esc(k) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      data.feedback.forEach(function (row) {
+        html += '<tr>';
+        keys.forEach(function (k) {
+          var v = row[k] || '';
+          var cls = (k === 'ID' || k === 'Linked Changes') ? 'id-cell' : '';
+          var badge = (k === 'Status') ? badgeFor(v) : '';
+          html += '<td><span class="' + cls + '">' + (badge || esc(v)) + '</span></td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</section>';
+    return html;
+  }
+  function badgeFor(s) {
+    if (!s) return '';
+    var lower = s.toLowerCase();
+    if (lower.indexOf('addressed') >= 0 || lower.indexOf('completed') >= 0) return '<span class="badge ok">' + esc(s) + '</span>';
+    if (lower.indexOf('rejected') >= 0) return '<span class="badge danger">' + esc(s) + '</span>';
+    if (lower.indexOf('progress') >= 0 || lower.indexOf('accepted') >= 0) return '<span class="badge warn">' + esc(s) + '</span>';
+    return '<span class="badge">' + esc(s) + '</span>';
+  }
+
+  // ---------- CHANGES ----------
+  function renderChanges() {
+    var html = '<section><h2>' + esc(t('secChanges')) + '</h2>';
+    if (data.changes.length === 0) { html += '<div class="empty-state">' + esc(t('chEmpty')) + '</div>'; }
+    else {
+      html += '<table class="data"><thead><tr>';
+      var keys = Object.keys(data.changes[0]);
+      keys.forEach(function (k) { html += '<th>' + esc(k) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      data.changes.slice().reverse().forEach(function (row) {
+        html += '<tr>';
+        keys.forEach(function (k) {
+          var v = row[k] || '';
+          var cls = (k === 'ID' || k === 'Related Task' || k === 'Related Feedback') ? 'id-cell' : '';
+          html += '<td><span class="' + cls + '">' + esc(v) + '</span></td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</section>';
+    return html;
+  }
+
+  // ---------- DECISIONS ----------
+  function renderDecisions() {
+    var html = '<section><h2>' + esc(t('secDecisions')) + '</h2>';
+    if (data.decisions.length === 0) html += '<div class="empty-state">' + esc(t('dcEmpty')) + '</div>';
+    data.decisions.forEach(function (d) {
+      html += '<div class="card"><div class="id">' + esc(d.id) + '  |  ' + esc(d.date) + '</div>';
+      html += '<div class="title">' + esc(d.title) + '</div>';
+      html += '<div class="meta-row"><span class="badge warn">' + esc(d.status) + '</span></div>';
+      html += '<div class="body" style="margin-top:10px"><strong style="color:var(--fg-mute)">' + esc(t('dcContext')) + '</strong> ' + esc(d.context) + '</div>';
+      html += '<div class="body" style="margin-top:6px"><strong style="color:var(--accent-2)">' + esc(t('dcDecision')) + '</strong> ' + esc(d.decision) + '</div>';
+      html += '<div class="body" style="margin-top:6px"><strong style="color:var(--warn)">' + esc(t('dcConsequences')) + '</strong> ' + esc(d.consequences) + '</div>';
+      html += '</div>';
+    });
+    html += '</section>';
+    return html;
+  }
+
+  // ---------- ROLLBACK ----------
+  function renderRollback() {
+    var html = '<section><h2>' + esc(t('secRollback')) + '</h2>';
+    if (data.checkpoints.length === 0) html += '<div class="empty-state">' + esc(t('rbEmpty')) + '</div>';
+    else {
+      html += '<table class="data"><thead><tr>';
+      var keys = Object.keys(data.checkpoints[0]);
+      keys.forEach(function (k) { html += '<th>' + esc(k) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      data.checkpoints.forEach(function (row) {
+        html += '<tr>';
+        keys.forEach(function (k) {
+          var v = row[k] || '';
+          var cls = (k === 'Checkpoint' || k === 'Git Commit' || k === 'Related Changes') ? 'id-cell' : '';
+          html += '<td><span class="' + cls + '">' + esc(v) + '</span></td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</section>';
+    html += '<section><h2>' + esc(t('secRollbackLevels')) + '</h2>';
+    data.rollback_levels.forEach(function (lv) {
+      html += '<div class="card"><div class="id">' + esc(t('rbLevel')) + ' ' + esc(lv.level) + '</div>';
+      html += '<div class="title">' + esc(lv.title) + '</div>';
+      html += '<pre style="background:var(--bg);padding:10px;border-radius:6px;font-size:11px;color:var(--fg-mute);overflow-x:auto;white-space:pre-wrap">' + esc(lv.body) + '</pre>';
+      html += '</div>';
+    });
+    html += '</section>';
+    return html;
+  }
+
+  // ---------- mount ----------
+  renderKpis();
+  renderToc();
+  renderKanbanView();
+
+  // wire kanban search (live)
+  var kanbanInput = document.getElementById('kanban-search');
+  if (kanbanInput) kanbanInput.addEventListener('input', renderKanbanView);
+
+  // wire clear button via data-action (no inline onclick in HTML string)
+  var clearBtn = document.querySelector('button[data-action="clear-search"]');
+  if (clearBtn) clearBtn.addEventListener('click', function () {
+    if (kanbanInput) kanbanInput.value = '';
+    renderKanbanView();
+  });
+
+  // store generated-at timestamp on the pill so toggleLang can reformat
+  var gpPill = document.getElementById('generated-at');
+  if (gpPill) gpPill.setAttribute('data-ts', data.generated_at);
+
+  // initial tab from hash
+  var initial = (location.hash || '#overview').slice(1);
+  if (TABS.some(function (t) { return t.id === initial; })) switchTab(initial);
+  else switchTab('overview');
+
+  applyTocState();
+  applyI18n();
+})();
+</script>
+
+</body>
+</html>

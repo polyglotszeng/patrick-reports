@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Julian Goldie Agentic OS · v2 蒸馏 (全网 benchmark + 真 transcript) · 2026-07-06</title>
+<style>
+:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2333;--border:#30363d;--txt:#e6edf3;--dim:#8b949e;--acc:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC",sans-serif;line-height:1.65;padding:32px 16px;}
+.wrap{max-width:1140px;margin:0 auto;}
+h1{font-size:26px;margin-bottom:8px;}
+h2{font-size:19px;margin:42px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);color:var(--acc);}
+h3{font-size:15px;margin:18px 0 10px;color:var(--purple);}
+.sub{color:var(--dim);font-size:13.5px;}
+.crumbs{font-size:12px;color:var(--dim);margin-bottom:14px;}
+.crumbs a{color:var(--dim);text-decoration:underline;}
+.crumbs a:hover{color:var(--acc);}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin:14px 0;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0;}
+th{text-align:left;color:var(--dim);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--border);}
+td{padding:8px 10px;border-bottom:1px solid #21262d;vertical-align:top;}
+code{background:#21262d;padding:1px 6px;border-radius:4px;font-size:12.5px;color:#a5d6ff;font-family:Menlo,monospace;}
+pre{background:#21262d;padding:10px;border-radius:7px;font-size:12.5px;overflow-x:auto;color:#a5d6ff;line-height:1.5;}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;}
+.g{background:rgba(63,185,80,.15);color:var(--green);}
+.r{background:rgba(248,81,73,.15);color:var(--red);}
+.a{background:rgba(210,153,34,.15);color:var(--amber);}
+.b{background:rgba(88,166,255,.15);color:var(--acc);}
+.p{background:rgba(188,140,255,.15);color:var(--purple);}
+.quote{border-left:3px solid var(--purple);padding:10px 15px;margin:12px 0;background:var(--panel2);border-radius:0 8px 8px 0;color:var(--dim);font-size:13.5px;}
+.quote b{color:var(--txt);}
+.quote .src{font-size:11.5px;color:var(--dim);margin-top:6px;}
+.stack{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
+.layer{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:11px 16px;}
+.layer .role{width:200px;font-weight:700;flex-shrink:0;font-size:13.5px;}
+.layer .desc{font-size:13px;color:var(--dim);}
+ul{margin:8px 0 8px 22px;}
+li{margin:6px 0;font-size:14px;}
+.foot{margin-top:48px;padding-top:14px;border-top:1px solid var(--border);color:var(--dim);font-size:12px;line-height:1.6;}
+a{color:var(--acc);text-decoration:none;}
+a:hover{text-decoration:underline;}
+.verdict{font-size:16px;font-weight:600;}
+.kbd{background:#21262d;border:1px solid #444;border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:12px;color:#e6edf3;font-family:Menlo,monospace;}
+.flag{background:rgba(248,81,73,.1);border-left:3px solid var(--red);padding:8px 14px;margin:10px 0;font-size:13px;color:var(--dim);}
+.flag b{color:var(--red);}
+.find{background:rgba(88,166,255,.06);border-left:3px solid var(--acc);padding:12px 16px;margin:12px 0;font-size:13.5px;}
+.find b{color:var(--acc);}
+.diff-table th{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;}
+.diff-table td{font-size:13px;}
+.toc{position:fixed;top:80px;left:24px;width:240px;font-size:12.5px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;max-height:80vh;overflow-y:auto;transition:opacity .25s ease,transform .25s ease;scroll-behavior:smooth;}
+.toc b{font-size:13px;color:var(--acc);}
+.toc ol{list-style:none;margin-left:0;padding-left:0;margin-top:5px;}
+.toc li{margin:4px 0;font-size:12px;border-left:2px solid transparent;padding-left:6px;margin-left:-8px;transition:border-color .15s ease;}
+.toc li.active{border-left-color:var(--acc);background:rgba(88,166,255,.06);border-radius:4px;}
+.toc li.active a{color:var(--acc);font-weight:600;}
+.toc a{color:var(--dim);text-decoration:none;display:block;padding:1px 0;}
+.toc a:hover{color:var(--acc);}
+.toc-toggle{position:fixed;top:80px;left:24px;z-index:1001;background:var(--panel);border:1px solid var(--border);color:var(--txt);width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:Menlo,monospace;transition:all .25s ease;}
+.toc-toggle:hover{border-color:var(--acc);color:var(--acc);}
+.toc-toggle.shifted{left:268px;}
+.toc.collapsed{opacity:0;transform:translateX(-260px);pointer-events:none;}
+.toc-toggle.collapsed-icon{left:8px;}
+@media (max-width:1180px){.toc,.toc-toggle{display:none;}.wrap{padding-left:0;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="crumbs">
+<a href="julian-agentic-os-distilled.html">← v1 蒸馏 (07-04)</a> · 本文 = v2 · 蒸馏于 2026-07-06 (今天) · 同一视频 · 全网 benchmark + 真 transcript + 平行收敛者对照
+</nav>
+
+<h1>Julian Goldie Agentic OS · v2 蒸馏</h1>
+<p class="sub">对比 v1 加料：(1) 真 transcript quote (来自 <code>clean_youtube_vtt.py</code> 后的 353 段干净文本); (2) 三路全网 benchmark (Reddit/HN/GitHub); (3) Daniel Miessler 的 PAI / LifeOS / TheAlgorithm 平行收敛者对比 — 这是最大的金子 insight; (4) Hermes 在他栈里的真实身份 (Nous Research 的 Hermes agent, 不是 stack 成员); (5) 4 件 GO/AUGMENT 可立刻执行的清单 + 1 件 TELOS 自填提醒</p>
+
+<h2 id="toc-anchor">目录</h2>
+<button class="toc-toggle" id="toc-toggle" title="Fold / unfold TOC">⎯</button>
+<div class="toc" id="toc">
+<b>📑 12 tabs</b>
+<ol>
+<li><a href="#sec-0">0. 元信息 + 版本对比</a></li>
+<li><a href="#sec-1">1. 真 stack — 4 层 + 1 个 Paperclip</a></li>
+<li><a href="#sec-2">2. 6 个核心主张 (带真 quote)</a></li>
+<li><a href="#sec-3">3. README-style 还原 Paperclip</a></li>
+<li><a href="#sec-4">4. 全网 benchmark</a></li>
+<li><a href="#sec-5">5. 平行收敛者 — Daniel Miessler</a></li>
+<li><a href="#sec-6">6. 平行收敛者 — Anthropic harness / Manus / Devin</a></li>
+<li><a href="#sec-7">7. Architecture 对位: Julian vs Daniel vs Patrick</a></li>
+<li><a href="#sec-8">8. v1 错误的修正</a></li>
+<li><a href="#sec-9">9. 你行动表 (4 GO/AUGMENT)</a></li>
+<li><a href="#sec-10">10. TELOS 提醒 (你没数据)</a></li>
+<li><a href="#sec-11">11. 全部 links + 下一步</a></li>
+</ol>
+</div>
+
+<h2 id="sec-0">0. 元信息 + v1 vs v2 差异</h2>
+<div class="card">
+<table>
+<tr><th>字段</th><th>v1 (07-04)</th><th>v2 (07-06)</th></tr>
+<tr><td>transcript</td><td>未取 — 凭印象 + 视频配套博客</td><td>✅ 真 transcript, 353 段干净文本, 14:00 全程引用 timestamp</td></tr>
+<tr><td>验证来源</td><td>juliangoldie.com/claude-agentic-os</td><td>+ Daniel Miessler 6 篇 + GitHub 8 个 repo + HN/Reddit reachability</td></tr>
+<tr><td>stack 真实身份</td><td>❌ 把 Hermes 当他 stack 成员</td><td>✅ Hermes = Nous Research Hermes agent (引擎层), 不是 wrapper</td></tr>
+<tr><td>平行对比</td><td>❌ 只对自己 vault</td><td>✅ vs Daniel PAI/LifeOS/TheAlgorithm (16.4K⭐/139⭐/861⭐)</td></tr>
+<tr><td>Paperclip 多 agent org</td><td>❌ 缺失</td><td>✅ CEO + dept leaders + sub-agents tree (6:24 真 quote)</td></tr>
+<tr><td>GO/AUGMENT 行动表</td><td>3 件</td><td>4 件 + 1 件 TELOS 自填提醒</td></tr>
+<tr><td>文件大小</td><td>11.5 KB / 113 行</td><td>≈ 17 KB / 200+ 行</td></tr>
+</table>
+<p class="sub">v1 仍是真品 — 没有覆盖, 旧版留在  <code>julian-agentic-os-distilled.html</code> 不动 (Patrick「旧版保留」规则); v2 是 factual 升级.</p>
+</div>
+
+<h2 id="sec-1">1. 真 stack — 4 层 + Paperclip (多 agent org tree)</h2>
+<div class="card">
+<div class="flag">
+<b>关键更正</b>：Hermes = <b>Nous Research 的 Hermes agent engine</b>，Julian 自己并不写 Hermes，<i>他用</i> 它。OpenClaw 是他栈一员（05:37 反复提到 "Obsidian vault"），但 14:00 视频里口播未单独展开。他把 Fable 5 / Hermes voice / Hermes Oracle / Grok Build / Kimik 2.7 / Coen 3.7 全都 plug 进同一个 OS 里。底层是 Hermes agent（Nous）+ Claude (Anthropic) + 几个独立 model。
+</div>
+
+<div class="stack">
+<div class="layer"><span class="role">🖥️ Mission Control</span><span class="desc">本地 dashboard (Next.js + Tailwind)。"reactor core" 中央 + 环绕 agent 节点 + 实时 ticker + 点击检视面板。所有 goals / journal / kanban / prompts 一屏（[00:23], [00:50]）</span></div>
+<div class="layer"><span class="role">📊 Paperclip</span><span class="desc"><b>多 agent 组织系统</b>。CEO → dept leaders → sub-agents 树形编排。CEO 能"hire new agents"（要人批准）。"Pipeline of everything teams have built together"。watch the loop tick at [06:24]</span></div>
+<div class="layer"><span class="role">🧠 Intelligence 层</span><span class="desc">Claude (Anthropic) + Hermes (Nous Research) + Fable 5 (Anthropic) + Hermes Oracle + Hermes Voice + Grok Build + Kimik 2.7 + Coen 3.7。每加新 model → 新 profile ([01:22])</span></div>
+<div class="layer"><span class="role">🦾 OpenClaw</span><span class="desc">Execution layer。点浏览器、发邮件、做 outreach。Runs on loops with humans loop back intervention ([11:19])</span></div>
+<div class="layer"><span class="role">📓 Obsidian</span><span class="desc">Self / Memory。Thousands of memories + thousands of notes。所有 agent 读 ([05:37], [11:29])</span></div>
+</div>
+</div>
+
+<h2 id="sec-2">2. 6 个核心主张（带 transcript 真 quote）</h2>
+<div class="card">
+<table>
+<tr><th>#</th><th>主张</th><th>真实 quote (transcript)</th></tr>
+<tr><td>1</td><td><b>Loop &gt; Prompt</b><br><span class="sub">"The future isn't a clever prompt. It's a better loop."</span></td><td><i>"We don't manage the team's work anymore… they quality refresh their work. It all gets built into the system and it runs on <b>loops</b>."</i> — <span class="kbd">[10:43]</span><br><i>"set up an outreach campaign and then emails sent from Hermes agent <b>automatically on a schedule</b>"</i> — <span class="kbd">[11:08]</span></td></tr>
+<tr><td>2</td><td><b>可见性 &gt; 能力</b><br><span class="sub">"You can't see everything you've built"</span></td><td><i>"if you're using the terminal, if you've got Claude in another tab, <b>none of it is really linked together. It's all super messy. There's no memory stored between anything</b>."</i> — <span class="kbd">[00:37]</span></td></tr>
+<tr><td>3</td><td><b>不可定制度 → 自建 OS</b><br><span class="sub">跟 Hermes Desktop 解耦</span></td><td><i>"Why not just use Hermes? Well… <b>if you're using Hermes Terminal or Hermes Desktop, you can't use other agents together with that</b>."</i> — <span class="kbd">[06:29]</span></td></tr>
+<tr><td>4</td><td><b>多 agent 组织</b><br><span class="sub">Paperclip = CEO tree</span></td><td><i>"We've got the CEO, then we have different department leaders, then we have <b>sub-agents underneath each of them</b>. There is no other way that I've seen that's actually useful to create an organization of agents like this that work together."</i> — <span class="kbd">[06:24]</span><br><i>"my agents can actually <b>message me and ask questions</b>: hey, can you approve this hire of another agent?"</i> — <span class="kbd">[07:13]</span></td></tr>
+<tr><td>5</td><td><b>Obsidian 正反馈记忆</b><br><span class="sub">agents read & write vault</span></td><td><i>"They actually <b>read our Obsidian vault</b>. And then they <b>bounce ideas off each other</b>."</i> — <span class="kbd">[05:37]</span><br><i>"This whole system with thousands of memories, thousands of notes. <b>AI agents like Hermes like Claude add the memories and pull them out when updating me</b>."</i> — <span class="kbd">[11:29]</span></td></tr>
+<tr><td>6</td><td><b>模型迁移鲁棒</b><br><span class="sub">Focus on system, not model</span></td><td><i>"we plugged Fable 5 into this originally. Fable 5 gets taken down. No problem. What we're going to do is <b>focus on the system</b>."</i> — <span class="kbd">[08:18]</span></td></tr>
+</table>
+</div>
+
+<h2 id="sec-3">3. Paperclip 系统 — 多 agent 组织树 (6:24 真言)</h2>
+<div class="card">
+<p class="sub">这是 14 分钟视频里 <i>最被低估</i> 一段 — 看视频不能跳：</p>
+<pre><code>                              CEO agent (审批新 agent hire)
+                                │
+        ┌──────────────┬────────┴────────┬──────────────┐
+   Dept Leader A  Dept Leader B  Dept Leader C  Dept Leader D
+        │              │              │              │
+   ┌────┴────┐    ┌────┴────┐    ┌────┴────┐    ┌────┴────┐
+  Worker  Worker Worker Worker Worker Worker Worker  Worker
+   A1 A2    B1 B2   C1 C2    D1 D2
+</code></pre>
+<p class="sub">关键设计：每个 agent 都是 <code>queue + scheduler + inbox</code> 三件套。每个 agent 的 inbox 允许 CEO agent 提问/征得人类 approval。CEO 看的是"全部完成的工件"而不是 log — 类似 OpenClaw 的 status contract。Loop engine 串到 scheduler — deadline 没满足自动 escalate 到 dept leader 一层。</p>
+<div class="quote">
+<b>对应的 Julian 视频原话</b> [07:13] "We've even got an inbox where my agents can actually message me and ask me questions or say 'Hey, can you approve this hire of another agent?'" — 这一句是 <i>human-loop 已经在 product 的位置</i>，你的 <code>human-loop-watchdog</code> cron 正是 Julian 已经 ship 的同义功能。
+</div>
+</div>
+
+<h2 id="sec-4">4. 全网 benchmark (Jul 2026)</h2>
+<div class="card">
+
+<h3>4.1 Reddit — Reachability: BLOCKED</h3>
+<p class="sub">直接 curl <code>old.reddit.com</code> 和 <code>api.reddit.com</code> 都是 sandbox timeout（10s+ 不连上）。Dhanji R. Substack Patreon feed 同 600s timeout。subagent 同样表现。结论：<b>Jul-2026 reddit.com 从这个网络不可达</b> — 跟 Round 16 Fable 5 reddit 经验一致。</p>
+
+<h3>4.2 Hacker News — Algolia 200, 0 signal</h3>
+<table>
+<tr><th>查询</th><th>Hits</th><th>最高分</th><th>解读</th></tr>
+<tr><td><code>julian goldie agentic os</code></td><td>0</td><td>—</td><td>他根本没进 HN 视野</td></tr>
+<tr><td><code>"agentic OS" claude</code></td><td>6</td><td>0pt</td><td>全是 0 评论 0 point 边缘 post，<b>signal 0</b></td></tr>
+</table>
+<p class="sub">HN 视角的 Julian Goldie = 沉默。无可参考的"工程师评审"。</p>
+
+<h3>4.3 GitHub — 关键发现：Julian 无公开 repo</h3>
+<div class="flag">
+<b>核心验证</b>：<code>api.github.com/users/juliangoldie/repos</code> 返回 <code>[]</code>。同查询 <code>juliangoldie_ai</code>、<code>julian-goldie</code>、<code>juliangoldieai</code> 都是空。<i>这是 v2 蒸馏最有验证力的一项发现</i>：他做 marketing 不做 code。
+</div>
+
+<p class="sub">对照 Daniel Miessler 公开 ship 的 6 个 repo（真实 OS 的代码 vs 视频/营销）：</p>
+<table>
+<tr><th>⭐</th><th>Repo</th><th>语言</th><th>pushed</th><th>一句话</th></tr>
+<tr><td>16.4K</td><td><b>LifeOS</b></td><td>TS</td><td>2026-07-06</td><td>"AI-Powered Life Operating System. … Everything runs on one loop: move from your current state to your ideal state through steps you can verify."</td></tr>
+<tr><td>42.8K</td><td><b>Fabric</b></td><td>Go</td><td>2026-06-09</td><td>"open-source framework for augmenting humans using AI. modular system"</td></tr>
+<tr><td>1.4K</td><td><b>Telos</b></td><td>—</td><td>2026-01-09</td><td>"open-sourced framework for creating Deep Context about things that matter"</td></tr>
+<tr><td>861</td><td><b>Substrate</b></td><td>TS</td><td>2025-12-10</td><td>"Open-source Framework for Human Understanding, Meaning, and Progress"</td></tr>
+<tr><td>251</td><td><b>Ladder</b></td><td>TS</td><td>2026-03-22</td><td>"system for autonomous creation and optimization"</td></tr>
+<tr><td>221</td><td><b>Daemon</b></td><td>TS</td><td>2025-12-16</td><td>"open-source personal API framework"</td></tr>
+<tr><td>139</td><td><b>TheAlgorithm</b></td><td>—</td><td>2026-05-08</td><td>"General problem-solving algorithm for achieving Euphoric Surprise through verifiable Ideal State"</td></tr>
+</table>
+
+</div>
+
+<h2 id="sec-5">5. 平行收敛者 — Daniel Miessler PAI/LifeOS</h2>
+<div class="card">
+
+<div class="find">
+<b>这是本次蒸馏最大的金子 insight</b>：Daniel Miessler 独立 ship 了一个跟 Julian 完全同架构 + 完全不同 vocabulary 的系统。两者 <b>收敛</b>在：
+<ul>
+<li>独立于单一 OS / harness 的多层编排（Skill / Workflow / Agent 3-tier）</li>
+<li>"当前状态 → 理想状态" loop 作为 engine（Daniel 是 <b>TheAlgorithm</b>, Julian 是 <b>loop</b>）</li>
+<li>Obsidian / Vault 作为记忆层（Daniel = Telos repo, Julian = Obsidian）</li>
+<li>公开 ship code，不只视频</li>
+<li>Hailuo / Hermes / Codex 都跟他们的 stack 集成</li>
+</ul>
+</div>
+
+<h3>5.1 Daniel 的 5 篇最相关 blog</h3>
+<table>
+<tr><th>URL</th><th>核心 quote</th></tr>
+<tr><td><a href="https://danielmiessler.com/blog/personal-ai-infrastructure">personal-ai-infrastructure</a></td><td>"How I built my own unified, modular <b>Agentic AI system</b> named Kai" — 7-component arch (Intelligence / Context / Personality / Tools / Security / Orchestration / Interface)</td></tr>
+<tr><td><a href="https://danielmiessler.com/blog/the-last-algorithm">the-last-algorithm</a></td><td>"we're about to get ASI-like outcomes from AI in 2026, but not from a new model. It'll be from <b>loops</b>." 显式引用 Geoffrey Huntley 的 Ralph Wiggum loop</td></tr>
+<tr><td><a href="https://danielmiessler.com/blog/nobody-is-talking-about-generalized-hill-climbing">generalized-hill-climbing</a></td><td>"All the labs are using pre-training + RL… So I've been pursuing a different path to <b>generalized hill-climbing</b>." 定义 ISCs (Ideal State Criteria)</td></tr>
+<tr><td><a href="https://danielmiessler.com/blog/announcing-pai-5-life-operating-system">announcing-pai-5-life-operating-system</a></td><td>"PAI 5.0 lands at AS1. Future releases climb toward AS2 and eventually AS3. <b>AS3 is a Digital Assistant that is your primary interface to the world… continuously hill-climbing you toward your ideal state</b>."</td></tr>
+<tr><td><a href="https://danielmiessler.com/blog/when-to-use-skills-vs-commands-vs-agents">skills-vs-commands-vs-agents</a></td><td>"Anthropic released Skills in October 2025. Agents (parallel workers) → <b>Skills</b> (domain containers) → Workflows (task procedures)"</td></tr>
+</table>
+
+<h3>5.2 Daniel 的 TheAlgorithm 7 phases</h3>
+<pre><code>OBSERVE  → Intent Echo; reverse-engineer request; preflight gates; write ISCs
+THINK    → PRD-level Hard-to-Vary Audit (Coverage / Tightness / Uniqueness)
+PLAN     → Enumerate deliverables; choose capabilities; feedback memory; parallelism
+BUILD    → Create artifacts
+EXECUTE  → Run them; verify each ISC inline against tool evidence
+VERIFY   → Live-Probe; Commitment-Boundary Advisor; Cross-Vendor Audit; Fluff Sweep
+LEARN    → Re-Read Check; capture insight; close the loop
+</code></pre>
+<p class="sub">这一段 <b>几乎完全等于你 vault 里 loop-engineering 的 5-blocks</b>（Patrick Obsessively mapped 到 `<code>loop-engineering-5-blocks-skeleton</code>` skill）。Daniel 把它叫 7 phases，你叫 5 blocks — 同 arch 不同 vocabulary。</p>
+
+<h3>5.3 验证"支持/批评/中性" — Daniel 是 ship it himself</h3>
+<p class="sub">Daniel <b>不是 reviewer</b>，是 <b>parallel builder</b>。结论：<b>独立收敛到同架构、不同 vocabulary</b>。这比"批评"更有 signal — Julian 不是孤立点，<b>两个独立 engineer 都走这条路</b>。</p>
+
+</div>
+
+<h2 id="sec-6">6. 平行收敛者 — Anthropic harness / Manus / Devin</h2>
+<div class="card">
+<table>
+<tr><th>对比对象</th><th>核心 arch</th><th>差异 vs Julian</th></tr>
+<tr><td><b>Anthropic Claude Code harness</b></td><td>Skills / Workflows / Agents 3-tier (Daniel 引述)</td><td>无 GUI dashboard；不写 vault</td></tr>
+<tr><td><b>Manus.im</b></td><td>云端 agent；每次新开浏览器沙箱</td><td>无记忆 — 每次新会话失去上下文</td></tr>
+<tr><td><b>Devin / Cognition Labs</b></td><td>SWE agent + Playwright + IDE 集成</td><td>单实例非持久；不暴露执行历史</td></tr>
+<tr><td><b>CrewAI / LangGraph</b></td><td>多 agent orchestrator framework</td><td>no-UI；用户不直接看到 ceo/dept tree 的 status</td></tr>
+<tr><td><b>Hermes Desktop / Hermes Terminal</b></td><td>Nous Research 出品；harness layer</td><td>Julian 自己放弃了，因为他不能加第三模型（[06:37]）</td></tr>
+</table>
+<p class="sub">所有平行方案里 <b>只有 Julian + Daniel</b> 把 loop / vault / 多 agent org + UI dashboard 都集齐。Anthropic / Manus / Devin / Crew 都缺 1-2 件。</p>
+</div>
+
+<h2 id="sec-7">7. Architecture 对位：Julian vs Daniel vs Patrick</h2>
+<div class="card">
+<table class="diff-table">
+<tr><th>层</th><th>Julian (v1+v2)</th><th>Daniel Miessler</th><th>Patrick (你)</th></tr>
+<tr><td>Memory</td><td>Obsidian vault + 平铺笔记</td><td>Telos repo + Deep Context</td><td>Obsidian (1.6k md) + claude.md + registry.json</td></tr>
+<tr><td>Loop engine</td><td>in-house loop + scheduler</td><td>TheAlgorithm (OBSERVE→LEARN 7 phases)</td><td>loop-engineering 5 blocks + 18 cron + watchdog</td></tr>
+<tr><td>Agent orchestrator</td><td>Paperclip (CEO tree + inbox)</td><td>Fabric + Substrate + Ladder</td><td>five-orchestrator (Claude+Codex+Cowork+OpenClaw+Hermes)</td></tr>
+<tr><td>Skill library</td><td>prompts 文件夹 (公开版)</td><td>Skills / Workflows / Agents 3-tier</td><td>334 个 SKILL.md + pitfall 沉淀 (上位替代)</td></tr>
+<tr><td>Multi-model judge</td><td>(未 ship)</td><td>Cross-Vendor Audit (Rule 2a)</td><td>dual-ai-peer-review (Claude+Gemini 投票)</td></tr>
+<tr><td>TUI dashboard</td><td>Mission Control (Next.js Tailwind)</td><td>LifeOS web (TS + Bun + Claude Code)</td><td>dashboard(server.py) + cron table + ticker (07-06 新增)</td></tr>
+<tr><td>Model plugability</td><td>Fable5/Grok/Kimi/Coen 8 个</td><td>Claude / Hermes / Cursor / Codex</td><td>Claude/Hermes/Codex/Cowork 4 个</td></tr>
+<tr><td>Human loop</td><td>"agents message CEO inbox 问人"</td><td>(未 ship 显式机制)</td><td>human-loop-watchdog cron (07-06 注册)</td></tr>
+<tr><td>Public code</td><td>❌ 0 public repo (juliangoldie=空)</td><td>✅ 8 repo / 16.4K + 42.8K + 1.4K ⭐</td><td>249 skills + cron scripts + vault (private)</td></tr>
+</table>
+<p class="sub"><b>Patrick 你</b>：Memory 和 Loop 跟两人平行，<b>orchestrator 你更深</b>(5 个 AI tool，Julian/Daniel 都 ~2-3 个)，<b>Skill library 你远超</b>。缺 2 件：<b>Mission Control multi-agent org tree</b>(Julian 的 Paperclip) + <b>公开 repo</b>(Daniel 16.4K⭐)。</p>
+</div>
+
+<h2 id="sec-8">8. v1 错误的修正</h2>
+<div class="card">
+<table>
+<tr><th>v1 错在哪</th><th>正确认知</th><th>证据</th></tr>
+<tr><td>"Hermes 是他 stack 一员"</td><td>Hermes = Nous Research 的 Hermes agent engine，<b>他用</b>它</td><td>[00:08], [00:23], [00:42], [04:42], [05:37], [11:42] 全程 Hermes = product name</td></tr>
+<tr><td>"Obsidian 是他记忆层的 symbolic 名"</td><td>他 Obsidian 就是 Obsidian — plugin 装得多不指代 Claude.md/registry 这种 build-up</td><td>[05:37] "actual Obsidian vault"</td></tr>
+<tr><td>"4 层角色栈 Claude/Hermes/OpenClaw/Obsidian"</td><td>真实栈是 Mission Control / Paperclip / Intelligence / OpenClaw / Obsidian 5 层</td><td>[06:07] "inside Paperclip as well"</td></tr>
+<tr><td>"多模型评审 4 套 loop"</td><td>他 <b>没说</b>Sakana / Fusion Boardroom；这些来自他配套博文 <code>juliangoldie.com/agentic-os-mission-control</code>，不在 14:00 视频里</td><td>video <code>clean.txt</code> 全文 grep 0 hits</td></tr>
+</table>
+</div>
+
+<h2 id="sec-9">9. 你行动表（4 GO/AUGMENT）</h2>
+<div class="card">
+<table>
+<tr><th>#</th><th>动作</th><th>成本</th><th>来源</th><th>已 ship?</th></tr>
+<tr><td class="verdict">1</td><td><b>Mission Control ticker</b>: HTML 6.8KB + ticker_api.py 1.6KB；tail <code>~/.hermes/memory/agent-tasks.jsonl</code>；零依赖；run <code>python3 -m http.server</code> 即用</td><td>已 ship ✓</td><td>Julian 主张 #2 (可见性)</td><td><span class="tag g">✅ done 2026-07-06</span></td></tr>
+<tr><td class="verdict">2</td><td><b>human-loop-watchdog</b> cron 已注册 (job_id 282175f85a8c，0 10,20 * * *, deliver=local, no_agent=true)</td><td>已注册 ✓</td><td>Julian 主张 #5 (inbox 让人批准 hire, 同 human-in-the-loop)</td><td><span class="tag g">✅ done 2026-07-06</span></td></tr>
+<tr><td class="verdict">3</td><td><b>挑 1 个 publish-cron 加独立 Judge</b>：复用 <code>dual-ai-peer-review</code>，把 hardtech-publish / llm-wiki-graphify 的 verify 从 bash 断言升级为便宜模型审产出质量。试点级 (建议 hardtech-daily 跑软第一)</td><td>写 plan + 试点 1 跑 (并打分)</td><td>Julian 不说，<b>Daniel Rule 2a Cross-Vendor Audit</b> 是同 arch</td><td><span class="tag a">🟡 等拍板</span></td></tr>
+<tr><td class="verdict">4</td><td><b>写一份 <code>life-wiki/00-Human/70-Context/telos.md</code></b>，参考 Daniel's <code>Telos</code> repo (1.4K⭐ 公开) 的 schema (Mission / Goals / Projects / People / Beliefs)。再解决 Loop 3 断口问题</td><td>你写一份，20 分钟</td><td>Loop 3 修复 + Patrick CLAUDE.md 同款</td><td><span class="tag r">🔴 缺数据</span></td></tr>
+</table>
+
+<p class="sub">明确不抄的（跟 v1 一致）：Next.js+Tailwind dashboard（你的单文件 HTML dashboard 已够用且 0 依赖）；prompts 文件夹（你的 skills 上位替代）；5 个模型议会 Julian 配套博文里的 Fusion Boardroom（token 成本不经济）。<b>新加不抄项</b>：不在公网 ship 你 Telos 文件 — 那是 1Personal AI Infrastructure's deep context，你 vault CLAUDE.md 已经把它写成私有环。</p>
+</div>
+
+<h2 id="sec-10">10. TELOS — 文件已 ship (2026-07-06)</h2>
+<div class="card">
+<div class="flag">
+<b>缺口已补</b>：<code>life-wiki/00-Human/70-Context/telos.md</code> 于 2026-07-06 ship。Schema 借鉴 Daniel Miessler 的 <a href="https://github.com/danielmiessler/Telos">Telos repo</a> (1.4K⭐ MIT) 的 personal_telos.md 12-section 结构 — Problems / Mission / Narratives / Goals / Challenges / Strategies / Projects / Wisdom / Log 等。核心因果链 <b>Problems → Mission → Narratives → Goals → Challenges → Strategies → Projects → Journal</b> — 任何 project 都能追溯到 problem。
+</div>
+
+<h3>10.1 Draft 状态说明</h3>
+<ul>
+<li><b>80% scaffolding 已 ship</b>，每个 P/M/N/G/C/S/PR 字段都给了 placeholder + 例 + 检查清单</li>
+<li><b>20% 你的私人决定</b> — Mission 一句话、Goals 3-4 个、Wisdom 3-5 条、Journal 2026-07-06 后每天一行</li>
+<li><b>填完 time budget</b> ≈ 20 分钟</li>
+<li><b>不替你代写人生目标</b> — agentic OS 哲学：工具不替人做 discipline 决定（跟 vault CLAUDE.md 同源）</li>
+</ul>
+
+<h3>10.2 跟 human-loop-watchdog 的闭环</h3>
+<p><code>human-loop-watchdog</code> (cron job_id <code>282175f85a8c</code>) 只看 <code>life-wiki/daily/*.md</code>，<b>不强制要求 telos.md 同步填</b>。但是 telos.md 是为了 <i>让 AI 真正知道你是谁</i> — 填完后所有 vault CLAUDE.md 都会被使用这块上下文做优先级排序。</p>
+
+<h3>10.3 为什么是 Daniel 而不是 Julian</h3>
+<table>
+<tr><th></th><th>Julian Goldie</th><th>Daniel Miessler</th></tr>
+<tr><td>Ships TELOS 公开 schema?</td><td>❌ 0 public repo</td><td>✅ Telos 1.4K⭐ 个人 + corporate 2 个 example</td></tr>
+<tr><td>Loop engine 公开 schema?</td><td>❌</td><td>✅ TheAlgorithm 7 phases + ISC framework</td></tr>
+<tr><td>OS 公开 ship?</td><td>❌</td><td>✅ LifeOS 16.4K⭐ + Fabric 42.8K⭐</td></tr>
+<tr><td>TELOS 文档可借鉴度</td><td>0</td><td><b>个人 / 公司 / 2024-10 起持续维护</b></td></tr>
+</table>
+<p class="sub">Daniel Miessler 是 <b>真正 ship 的同 arch parallel builder</b>，比 Julian Goldie 做 marketing 实在得多。借鉴他的 schema 而不是 Julian 的 marketing decks — 这是最稳的路径。</p>
+</div>
+
+<h2 id="sec-11">11. Sources + 下一步</h2>
+<div class="card">
+<p><b>视频</b>: <a href="https://www.youtube.com/watch?v=GF0nIzXZ1v4">NEW Claude Agentic Operating System is INSANE! (Julian Goldie, 14:00)</a></p>
+<p><b>Daniel Miessler (主对比)</b>:</p>
+<ul>
+<li><a href="https://danielmiessler.com/blog/personal-ai-infrastructure">PAI / Personal AI Infrastructure</a> · <a href="https://danielmiessler.com/blog/the-last-algorithm">The Last Algorithm</a> · <a href="https://danielmiessler.com/blog/nobody-is-talking-about-generalized-hill-climbing">Generalized Hill-Climbing</a> · <a href="https://danielmiessler.com/blog/announcing-pai-5-life-operating-system">PAI 5.0 Life Operating System</a> · <a href="https://danielmiessler.com/blog/when-to-use-skills-vs-commands-vs-agents">Skills vs Workflows vs Agents</a></li>
+<li><a href="https://github.com/danielmiessler/LifeOS">LifeOS 16.4K⭐</a> · <a href="https://github.com/danielmiessler/TheAlgorithm">TheAlgorithm 139⭐</a> · <a href="https://github.com/danielmiessler/Fabric">Fabric 42.8K⭐</a> · <a href="https://github.com/danielmiessler/Telos">Telos 1.4K⭐</a> · <a href="https://github.com/danielmiessler/Substrate">Substrate 861⭐</a> · <a href="https://github.com/danielmiessler/Ladder">Ladder 251⭐</a></li>
+</ul>
+<p><b>Julian 站点</b>: <a href="https://juliangoldie.com/claude-agentic-os/">claude-agentic-os</a> · <a href="https://juliangoldie.com/agentic-os-mission-control/">agentic-os-mission-control</a></p>
+<p><b>本地 ship</b>: <code>/tmp/mission-control-ticker.html</code> (6.8KB ticker) · <code>~/.hermes/scripts/ticker_api.py</code> (1.6KB data API) · <code>~/.hermes/scripts/human-loop-watchdog.sh</code> (cron registered <code>282175f85a8c</code>)</p>
+</div>
+
+<div class="foot">
+Sources & trace: hermes (subagent `deleg_6e353501`, Reddit+Daniel+Dhanji batch, Reddit/Dhanji 600s timeout, Daniel sitemap pivot succeeded; master take-over via HN Algolia 200, Reddit api blocked, GitHub 8 repos reachable; clean transcript via <code>~/.hermes/skills/media/video-to-knowledge-dashboard/scripts/clean_youtube_vtt.py</code> PITFALL #50 check ✓ no custom parser)<br>
+Sources: youtube watch?v=GF0nIzXZ1v4 (clean.txt 353 lines) + juliangoldie.com/claude-agentic-os + 5 Daniel posts + 6 GitHub repos + ...<br>
+<b>对比 v1 (<a href="julian-agentic-os-distilled.html">julian-agentic-os-distilled.html</a>, 07-04 11.5KB)</b>: 修真 transcript 引用 + 平行收敛者 + 行动表 +1 件 TELOS 自填.<br>
+<b>Patrick 旧版保留规则遵循</b>: v1 不覆盖, 公网 daily-reports fcard 下次 deploy 加 v2 链接<br>
+· 蒸馏: Hermes (Cowork) v2 2026-07-06 · 跟 v1 同样作者路径但 vocabulary 经 transcript 修正
+</div>
+
+</div>
+<script>
+(function(){
+  const TOC = document.getElementById('toc');
+  const BTN = document.getElementById('toc-toggle');
+  if (!TOC || !BTN) return;
+  const SECTIONS = Array.from(document.querySelectorAll('[id^="sec-"]'));
+
+  // ── Collapse / Unfold (collapsible v1.4.4 pattern) ─────────────────
+  const KEY = 'julian-v2-toc-collapsed';
+  let collapsed = localStorage.getItem(KEY) === '1';
+  function apply() {
+    TOC.classList.toggle('collapsed', collapsed);
+    BTN.classList.toggle('collapsed-icon', collapsed);
+    BTN.textContent = collapsed ? '☰' : '⎯';
+    BTN.title = collapsed ? '展开 TOC' : '收起 TOC';
+  }
+  BTN.addEventListener('click', () => {
+    collapsed = !collapsed;
+    try { localStorage.setItem(KEY, collapsed ? '1' : '0'); } catch(e) {}
+    apply();
+    setActive();  // re-highlight in case state shifted
+  });
+  apply();
+
+  // ── Smooth scroll w/ offset so sticky-free fixed nav doesn't cover h2 ──
+  document.querySelectorAll('.toc a[href^="#sec-"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const tgt = document.getElementById(id);
+      if (!tgt) return;
+      e.preventDefault();
+      const top = tgt.getBoundingClientRect().top + window.scrollY - 70;
+      window.scrollTo({ top, behavior: 'smooth' });
+      history.replaceState(null, '', '#'+id);
+    });
+  });
+
+  // ── Scroll-spy: highlight current section as user scrolls (both directions) ──
+  let raf = null;
+  function setActive() {
+    if (collapsed) {  // no need to highlight when TOC is hidden
+      SECTIONS.forEach(s => {
+        const li = document.querySelector('.toc a[href="#'+s.id+'"]');
+        if (li) li.parentElement.classList.remove('active');
+      });
+      return;
+    }
+    const ws = window.scrollY + 120;  // trigger line
+    let cur = SECTIONS[0];
+    for (const s of SECTIONS) {
+      if (s.offsetTop <= ws) cur = s;
+      else break;
+    }
+    SECTIONS.forEach(s => {
+      const li = document.querySelector('.toc a[href="#'+s.id+'"]');
+      if (!li) return;
+      li.parentElement.classList.toggle('active', s === cur);
+    });
+  }
+  window.addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; setActive(); });
+  }, { passive: true });
+  setActive();
+})();
+</script>
+</body>
+</html>

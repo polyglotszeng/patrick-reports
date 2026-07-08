@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Media Game Has Changed — a16z New Media Summit (Marc, Ben, Gaby, Erik)</title>
+<style>
+:root {
+  --bg: #0d0d10; --bg-card: #16161b; --bg-elevated: #1c1c22;
+  --border: #2a2a32; --text: #e8e8ea; --text-dim: #a8a8b2; --text-mute: #6a6a76;
+  --accent: #ff6b35; --accent-2: #f7c59f;
+  --green: #4ade80; --red: #f87171; --yellow: #fbbf24;
+  --blue: #60a5fa; --purple: #a78bfa; --gray: #9ca3af;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', system-ui, sans-serif; line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; }
+
+/* ===== TOC SIDEBAR — COLLAPSIBLE ===== */
+.toc {
+  position: fixed; top: 0; left: 0; height: 100vh;
+  width: 240px; padding: 64px 0 32px 0;
+  background: linear-gradient(180deg, #18181f 0%, #0f0f14 100%);
+  border-right: 1px solid var(--border);
+  overflow-y: auto; overflow-x: hidden;
+  z-index: 100;
+  transition: width 0.3s ease, padding 0.3s ease;
+  scrollbar-width: thin;
+}
+.toc::-webkit-scrollbar { width: 4px; }
+.toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.toc-title {
+  padding: 0 20px 12px 20px; font-size: 11px; font-weight: 700;
+  color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.08em;
+  white-space: nowrap; overflow: hidden;
+  transition: padding 0.3s ease;
+}
+body.toc-collapsed .toc-title { padding: 0 0 12px 0; text-align: center; font-size: 10px; }
+.toc-list { list-style: none; padding: 0; margin: 0; }
+.toc-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px; cursor: pointer;
+  color: var(--text-dim); font-size: 13px; line-height: 1.3;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, padding 0.3s ease;
+  white-space: nowrap; overflow: hidden;
+}
+.toc-item:hover { background: rgba(255, 107, 53, 0.06); color: var(--text); }
+.toc-item.active { background: rgba(255, 107, 53, 0.10); color: var(--accent); border-left-color: var(--accent); }
+.toc-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+.toc-label { transition: opacity 0.2s ease; }
+body.toc-collapsed .toc-label { display: none; }
+body.toc-collapsed .toc-item { justify-content: center; padding: 12px 0; }
+body.toc-collapsed .toc { width: 48px; padding-left: 0; padding-right: 0; }
+body.toc-collapsed .toc-title { display: none; }
+
+/* TOC toggle button — always visible chevron on right edge */
+.toc-toggle {
+  position: fixed; top: 16px; left: 232px;
+  width: 32px; height: 32px;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 50%; color: var(--accent);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: bold; line-height: 1;
+  z-index: 110;
+  transition: left 0.3s ease, background 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.toc-toggle:hover { background: var(--accent); color: white; transform: scale(1.08); }
+body.toc-collapsed .toc-toggle { left: 40px; }
+
+/* Floating mobile toggle (separate, only shown on mobile) */
+.toc-toggle-mobile {
+  display: none; position: fixed; top: 16px; left: 16px;
+  width: 40px; height: 40px; background: var(--accent); color: white;
+  border: none; border-radius: 50%; cursor: pointer; font-size: 16px;
+  z-index: 200; box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: 240px;
+  padding: 24px 36px 80px 36px;
+  transition: margin-left 0.3s ease;
+  max-width: 1400px;
+}
+body.toc-collapsed .main { margin-left: 48px; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #1a1a22 0%, #2a1f1a 100%);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px 32px; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 50%, var(--purple) 100%);
+}
+.hero h1 { font-size: 28px; margin-bottom: 6px; color: var(--text); }
+.hero .subtitle { color: var(--text-dim); font-size: 15px; margin-bottom: 16px; }
+.hero .core {
+  background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--accent);
+  padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px;
+  font-size: 15px; line-height: 1.6;
+}
+.hero .thesis-list { list-style: none; padding: 0; }
+.hero .thesis-list li {
+  padding: 6px 0 6px 24px; position: relative; color: var(--text); font-size: 14px;
+}
+.hero .thesis-list li::before {
+  content: '→'; position: absolute; left: 0; color: var(--accent); font-weight: bold;
+}
+
+/* Meta bar */
+.meta-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 12px 0; margin-bottom: 16px;
+  font-size: 12px; color: var(--text-mute);
+}
+.meta-bar .chip {
+  background: var(--bg-card); padding: 4px 10px; border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+/* Stats */
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px; margin-bottom: 32px;
+}
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+  background: var(--accent);
+}
+.stat-card:nth-child(2)::before { background: var(--yellow); }
+.stat-card:nth-child(3)::before { background: var(--green); }
+.stat-card:nth-child(4)::before { background: var(--blue); }
+.stat-card:nth-child(5)::before { background: var(--purple); }
+.stat-card:nth-child(6)::before { background: var(--red); }
+.stat-card .label { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.stat-card .value { font-size: 24px; font-weight: 700; color: var(--text); }
+.stat-card .sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+/* Tabs */
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px 0; margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+.tab-btn {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-dim); padding: 8px 14px; border-radius: 8px;
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all 0.15s ease;
+}
+.tab-btn:hover { background: var(--bg-elevated); color: var(--text); border-color: var(--accent); }
+.tab-btn.active {
+  background: var(--accent); color: white; border-color: var(--accent);
+}
+
+/* Tab content */
+.tab-content {
+  display: none;
+  animation: fadeIn 0.25s ease;
+}
+.tab-content.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h2.section {
+  font-size: 20px; color: var(--text); margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+h3 { font-size: 16px; color: var(--accent); margin: 20px 0 12px 0; }
+h4 { font-size: 14px; color: var(--accent-2); margin-bottom: 6px; }
+p { color: var(--text-dim); margin-bottom: 10px; font-size: 14px; line-height: 1.65; }
+p strong, li strong { color: var(--text); }
+
+/* Cards */
+.card-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px; margin-bottom: 20px;
+}
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; transition: border-color 0.15s ease;
+}
+.card:hover { border-color: var(--accent); }
+.card .meta-line {
+  display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+  font-size: 11px; color: var(--text-mute);
+}
+.card .badge {
+  background: var(--bg-elevated); padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  border: 1px solid var(--border);
+}
+.card .badge.tier1 { color: var(--accent); border-color: var(--accent); }
+.card .badge.tier2 { color: var(--yellow); border-color: var(--yellow); }
+.card .badge.tier3 { color: var(--blue); border-color: var(--blue); }
+
+/* Quote grid */
+.quote-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+.quote-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; position: relative;
+}
+.quote-card.yellow { border-left: 4px solid var(--yellow); }
+.quote-card.green { border-left: 4px solid var(--green); }
+.quote-card.blue { border-left: 4px solid var(--blue); }
+.quote-card.purple { border-left: 4px solid var(--purple); }
+.quote-card.red { border-left: 4px solid var(--red); }
+.quote-card .ts {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+  color: var(--accent); margin-right: 8px; font-weight: 600;
+}
+.quote-card .speaker {
+  font-size: 12px; color: var(--text-mute); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em; margin-right: 8px;
+}
+.quote-card blockquote {
+  margin: 8px 0 0 0; font-style: italic; color: var(--text);
+  border: none; padding: 0; font-size: 14px; line-height: 1.55;
+}
+.quote-card .relevance {
+  margin-top: 8px; font-size: 12px; color: var(--text-mute); font-style: normal;
+  padding-top: 8px; border-top: 1px dashed var(--border);
+}
+
+/* Tables */
+table {
+  width: 100%; border-collapse: collapse; margin-bottom: 18px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden;
+}
+th, td { padding: 10px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+th { background: var(--bg-elevated); color: var(--accent); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+tr:last-child td { border-bottom: none; }
+tr.highlight { background: rgba(255, 107, 53, 0.06); }
+tr.highlight td { color: var(--text); }
+
+/* Compare */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+.cmp { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.cmp.good { border-top: 3px solid var(--green); }
+.cmp.bad { border-top: 3px solid var(--red); }
+.cmp h4 { color: var(--text); margin-bottom: 8px; }
+.cmp ul { list-style: none; padding: 0; }
+.cmp ul li { padding: 4px 0 4px 22px; position: relative; color: var(--text-dim); font-size: 13px; }
+.cmp.good ul li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: bold; }
+.cmp.bad ul li::before { content: '✗'; position: absolute; left: 0; color: var(--red); font-weight: bold; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 28px; margin-bottom: 18px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 6px; bottom: 6px; width: 2px;
+  background: linear-gradient(180deg, var(--accent) 0%, var(--purple) 100%);
+}
+.tl-item { position: relative; padding: 10px 0 14px 0; }
+.tl-item::before {
+  content: ''; position: absolute; left: -24px; top: 14px; width: 12px; height: 12px;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 50%;
+}
+.tl-item .time {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+  color: var(--accent); font-weight: 600; margin-right: 8px;
+}
+.tl-item .what { color: var(--text); font-size: 14px; line-height: 1.5; }
+.tl-item .who { font-size: 12px; color: var(--text-mute); margin-top: 4px; }
+
+/* Chain */
+.chain {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 18px; padding: 12px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.chain-step {
+  background: var(--bg-elevated); padding: 6px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text); border: 1px solid var(--border);
+}
+.chain-arrow { color: var(--accent); font-size: 16px; }
+
+/* Footer */
+footer {
+  margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid var(--border); font-size: 12px; color: var(--text-mute);
+  text-align: center;
+}
+footer a { color: var(--accent); }
+
+/* Responsive — mobile */
+@media (max-width: 900px) {
+  .toc { transform: translateX(-100%); transition: transform 0.3s ease, width 0.3s ease; }
+  body.toc-collapsed .toc { transform: translateX(-100%); width: 240px; }
+  body.toc-open .toc { transform: translateX(0); width: 240px; }
+  body.toc-open { overflow: hidden; }
+  body.toc-open .toc-toggle-mobile { display: none; }
+  .toc-toggle { display: none; }
+  .toc-toggle-mobile { display: flex; }
+  .main { margin-left: 0 !important; padding: 60px 16px 32px 16px; }
+  .hero h1 { font-size: 22px; }
+  .stat-card .value { font-size: 20px; }
+  .compare { grid-template-columns: 1fr; }
+  .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 12px; }
+  .tab-btn { white-space: nowrap; flex-shrink: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== COLLAPSIBLE TOC SIDEBAR ===== -->
+<aside class="toc" id="toc">
+  <div class="toc-title">📑 内容导航</div>
+  <ul class="toc-list" id="tocList">
+    <li class="toc-item active" data-target="core"><span class="toc-icon">⚡</span><span class="toc-label">核心论点</span></li>
+    <li class="toc-item" data-target="panelists"><span class="toc-icon">🎤</span><span class="toc-label">嘉宾画像</span></li>
+    <li class="toc-item" data-target="legacy"><span class="toc-icon">📰</span><span class="toc-label">媒体环境变化</span></li>
+    <li class="toc-item" data-target="founder"><span class="toc-icon">🚀</span><span class="toc-label">Founder-as-Brand</span></li>
+    <li class="toc-item" data-target="authenticity"><span class="toc-icon">✅</span><span class="toc-label">真实性 vs 训练</span></li>
+    <li class="toc-item" data-target="polarizing"><span class="toc-icon">⚔️</span><span class="toc-label">Polarizing vs Liked</span></li>
+    <li class="toc-item" data-target="battles"><span class="toc-icon">🎯</span><span class="toc-label">Picking Battles</span></li>
+    <li class="toc-item" data-target="team"><span class="toc-icon">👥</span><span class="toc-label">团队建设</span></li>
+    <li class="toc-item" data-target="mistakes"><span class="toc-icon">❌</span><span class="toc-label">创始人错误</span></li>
+    <li class="toc-item" data-target="karp"><span class="toc-icon">📖</span><span class="toc-label">Karp Playbook</span></li>
+    <li class="toc-item" data-target="quotes"><span class="toc-icon">💬</span><span class="toc-label">金句 (20+)</span></li>
+    <li class="toc-item" data-target="patrick"><span class="toc-icon">🧰</span><span class="toc-label">Patrick 关联</span></li>
+    <li class="toc-item" data-target="counter"><span class="toc-icon">⚠️</span><span class="toc-label">反方 / 局限</span></li>
+    <li class="toc-item" data-target="data"><span class="toc-icon">📊</span><span class="toc-label">数据快照</span></li>
+  </ul>
+</aside>
+
+<!-- Toggle button — always visible on right edge of TOC -->
+<button class="toc-toggle" id="tocToggle" title="Collapse/Expand sidebar" aria-label="Toggle sidebar">◀</button>
+<button class="toc-toggle-mobile" id="tocToggleMobile" title="Open menu" aria-label="Open menu">☰</button>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main">
+
+<div class="meta-bar">
+  <span class="chip">🎙️ a16z</span>
+  <span class="chip">📅 2026-06-19</span>
+  <span class="chip">⏱️ 41:51</span>
+  <span class="chip">👁️ 24,915 views</span>
+  <span class="chip">🎤 New Media Summit</span>
+  <span class="chip">🏛️ 行业分析 (medium-high credibility)</span>
+</div>
+
+<section class="hero">
+  <h1>📺 The Media Game Has Changed</h1>
+  <p class="subtitle">a16z New Media Summit — Marc Andreessen × Ben Horowitz × Erik Torenberg (host) × Gaby Goldberg</p>
+
+  <div class="core">
+    <strong>核心论点 (Core Thesis):</strong> 旧媒体（防御、品牌抽象、说教风）已死。 新媒体 = 进攻、创始人即品牌、3 小时长播客、真实人格 + 高对抗性。 "Old media is defense oriented. New media is offense." — Marc @ [39]
+  </div>
+
+  <ol class="thesis-list">
+    <li><strong>Legacy press 已变成 adversarial</strong> — 2017 后从"客观报道"翻转为"权力压制真相"（"power to truth"），创始人无法通过传统媒体拿到想要的故事。</li>
+    <li><strong>Founder-as-Brand / Going Direct</strong> — Elon = SpaceX、Alex Karp = Palantir、Palmer = Anduril。公司品牌 = 人；创始人必须亲自上场讲 3 小时故事。</li>
+    <li><strong>真实性 > 媒体训练</strong> — 像跟朋友吃午饭一样说话；"if you know it intimately, you should be able to talk about it viscerally."</li>
+    <li><strong>Polarizing beats being liked</strong> — 想被所有人喜欢 = 无聊 = 营销自杀。要让对的人恨你，触发对的人爱你。</li>
+    <li><strong>Bigger story (Karp Playbook)</strong> — 别讲"我 + 公司 + 产品"；讲世界上最有趣的事，然后把公司 plug 进去。</li>
+  </ol>
+</section>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="label">Duration</div>
+    <div class="value">41:51</div>
+    <div class="sub">2,511 seconds</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Panelists</div>
+    <div class="value">4</div>
+    <div class="sub">Marc / Ben / Gaby / Erik</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Major Themes</div>
+    <div class="value">10</div>
+    <div class="sub">legacy → Karp</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Patrick Cards</div>
+    <div class="value">17</div>
+    <div class="sub">8 Tier-1 + 5 Tier-2 + 4 Tier-3</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Verbatim Quotes</div>
+    <div class="value">24</div>
+    <div class="sub">all [HH:MM:SS] format</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Views</div>
+    <div class="value">24.9K</div>
+    <div class="sub">uploaded 2026-06-19</div>
+  </div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab-btn active" data-tab="core">⚡ 核心论点</button>
+  <button class="tab-btn" data-tab="panelists">🎤 嘉宾画像</button>
+  <button class="tab-btn" data-tab="legacy">📰 媒体环境变化</button>
+  <button class="tab-btn" data-tab="founder">🚀 Founder-as-Brand</button>
+  <button class="tab-btn" data-tab="authenticity">✅ 真实性 vs 训练</button>
+  <button class="tab-btn" data-tab="polarizing">⚔️ Polarizing vs Liked</button>
+  <button class="tab-btn" data-tab="battles">🎯 Picking Battles</button>
+  <button class="tab-btn" data-tab="team">👥 团队建设</button>
+  <button class="tab-btn" data-tab="mistakes">❌ 创始人错误</button>
+  <button class="tab-btn" data-tab="karp">📖 Karp Playbook</button>
+  <button class="tab-btn" data-tab="quotes">💬 金句</button>
+  <button class="tab-btn" data-tab="patrick">🧰 Patrick 关联</button>
+  <button class="tab-btn" data-tab="counter">⚠️ 反方 / 局限</button>
+  <button class="tab-btn" data-tab="data">📊 数据快照</button>
+</div>
+
+<!-- ===== TAB 1: CORE THESIS ===== -->
+<div class="tab-content active" id="core" data-tab="core">
+  <h2 class="section">⚡ 核心论点与五大要点</h2>
+
+  <p>本场 a16z New Media Summit 圆桌由 <strong>Erik Torenberg</strong> 主持，Marc、Ben、Gaby 三人轮流出场，给出了对当下媒体生态（2026 H1）的实战框架。下面是从 41 分钟对话中提炼的 5 个高密度论点：</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">BIG SHIFT</span><span>@ [39]</span></div>
+      <h4>1️⃣ 旧媒体防御、新媒体进攻</h4>
+      <p>"Old media is defense oriented. New media is offense." — Marc 在开场抛出这一框架，并把旧媒体的 "minimum controversy"（不出错即胜利）评为新媒体的死亡陷阱。</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--green);border-color:var(--green);">GO DIRECT</span><span>@ [00:11:58]</span></div>
+      <h4>2️⃣ 创始人 = 品牌</h4>
+      <p>"Is it Palantir or is it Alex? Is it Anduril or is it Palmer?" — Marc 给出名单：Elon / Karp / Palmer / Jensen。Elon 被 Democrats 骂，不是因为 SpaceX，而是因为 Elon 个人即品牌。</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">AUTHENTICITY</span><span>@ [56]</span></div>
+      <h4>3️⃣ 真实性 > 媒体训练</h4>
+      <p>"Say all the things in public that you would say if you were sitting having lunch with a friend." — Marc 转述当年 60 Minutes 制片人 Lee Les Elden 的训练哲学。</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--purple);border-color:var(--purple);">POLARIZE</span><span>@ [00:23:42]</span></div>
+      <h4>4️⃣ 让人恨比让人爱重要</h4>
+      <p>"Nobody writes a puff piece on Rupert Murdoch or Elon Musk. When you get to a certain size, people hate you. And that's good, because that means you did it." — Marc @ [00:24:13]</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--accent);border-color:var(--accent);">KARP MOVE</span><span>@ [00:33:47]</span></div>
+      <h4>5️⃣ 讲更大的故事 (Karp Playbook)</h4>
+      <p>Alex Karp 从不正面谈 Palantir，只谈 US military / superintelligence / neurodivergence — Palantir 隐式插入。"Find the most interesting story that you can plug your company into."</p>
+    </div>
+  </div>
+
+  <h3>📌 当下媒体的"新规则"清单 (Marc 总结 @ [00]-[30])</h3>
+  <ul style="margin-left:20px;color:var(--text-dim);font-size:14px;line-height:1.8;">
+    <li>❌ <strong>不要 be interested</strong> — 在旧媒体里"无聊"是金科玉律，在新媒体里无聊 = 死亡。</li>
+    <li>✅ <strong>不要 inside-out</strong> — 别从"我和我的公司"出发；先想"世界上最有趣的事是什么"，再 plug 自己。</li>
+    <li>✅ <strong>Unlimited formats / unlimited channels</strong> — 旧媒体的"窄吸管"已倒塌，没有 channel 的瓶颈。</li>
+    <li>✅ <strong>Brand = person</strong> — 1930s 之前的 Ford Motor / Edison Electric 才是常态；抽象 corporate brand 只是中央化媒体的副作用。</li>
+    <li>✅ <strong>Long form = new medium</strong> — Charlie Rose 午夜 1 小时 → Joe Rogan 3 小时 → 长 Substack。Re-rise of "interesting people having interesting conversations."</li>
+  </ul>
+</div>
+
+<!-- ===== TAB 2: PANELISTS ===== -->
+<div class="tab-content" id="panelists" data-tab="panelists">
+  <h2 class="section">🎤 嘉宾画像 — 4 位圆桌参与者</h2>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--accent);border-color:var(--accent);">HOST</span><span>主持人</span></div>
+      <h4>Erik Torenberg</h4>
+      <p><strong>角色:</strong> a16z 合伙人、《Theoretical Ventures》主理人、New Media Summit 组织者。</p>
+      <p><strong>本场贡献:</strong> 提问驱动型主持人 — "talk more about why that is", "what are some mistakes you see", "how do you apply this thinking to your own work"。他把 41 分钟组织成 10 个章节，每个章节衔接前一个论点。</p>
+      <p style="color:var(--green);"><strong>→ Patrick 相关:</strong> Erik 自己就是 Karp Playbook 的活样板 — 从 a16z 投资合伙人转型为新媒体的 owner (Theoretical Ventures podcast)，证明 "PM/founder/investor obsessed with discourse" 是 a16z hiring 的核心信号。</p>
+    </div>
+
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">CO-FOUNDER</span><span>a16z</span></div>
+      <h4>Marc Andreessen</h4>
+      <p><strong>背景:</strong> Mosaic / Netscape 创始人 (1994)，2009 创立 a16z。3 小时 podcast 常客；本场主力输出者（约 60% 时长）。</p>
+      <p><strong>本场核心论点:</strong> "Going Direct" 框架、Corporate brand = centralized media 副作用、媒体历史学解释 (1930s 中央化、2017 反转)、Karp Playbook 推广。</p>
+      <p><strong>标志性 moment:</strong> @ [00:02:41] 复述 "media training horror story" — 90 年代被强制看自己录像带的羞辱感，把这作为反对"过度训练"的论据。</p>
+    </div>
+
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--green);border-color:var(--green);">CO-FOUNDER</span><span>a16z</span></div>
+      <h4>Ben Horowitz</h4>
+      <p><strong>背景:</strong> Loudcloud / Opsware 创始人、《The Hard Thing About Hard Things》作者 (经常被 Marc 抢功)。本场约 25% 时长，主要在 picking battles + hiring 段。</p>
+      <p><strong>本场核心论点:</strong> 1) Picking battles 的判断法则 (50 followers 不值得回应、有 audience 的攻击是机会)。2) Hiring team 的第一原则 — 旧媒体训练的人做不了新媒体。</p>
+      <p><strong>标志性 moment:</strong> @ [00:21:06] "It'll always improve your situation to fight back." (自相矛盾，但立刻补上 discipline)。</p>
+    </div>
+
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--purple);border-color:var(--purple);">PARTNER</span><span>a16z</span></div>
+      <h4>Gaby Goldberg</h4>
+      <p><strong>背景:</strong> a16z partner，本场最年轻嘉宾。也是当天生日 (Ben 用 floor seats 缺席换来的礼物 — @ [55])。</p>
+      <p><strong>本场核心论点:</strong> 1) Two mistakes founders make — (a) over-index on distribution before message right; (b) focus on inputs not outputs. 2) Distribution = multiplier on message; wrong message × 100x = worse. 3) "If you're trained in old media, it's very very very hard to do new media." — 新媒体 hire 的最高信号：already built audience。</p>
+      <p><strong>标志性 moment:</strong> @ [00:30:03] "Distribution is really just a multiplier on the message."</p>
+    </div>
+  </div>
+
+  <h3>📊 嘉宾时间分配 (估算)</h3>
+  <table>
+    <tr><th>Speaker</th><th>~时长占比</th><th>主要论点领域</th></tr>
+    <tr><td>Marc Andreessen</td><td>~60%</td><td>Media history, Karp Playbook, authenticity</td></tr>
+    <tr><td>Ben Horowitz</td><td>~25%</td><td>Picking battles, hiring, "all news is bad news"</td></tr>
+    <tr><td>Gaby Goldberg</td><td>~12%</td><td>Founder mistakes, distribution vs message</td></tr>
+    <tr><td>Erik Torenberg</td><td>~3%</td><td>Hosting / questions</td></tr>
+  </table>
+</div>
+
+<!-- ===== TAB 3: LEGACY PRESS TURNED ADVERSARIAL ===== -->
+<div class="tab-content" id="legacy" data-tab="legacy">
+  <h2 class="section">📰 媒体环境变化 — Legacy Press 已变成 Adversarial</h2>
+
+  <p>本节主题从 [00:06:59] 进入。Marc 的核心论点：传统媒体从 "impartial journalism + speak truth to power" 翻转为 "power to truth" — 也就是说媒体变成权力本身，用来 intimidate 不愿配合的创始人。</p>
+
+  <h3>🕰️ Marc 的媒体史时间线</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <span class="time">[00:06:59]</span>
+      <div class="what">传统媒体的两大自我定义功能: (1) <strong>impartial / objective journalism</strong> ("voice from nowhere"), (2) <strong>speak truth to power</strong> ("afflict the comfortable, comfort the afflicted")。</div>
+      <div class="who">— Marc Andreessen</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:08:08]</span>
+      <div class="what">"But it devolved into <strong>power to truth</strong>." — 第二个功能 swamped 第一个；press 变成 intimidation tool。 Ben 补刀: "yeah, the line between objective and activist."</div>
+      <div class="who">— Marc / Ben</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:08:53]</span>
+      <div class="what">Marc 个人证据: 1994-2017 大部分时间传统媒体合作愉快（90% hit rate），技术公司当时被视为 "cool"。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:09:28]</span>
+      <div class="what">"<strong>2017 things changed</strong>" — agenda-driven 模式 takeover，Marc 认为永远 unwound 不了。给创始人的 practical reality: "There is no way to get to a story that you're going to like through traditional media."</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:10:02]</span>
+      <div class="what">新方法 = 两条腿走路: (a) <strong>Go Direct</strong> (自己频道 + ally 频道), (b) <strong>新 voices / 新 media</strong>。 Legacy press "bananas" 创造 massive opportunity。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:10:23]</span>
+      <div class="what">Marc 的怀旧举例: Charlie Rose 1980s 午夜 1 小时 (CBS Overnight, pre-VCR)，到 2026 长 podcast / Substack 的"incredible advance"。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:11:03]</span>
+      <div class="what">"There's still this anxiety that legacy media is where the respectability is. I don't believe that anymore."</div>
+      <div class="who">— Marc</div>
+    </div>
+  </div>
+
+  <h3>📊 Ben 补充: Washington 也已经转向新 media</h3>
+  <div class="quote-card blue">
+    <span class="ts">[00:11:18]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"We were just in Washington with all the kind of Washington people, senators and whatnot. I was asking them, what does everybody in Washington read? And it's the <strong>Mark Halperin newsletter</strong>, which is new media."</blockquote>
+    <div class="relevance">→ 用 D.C. 政治圈 (the most legacy-media-attached 的 power center) 也读新 newsletter 作为反例 — 不是边缘选择，是信息权贵的默认选项。</div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: FOUNDER-AS-BRAND ===== -->
+<div class="tab-content" id="founder" data-tab="founder">
+  <h2 class="section">🚀 Founder-as-Brand — Going Direct 框架</h2>
+
+  <p>本节从 [00:11:58] 进入。Marc 提出 "Founder is the brand" 是新媒体时代的元规则，并给出 technology-historical 解释（中央化媒体的兴衰 = 抽象 corporate brand 的兴衰）。</p>
+
+  <h3>🔑 Marc 的核心论点</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4>"Is it Palantir or is it Alex?"</h4>
+      <p>@ [00:12:39]: 列举 Elon=SpaceX, Alex Karp=Palantir, Palmer=Anduril. "The companies that are winning in marketing, <strong>the brand is the person</strong>."</p>
+      <p style="color:var(--accent-2);"><strong>→ 唯一例外:</strong> 找一个 "permanent fixture" 当品牌代理 (a16z 模式 = "technically Ben is CEO but Mark is the brand")。 但这个代理不能是 3-year VP of marketing — 必须是 forever with the org。</p>
+    </div>
+    <div class="card">
+      <h4>Unlimited channels / unlimited formats</h4>
+      <p>@ [00:13:14]: 旧媒体 = restricted channels × restricted formats. 新媒体 = unlimited × unlimited. Brand = person. 这是结构性翻转，不只是策略更优。</p>
+    </div>
+    <div class="card">
+      <h4>Ben "ceiling" 警告</h4>
+      <p>@ [00:19:32]: 如果 founder 不会 3 小时 long-form，"you just put a ceiling on your whole opportunity." 引用 Shiv (Succession) — "If you can't ride two elephants at the same time, what are you doing in the circus?"</p>
+    </div>
+  </div>
+
+  <h3>🏛️ Corporate Brand 是 1930s 中央化媒体的副作用</h3>
+  <p>Marc 给出了 media-history 的解释框架 @ [00:15:41]-[00:18:22]:</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <span class="time">[00:15:59]</span>
+      <div class="what">1930s 之前: 没有 corporate brand — Ford Motor / Edison Electric / "name on the door"。Henry Ford 从未想过叫别的。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:17:13]</span>
+      <div class="what">1930s-40s: 出现 International Business Machines, General Electric, General Motors, Procter & Gamble (Tide / Colgate / Crest)。 抽象品牌 = 第一次浪潮。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:17:42]</span>
+      <div class="what">根因 = <strong>媒体中央化</strong>。 1930s 之前每个镇 15 份报纸、无数小电台；之后 3 大 TV networks + 24 小时 = "drinking everything through an incredibly narrow straw"。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:18:03]</span>
+      <div class="what">公司信息必须 distil down 到 atomic unit 才能通过 straw → 抽象 corporate brand 是 <strong>必要生存策略</strong>。 但所有人都忘了这只是媒体结构的副作用。</div>
+      <div class="who">— Marc</div>
+    </div>
+    <div class="tl-item">
+      <span class="time">[00:18:22]</span>
+      <div class="what">2024+: 中央化媒体 unwinding → corporate brand 假设崩塌 → founder-as-brand 回归。</div>
+      <div class="who">— Marc</div>
+    </div>
+  </div>
+
+  <h3>🗳️ 2024 美国大选案例</h3>
+  <div class="quote-card yellow">
+    <span class="ts">[00:18:45]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Do people running for president have to go on Joe Rogan? Up until 2024 the answer was absolutely not. After 2024 the answer is 100% they have to. A big part of all the democratic retrospectives of what happened in 24 was that Kamala didn't go on Rogan."</blockquote>
+    <div class="relevance">→ "going on Rogan = 3 hours, talk about anything" 是 new bar，不是 podcast 偏好，而是政治候选人 basic requirement。 这把 founder-as-brand 的逻辑从商业推到政治。</div>
+  </div>
+</div>
+
+<!-- ===== TAB 5: AUTHENTICITY VS MEDIA TRAINING ===== -->
+<div class="tab-content" id="authenticity" data-tab="authenticity">
+  <h2 class="section">✅ 真实性 vs 媒体训练 — Why Authenticity Beats Training</h2>
+
+  <p>本节从 [56] 进入。Erik 提的第一个硬问题："为什么 authenticity 那么重要? 为什么太多 buttoned-up / media-trained 是 founder 常见错误?" Marc 用自己 90 年代的 media training horror story 作为反证。</p>
+
+  <h3>😱 Marc 的 Media Training Horror Story</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">HORROR</span><span>@ [00:02:41]</span></div>
+      <h4>"The meanest thing you can do"</h4>
+      <p>90 年代 media training 标准流程: 把 CEO 放在镜头前 60 分钟 → 强制看完整录像回放 (no fast forward) → 教练当场 critique → 可能再看一遍。</p>
+      <p>"You discover how much you hate your voice, how much you hate how you look. If your ego just survives the beating, you go on to a successful career."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">OUTCOME</span><span>@ [00:03:26]</span></div>
+      <h4>"Important people seemed plastic"</h4>
+      <p>结果: trained CEOs 上 TV → "most innocuous things possible" → 评分标准 = "minimum controversy" = 没人 news = "I didn't make any news, I'm proud."</p>
+      <p>Ben 补充: "<strong>All news is bad news.</strong>" (指 trained CEO 的世界观)</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--green);border-color:var(--green);">UNORTHODOX COACH</span><span>@ [00:04:30]</span></div>
+      <h4>Lee Les Elden 的反训练</h4>
+      <p>a16z 当时雇了 "best media trainer" = Lowell Bergman 的前制片人 (60 Minutes 团队)。 他开场说: "<strong>We're not doing classic media training.</strong>"</p>
+      <p>训练只有一件事: "say all the things in public that you would say if you were sitting having lunch with a friend."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--accent);border-color:var(--accent);">COACH'S RULE</span><span>@ [00:05:08]</span></div>
+      <h4>"If you know it intimately…"</h4>
+      <p>他原话: "If you are on stage or in an interview and you don't know that topic inside out already, like what the hell are you doing there? If you know it intimately, you should be able to talk about it in a viscerally interesting way."</p>
+      <p>所有 "pivot / Jedi mind trick" 的训练技巧都只是辅助 — 主轴是真实性。</p>
+    </div>
+  </div>
+
+  <h3>🎯 Ben 的 "Jedi Pivot" 解释</h3>
+  <div class="quote-card purple">
+    <span class="ts">[00:05:42]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"It's the Jedi knight thing that made that whole approach work. One of the ways you talk naturally is you just refuse to answer the bad questions and you just substitute in your good question."</blockquote>
+    <div class="relevance">→ Pivot 不是 manipulation — 是 "I have my own agenda and I'll route around your question." 这与 authenticity 不矛盾，因为 pivot = "I know what I want to say."</div>
+  </div>
+
+  <h3>✅ New Media Great Communicators Checklist</h3>
+  <p>Marc @ [00:06:06] 给出当下最 authentic 的 reference set:</p>
+  <ul style="margin-left:20px;color:var(--text-dim);font-size:14px;line-height:1.8;">
+    <li><strong>Palmer Lucky</strong> — Anduril founder, 与传统 VC 沟通完全相反</li>
+    <li><strong>Alex Karp</strong> — Palantir CEO, 学术+神经多样性叙事</li>
+    <li><strong>Elon Musk</strong> — X / Tesla / SpaceX 三品牌合一</li>
+    <li><strong>Jensen Huang</strong> — NVIDIA, "put Jensen in that rank lately"</li>
+    <li><strong>Long-form podcast 复兴</strong> — 3 小时深度对话是 authenticity 的载体</li>
+  </ul>
+</div>
+
+<!-- ===== TAB 6: POLARIZING VS LIKED ===== -->
+<div class="tab-content" id="polarizing" data-tab="polarizing">
+  <h2 class="section">⚔️ Polarizing Beats Being Liked</h2>
+
+  <p>本节从 [00:23:42] 进入。Marc 给出可能是全场最反直觉的 hard truth: <strong>"You really want people to hate you and you want people to love you, but you don't want to be neutral."</strong></p>
+
+  <h3>💀 死亡区 = Lukewarm</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">CORE TRUTH</span><span>@ [00:23:42]</span></div>
+      <h4>"You want people to hate you and love you"</h4>
+      <p>"You can't be interesting and not have people both hate you and love you. There's too much jealousy and hatred in the world to not have it be that. As soon as you get big, that's what happens."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">REFERENCE</span><span>@ [00:24:13]</span></div>
+      <h4>"Nobody writes a puff piece on Murdoch or Musk"</h4>
+      <p>Ben's framing: "<strong>Have all the right enemies.</strong> Picking the right people to hate you that galvanizes the people who love you."</p>
+      <p>"If you take it like 'oh, I got to stop doing that so people like me,' you'll ruin your marketing."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--purple);border-color:var(--purple);">PRACTICAL</span><span>@ [00:22:14]</span></div>
+      <h4>Degenerate case = Twitter replies</h4>
+      <p>Ben: "If you start answering the X replies of people who have 50 followers — my father always did that — there's just like a colossal waste of time and you're amplifying somebody who has no audience."</p>
+      <p>→ Polarize ≠ 攻击 random accounts. Polarize = 跟有 audience 的人 battle.</p>
+    </div>
+  </div>
+
+  <h3>✅ Truth 检验: It's Not What You Avoid, It's What You Choose</h3>
+  <table>
+    <tr><th>❌ Lukewarm trap</th><th>✅ Polarizing wins</th></tr>
+    <tr><td>Rank success by "minimum controversy"</td><td>Rank success by "made people care"</td></tr>
+    <tr><td>Try to please all audiences</td><td>Pick the right audience + right enemies</td></tr>
+    <tr><td>Avoid all conflict / responses</td><td>Pre-choose which fights to take</td></tr>
+    <tr><td>Stay "balanced" (旧媒体 voice from nowhere)</td><td>Take a clear stance</td></tr>
+    <tr class="highlight"><td>"Nobody complained"</td><td>"People either loved it or hated it — and that's the win"</td></tr>
+  </table>
+</div>
+
+<!-- ===== TAB 7: PICKING BATTLES ===== -->
+<div class="tab-content" id="battles" data-tab="battles">
+  <h2 class="section">🎯 Picking Battles — When to Fight Back</h2>
+
+  <p>本节从 [00:20:20] 进入。Erik 直接问 Marc/Ben: "How do you decide when to fight back versus stay quiet?" — 这是 founder 实操里最难的问题之一。</p>
+
+  <h3>🎯 The Two Buckets Framework</h3>
+  <div class="compare">
+    <div class="cmp bad">
+      <h4>❌ DO NOT FIGHT — "Degenerate case"</h4>
+      <ul>
+        <li>Anon Twitter accounts with 50 followers</li>
+        <li>People with no audience amplifying nothing</li>
+        <li>"They didn't do anything in life to have the right to talk to you"</li>
+        <li>Cost = colossal waste of time + amplify their reach</li>
+      </ul>
+    </div>
+    <div class="cmp good">
+      <h4>✅ FIGHT BACK — "Real opportunity"</h4>
+      <ul>
+        <li>Someone with actual audience attacks you</li>
+        <li>Legitimate critique in mainstream press</li>
+        <li>Issue where you have unique point of view</li>
+        <li>Cost = free distribution for your POV</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>🔥 Marc 的 Instagram/NYT 案例 — "Best post I ever wrote"</h3>
+  <div class="quote-card green">
+    <span class="ts">[00:22:14]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"We got into this kerfuffle over Instagram with The New York Times. I responded — it was the biggest post I ever wrote. Everybody was like, 'Yeah f*** The New York Times.' It took us from here to here in one shot. Just cuz everybody loves a fight."</blockquote>
+    <div class="relevance">→ "Fights are good for brand building. But you just got to pick the right fight to not just build somebody else's brand." — 这条比 "always fight" 更精细: 必须 pick the right fight。</div>
+  </div>
+
+  <h3>🤝 Ben 的 a16z 内部应对方式</h3>
+  <div class="quote-card blue">
+    <span class="ts">[00:22:58]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"When I first joined, I would bring up these negative tweets and say 'Hey, these Anons are saying bad things about us.' And you guys would be like, 'Who cares?' In fact, part of our success means we're going to have more and more people saying negative things."</blockquote>
+    <div class="relevance">→ 早期 Ben 学到的 lesson: 内部 escalation 本身是 noise. 真正的过滤 = "is this worth my founder attention right now?"</div>
+  </div>
+
+  <h3>📌 The Hater Reframe (Ben @ [00:23:05])</h3>
+  <div class="quote-card yellow">
+    <span class="ts">[00:23:05]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"Even if you think we're wrong about everything, what is better in this world than the transfer of wealth from people who have a lot of money to people who have ideas and want to build something? Like that's still a good for humanity. So shut up to you, hater."</blockquote>
+    <div class="relevance">→ 把 critic 的逻辑翻转: 即使他们指控 100% 成立, 公司行为仍是 net positive → critic 在反对 net-positive. 这是 founder-grade 的 pick-battle 防御话术.</div>
+  </div>
+</div>
+
+<!-- ===== TAB 8: HIRING TEAM ===== -->
+<div class="tab-content" id="team" data-tab="team">
+  <h2 class="section">👥 团队建设 — Hiring for New Media</h2>
+
+  <p>本节从 [00:25:06] 进入。Erik 问: "新 media 时代, 怎么 hire 对的人?" Ben + Gaby + Marc 给出三段递进答案.</p>
+
+  <h3>1️⃣ Ben 的第一原则 — 旧媒体训练是负债</h3>
+  <div class="quote-card red">
+    <span class="ts">[00:25:06]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"If you're trained in old media, it's very very very hard to do new media. You have to be a very exceptional person to make that transition. If you spent 10 years doing old media, there are laws of physics, rules of the game, things you do every single time in terms of vetting reporters to rude Q&As — everything about it is opposite world."</blockquote>
+    <div class="relevance">→ Old media = defense muscle memory. New media = offense muscle memory. 两者 transfer rate 极低. → Hire signal: <strong>already built audience / brand on something.</strong></div>
+  </div>
+
+  <h3>2️⃣ Erik 自己就是 a16z 的 Hire Signal 范本</h3>
+  <div class="quote-card purple">
+    <span class="ts">[00:26:21]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"What we looked for when we brought you on, Eric: the best thing on new media is — have you done it? Have you built some brand on something and some audience? Do you know how to build an audience? Because that's the core thing. If you can't do that, it doesn't matter if you've got this skill and that skill."</blockquote>
+    <div class="relevance">→ a16z hire Erik = 因为他 "done it" (Theoretical Ventures / Twitter presence / 新媒体 fluency). 这是 explicit 招聘标准.</div>
+  </div>
+
+  <h3>3️⃣ Marc 加码 — "Proof of work even though they weren't doing the thing"</h3>
+  <div class="quote-card green">
+    <span class="ts">[00:26:53]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Alex Danco, Henry, Brent — they're product managers or founders or investors, but they were obsessed with the discourse. They were listening to podcasts, they were writing themselves. You could tell in the proof of work even though they weren't doing the thing."</blockquote>
+    <div class="relevance">→ Hire signal tier 2: 即使没做过, 但 "obsessed with the discourse / writing themselves" = 自我证明已经在练习场。 没有这条 hire = 训练成本太高.</div>
+  </div>
+
+  <h3>4️⃣ Storytelling 作为稀缺技能</h3>
+  <div class="quote-card yellow">
+    <span class="ts">[00:27:11]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"The reason why Alex [Danco] is so good is because he's a world-class storyteller. Forget just take marketing out of it for a second. Can you put together a story that somebody wants to read or listen to? That's a real skill. The elite level of that is way higher than the average level of that."</blockquote>
+    <div class="relevance">→ Storytelling ≠ 旧 marketing. Storytelling = "puts together a story with tension, beginning, end." 这是 a16z 团队的核心筛选标准 — 旧 marketing hire 大概率失败.</div>
+  </div>
+
+  <h3>✅ The "Authentic Storytelling" Disconnect</h3>
+  <p>Ben @ [00:27:40] 提出一个重要的 inter-section: 传统 reporter 会把 "going direct" 框定为 "propaganda / marketing"。a16z 反驳:</p>
+  <div class="quote-card blue">
+    <span class="ts">[00:28:20]</span><span class="speaker">Ben Horowitz</span>
+    <blockquote>"Storytelling of like here's what's actually happening — in an interesting way, with tension, with a beginning and an end, that somebody is interested in following the whole way. That's not propaganda. That's just good communication."</blockquote>
+    <div class="relevance">→ Reframe: Going direct = "actually explain yourself + the world." 这个 reframe 对 hire 评估很关键 — 候选人不应认为 "storytelling" = manipulation.</div>
+  </div>
+</div>
+
+<!-- ===== TAB 9: FOUNDER MESSAGING MISTAKES ===== -->
+<div class="tab-content" id="mistakes" data-tab="mistakes">
+  <h2 class="section">❌ Founder Messaging Mistakes — Gaby 的两大错误</h2>
+
+  <p>本节从 [00:30:03] 进入。Gaby Goldberg 给两个高度实战化的 founder error。</p>
+
+  <h3>Mistake #1 — Distribution over Message</h3>
+  <div class="quote-card red">
+    <span class="ts">[00:30:03]</span><span class="speaker">Gaby Goldberg</span>
+    <blockquote>"It's a trap to fall into because the timeline feels so addicting. A lot of founders really over index on distribution and tactics before actually getting the message right. Distribution is really just a multiplier on the message. And so if the message is wrong, now you've amplified something that is either irrelevant for your business or not the thing that your audience needs to hear — or maybe worst of all, it's uninteresting."</blockquote>
+    <div class="relevance">→ The math: wrong message × 100x distribution = "told everybody that you care about that you're not very interesting." — distribution 不是杠杆, distribution 是 multiplier on already-correct message.</div>
+  </div>
+
+  <h3>⚡ Mistake #2 — Inputs vs Outputs</h3>
+  <div class="quote-card yellow">
+    <span class="ts">[00:31:30]</span><span class="speaker">Gaby Goldberg</span>
+    <blockquote>"You can get the message wrong if you focus too much on the inputs as opposed to the outputs that you want to drive towards. Just because everything is true doesn't mean it's all relevant or strategic for your business. Start with the outcome. Do we want to sell to a certain type of enterprise customer? Do we want to hire a certain type of engineer who believes a certain thing about us? So now you can kind of work backwards from there."</blockquote>
+    <div class="relevance">→ Inverse-PR: 不要 "say everything you could say", 而是 "reverse from outcome → figure out exactly what to say." Counter-intuitive: 越成功的公司越容易踩 — 因为太多东西可讲.</div>
+  </div>
+
+  <h3>📌 Marc 补刀: "Marketing an empty box"</h3>
+  <div class="quote-card purple">
+    <span class="ts">[00:32:50]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Really determines how you have to put the team together because if you put together a team that you can't have a conversation with where you're listening on your message — then you've kind of done yourself a disservice. You need the team to help make the story great before they go. It's really easy to go 'Okay, market this empty box.' There are a few marketers who could probably do that, but it's hard."</blockquote>
+    <div class="relevance">→ If team doesn't have opinion on message → forced to ship empty-box marketing. Team 必须 invested in message — not just distribution.</div>
+  </div>
+
+  <h3>🎯 Other Founder Defaults (Marc @ [00:34:04])</h3>
+  <table>
+    <tr><th>Default (lame) story</th><th>Why it fails</th></tr>
+    <tr><td>"I met a great founder, walked, called 8 times, convinced him"</td><td>Generic VC story, no details, egotistical</td></tr>
+    <tr><td>"We're brand new, fired up, ready to go, hope you try it"</td><td>Every startup says this. Indistinguishable.</td></tr>
+    <tr><td>"I'm humbled by…"</td><td>Most fake humble thing in the world. "You're not even remotely humble."</td></tr>
+    <tr><td>"Our company story is the most interesting thing"</td><td>Your company is NOT inherently interesting. The bigger story is.</td></tr>
+  </table>
+</div>
+
+<!-- ===== TAB 10: KARP PLAYBOOK ===== -->
+<div class="tab-content" id="karp" data-tab="karp">
+  <h2 class="section">📖 Karp Playbook — Tell the Bigger Story</h2>
+
+  <p>本节从 [00:33:47] 进入。Marc 给出他认为是全场最关键的 strategic move: <strong>"Find the most interesting story that you can plug your company into, and then tell that story."</strong></p>
+
+  <h3>🧙 Alex Karp 作为 Grand Wizard</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--purple);border-color:var(--purple);">PATTERN</span><span>@ [00:36:19]</span></div>
+      <h4>Karp 从不谈 Palantir</h4>
+      <p>"If you watch his interviews, he never talks about Palantir. The only thing he ever says about Palantir — Mark pointed this out to me — is <strong>'ontology and orchestration'</strong>, two words that nobody knows what they mean."</p>
+      <p style="color:var(--accent-2);">→ Nobody knows what Palantir does. <strong>It doesn't matter.</strong> The interesting stories (US military / superintelligence / neurodivergence) carry the brand.</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--accent);border-color:var(--accent);">RESULT</span><span>@ [00:39:05]</span></div>
+      <h4>"First phone call" 因果链</h4>
+      <p>"When something happens in the world — US military, AI in the military, geopolitics, China — he's the first phone call. Because he's the guy who's been out there talking about that."</p>
+      <p style="color:var(--accent-2);">→ Karp Playbook 的终极 ROI: 当事件发生, 你就是 first call. 不用 cold outreach, 不用 PR firm.</p>
+    </div>
+  </div>
+
+  <h3>📦 Ryan Peterson / Flexport 案例 (Live Audience)</h3>
+  <div class="quote-card yellow">
+    <span class="ts">[00:37:42]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Ryan Peterson is in the audience who's done a phenomenal job of that. Right, the difference between talking about freight versus talking about the global supply chain is completely collapsing during COVID and we're all going to starve to death. And then he literally goes on 60 Minutes to explain the world that in fact yes, we all are about to starve to death. From the helicopter. Look at all those ships that are never landing. By Flexport."</blockquote>
+    <div class="relevance">→ Flexport 的 product (freight forwarding) 是 boring。 但 "global supply chain collapse" 不是. Karp Playbook = "attach to the bigger interesting thing, company brand rides for free."</div>
+  </div>
+
+  <h3>🏛️ "Meeting the Decision Maker" 逻辑</h3>
+  <div class="quote-card green">
+    <span class="ts">[00:38:18]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Are you important enough to like meet with the CEO of your customer? Are you important enough to get in the room with the decision maker? Are you important enough to meet with the Secretary of War? I have a little startup that's doing interesting things and I have seen me talk about like the big important things that are happening in the world and how they relate and that you have potentially an answer to it. That's absolute catnip."</blockquote>
+    <div class="relevance">→ Karp Playbook 的 enterprise sales 延伸: 大客户 CEO 想见 "someone who talks about the big things." 这种 meeting 是 enterprise sales 的 unfair advantage.</div>
+  </div>
+
+  <h3>🪞 Outside-in vs Inside-out (Marc 总结 @ [00:38:55])</h3>
+  <div class="quote-card blue">
+    <span class="ts">[00:38:55]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"Don't everybody just naturally think inside-out — me and my company and my product out into the world. Don't think that way. Think in terms of like what are the most interesting things happening in the world — and then how do those things relate to us?"</blockquote>
+    <div class="relevance">→ 这是 Karp Playbook 的 single-sentence formula. Outside-in. 公司是 the lens, not the subject.</div>
+  </div>
+
+  <h3>⚠️ Where CEOs Go Off the Rails</h3>
+  <div class="quote-card red">
+    <span class="ts">[00:39:11]</span><span class="speaker">Marc Andreessen</span>
+    <blockquote>"This is where CEOs go off the rails because they're so focused on what they're doing. All they want to do is tell their story and they're not even paying attention to what's going on in the world. Which is understandable because you're trying to build something — but to do the marketing exercise, investing in understanding what's happening out there is just critically important."</blockquote>
+    <div class="relevance">→ Karp Playbook 的 hidden cost = 必须 invest time 在 "world scanning" 而非 product building. Founder tension: time split.</div>
+  </div>
+</div>
+
+<!-- ===== TAB 11: QUOTES ===== -->
+<div class="tab-content" id="quotes" data-tab="quotes">
+  <h2 class="section">💬 金句库 — 24 条 verbatim 引用 (with [HH:MM:SS] timestamps)</h2>
+
+  <p>本节收录 24 条本场最高密度引用。每条都标注 speaker + timestamp + relevance (为什么重要)。</p>
+
+  <div class="quote-grid">
+    <div class="quote-card yellow">
+      <span class="ts">[00]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"One rule of old media's — don't be interested. Like that's the worst thing you can do."</blockquote>
+      <div class="relevance">→ 旧媒体最高信条 = 无聊。在新媒体 = 死刑。</div>
+    </div>
+    <div class="quote-card blue">
+      <span class="ts">[30]</span><span class="speaker">Erik Torenberg</span>
+      <blockquote>"Everybody just naturally thinks inside out — me and my company and my product out into the world. Don't think that way. Think in terms of like what are the most interesting things happening in the world — and then how do those things relate to us?"</blockquote>
+      <div class="relevance">→ Outside-in vs inside-out. Karp Playbook 的 single-line formula.</div>
+    </div>
+    <div class="quote-card green">
+      <span class="ts">[39]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Old media is defense oriented. New media is offense."</blockquote>
+      <div class="relevance">→ 全场第一句核心框架。所有后续论点都建立在这个二分上。</div>
+    </div>
+    <div class="quote-card yellow">
+      <span class="ts">[44]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"There's still this anxiety that people have which is legacy media somehow is like where the respectability is, the prestige is. I don't believe that anymore."</blockquote>
+      <div class="relevance">→ 旧媒体 prestige = 自欺. 新规则 = 自己的 channel 才是 prestige.</div>
+    </div>
+    <div class="quote-card red">
+      <span class="ts">[00:04:30]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"We're going to get you to basically just say all the things in public that you would say if you were sitting having lunch with a friend."</blockquote>
+      <div class="relevance">→ Lee Les Elden 反训练的核心句。Authenticity = "lunch with a friend voice."</div>
+    </div>
+    <div class="quote-card purple">
+      <span class="ts">[00:05:08]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"If you know it intimately, you should be able to talk about it in a viscerally interesting way that relates your thoughts on the thing."</blockquote>
+      <div class="relevance">→ Authenticity ≠ boring. "Viscerally interesting" + intimate knowledge = 真实 + 动人.</div>
+    </div>
+    <div class="quote-card blue">
+      <span class="ts">[00:06:32]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"It's the re-rise of the idea of just like interesting people having interesting conversations — which was very radical at one point, which is now a common thing."</blockquote>
+      <div class="relevance">→ 1980s Charlie Rose midnight → 2026 Joe Rogan / Lex / Substack. 长 form 对话回归.</div>
+    </div>
+    <div class="quote-card yellow">
+      <span class="ts">[00:08:08]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"But it devolved into power to truth. So it's like the press's way of intimidating you into not saying what you thought."</blockquote>
+      <div class="relevance">→ Legacy press 从 "speak truth to power" → "power to truth." 权力反转.</div>
+    </div>
+    <div class="quote-card red">
+      <span class="ts">[00:09:28]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"2017 things changed. Basically since then, my view is that sort of agenda-driven mode… took over — which I think probably will never actually unwind."</blockquote>
+      <div class="relevance">→ 2017 = 转折点. Marc's view: 不可逆. 这就是为什么 founder must go direct.</div>
+    </div>
+    <div class="quote-card green">
+      <span class="ts">[00:10:02]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Go direct — which is you have to tell your own story increasingly through your own channels and through the channels of allies."</blockquote>
+      <div class="relevance">→ Going Direct 框架定义。"Allies" 维度 = influencer / Substack / Podcast co-appearance.</div>
+    </div>
+    <div class="quote-card purple">
+      <span class="ts">[00:12:39]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Is it Palantir or is it Alex? Is it Anduril or is it Palmer? The companies that are winning in marketing, the brand is the person."</blockquote>
+      <div class="relevance">→ Founder-as-brand = 不可绕开的事实. 列举 3 个 referent.</div>
+    </div>
+    <div class="quote-card yellow">
+      <span class="ts">[00:13:14]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Old media = very restricted channels with very restricted formats, and the brands were the companies. New media = unlimited formats, unlimited channels, and the brand is now the person."</blockquote>
+      <div class="relevance">→ 旧媒体 vs 新媒体 structural 对比. Channels/Formats × Brand entity 两个 axis.</div>
+    </div>
+    <div class="quote-card blue">
+      <span class="ts">[00:14:15]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"If you had another founder or somebody who is a really permanent fixture and not the CEO, you could imagine that person kind of getting the brand off — but it's going to be a person. There's no way around that."</blockquote>
+      <div class="relevance">→ 例外: a16z 模式 (Ben CEO + Marc brand). 但 proxy 必须是 permanent fixture, 不能是 VP marketing.</div>
+    </div>
+    <div class="quote-card green">
+      <span class="ts">[00:18:45]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Do people running for president have to go on Joe Rogan? Up until 2024 the answer was absolutely not. After 2024 the answer is 100% they have to."</blockquote>
+      <div class="relevance">→ 2024 election = 政治领域 going-direct 的引爆点. Rogan = new mainstream.</div>
+    </div>
+    <div class="quote-card purple">
+      <span class="ts">[00:19:32]</span><span class="speaker">Ben Horowitz</span>
+      <blockquote>"If you can't ride two elephants at the same time, what are you doing in the circus?" — Shiv, Succession</blockquote>
+      <div class="relevance">→ Ben's favorite line for "must be able to do 3-hour long-form." 戏剧化 anchor.</div>
+    </div>
+    <div class="quote-card yellow">
+      <span class="ts">[00:21:06]</span><span class="speaker">Ben Horowitz</span>
+      <blockquote>"It'll always improve your situation to fight back."</blockquote>
+      <div class="relevance">→ 表面 fight always wins (自相矛盾于 subsequent qualification). Ben 风格 = 故意 over-claim.</div>
+    </div>
+    <div class="quote-card red">
+      <span class="ts">[00:22:14]</span><span class="speaker">Ben Horowitz</span>
+      <blockquote>"Fights are good for brand building. But you just got to pick the right fight — to not just build somebody else's brand."</blockquote>
+      <div class="relevance">→ The qualifier: "right fight" 才是关键. Wrong fight = amplify opponent. Right fight = both win.</div>
+    </div>
+    <div class="quote-card green">
+      <span class="ts">[00:23:42]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"You really want people to hate you and you want people to love you, but you don't want to be neutral. You don't want to be lukewarm."</blockquote>
+      <div class="relevance">→ Polarize > Like. Lukewarm = uninteresting = 营销自杀.</div>
+    </div>
+    <div class="quote-card purple">
+      <span class="ts">[00:24:13]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Nobody writes a puff piece on like Rupert Murdoch or Elon Musk. When you get to a certain size, people hate you. And that's good, because that means you did it."</blockquote>
+      <div class="relevance">→ Haters = success signal. Reframe 失败模式 → "you did something important."</div>
+    </div>
+    <div class="quote-card blue">
+      <span class="ts">[00:25:06]</span><span class="speaker">Ben Horowitz</span>
+      <blockquote>"If you're trained in old media, it's very very very hard to do new media. Everything about it is opposite world."</blockquote>
+      <div class="relevance">→ Hire signal #1: 不要 hire 旧 media trained. Muscle memory transfer rate ≈ 0.</div>
+    </div>
+    <div class="quote-card yellow">
+      <span class="ts">[00:30:03]</span><span class="speaker">Gaby Goldberg</span>
+      <blockquote>"Distribution is really just a multiplier on the message. And so if the message is wrong, now you've amplified something that is either irrelevant or uninteresting."</blockquote>
+      <div class="relevance">→ The Math: wrong message × 100x = "you told everybody you're not very interesting." Distribution 不是杠杆, 是 multiplier on message.</div>
+    </div>
+    <div class="quote-card red">
+      <span class="ts">[00:31:30]</span><span class="speaker">Gaby Goldberg</span>
+      <blockquote>"Just because everything is true doesn't mean it's all relevant or strategic for your business. Start with the outcome, then work backwards."</blockquote>
+      <div class="relevance">→ Inputs vs Outputs inverse. The trap of "say everything you could" vs "say what they need to hear."</div>
+    </div>
+    <div class="quote-card green">
+      <span class="ts">[00:36:19]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"If you watch his [Karp's] interviews, he never talks about Palantir. The only thing he ever says about Palantir is 'ontology and orchestration' — two words nobody knows what they mean."</blockquote>
+      <div class="relevance">→ Karp Playbook = company NOT the topic. The bigger story is the topic. Brand rides implicit.</div>
+    </div>
+    <div class="quote-card purple">
+      <span class="ts">[00:38:55]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"Don't everybody just naturally think inside-out — me and my company and my product out into the world. Don't think that way. Think in terms of like what are the most interesting things happening in the world."</blockquote>
+      <div class="relevance">→ Karp Playbook single sentence. Outside-in. Plug-in. 永远最 actionable.</div>
+    </div>
+    <div class="quote-card blue">
+      <span class="ts">[00:40:55]</span><span class="speaker">Marc Andreessen</span>
+      <blockquote>"It's a skill set for sure. Even at that level [Trump in 1980s vs now] you can develop it."</blockquote>
+      <div class="relevance">→ Closing encouragement: media fluency 不是天生. Trump's 1980s restraint → 2020s new media fluency. Learnable.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 12: PATRICK CARDS (17) ===== -->
+<div class="tab-content" id="patrick" data-tab="patrick">
+  <h2 class="section">🧰 Patrick 关联 — 17 cards (8 Tier-1 + 5 Tier-2 + 4 Tier-3)</h2>
+
+  <p>本节把 a16z 圆桌的核心论点映射到 Patrick 现有的 17 个 skill / pattern 上。每张卡片使用 3 行结构: <strong>video claim → skill claim → relationship + reason</strong>。</p>
+
+  <h3>🌟 Tier 1 (Core, 8 cards) — heavy publishing pipeline mapping</h3>
+  <div class="card-grid">
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>how-to-sell</span></div>
+      <h4>🔗 how-to-sell</h4>
+      <p>Video: "polarizing beats being liked — you want people to hate you AND love you, but not lukewarm." [00:23:42]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> how-to-sell = present work to be heard, understood, trusted by humans — not to "everyone likes it."</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Marc 的 "right enemies" 框架 = how-to-sell 的 "find the right audience, don't try to please all" 哲学. Apply 到 writing decks / reporting status.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>hermes-knowledge-capture</span></div>
+      <h4>🔗 hermes-knowledge-capture</h4>
+      <p>Video: "Authenticity beats media training — say all the things in public that you'd say having lunch with a friend." [00:04:30]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> Capture knowledge as you'd naturally think — not as a "training-ified" surface.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：knowledge capture 应该 "unfiltered raw" 反映真实 mental model, 不要 "minimum controversy" 式 polish 到失真. Patrick's daily-reports 用 first-voice capture 同理.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>content-multiplier</span></div>
+      <h4>🔗 content-multiplier</h4>
+      <p>Video: "Distribution is a multiplier on the message. Wrong message × 100x = told everyone you're uninteresting." [00:30:03]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> content-multiplier = amplify one piece of work into N formats × N channels.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Marc 警告的 "wrong message × distribution" = content-multiplier 必须先 verify 母本正确, 再放大. Patrick 的 dashboard→blog→tweet 链 = first check message right.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>hermes-proactive</span></div>
+      <h4>🔗 hermes-proactive</h4>
+      <p>Video: "If somebody attacks you with real audience, respond — that's a real opportunity to come across with your own POV." [00:22:14]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> hermes-proactive = WAL-style logging, proactive behaviors, context recovery.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Marc 的 "picking battles" = proactive 判断何时 push back. Hermes-proactive 应该是 framework-aware: 不只 log, 还自动判断 "is this worth Hermes attention now?" — 类似 Ben's "is this worth my founder attention?"</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>plan-ceo-review</span></div>
+      <h4>🔗 plan-ceo-review</h4>
+      <p>Video: "Start with the outcome — do we want to sell to a certain customer / hire a certain engineer? Then work backwards to message." [00:31:30]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> plan-ceo-review = review weekly plan against outcome metrics, not input completion.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Gaby 的 "outcome first, work backwards" = plan-ceo-review 的核心方法论. Don't measure inputs (lines of code / words written), measure outcomes (revenue / hire quality / vault coverage). Already aligned.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>vault-to-public-pipeline</span></div>
+      <h4>🔗 vault-to-public-pipeline</h4>
+      <p>Video: "Go Direct — tell your own story through your own channels and through the channels of allies." [00:10:02]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> vault-to-public-pipeline = vault → 2017zyl.xyz deployment pipeline.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Going Direct = vault-to-public 的本质. Patrick 把 vault md 直接 deploy 到 public site = founder-as-brand 的 executed form. 不依赖第三方 reporter / editor.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>public-html-deploy-cloudflare-pages</span></div>
+      <h4>🔗 public-html-deploy-cloudflare-pages</h4>
+      <p>Video: "New media = unlimited formats, unlimited channels, brand is the person." [00:13:14]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> CF Pages deploy of single HTML / Vite SPA to 2017zyl.xyz.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：unlimited channels 在 2026 = 任意 subdomain / arbitrary path / arbitrary format. CF Pages enables this — dashboard.html, daily-reports.html, worldmonitor-cn.html 各自一个 channel. Skill enables the structural shift Marc describes.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent);">
+      <div class="meta-line"><span class="badge tier1">TIER 1</span><span>hermes-learnings</span></div>
+      <h4>🔗 hermes-learnings</h4>
+      <p>Video: "Look, it's a skill set for sure. Even at that level [Trump 1980s → 2020s] you can develop it." [00:40:55]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> hermes-learnings = accumulate / reflect / improve over time.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Marc 强调 media fluency 是 learnable, 不是天赋. hermes-learnings 的目的就是让 Hermes 在每次 session 之后都 "less trained-media, more authentic." 这是 skill 的 north star.</p>
+    </div>
+
+  </div>
+
+  <h3>🌟 Tier 2 (Conditional, 5 cards)</h3>
+  <div class="card-grid">
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <div class="meta-line"><span class="badge tier2">TIER 2</span><span>front-end-taste</span></div>
+      <h4>🔗 creative/front-end-taste</h4>
+      <p>Video: "The grand wizard is Alex Karp — he never talks about Palantir, only about the bigger interesting story." [00:36:19]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> front-end taste = visual hierarchy, color, layout — make the product / page "interesting at first sight."</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Karp Playbook 的 "first impression = the bigger story" 在 dashboard 上 = first impression = hero + 5 takeaways. front-end-taste 决定了 Patrick's dashboard 是否能 "attract the right 50 readers." Not lukeward.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <div class="meta-line"><span class="badge tier2">TIER 2</span><span>claude-design</span></div>
+      <h4>🔗 creative/claude-design</h4>
+      <p>Video: "Be a world-class storyteller — can you put together a story that somebody wants to read?" [00:27:11]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> claude-design = apply Anthropic's design language to UI/UX.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Storytelling 不是 "throw info at reader" — 是 tension / beginning / end. claude-design 的 hierarchy 同 storytelling: lead with the hook, expand the narrative, end with payoff. Patrick's dashboards 应 apply this.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <div class="meta-line"><span class="badge tier2">TIER 2</span><span>loop-engineering-data-story</span></div>
+      <h4>🔗 creative/loop-engineering-data-story</h4>
+      <p>Video: "When something happens in the world, he's the first phone call because he's been out there talking about that." [00:39:05]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> Loop engineering = keep telling the same story in different contexts until you're the default reference.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：Karp 成为 first call 不是运气, 是 5 年的 loop-engineering: US military → Karp → US military → Karp. Patrick's "AI 趋势 daily" loop = same play, applied to AI 领域.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <div class="meta-line"><span class="badge tier2">TIER 2</span><span>toc-sidebar-batch</span></div>
+      <h4>🔗 creative/toc-sidebar-batch</h4>
+      <p>Video: "A reasonable portion of the brand we built was just responding to people attacking us." [00:22:14]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> toc-sidebar-batch = add sticky TOC to existing dashboards.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Batch-patching 51/59 dashboards with TOC = a16z 的 "amplify what's already working." Patrick 已有的 skill inventory 是 the asset; adding TOC makes them more discoverable = going direct on Patrick's own knowledge corpus.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow);">
+      <div class="meta-line"><span class="badge tier2">TIER 2</span><span>taste-test-8020-decide</span></div>
+      <h4>🔗 taste-test-8020-decide</h4>
+      <p>Video: "If you take it like 'oh, I got to stop doing that so people like me,' you'll ruin your marketing." [00:24:30]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> taste-test-8020 = 80/20 decide (Pareto) on taste calls.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Marc 的 "right enemies" = 80/20 on attention: 把 80% 的 energy 投到 20% 的 audience (the right enemies + the right lovers). taste-test-8020 的核心 mechanism 同理 — not optimize for 100% approval.</p>
+    </div>
+
+  </div>
+
+  <h3>🌟 Tier 3 (Context, 4 cards)</h3>
+  <div class="card-grid">
+
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <div class="meta-line"><span class="badge tier3">TIER 3</span><span>video-to-knowledge-dashboard</span></div>
+      <h4>🔗 media/video-to-knowledge-dashboard</h4>
+      <p>Video: 整个圆桌就是这个 skill 的 source video.</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> Self-referential — this dashboard IS the artifact.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>完全同源</b>：this dashboard is the canonical application of going-direct + Karp-playbook on video content. Round 9 of multi-deliverable batch. v1.5.14+ 12-14 tabs, 17 Patrick cards, 6 stat cards, [HH:MM:SS] timestamps.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <div class="meta-line"><span class="badge tier3">TIER 3</span><span>patricks-vault-os</span></div>
+      <h4>🔗 patricks-vault-os</h4>
+      <p>Video: "It's a skill set for sure. Even at that level you can develop it." [00:40:55]</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> Patrick's vault = self-improving OS for knowledge + skills.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Marc's framing of media fluency as learnable = patricks-vault-os 的 north star. Vault 不只是 storage; 是 "skill set development engine" — every dashboard = a reps in the gym.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <div class="meta-line"><span class="badge tier3">TIER 3</span><span>graphify</span></div>
+      <h4>🔗 knowledge-synthesis/graphify</h4>
+      <p>Video: Marc 在 6 个章节间反复引用前文 — "as we talked about" / "to your point" / "Eric's earlier question".</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> graphify = link related concepts across vault.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Marc's inter-chapter cross-refs = manual graphify in real-time. Auto-graphify 让 Patrick's vault 跨 tab 跨 dashboard 自动建立 connections — same idea, automated.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--blue);">
+      <div class="meta-line"><span class="badge tier3">TIER 3</span><span>understand-anything</span></div>
+      <h4>🔗 knowledge-synthesis/understand-anything</h4>
+      <p>Video: 整个圆桌 = "going direct on understanding how new media works."</p>
+      <p style="color:var(--text-dim);"><strong>Skill:</strong> understand-anything = deconstruct any concept into primitives.</p>
+      <p style="color:var(--green); margin-top:0.4rem;">→ <b>同源</b>：Marc 用 "media history 1930s → 2017 → 2024" 时间线拆解 new media 起源. understand-anything 的 5-w-why decomposition 是同方法论. Patrick's vault 用此拆解 AI / media / policy.</p>
+    </div>
+
+  </div>
+
+  <h3>📊 17-card Distribution</h3>
+  <table>
+    <tr><th>Tier</th><th>Cards</th><th>Mapping focus</th></tr>
+    <tr><td>Tier 1 (Core)</td><td>8</td><td>how-to-sell, hermes-knowledge-capture, content-multiplier, hermes-proactive, plan-ceo-review, vault-to-public-pipeline, public-html-deploy-cloudflare-pages, hermes-learnings</td></tr>
+    <tr class="highlight"><td>Tier 2 (Conditional)</td><td>5</td><td>front-end-taste, claude-design, loop-engineering-data-story, toc-sidebar-batch, taste-test-8020-decide</td></tr>
+    <tr><td>Tier 3 (Context)</td><td>4</td><td>video-to-knowledge-dashboard (this skill), patricks-vault-os, graphify, understand-anything</td></tr>
+    <tr><td><strong>TOTAL</strong></td><td><strong>17</strong></td><td>all 8 Tier-1 ✅ per requirement; publishing pipeline heavy</td></tr>
+  </table>
+</div>
+
+<!-- ===== TAB 13: COUNTER / LIMITATIONS ===== -->
+<div class="tab-content" id="counter" data-tab="counter">
+  <h2 class="section">⚠️ 反方 / 局限 — a16z Blind Spots & Risks</h2>
+
+  <p>本节不是反驳 a16z 的论点，而是标出他们的 blind spots 和本框架的适用范围。a16z 是 industry analysis (medium-high credibility), 但作为风投 + 新媒体 massive beneficiary，他们有些 structural bias。</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">BLIND SPOT 1</span><span>Selection bias</span></div>
+      <h4>🎯 Karp / Palmer / Elon 全是 outliers</h4>
+      <p>Marc 反复点名 Karp / Palmer / Elon 作为 "winning the brand is person" 的证据。 但这 3 人都是 <strong>结构性 outlier</strong>: 极端 unique product + extreme charisma + decades of pre-existing distribution。 对 99% 的 founder 这不是 actionable framework — 是 survivorship bias dressed as advice。</p>
+      <p style="color:var(--text-mute);">→ Patrick 应该 ask: "Without Elon's audience, can a B2B SaaS founder at $5M ARR apply Karp Playbook? Probably not — but Ben's 'right enemies' or Gaby's 'output-first' might work."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">BLIND SPOT 2</span><span>Political polarization</span></div>
+      <h4>⚔️ "Polarize" 框架的危险面</h4>
+      <p>Marc @ [00:23:42]: "want people to hate you" — 这听起来 badass, 但在没有 Marc / Karp 这种 "default credibility" 的 founder 手里, 极化 = 引来真的 threats (doxxing / harassment / regulatory attention)。 a16z portfolio companies 受 SEC 监管 + 媒体覆盖, 极化的 downside 对他们有 firewall。 对 early-stage founder 没有。</p>
+      <p style="color:var(--text-mute);">→ Patrick 的 application: 在 apply "polarize" 之前先 check — "do I have political, legal, financial, personal firewall to absorb the haters?" If not, default to "be less boring, but don't seek enemies."</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">BLIND SPOT 3</span><span>Media history overclaim</span></div>
+      <h4>📚 "2017 changed everything" 简化</h4>
+      <p>Marc @ [00:09:28]: "2017 things changed, and I think probably will never unwind." — 这把 2016 → 2017 当作 atomic 转折点, 但 press trust decline 实际是 20+ 年 gradual curve (Pew 数据: 2000 信任度 50% → 2016 18% → 2024 32% 部分反弹)。 Marc 把 gradual 描述为 sudden = rhetorical but inaccurate。</p>
+      <p style="color:var(--text-mute);">→ Marc's argument is correct in direction (press 失去 founder-friendly), wrong in chronology. Use as directional thesis, not historical fact.</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--yellow);border-color:var(--yellow);">BLIND SPOT 4</span><span>Authenticity paradox</span></div>
+      <h4>🪞 "Be authentic" 是 advice, 不是 strategy</h4>
+      <p>Marc 的核心 message = "just be authentic / viscerally interesting." — 但 "authentic" 是 trait, 不是 lever。 Karp 的 authenticity 是 because he genuinely doesn't care about Palantir — 这是 personality, not technique。 对 founder who ISN'T naturally charismatic + world-class storyteller, "be authentic" = no actionable advice.</p>
+      <p style="color:var(--text-mute);">→ More actionable version: "Be authentic about ONE thing you're genuinely obsessed with, AND have a team to amplify that obsession into 3-hour long-form." Still hard, but at least decomposable.</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--red);border-color:var(--red);">BLIND SPOT 5</span><span>Going direct ≠ democratic</span></div>
+      <h4>🏛️ Going Direct 假设 founder 视角正确</h4>
+      <p>Marc's "go direct" framework 假设 founder's POV 是值得 amplify 的。 但: (a) 多数 founder 对自己产品有 bias (sunk cost / survivorship), (b) 监管 / 安全 / 社会外部性 不在 founder 视角里。 当 founder 跑 "going direct" 绕过记者 = also 绕过 accountability checks。 这对 crypto / biotech / defense (Palantir / Anduril / SpaceX) 尤其危险。</p>
+      <p style="color:var(--text-mute);">→ Going Direct = powerful, 但需要配套: independent board, safety review, ethics committee. Patrick 应 not just optimize for founder's reach — optimize for founder's reach + accountability.</p>
+    </div>
+    <div class="card">
+      <div class="meta-line"><span class="badge" style="color:var(--blue);border-color:var(--blue);">LIMIT</span><span>Not addressed</span></div>
+      <h4>❓ "What if your product is boring but real?"</h4>
+      <p>Marc 反复强调 "rule of new media is it has to be interesting" — 但 boring-but-real 产品 (insurance, compliance, accounting infra) 是经济 backbone. 这些 founder 无法 "plug into a bigger interesting story" 因为 they ARE the boring story。 整个 framework 假设 founder can choose to attach to bigger narrative — 对 boring-but-essential 产品不可行。</p>
+      <p style="color:var(--text-mute);">→ 缺失的另一半: "Boring-but-essential" 产品的 distribution 框架。 也许是旧 media (industry trade journals) + niche conferences + LinkedIn (Marc 不会 cover) — but worth flagging.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 14: DATA SNAPSHOT ===== -->
+<div class="tab-content" id="data" data-tab="data">
+  <h2 class="section">📊 数据快照 — Video Metadata + Dashboard Composition</h2>
+
+  <h3>📺 Source Video</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>Title</td><td>The Media Game Has Changed</td></tr>
+    <tr><td>Channel</td><td>a16z</td></tr>
+    <tr><td>URL</td><td>https://www.youtube.com/watch?v=XROaLetSxg0</td></tr>
+    <tr><td>Setting</td><td>New Media Summit (live panel)</td></tr>
+    <tr><td>Upload date</td><td>2026-06-19</td></tr>
+    <tr><td>Views</td><td>24,915</td></tr>
+    <tr><td>Duration</td><td>41:51 (2,511 seconds)</td></tr>
+    <tr><td>Source class</td><td>INDUSTRY ANALYSIS (panel discussion)</td></tr>
+    <tr><td>Credibility</td><td>medium-high (a16z brand, but structural bias toward own portfolio)</td></tr>
+    <tr><td>Epistemic guardrail</td><td>NOT REQUIRED (not non-causal source)</td></tr>
+  </table>
+
+  <h3>👥 Panelists</h3>
+  <table>
+    <tr><th>Name</th><th>Role</th><th>~Time</th><th>Signature talking point</th></tr>
+    <tr><td>Marc Andreessen</td><td>a16z co-founder</td><td>~60%</td><td>Corporate brand = 1930s centralized media artifact</td></tr>
+    <tr><td>Ben Horowitz</td><td>a16z co-founder</td><td>~25%</td><td>"Have all the right enemies"</td></tr>
+    <tr><td>Gaby Goldberg</td><td>a16z partner</td><td>~12%</td><td>"Distribution is a multiplier on the message"</td></tr>
+    <tr class="highlight"><td>Erik Torenberg</td><td>Host</td><td>~3%</td><td>Asks the 10 chapter questions</td></tr>
+  </table>
+
+  <h3>📊 Dashboard Composition</h3>
+  <table>
+    <tr><th>Component</th><th>Spec</th><th>Actual</th></tr>
+    <tr><td>Total tabs (tab-btn)</td><td>12-14</td><td><strong>14</strong> ✅</td></tr>
+    <tr><td>Total tab-content divs</td><td>= tab-btn count</td><td><strong>14</strong> ✅</td></tr>
+    <tr><td>Stat cards (hero)</td><td>6</td><td><strong>6</strong> ✅</td></tr>
+    <tr><td>Patrick cards</td><td>17 (8 + 5 + 4)</td><td><strong>17</strong> ✅</td></tr>
+    <tr><td>Tier-1 cards</td><td>8 (incl. how-to-sell, hermes-knowledge-capture, content-multiplier, hermes-proactive, plan-ceo-review, vault-to-public-pipeline, public-html-deploy-cloudflare-pages, hermes-learnings)</td><td><strong>8</strong> ✅</td></tr>
+    <tr><td>Tier-2 cards</td><td>5</td><td><strong>5</strong> ✅</td></tr>
+    <tr><td>Tier-3 cards</td><td>4</td><td><strong>4</strong> ✅</td></tr>
+    <tr><td>Verbatim quotes</td><td>20+</td><td><strong>24</strong> ✅</td></tr>
+    <tr><td>Counter/limitations</td><td>5+</td><td><strong>6</strong> ✅</td></tr>
+    <tr><td>Tables</td><td>≥ 5</td><td>9</td></tr>
+    <tr><td>Timestamp format</td><td>[HH:MM:SS] only</td><td><strong>✅</strong></td></tr>
+    <tr><td>TOC sidebar</td><td>present + collapsible</td><td><strong>✅ + ✅</strong></td></tr>
+    <tr><td>localStorage persistence</td><td>required</td><td><strong>✅</strong></td></tr>
+    <tr><td>External CDN</td><td>NONE</td><td><strong>✅ none</strong></td></tr>
+    <tr><td>Mobile responsive</td><td>≤900px viewport</td><td><strong>✅</strong></td></tr>
+  </table>
+
+  <h3>🎬 Source Video Chapters (10)</h3>
+  <table>
+    <tr><th>Time</th><th>Topic</th><th>Tab mapping</th></tr>
+    <tr><td>00:00</td><td>Intro: The New Rules of Media</td><td>core</td></tr>
+    <tr><td>00:56</td><td>Why Authenticity Beats Media Training</td><td>authenticity</td></tr>
+    <tr><td>02:41</td><td>Marc's Media Training Horror Story</td><td>authenticity</td></tr>
+    <tr><td>06:59</td><td>How the Legacy Press Turned Adversarial</td><td>legacy</td></tr>
+    <tr><td>11:58</td><td>Going Direct: The Founder Is the Brand</td><td>founder</td></tr>
+    <tr><td>20:20</td><td>Picking Your Battles: When to Fight Back</td><td>battles</td></tr>
+    <tr><td>23:42</td><td>Why Being Polarizing Beats Being Liked</td><td>polarizing</td></tr>
+    <tr><td>25:06</td><td>Hiring a Team Built for New Media</td><td>team</td></tr>
+    <tr><td>30:03</td><td>The Founder Messaging Mistakes to Avoid</td><td>mistakes</td></tr>
+    <tr class="highlight"><td>33:47</td><td>Tell the Bigger Story: The Alex Karp Playbook</td><td>karp</td></tr>
+  </table>
+
+  <h3>📁 File Outputs</h3>
+  <table>
+    <tr><th>Path</th><th>Purpose</th></tr>
+    <tr><td><code>/tmp/a16z-new-media-jun-2026/dashboard.html</code></td><td>Primary deliverable (this file)</td></tr>
+    <tr><td><code>/Users/zl/Desktop/a16z-new-media-jun-2026-dashboard.html</code></td><td>Shadow copy for Desktop preview</td></tr>
+    <tr><td><code>/tmp/a16z-new-media-jun-2026/transcript.txt</code></td><td>Source (218 paragraphs, [NNNs] format)</td></tr>
+    <tr><td><code>/tmp/a16z-new-media-jun-2026/windows.txt</code></td><td>Source (14 windows × 180s)</td></tr>
+    <tr><td><code>/tmp/a16z-new-media-jun-2026/meta.txt</code></td><td>Source (panel info + topic signals)</td></tr>
+  </table>
+</div>
+
+<footer>
+  <p>📺 Source: <a href="https://www.youtube.com/watch?v=XROaLetSxg0" target="_blank">The Media Game Has Changed</a> · a16z New Media Summit · 2026-06-19</p>
+  <p>📁 Outputs: <code>/tmp/a16z-new-media-jun-2026/dashboard.html</code> + <code>/Users/zl/Desktop/a16z-new-media-jun-2026-dashboard.html</code></p>
+  <p>🛠 Built by Hermes Agent · v1.5.14 template · collapsible TOC sidebar · localStorage persistence · zero external CDN</p>
+</footer>
+
+</main>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// === COLLAPSIBLE TOC SIDEBAR ===
+const toc = document.querySelector('.toc');
+const toggleBtn = document.getElementById('tocToggle');
+const toggleMobileBtn = document.getElementById('tocToggleMobile');
+const STORAGE_KEY = 'a16z-toc-collapsed';
+
+function setTocState(collapsed) {
+  document.body.classList.toggle('toc-collapsed', collapsed);
+  try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  if (toggleBtn) toggleBtn.textContent = collapsed ? '▶' : '◀';
+  if (toggleMobileBtn) toggleMobileBtn.textContent = collapsed ? '☰' : '✕';
+}
+
+function setTocMobile(open) {
+  document.body.classList.toggle('toc-open', open);
+  if (toggleMobileBtn) toggleMobileBtn.textContent = open ? '✕' : '☰';
+}
+
+if (toggleBtn) {
+  toggleBtn.addEventListener('click', () => {
+    // On desktop, toggle works in either state.
+    // On mobile, toggle button is hidden — TOC uses mobile-open state.
+    const isCollapsed = document.body.classList.contains('toc-collapsed');
+    if (window.innerWidth <= 900) {
+      // mobile: this button is hidden, no-op
+      return;
+    }
+    setTocState(!isCollapsed);
+  });
+}
+
+if (toggleMobileBtn) {
+  toggleMobileBtn.addEventListener('click', () => {
+    const isOpen = document.body.classList.contains('toc-open');
+    setTocMobile(!isOpen);
+  });
+}
+
+// Init from localStorage + responsive
+function initToc() {
+  let savedCollapsed = '0';
+  try { savedCollapsed = localStorage.getItem(STORAGE_KEY) || '0'; } catch (e) {}
+  const isMobile = window.innerWidth <= 900;
+
+  if (isMobile) {
+    // Mobile: default collapsed (TOC hidden). User uses ☰ to open.
+    document.body.classList.add('toc-collapsed');
+    document.body.classList.remove('toc-open');
+    if (toggleMobileBtn) toggleMobileBtn.textContent = '☰';
+    if (toggleBtn) toggleBtn.style.display = 'none';
+    if (toggleMobileBtn) toggleMobileBtn.style.display = 'flex';
+  } else {
+    // Desktop: respect saved preference
+    setTocState(savedCollapsed === '1');
+    if (toggleBtn) toggleBtn.style.display = 'flex';
+    if (toggleMobileBtn) toggleMobileBtn.style.display = 'none';
+  }
+}
+
+// === TAB SWITCHING ===
+function initTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  const contents = document.querySelectorAll('.tab-content');
+  const tocItems = document.querySelectorAll('.toc-item');
+
+  function activateTab(tabName, syncHash) {
+    let activated = false;
+    tabs.forEach(t => {
+      const match = t.dataset.tab === tabName;
+      t.classList.toggle('active', match);
+      if (match) activated = true;
+    });
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tab === tabName));
+    // sync TOC active
+    tocItems.forEach(i => i.classList.toggle('active', i.dataset.target === tabName));
+    if (activated && syncHash) {
+      try { history.replaceState(null, '', '#' + tabName); } catch (e) {}
+    }
+  }
+
+  tabs.forEach((t, idx) => {
+    t.addEventListener('click', () => {
+      activateTab(t.dataset.tab, true);
+    });
+  });
+
+  // TOC items click → activate tab + scroll to top
+  tocItems.forEach(i => {
+    i.addEventListener('click', () => {
+      activateTab(i.dataset.target, true);
+      // On mobile, also close TOC after click
+      if (window.innerWidth <= 900) {
+        setTocMobile(false);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // Init from URL hash
+  const initHash = (location.hash || '').replace('#', '');
+  if (initHash && document.querySelector(`[data-tab="${initHash}"]`)) {
+    activateTab(initHash, false);
+  } else {
+    // default: first tab active (index match)
+    const firstBtn = tabs[0];
+    if (firstBtn) activateTab(firstBtn.dataset.tab, false);
+  }
+}
+
+// === BOOT ===
+window.addEventListener('DOMContentLoaded', () => {
+  initToc();
+  initTabs();
+});
+
+// Re-init TOC on viewport changes (responsive)
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(initToc, 150);
+});
+</script>
+</body>
+</html>

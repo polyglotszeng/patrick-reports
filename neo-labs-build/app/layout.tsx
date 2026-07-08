@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/investors">投资人</Link>
               <Link href="/team">团队</Link>
               <Link href="/download">下载</Link>
+              <Link href="/v3-snapshot" style={{ fontSize: '12px', opacity: 0.75 }} title="2026-06-13 旧版本快照 (备份)">📜 v3 快照</Link>
               <a href="https://github.com/polyglotszeng/patrick-reports" target="_blank" rel="noopener">GitHub</a>
             </div>
           </div>
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="main">{children}</main>
         <footer className="footer">
           <div className="footer-inner">
-            <p>📊 私募视角 · 25 家前沿 AI 实验室 · 2026 年 6 月快照</p>
+            <p>📊 私募视角 · 25 家前沿 AI 实验室 · 2026 H1 中期更新 (md 研究 · 25 家全量 patch + 2 新追踪)</p>
             <p>数据来源: 公开融资公告 + 公司官网 + TechCrunch + Crunchbase + Sacra</p>
           </div>
         </footer>
