@@ -1,263 +1,367 @@
-<!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📁 新疆自驾视频库 (Obsidian)</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#c8714e">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="新疆自驾">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="apple-touch-icon" href="/xjb-icon-192.png">
-<link rel="canonical" href="https://2017zyl.xyz/视频库/">
-<style>
-:root{--bg:#1e1e1e;--bg2:#252525;--bg3:#2d2d2d;--text:#dcddde;--text-dim:#999;--accent:#ffd75e;--link:#5a8dee;--border:#3a3a3a;--green:#5b8a52;--red:#e74c3c;--orange:#e8834a}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,"PingFang SC",sans-serif;background:var(--bg);color:var(--text);line-height:1.65;font-size:15px}
-.wrap{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
-h1{font-size:30px;color:#fff;margin-bottom:8px}
-h2{font-size:20px;color:#fff;margin:32px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-.sub{color:var(--text-dim);font-size:14px;margin-bottom:20px}
-.legend{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;padding:12px 16px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);font-size:13px}
-.legend-item{display:flex;align-items:center;gap:6px}
-.toolbar{display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap}
-.toolbar a{display:inline-block;background:var(--accent);color:#000;padding:8px 16px;border-radius:6px;font-weight:600;text-decoration:none;font-size:14px}
-.toolbar a.secondary{background:var(--bg3);color:var(--text)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;transition:transform .15s,border-color .15s}
-.card:hover{transform:translateY(-2px);border-color:var(--accent)}
-.card.ok{border-left:4px solid var(--green)}
-.card.warn{border-left:4px solid var(--orange)}
-.card.fail{border-left:4px solid var(--red)}
-.card.neutral{border-left:4px solid #666}
-.card a{color:#fff;font-weight:600;font-size:14.5px;display:block;margin-bottom:4px;text-decoration:none}
-.card .meta{color:var(--text-dim);font-size:12px}
-.card .verdict{display:inline-block;font-size:10.5px;padding:1px 8px;border-radius:999px;font-weight:600;color:#fff;margin-top:4px}
-.card .verdict.ok{background:var(--green)}
-.card .verdict.warn{background:var(--orange)}
-.card .verdict.fail{background:var(--red)}
-.card .verdict.neutral{background:#666}
-.card .places{color:var(--accent);font-size:11.5px;margin-top:6px;font-family:monospace}
-.tag-pill{display:inline-block;background:#7c6f57;color:#fff;font-size:10.5px;padding:1px 7px;border-radius:4px;margin-right:4px;font-weight:500}
-@media(max-width:640px){.grid{grid-template-columns:1fr}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>新疆自驾视频库 · 新版路线片场</title>
+  <link rel="canonical" href="https://2017zyl.xyz/视频库/" />
+  <style>
+    :root {
+      --ink: #171412;
+      --muted: #6f6a62;
+      --paper: #f6f0e6;
+      --paper-2: #fffaf0;
+      --line: rgba(23, 20, 18, .12);
+      --amber: #f6c44f;
+      --cyan: #0f7c8f;
+      --green: #458a52;
+      --red: #cf493f;
+      --shadow: 0 24px 80px rgba(24, 37, 45, .18);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .switcher {
+      position: fixed; z-index: 50; top: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 10px;
+      background: rgba(255,255,255,.88); backdrop-filter: blur(16px); box-shadow: 0 12px 36px rgba(0,0,0,.12);
+    }
+    .switcher button { border: 0; border-radius: 7px; padding: 11px 16px; background: transparent; color: #665f54; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .switcher button.active { background: #171412; color: white; }
+    .view { display: none; animation: fade .32s ease both; }
+    .view.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .hero { position: relative; min-height: 92vh; overflow: hidden; }
+    .hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .hero-road::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,12,10,.86), rgba(13,12,10,.47), rgba(13,12,10,.08)); }
+    .hero-command::after { content: ""; position: absolute; inset: 0; background: rgba(246,240,230,.75); }
+    .wrap { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+    .hero-inner { position: relative; z-index: 2; min-height: 92vh; display: flex; flex-direction: column; justify-content: space-between; padding: 96px 0 42px; }
+    .kicker { display: inline-flex; gap: 8px; align-items: center; width: max-content; border-radius: 8px; padding: 9px 12px; font-size: 14px; font-weight: 850; }
+    .dark .kicker { background: rgba(255,255,255,.13); color: white; border: 1px solid rgba(255,255,255,.2); }
+    .light .kicker { background: #171412; color: white; }
+    h1 { margin: 16px 0 0; max-width: 780px; font-size: clamp(42px, 6vw, 78px); line-height: 1.04; letter-spacing: 0; }
+    .dark h1, .dark .lead { color: white; }
+    .lead { max-width: 680px; margin: 24px 0 0; font-size: 19px; line-height: 1.8; color: #4c463e; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; border-radius: 8px; padding: 0 18px; font-size: 14px; font-weight: 900; border: 1px solid transparent; transition: transform .18s, background .18s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.primary { background: var(--amber); color: #171412; box-shadow: 0 16px 42px rgba(246,196,79,.28); }
+    .dark .btn.ghost { background: rgba(255,255,255,.12); color: white; border-color: rgba(255,255,255,.22); }
+    .btn.ghost { background: white; border-color: var(--line); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat { border-radius: 10px; padding: 18px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); color: white; backdrop-filter: blur(14px); }
+    .stat.light-stat { background: white; color: var(--ink); border-color: var(--line); }
+    .stat strong { display: block; font-size: 34px; line-height: 1; margin-bottom: 8px; }
+    section.band { padding: 54px 0; }
+    .section-head { display: flex; justify-content: space-between; gap: 20px; align-items: end; margin-bottom: 22px; }
+    .eyebrow { margin: 0 0 8px; font-size: 13px; font-weight: 950; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan); }
+    h2 { margin: 0; font-size: clamp(27px, 3vw, 40px); line-height: 1.15; }
+    .pill-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pill { border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: rgba(255,255,255,.75); color: #595247; font-size: 13px; font-weight: 850; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .video-card { display: block; min-height: 168px; border: 1px solid var(--line); border-radius: 10px; padding: 18px; background: white; box-shadow: 0 2px 0 rgba(0,0,0,.02); transition: transform .18s, border-color .18s, box-shadow .18s; }
+    .video-card:hover { transform: translateY(-4px); border-color: rgba(15,124,143,.55); box-shadow: var(--shadow); }
+    .video-top { display: flex; justify-content: space-between; gap: 12px; color: var(--cyan); font-size: 12px; font-weight: 950; letter-spacing: .12em; text-transform: uppercase; }
+    .video-title { margin-top: 10px; font-size: 16px; line-height: 1.5; font-weight: 950; }
+    .video-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .video-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+    .places { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #9a6a16; font-size: 12px; font-weight: 900; }
+    .verdict { flex: 0 0 auto; border-radius: 7px; padding: 6px 8px; font-size: 12px; font-weight: 950; }
+    .ok { background: #eaf6ec; color: var(--green); }
+    .warn { background: #fff2d6; color: #a86909; }
+    .fail { background: #fae8e6; color: var(--red); }
+    .split { display: grid; grid-template-columns: 1.05fr .95fr; gap: 28px; }
+    .timeline { display: grid; gap: 10px; }
+    .day-row { display: grid; grid-template-columns: 76px 1fr auto; gap: 16px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 15px; background: var(--paper-2); }
+    .day-row b:first-child { color: var(--cyan); }
+    .panel-dark { border-radius: 14px; padding: 18px; background: #151514; color: white; box-shadow: var(--shadow); }
+    .weather-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .weather { border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 14px; background: rgba(255,255,255,.07); }
+    .weather strong { float: right; color: var(--amber); font-size: 26px; }
+    .library-tools { display: flex; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .search { position: relative; width: min(420px, 100%); }
+    .search input { width: 100%; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: white; padding: 0 14px; font-weight: 800; outline: none; }
+    .filters { display: flex; gap: 8px; overflow: auto; padding-bottom: 4px; margin-bottom: 18px; }
+    .filter { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: white; color: #5f574c; font-size: 14px; font-weight: 900; cursor: pointer; }
+    .filter.active { background: #171412; color: white; }
+    .command-hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+    .command-inner { position: relative; z-index: 2; display: grid; grid-template-columns: .88fr 1.12fr; gap: 28px; padding: 96px 0 42px; }
+    .command-copy { display: flex; flex-direction: column; justify-content: space-between; }
+    .mini-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 32px; }
+    .map-shell { border: 1px solid var(--line); border-radius: 16px; padding: 12px; background: white; box-shadow: var(--shadow); }
+    .map-board { position: relative; min-height: 520px; border-radius: 12px; overflow: hidden; background: #e9e2d5; }
+    .map-board img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .78; mix-blend-mode: multiply; }
+    .map-board::after { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(20,20,20,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(20,20,20,.08) 1px, transparent 1px); background-size: 36px 36px; }
+    .pin { position: absolute; z-index: 2; display: flex; gap: 8px; align-items: center; border-radius: 8px; padding: 9px 11px; background: rgba(255,255,255,.92); box-shadow: 0 12px 26px rgba(0,0,0,.16); font-size: 12px; font-weight: 950; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.okd { background: var(--green); } .dot.warnd { background: #d98b17; } .dot.faild { background: var(--red); }
+    .map-actions { position: absolute; z-index: 3; left: 16px; right: 16px; bottom: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .map-action { border-radius: 10px; padding: 15px; background: rgba(18,18,17,.9); color: white; backdrop-filter: blur(10px); }
+    .map-action b { display: block; margin-bottom: 4px; }
+    .dashboard { display: grid; grid-template-columns: 280px 1fr 320px; gap: 22px; padding: 34px 0 54px; }
+    .panel { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: white; }
+    .panel h3 { margin: 0 0 14px; font-size: 15px; }
+    .stack { display: grid; gap: 10px; }
+    .list-item { border: 1px solid var(--line); border-radius: 8px; padding: 11px; background: #fbf8f0; font-size: 13px; font-weight: 850; }
+    .hidden { display: none !important; }
+    @media (max-width: 900px) {
+      body { overflow-x: hidden; }
+      .switcher { width: calc(100% - 24px); }
+      .switcher { left: 12px; right: 12px; transform: none; }
+      .switcher button { flex: 1; padding: 10px 8px; font-size: 13px; }
+      .wrap { width: min(100% - 28px, 1240px); }
+      .hero, .hero-inner { min-height: 860px; }
+      h1 { max-width: 100%; overflow-wrap: anywhere; word-break: break-all; }
+      .stats, .cards, .split, .command-inner, .dashboard, .map-actions { grid-template-columns: 1fr; }
+      .section-head, .library-tools { align-items: stretch; flex-direction: column; }
+      .weather-grid, .mini-stats { grid-template-columns: 1fr; }
+      .day-row { grid-template-columns: 1fr; }
+      .map-board { min-height: 620px; }
+      .pin { transform: scale(.9); transform-origin: left top; }
+    }
+    @media (max-width: 520px) {
+      .switcher { display: grid; grid-template-columns: 1fr 1fr; }
+      .switcher button { min-width: 0; padding: 10px 4px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+      .hero-inner { padding-top: 96px; }
+      h1 { font-size: 30px; line-height: 1.12; }
+      .lead { font-size: 16px; line-height: 1.7; }
+      .actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
+      .btn { width: 100%; justify-content: center; padding: 0 12px; }
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-<h1>📁 新疆自驾视频库 · Obsidian 风格</h1>
-<div class="sub">精选 31 条 B 站视频 · 按 Day 2h 车程约束标注 · 含酒店 + 9 总览地图</div>
+  <nav class="switcher" aria-label="版本切换">
+    <button id="tab-journey" type="button">A · 片场</button>
+    <button id="tab-command" type="button">B · 指挥</button>
+  </nav>
 
-<div class="toolbar">
-  <a href="/xjb-public#top" class="secondary">← 返回主页</a>
-  <a href="xjb_overview_map.html" target="_blank">🗺 总览地图</a>
-  <a href="live_info.html" target="_blank">🌤️ 实时信息</a>
-  <a href="day_recommend.html" target="_blank">📅 Day 推荐</a>
-  <button id="xjb-stats-btn" data-xjb-share="video-index"
-          style="background:var(--accent);color:#000;border:0;padding:8px 16px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer"
-          title="触发埋点事件">📊 统计</button>
-</div>
+  <main id="journey" class="view">
+    <section class="hero hero-road dark">
+      <img class="hero-img" src="./assets/hero-road.png" alt="新疆湖边公路与雪山">
+      <div class="wrap hero-inner">
+        <div>
+          <span class="kicker">✦ 31 条视频 · 24 个免费点 · 13 地天气</span>
+          <h1>新疆自驾视频库<br>路线片场</h1>
+          <p class="lead">首页先回答“今天看什么、去哪一段、是否在 2h 内”，再把视频、地图、天气、免费景点串成一条可浏览的旅程。</p>
+          <div class="actions">
+            <a class="btn primary" href="day_recommend.html" target="_blank">Day 推荐</a>
+            <a class="btn ghost" href="xjb_overview_map.html" target="_blank">总览路线</a>
+            <a class="btn ghost" href="live_info.html" target="_blank">实时信息</a>
+            <a class="btn ghost" href="https://2017zyl.xyz/xjb-public#top" target="_blank">回线上主页</a>
+            <a class="btn ghost" href="obsidian-index.html">原 Obsidian 索引</a>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>25</strong>全部在 2h 内</div>
+          <div class="stat"><strong>3</strong>部分超 2h</div>
+          <div class="stat"><strong>3</strong>离路 2h</div>
+          <div class="stat"><strong>5</strong>参考视频</div>
+        </div>
+      </div>
+    </section>
 
-<div class="legend">
-  <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;background:var(--green);border-radius:3px"></span> ✓ 全部在 2h 圈内</div>
-  <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;background:var(--orange);border-radius:3px"></span> ⚠️ 部分超 2h</div>
-  <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;background:var(--red);border-radius:3px"></span> ✗ 全部超 2h</div>
-  <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;background:#666;border-radius:3px"></span> — 参考视频 (行前/装备)</div>
-</div>
+    <section class="band">
+      <div class="wrap">
+        <div class="section-head">
+          <div><p class="eyebrow">Featured Route</p><h2>先看最有决策价值的 6 条</h2></div>
+          <div class="pill-row">
+            <span class="pill">那拉提周边 5</span><span class="pill">赛里木湖周边 6</span><span class="pill">喀纳斯/禾木周边 7</span><span class="pill">完全 0 门票 15</span>
+          </div>
+        </div>
+        <div id="featured" class="cards"></div>
+      </div>
+    </section>
 
-<h2>📺 全部视频 (31 条)</h2>
-<div class="grid">
-<div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">装备 🔧 · 1 条</div>
-<div class="card ok">
-  <a href="video_01.html">#01 如何把一辆本田飞度改装成露营车 床车 身高180可完全躺平</a>
-  <div class="meta">👤 刘师傅游记 · ⏱ 28:4 · ▶ 70850</div>
-  <div class="places">📍 伊犁</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">装备 🚙 · 1 条</div>
-<div class="card ok">
-  <a href="video_02.html">#02 坦克300自驾游新疆，双人带宠物猫狗自驾游，出发前准备【自驾游装备篇】</a>
-  <div class="meta">👤 吴擦擦大魔王 · ⏱ 10:57 · ▶ 87321</div>
-  <div class="places">📍 伊犁, 那拉提</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">行前必看 🎬 · 2 条</div>
-<div class="card ok">
-  <a href="video_03.html">#03 这，才叫独库公路！</a>
-  <div class="meta">👤 Roc山海行 · ⏱ 28:33 · ▶ 1122158</div>
-  <div class="places">📍 独库公路, 巴音布鲁克</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_04.html">#04 【4K治愈】真实存在的动漫场景，在新疆！《伊犁的童话II：鹰的国》</a>
-  <div class="meta">👤 练凌飞lkemon · ⏱ 2:34 · ▶ 4621042</div>
-  <div class="places">📍 独库公路, 巴音布鲁克</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">行前必看 📋 · 1 条</div>
-<div class="card ok">
-  <a href="video_05.html">#05 送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版</a>
-  <div class="meta">👤 迈得丘MadQ · ⏱ 21:10 · ▶ 846276</div>
-  <div class="places">📍 伊犁, 那拉提, 赛里木湖</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 1 赛里木湖 💎 · 2 条</div>
-<div class="card ok">
-  <a href="video_06.html">#06 果然是大西洋最后一滴眼泪，有一种蓝叫赛里木湖蓝</a>
-  <div class="meta">👤 阿天骑行日记 · ⏱ 0:19 · ▶ 654810</div>
-  <div class="places">📍 赛里木湖</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_08.html">#08 你一定要去看新疆的赛里木湖，去吹自由的风，去找灵魂里的另一个自己！</a>
-  <div class="meta">👤 中国国家地理频道 · ⏱ 0:30 · ▶ 379114</div>
-  <div class="places">📍 赛里木湖</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 1 赛里木湖 🎬 · 1 条</div>
-<div class="card warn">
-  <a href="video_07.html">#07 【4K新疆航拍】赛里木湖🏔️8日｜公路旅行 山川 湖泊🏞️雪山 ｜XI…</a>
-  <div class="meta">👤 jbbds基本不等式 · ⏱ 5:15 · ▶ 12755</div>
-  <div class="places">📍 赛里木湖, 果子沟, 那拉提</div>
-  <span class="verdict warn">⚠ 部分超</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 2 那拉提 🌿 · 2 条</div>
-<div class="card ok">
-  <a href="video_09.html">#09 4K | 全网避雷那拉提？那我可要去看看！去了还想去</a>
-  <div class="meta">👤 Eric旅行记 · ⏱ 18:8 · ▶ 65788</div>
-  <div class="places">📍 那拉提空中草原, 那拉提</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_10.html">#10 那拉提｜奔赴一场治愈的草原行</a>
-  <div class="meta">👤 中国国家地理景观 · ⏱ 0:35 · ▶ 79985</div>
-  <div class="places">📍 那拉提空中草原, 那拉提</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 2 八卦城 🏯 · 3 条</div>
-<div class="card ok">
-  <a href="video_11.html">#11 实拍新疆特克斯县城，这里宛如一幅巨大的八卦图，设计太精妙了</a>
-  <div class="meta">👤 巡游轨迹 · ⏱ 16:59 · ▶ 342306</div>
-  <div class="places">📍 特克斯八卦城</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_12.html">#12 新疆特克斯八卦城，皮带面椒麻鸡，羊排揪片子，阿星吃乾街美食</a>
-  <div class="meta">👤 阿星探店 · ⏱ 15:36 · ▶ 372356</div>
-  <div class="places">📍 特克斯八卦城</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_13.html">#13 新疆特克斯八卦城！中国唯一没红绿灯还不堵车的城市！吃啥玩啥，航拍咋报备…</a>
-  <div class="meta">👤 行走的盘子哥 · ⏱ 10:45 · ▶ 13900</div>
-  <div class="places">📍 特克斯八卦城</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 3 巴音布鲁克 🌅 · 1 条</div>
-<div class="card ok">
-  <a href="video_14.html">#14 九个太阳的日落！巴音布鲁克没有海。</a>
-  <div class="meta">👤 幻想家姜时一 · ⏱ 1:13 · ▶ 736538</div>
-  <div class="places">📍 巴音布鲁克九曲十八弯</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 3 巴音布鲁克 🎬 · 1 条</div>
-<div class="card warn">
-  <a href="video_15.html">#15 独库公路中集 - 乔尔玛至巴音布鲁克，中国最美公路 - 4K第一人称视…</a>
-  <div class="meta">👤 行走中国WalkChina · ⏱ 195:38 · ▶ 243402</div>
-  <div class="places">📍 独库公路, 乔尔玛, 巴音布鲁克</div>
-  <span class="verdict warn">⚠ 部分超</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 3 巴音布鲁克 🌿 · 1 条</div>
-<div class="card ok">
-  <a href="video_16.html">#16 游疆50：自驾新疆独库公路南段，那拉提到巴音布鲁克，最全攻略！</a>
-  <div class="meta">👤 信仰是风景 · ⏱ 9:31 · ▶ 53271</div>
-  <div class="places">📍 独库公路南段, 巴音布鲁克</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 4 独库公路 🚙 · 2 条</div>
-<div class="card fail">
-  <a href="video_17.html">#17 【新疆独库公路】8天公路旅行历经四季更迭｜Xinjiang ROAD …</a>
-  <div class="meta">👤 Blank_Vision · ⏱ 3:4 · ▶ 375053</div>
-  <div class="places">📍 独库公路</div>
-  <span class="verdict fail">✗ 离路 2h</span>
-</div>
-<div class="card fail">
-  <a href="video_18.html">#18 独库公路完整全攻略！！解决这些关键问题，自驾独库毫无压力！一共11个关…</a>
-  <div class="meta">👤 行走的盘子哥 · ⏱ 11:6 · ▶ 272865</div>
-  <div class="places">📍 独库公路</div>
-  <span class="verdict fail">✗ 离路 2h</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 4 独库公路 📋 · 1 条</div>
-<div class="card fail">
-  <a href="video_19.html">#19 数万人修建，百人牺牲，10年通车，独库公路有多重要？</a>
-  <div class="meta">👤 三维地图看世界 · ⏱ 5:26 · ▶ 244064</div>
-  <div class="places">📍 独库公路</div>
-  <span class="verdict fail">✗ 离路 2h</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 5 独山子 🏔 · 1 条</div>
-<div class="card ok">
-  <a href="video_20.html">#20 独山子大峡谷航拍</a>
-  <div class="meta">👤 CHN.Lee · ⏱ 3:24 · ▶ 15861</div>
-  <div class="places">📍 独山子大峡谷</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 5 独山子 📋 · 1 条</div>
-<div class="card ok">
-  <a href="video_21.html">#21 独库公路第一景独山子大峡谷游玩攻略</a>
-  <div class="meta">👤 弓长张大人耶 · ⏱ 4:36 · ▶ 11722</div>
-  <div class="places">📍 独山子大峡谷, 独库公路北段</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 6 赛里木环湖 💎 · 1 条</div>
-<div class="card warn">
-  <a href="video_22.html">#22 Dory｜一个人公共交通勇闯新疆！终于来到我魂牵梦萦的地方｜匆匆一瞥的…</a>
-  <div class="meta">👤 爱喝的Dory · ⏱ 34:13 · ▶ 1076262</div>
-  <div class="places">📍 赛里木湖, 喀纳斯, 禾木</div>
-  <span class="verdict warn">⚠ 部分超</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 6 赛里木日出 🌅 · 1 条</div>
-<div class="card ok">
-  <a href="video_23.html">#23 【4K航拍】在赛里木湖，等一场橘色日出</a>
-  <div class="meta">👤 渣渣辉摄影 · ⏱ 2:6 · ▶ 1264</div>
-  <div class="places">📍 赛里木湖</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 7 果子沟 🌉 · 2 条</div>
-<div class="card ok">
-  <a href="video_24.html">#24 果子沟大桥：给你说个不用无人机拍全貌的好位置</a>
-  <div class="meta">👤 葱疆蒜-游新疆 · ⏱ 1:58 · ▶ 27080</div>
-  <div class="places">📍 果子沟大桥</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_25.html">#25 赛里木湖游玩攻略，线路规划游玩建议，果子沟大桥观赏点全梳理</a>
-  <div class="meta">👤 阿眯sn · ⏱ 5:12 · ▶ 48594</div>
-  <div class="places">📍 果子沟大桥</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 8 五彩滩 🌅 · 2 条</div>
-<div class="card ok">
-  <a href="video_26.html">#26 大地打翻了调色盘｜新疆五彩滩，美到窒息的彩虹滩！</a>
-  <div class="meta">👤 花花世界Scenery · ⏱ 1:7 · ▶ 4230</div>
-  <div class="places">📍 五彩滩</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_27.html">#27 五彩滩的日落，是突破想象的神之配色</a>
-  <div class="meta">👤 超时空路过的鹤 · ⏱ 1:20 · ▶ 2915</div>
-  <div class="places">📍 五彩滩</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 9 喀纳斯 🏔 · 1 条</div>
-<div class="card ok">
-  <a href="video_28.html">#28 新疆阿勒泰喀纳斯河 4K HDR - 在中国最美的河滨步行道漫步</a>
-  <div class="meta">👤 行走中国WalkChina · ⏱ 53:45 · ▶ 402302</div>
-  <div class="places">📍 喀纳斯湖, 喀纳斯三湾</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div><div style="grid-column:1/-1;margin-top:14px;font-size:14px;color:var(--accent);font-weight:600">Day 10 禾木 🏔 · 3 条</div>
-<div class="card ok">
-  <a href="video_29.html">#29 秋到禾木｜这里的秋色登峰造极</a>
-  <div class="meta">👤 中国国家地理景观 · ⏱ 0:35 · ▶ 310834</div>
-  <div class="places">📍 禾木观景台, 禾木村</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_30.html">#30 北疆喀纳斯的禾木村，夏天也美得像童话【4K】</a>
-  <div class="meta">👤 申请的申同学 · ⏱ 9:59 · ▶ 38018</div>
-  <div class="places">📍 禾木观景台, 禾木村</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-<div class="card ok">
-  <a href="video_31.html">#31 新疆vlog——五一北疆游 （可可托海-禾木村-喀纳斯-五彩滩-魔鬼城…</a>
-  <div class="meta">👤 大雄你听我解释 · ⏱ 18:4 · ▶ 1715</div>
-  <div class="places">📍 禾木观景台, 禾木村</div>
-  <span class="verdict ok">✓ 2h 内</span>
-</div>
-</div>
+    <section class="band" style="background:rgba(255,255,255,.64);border-block:1px solid var(--line)">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow" style="color:#9a6a16">Day-by-Day</p>
+          <h2>每天都有一个观看入口</h2>
+          <div id="timeline-a" class="timeline" style="margin-top:18px"></div>
+        </div>
+        <div class="panel-dark">
+          <p class="eyebrow" style="color:#f6c44f">Live Layer</p>
+          <h2 style="font-size:28px">天气变成行程风险面板</h2>
+          <div id="weather-a" class="weather-grid" style="margin-top:18px"></div>
+        </div>
+      </div>
+    </section>
 
-</div>
+    <section class="band">
+      <div class="wrap">
+        <div class="library-tools">
+          <div><p class="eyebrow">Library</p><h2 id="library-title-a">全部视频</h2></div>
+          <label class="search"><input id="search-a" placeholder="搜索地点、创作者、主题"></label>
+        </div>
+        <div id="filters-a" class="filters"></div>
+        <div id="library-a" class="cards"></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="command" class="view">
+    <section class="command-hero light">
+      <img class="hero-img" src="./assets/hero-command.png" alt="新疆航拍路线地形" style="opacity:.32">
+      <div class="wrap command-inner">
+        <div class="command-copy">
+          <div>
+            <span class="kicker">Route Ops</span>
+            <h1>新疆自驾<br>路线指挥台</h1>
+            <p class="lead">首屏直接合并路线、酒店、天气、免费点、视频证据。适合出发前每天打开一次，快速判断要看哪条视频、去哪一段、哪里需要复核。</p>
+          </div>
+          <div class="mini-stats">
+            <div class="stat light-stat"><strong>31</strong>视频证据</div>
+            <div class="stat light-stat"><strong>24</strong>免费景点</div>
+            <div class="stat light-stat"><strong>13</strong>天气地点</div>
+            <div class="stat light-stat"><strong>81%</strong>2h 命中率</div>
+          </div>
+        </div>
+        <div class="map-shell">
+          <div class="map-board">
+            <img src="./assets/hero-command.png" alt="路线地形底图">
+            <a class="pin" style="left:16%;top:58%" href="xjb_overview_map.html" target="_blank"><span class="dot okd"></span>伊宁</a>
+            <a class="pin" style="left:24%;top:44%" href="xjb_overview_map.html" target="_blank"><span class="dot okd"></span>赛里木湖</a>
+            <a class="pin" style="left:42%;top:67%" href="xjb_overview_map.html" target="_blank"><span class="dot okd"></span>那拉提</a>
+            <a class="pin" style="left:50%;top:72%" href="xjb_overview_map.html" target="_blank"><span class="dot warnd"></span>巴音布鲁克</a>
+            <a class="pin" style="left:58%;top:43%" href="xjb_overview_map.html" target="_blank"><span class="dot faild"></span>独山子</a>
+            <a class="pin" style="left:72%;top:26%" href="xjb_overview_map.html" target="_blank"><span class="dot okd"></span>喀纳斯</a>
+            <a class="pin" style="left:78%;top:20%" href="xjb_overview_map.html" target="_blank"><span class="dot okd"></span>禾木</a>
+            <div class="map-actions">
+              <a class="map-action" href="xjb_overview_map.html" target="_blank"><b>总览地图</b><small>酒店 + 视频地点 + 2h 圈</small></a>
+              <a class="map-action" href="day_recommend.html" target="_blank"><b>Day 推荐</b><small>按天查看路线重点</small></a>
+              <a class="map-action" href="live_info.html" target="_blank"><b>实时信息</b><small>天气 + 独库通车</small></a>
+              <a class="map-action" href="https://2017zyl.xyz/xjb-public#top" target="_blank"><b>线上主页</b><small>返回完整片库首页</small></a>
+              <a class="map-action" href="obsidian-index.html"><b>原索引</b><small>完整 Obsidian 视频目录</small></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap dashboard">
+      <aside class="stack">
+        <div class="panel"><h3>路段筛选</h3><div id="filters-b" class="filters" style="flex-wrap:wrap"></div></div>
+        <div class="panel"><h3>免费景点</h3><div id="spots-b" class="stack"></div></div>
+      </aside>
+      <section>
+        <div class="panel" style="margin-bottom:14px">
+          <div class="library-tools" style="margin:0">
+            <label class="search"><input id="search-b" placeholder="搜索路线证据"></label>
+            <span class="verdict ok">25 条可当天往返</span>
+          </div>
+        </div>
+        <div id="library-b" class="cards" style="grid-template-columns:repeat(2,1fr)"></div>
+      </section>
+      <aside class="stack">
+        <div class="panel"><h3>天气哨点</h3><div id="weather-b" class="stack"></div></div>
+        <div class="panel"><h3>行动计划</h3><div id="timeline-b" class="stack"></div></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const base = './';
+    const videos = [
+      [1,'装备','床车改装','如何把一辆本田飞度改装成露营车 床车 身高180可完全躺平','刘师傅游记','28:04','7.1万','伊犁','ok'],
+      [2,'装备','自驾装备','坦克300自驾游新疆，双人带宠物猫狗自驾游，出发前准备','吴擦擦大魔王','10:57','8.7万','伊犁 / 那拉提','ok'],
+      [3,'行前','独库公路','这，才叫独库公路！','Roc山海行','28:33','112.2万','独库公路 / 巴音布鲁克','ok'],
+      [4,'行前','4K风景','真实存在的动漫场景，在新疆！伊犁的童话II：鹰的国','练凌飞lkemon','2:34','462.1万','独库公路 / 巴音布鲁克','ok'],
+      [5,'行前','攻略','送你一份超详细的新疆伊犁7-8日旅游攻略 | 内含图文版','迈得丘MadQ','21:10','84.6万','伊犁 / 那拉提 / 赛里木湖','ok'],
+      [6,'Day 1','赛里木湖','果然是大西洋最后一滴眼泪，有一种蓝叫赛里木湖蓝','阿天骑行日记','0:19','65.5万','赛里木湖','ok'],
+      [7,'Day 1','航拍','4K新疆航拍：赛里木湖8日公路旅行 山川湖泊雪山','jbbds基本不等式','5:15','1.3万','赛里木湖 / 果子沟 / 那拉提','warn'],
+      [8,'Day 1','赛里木湖','你一定要去看新疆的赛里木湖，去吹自由的风','中国国家地理频道','0:30','37.9万','赛里木湖','ok'],
+      [9,'Day 2','那拉提','4K | 全网避雷那拉提？那我可要去看看！去了还想去','Eric旅行记','18:08','6.6万','那拉提空中草原 / 那拉提','ok'],
+      [10,'Day 2','草原','那拉提｜奔赴一场治愈的草原行','中国国家地理景观','0:35','8.0万','那拉提空中草原 / 那拉提','ok'],
+      [11,'Day 2','八卦城','实拍新疆特克斯县城，这里宛如一幅巨大的八卦图','巡游轨迹','16:59','34.2万','特克斯八卦城','ok'],
+      [12,'Day 2','美食','新疆特克斯八卦城，皮带面椒麻鸡，羊排揪片子','阿星探店','15:36','37.2万','特克斯八卦城','ok'],
+      [13,'Day 2','城市攻略','新疆特克斯八卦城！中国唯一没红绿灯还不堵车的城市','行走的盘子哥','10:45','1.4万','特克斯八卦城','ok'],
+      [14,'Day 3','日落','九个太阳的日落！巴音布鲁克没有海。','幻想家姜时一','1:13','73.7万','巴音布鲁克九曲十八弯','ok'],
+      [15,'Day 3','独库中段','独库公路中集 - 乔尔玛至巴音布鲁克，4K第一人称','行走中国WalkChina','195:38','24.3万','独库公路 / 乔尔玛 / 巴音布鲁克','warn'],
+      [16,'Day 3','南段攻略','游疆50：自驾新疆独库公路南段，那拉提到巴音布鲁克','信仰是风景','9:31','5.3万','独库公路南段 / 巴音布鲁克','ok'],
+      [17,'Day 4','公路旅行','新疆独库公路：8天公路旅行历经四季更迭','Blank_Vision','3:04','37.5万','独库公路','fail'],
+      [18,'Day 4','完整攻略','独库公路完整全攻略！！解决这些关键问题','行走的盘子哥','11:06','27.3万','独库公路','fail'],
+      [19,'Day 4','历史','数万人修建，百人牺牲，10年通车，独库公路有多重要？','三维地图看世界','5:26','24.4万','独库公路','fail'],
+      [20,'Day 5','独山子','独山子大峡谷航拍','CHN.Lee','3:24','1.6万','独山子大峡谷','ok'],
+      [21,'Day 5','游玩攻略','独库公路第一景独山子大峡谷游玩攻略','弓长张大人耶','4:36','1.2万','独山子大峡谷 / 独库公路北段','ok'],
+      [22,'Day 6','赛里木环湖','一个人公共交通勇闯新疆：赛里木湖、喀纳斯、禾木','爱喝的Dory','34:13','107.6万','赛里木湖 / 喀纳斯 / 禾木','warn'],
+      [23,'Day 6','日出','4K航拍：在赛里木湖，等一场橘色日出','渣渣辉摄影','2:06','1264','赛里木湖','ok'],
+      [24,'Day 7','果子沟','果子沟大桥：给你说个不用无人机拍全貌的好位置','葱疆蒜-游新疆','1:58','2.7万','果子沟大桥','ok'],
+      [25,'Day 7','线路规划','赛里木湖游玩攻略，果子沟大桥观赏点全梳理','阿眯sn','5:12','4.9万','果子沟大桥','ok'],
+      [26,'Day 8','五彩滩','大地打翻了调色盘｜新疆五彩滩，美到窒息的彩虹滩！','花花世界Scenery','1:07','4230','五彩滩','ok'],
+      [27,'Day 8','日落','五彩滩的日落，是突破想象的神之配色','超时空路过的鹤','1:20','2915','五彩滩','ok'],
+      [28,'Day 9','喀纳斯','新疆阿勒泰喀纳斯河 4K HDR 河滨步行道漫步','行走中国WalkChina','53:45','40.2万','喀纳斯湖 / 喀纳斯三湾','ok'],
+      [29,'Day 10','禾木秋色','秋到禾木｜这里的秋色登峰造极','中国国家地理景观','0:35','31.1万','禾木观景台 / 禾木村','ok'],
+      [30,'Day 10','禾木夏天','北疆喀纳斯的禾木村，夏天也美得像童话【4K】','申请的申同学','9:59','3.8万','禾木观景台 / 禾木村','ok'],
+      [31,'Day 10','北疆Vlog','新疆vlog：五一北疆游 可可托海-禾木村-喀纳斯','大雄你听我解释','18:04','1715','禾木观景台 / 禾木村','ok']
+    ];
+    const chips = ['全部','Day 1','Day 2','Day 3','Day 4','Day 5+','行前','装备'];
+    const dayPlan = [
+      ['Day 1','伊宁取车','赛里木湖蓝调预热','2h 内'],['Day 2','那拉提','草原 + 八卦城','2h 内'],['Day 3','巴音布鲁克','九曲十八弯日落','2h 内'],['Day 4','独库公路','攻略类视频优先','需复核'],['Day 5','独山子','大峡谷航拍点','2h 内'],['Day 6','赛里木环湖','日出 + 环湖','部分超'],['Day 7','果子沟','大桥观赏点','2h 内'],['Day 8','五彩滩','日落色彩线','2h 内']
+    ];
+    const weather = [['伊宁','21°C','Clear','取车 + 市区'],['赛里木湖','27°C','Clear','Day 6/7 主景点'],['那拉提','10°C','Partly Cloudy','Day 2/4 主景点'],['巴音布鲁克','10°C','Partly Cloudy','Day 3 主景点'],['独山子大峡谷','29°C','Severe sandstorm','Day 5 主景点'],['禾木','5°C','Clear','Day 10/11 主景点']];
+    const spots = ['那拉提周边 5','赛里木湖周边 6','喀纳斯/禾木周边 7','阿勒泰周边 5','完全 0 门票 15','有视频关联 5'];
+    const state = { a: '全部', b: '全部' };
+    const $ = id => document.getElementById(id);
+    function card(v) {
+      const [id, day, theme, title, creator, duration, play, places, verdict] = v;
+      const label = verdict === 'ok' ? '2h 内' : verdict === 'warn' ? '部分超' : '离路 2h';
+      return `<a class="video-card" data-day="${day}" data-search="${[day,theme,title,creator,places].join(' ')}" href="${base}video_${String(id).padStart(2,'0')}.html" target="_blank">
+        <div class="video-top"><span>#${String(id).padStart(2,'0')} · ${day}</span><span>${theme}</span></div>
+        <div class="video-title">${title}</div>
+        <div class="video-meta"><span>${creator}</span><span>·</span><span>${duration}</span><span>·</span><span>${play}</span></div>
+        <div class="video-foot"><span class="places">${places}</span><span class="verdict ${verdict}">${label}</span></div>
+      </a>`;
+    }
+    function renderFilters(target, key) {
+      $(target).innerHTML = chips.map(c => `<button class="filter ${state[key] === c ? 'active' : ''}" data-filter="${c}" data-key="${key}">${c}</button>`).join('');
+    }
+    function matchDay(v, chip) {
+      const day = v[1];
+      return chip === '全部' || day === chip || (chip === 'Day 5+' && /^Day ([5-9]|10)/.test(day));
+    }
+    function renderLibrary(prefix, limit = 99) {
+      const q = $(`search-${prefix}`).value.trim().toLowerCase();
+      const filtered = videos.filter(v => matchDay(v, state[prefix]) && (!q || [v[1],v[2],v[3],v[4],v[7]].join(' ').toLowerCase().includes(q)));
+      $(`library-${prefix}`).innerHTML = filtered.slice(0, limit).map(card).join('');
+      if (prefix === 'a') $('library-title-a').textContent = `全部视频 · ${filtered.length} 条`;
+    }
+    function switchView(name) {
+      $('journey').classList.toggle('active', name === 'journey');
+      $('command').classList.toggle('active', name === 'command');
+      $('tab-journey').classList.toggle('active', name === 'journey');
+      $('tab-command').classList.toggle('active', name === 'command');
+      history.replaceState(null, '', `?version=${name === 'command' ? 'command' : 'journey'}`);
+    }
+    $('featured').innerHTML = [4,5,14,22,28,29].map(id => card(videos.find(v => v[0] === id))).join('');
+    $('timeline-a').innerHTML = dayPlan.map(d => `<div class="day-row"><b>${d[0]}</b><div><b>${d[1]}</b><br><small>${d[2]}</small></div><span class="verdict ${d[3] === '需复核' ? 'fail' : d[3] === '部分超' ? 'warn' : 'ok'}">${d[3]}</span></div>`).join('');
+    $('timeline-b').innerHTML = dayPlan.slice(0,6).map(d => `<div class="list-item"><b style="color:var(--cyan)">${d[0]}</b><br>${d[1]} · ${d[2]}<br><small>${d[3]}</small></div>`).join('');
+    $('weather-a').innerHTML = weather.map(w => `<div class="weather"><strong>${w[1]}</strong><b>${w[0]}</b><br><small>${w[2]} · ${w[3]}</small></div>`).join('');
+    $('weather-b').innerHTML = weather.map(w => `<div class="list-item"><b>${w[0]}</b><strong style="float:right;color:#b87413">${w[1]}</strong><br><small>${w[2]} · ${w[3]}</small></div>`).join('');
+    $('spots-b').innerHTML = spots.map(s => `<div class="list-item">${s}</div>`).join('');
+    renderFilters('filters-a', 'a'); renderFilters('filters-b', 'b');
+    renderLibrary('a'); renderLibrary('b', 16);
+    document.addEventListener('click', e => {
+      const filter = e.target.closest('[data-filter]');
+      if (filter) {
+        const key = filter.dataset.key;
+        state[key] = filter.dataset.filter;
+        renderFilters(key === 'a' ? 'filters-a' : 'filters-b', key);
+        renderLibrary(key, key === 'b' ? 16 : 99);
+      }
+    });
+    $('search-a').addEventListener('input', () => renderLibrary('a'));
+    $('search-b').addEventListener('input', () => renderLibrary('b', 16));
+    $('tab-journey').addEventListener('click', () => switchView('journey'));
+    $('tab-command').addEventListener('click', () => switchView('command'));
+    switchView(new URLSearchParams(location.search).get('version') === 'command' ? 'command' : 'journey');
+  </script>
 <script src="/js/xjb-analytics.js" defer></script>
 </body>
 </html>
