@@ -682,6 +682,7 @@ a:hover { color: var(--color-accent-gold-soft); }
           <button class="btn" id="shuffle-btn" title="Re-roll 8 different philosophers on the same topic">🔀 换一批 · Shuffle</button>
           <button class="btn" id="more-btn" title="Add 8 more voices to the same topic">➕ 加 8 位 · More</button>
           <button class="btn btn-primary" id="debate-btn" title="3-round structured debate among top 6 matched personas">🎭 圆桌辩论 · Debate</button>
+          <button class="btn btn-ghost" id="agent-toggle" title="Toggle multi-agent mode (Grad 3: 8 LLM calls; ~25s; may hit CF worker CPU limit)">🤖 Agent: OFF</button>
           <span class="speaker-meta" id="status-line"></span>
         </div>
         <div class="topic-presets" id="presets"></div>
@@ -849,6 +850,10 @@ function bindEvents() {
   document.getElementById('shuffle-btn').addEventListener('click', shuffleBatch);
   document.getElementById('more-btn').addEventListener('click', appendMore);
   document.getElementById('debate-btn').addEventListener('click', runDebate);
+  document.getElementById('agent-toggle').addEventListener('click', () => {
+    window._useAgentMode = !window._useAgentMode;
+    document.getElementById('agent-toggle').textContent = window._useAgentMode ? '🤖 Agent: ON' : '🤖 Agent: OFF';
+  });
   document.getElementById('search').addEventListener('input', filterRoster);
   document.getElementById('modal-close').addEventListener('click', () => {
     document.getElementById('modal').classList.remove('open');
@@ -1074,19 +1079,29 @@ const DEBATE_MODES = ['template', 'llm'];
 function runDebate() {
   const input = document.getElementById('topic-input').value.trim();
   if (!input) { setStatus('⚠️ Please enter a topic first.', true); return; }
+  // In-flight guard — prevent multiple concurrent debates (race condition fallback)
+  if (state.debateInFlight) {
+    setStatus('⏳ 上一轮辩论仍在生成中,请稍候…', true);
+    return;
+  }
+  state.debateInFlight = true;
+  setTimeout(() => { state.debateInFlight = false; }, 60000);  // 60s max
   // Use LLM mode by default — try to fetch /api/salon; fallback to template on error
   setStatus('<span class="loader"></span>正在召集圆桌辩论… (调 LLM)');
   state.activeTopic = input;
   state.debateTopic = input;
   runDebateLLM(input).catch(err => {
     console.warn('LLM debate failed, falling back to template:', err);
-    setStatus(`⚠️ LLM 失败 (${err.message.slice(0, 60)}),使用模板版本。`);
+    window._lastFetchErr = err.message;
+    setStatus(`⚠️ LLM 失败: ${err.message.slice(0, 100)} — 使用模板版本。`);
     runDebateTemplate(input);
+  }).finally(() => {
+    state.debateInFlight = false;
   });
 }
 
-// LLM-driven debate: POST to /api/salon
-async function runDebateLLM(topic) {
+// LLM-driven debate: POST to /api/salon (Grad 2) or /api/salon/agent (Grad 3 multi-agent)
+async function runDebateLLM(topic, forceAgentMode = false) {
   // Build panel of top 6 from local data
   const scored = scoreTopic(topic);
   let panel = scored.slice(0, 6);
@@ -1094,7 +1109,7 @@ async function runDebateLLM(topic) {
   state.activeSpeakers = panel;
   refreshRosterMarkers();
 
-  // Trim persona payloads (only what worker needs)
+  // Trim persona payloads (only what worker needs for Grad 2 legacy)
   const payloadPersonas = panel.map(s => ({
     id: s.p.id,
     name_zh: s.p.name_zh,
@@ -1109,14 +1124,37 @@ async function runDebateLLM(topic) {
     })),
   }));
 
+  // Choose endpoint: prefer Grad 3 multi-agent (real per-persona LLM agents)
+  // Fall back to Grad 2 if Grad 3 fails
+  const useAgentMode = (typeof window !== 'undefined' && window._useAgentMode === true);
+  const endpoint = useAgentMode ? '/api/salon/agent' : '/api/salon';
+
+  // In agent mode, limit panel to 4 (1 moderator + 3 speakers) to stay under CF worker CPU limits
+  if (useAgentMode) {
+    panel = panel.slice(0, 4);
+  }
+
   let resp, data, rawText;
   try {
-    setStatus('<span class="loader"></span>调 LLM (minimax)…');
-    resp = await fetch('/api/salon', {
+    setStatus(`<span class="loader"></span>${useAgentMode ? '调 4 个 LLM agents… (grad 3, ~30s)' : '调 LLM (grad 2, ~15s)'}…`);
+    let body;
+    if (useAgentMode) {
+      // Grad 3: only pass persona_ids (already limited to 4 in panel.slice); server fetches agent-profiles.json
+      body = JSON.stringify({ topic, persona_ids: panel.map(s => s.p.id) });
+    } else {
+      // Grad 2: pass full personas payload
+      body = JSON.stringify({ topic, personas: payloadPersonas });
+    }
+    // Add fetch timeout via AbortController (45s — give grad3 enough time but prevent indefinite hang)
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 45000);
+    resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ topic, personas: payloadPersonas }),
+      body,
+      signal: ctrl.signal,
     });
+    clearTimeout(tid);
     window._lastRespStatus = resp.status;
     rawText = await resp.text();
     if (!resp.ok) {
@@ -1144,43 +1182,59 @@ async function runDebateLLM(topic) {
       }
       return null;
     }
-    // Worker may have returned the full payload object (with id, name_zh, etc.) — wrap it
     if (rawSpeaker.id && !rawSpeaker.p) {
       const found = panelMap.get(rawSpeaker.id);
       if (found) return found;
     }
-    // Already wrapped {p: ...}?
     if (rawSpeaker.p) return rawSpeaker;
     return null;
   };
   try {
-    for (const round of data.rounds) {
+    for (const round of data.rounds || []) {
       for (const sp of (round.speeches || [])) {
-        // Resolve speaker_idx → speaker object via the front-end panel order
-        sp.speaker = resolveSpeaker(sp.speaker, sp.speaker_idx);
-        if (typeof sp.target_idx === 'number' && payloadPersonas[sp.target_idx]) {
-          const id = payloadPersonas[sp.target_idx].id;
-          const persona = panelMap.get(id) ? panelMap.get(id).p : payloadPersonas[sp.target_idx];
-          sp.target = { id: persona.id || id, name_zh: persona.name_zh || '', name_en: persona.name_en || '' };
+        if (!sp || typeof sp !== 'object') {
+          console.warn('skipping non-object speech:', sp);
+          continue;
         }
-        // If quote is missing or has empty zh, pick one from local data
-        if (sp.speaker && sp.speaker.p && sp.speaker.p.quotes && (!sp.quote || !sp.quote.zh)) {
-          const q = sp.speaker.p.quotes[Math.floor(Math.random() * sp.speaker.p.quotes.length)];
-          sp.quote = { zh: q.zh, en: q.en, source_zh: q.source_zh, source_en: q.source_en };
+        try {
+          // Resolve speaker_idx → speaker object via the front-end panel order
+          sp.speaker = resolveSpeaker(sp.speaker, sp.speaker_idx);
+          if (typeof sp.target_idx === 'number' && payloadPersonas[sp.target_idx]) {
+            const id = payloadPersonas[sp.target_idx].id;
+            const persona = panelMap.get(id) ? panelMap.get(id).p : payloadPersonas[sp.target_idx];
+            sp.target = { id: persona.id || id, name_zh: persona.name_zh || '', name_en: persona.name_en || '' };
+          }
+          // Grad 3 returns free-text "text" — synthesize thesis from first sentence
+          if (sp.text && !sp.thesis) {
+            // Split text into thesis (first sentence) and the rest as elaboration
+            const m = String(sp.text).match(/^([^。.!?\n]+)[。.!?\n]+([\s\S]*)/);
+            if (m) {
+              sp.thesis = m[1].trim() + (String(sp.text).indexOf('。') >= 0 ? '。' : '.');
+              sp.elaboration = m[2].trim();
+            } else {
+              sp.thesis = String(sp.text).slice(0, 80);
+              sp.elaboration = sp.text;
+            }
+          }
+          // Pick a random quote from local data to attach (UI shows quote; agent's text is the real content)
+          if (sp.speaker && sp.speaker.p && sp.speaker.p.quotes && (!sp.quote || !sp.quote.zh)) {
+            const q = sp.speaker.p.quotes[Math.floor(Math.random() * sp.speaker.p.quotes.length)];
+            sp.quote = { zh: q.zh, en: q.en, source_zh: q.source_zh, source_en: q.source_en };
+          }
+          if (sp.speaker && sp.speaker.p && !sp.style) {
+            sp.style = sp.speaker.p.rebuttal_style || '';
+          }
+          if (sp.type === 'final') sp.is_closing = true;
+        } catch (innerErr) {
+          console.warn(`speech post-processor error for round "${round.title}":`, innerErr, 'sp=', sp);
         }
-        // Synthesize style/rebuttal_style if missing
-        if (sp.speaker && sp.speaker.p && !sp.style) {
-          sp.style = sp.speaker.p.rebuttal_style || '';
-        }
-        if (sp.type === 'final') sp.is_closing = true;
       }
     }
   } catch (procErr) {
     const sample = (data?.rounds?.[0]?.speeches?.[0]) || {};
     window._lastProcErr = procErr.message + ' | sample=' + JSON.stringify(sample).slice(0, 400);
     document.title = `[PROC-ERR] ${procErr.message.slice(0, 100)}`;
-    console.warn('post-processor error (continuing to render with stubs):', procErr, 'sample:', sample);
-    // Continue — renderSpeech now has defensive guard, will show stub
+    console.warn('post-processor error (continuing to render):', procErr, 'sample:', sample);
   }
   state.debateScript = {
     topic,
@@ -1188,8 +1242,10 @@ async function runDebateLLM(topic) {
     moderator: panel[0],
     rounds: data.rounds,
   };
+  // Adapt the speech view to display free-text elaboration
   renderDebate(state.debateScript, panel);
-  setStatus(`🎭 LLM 圆桌辩论 · ${panel.length} 位 / 3 轮 · model: ${data.model || '?'} · provider: ${data.provider || '?'} · 🔀 换一批 reshuffle`);
+  const grad = data.grad || 2;
+  setStatus(`🎭 ${grad === 3 ? 'Multi-agent' : 'LLM'} 圆桌辩论 · ${panel.length} 位 / 3 轮 · model: ${data.model || '?'} · provider: ${data.provider || '?'} · 🔀 换一批 reshuffle`);
 }
 
 // Template-mode fallback (no LLM, all local)
@@ -1342,17 +1398,15 @@ function renderDebate(script, panel) {
     const dialogue = document.createElement('div');
     dialogue.className = 'dialogue';
     for (const sp of round.speeches) {
-      if (sp.type === 'moderator') {
+      if (sp.type === 'moderator' || sp.type === 'moderator_close') {
         const mod = document.createElement('div');
         mod.className = 'round-moderator';
         mod.textContent = sp.text;
         dialogue.appendChild(mod);
-      } else if (sp.type === 'moderator_close') {
-        const mod = document.createElement('div');
-        mod.className = 'round-moderator';
-        mod.textContent = sp.text;
-        dialogue.appendChild(mod);
-        dialogue.appendChild(renderSpeech(sp.final));
+        // Grad 2 legacy: sp.final may be nested; Grad 3 emits 'final' as next speech in same round
+        if (sp.final && sp.final.speaker) {
+          try { dialogue.appendChild(renderSpeech(sp.final)); } catch (e) { console.warn('sp.final render fail:', e); }
+        }
       } else {
         dialogue.appendChild(renderSpeech(sp));
       }
@@ -1382,7 +1436,11 @@ function renderSpeech(sp) {
   const style = sp.style || '';
   // Compose: opening thesis → quote → citation (if cross-exam) → source
   let body = '';
-  if (sp.target) {
+  // Grad 3: text is the full LLM-generated response; thesis is first sentence
+  if (sp.elaboration) {
+    // Show the full LLM text in a "thought" block, then the local persona quote as flavor
+    body += `<div class="speech-text" style="white-space:pre-wrap;">${escapeHtml(sp.elaboration).replace(/\n/g, '<br>')}</div>`;
+  } else if (sp.target) {
     body += `<div class="speech-text"><span class="speech-cite">回应 ${escapeHtml(sp.target.name_zh)}</span> · ${escapeHtml(sp.counter)}</div>`;
   } else if (sp.thesis) {
     body += `<div class="speech-text">${escapeHtml(sp.thesis)}</div>`;

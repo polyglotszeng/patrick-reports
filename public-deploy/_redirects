@@ -1,5 +1,13 @@
 /index.html  /  301
 
+# 2026-07-09:Patrick reported /daily-reports/ (trailing slash) → 308 → / landing.
+# Tried earlier: explicit 301 /daily-reports -> /daily-reports.html caused a 50x redirect loop
+# because CF Pages auto-strips .html (308 /daily-reports.html -> /daily-reports) at the routing layer,
+# beating any user-supplied _redirects.
+# Fix: ship a real daily-reports/index.html file (see public-deploy/daily-reports/index.html)
+# so the directory request resolves cleanly without any redirect at all.
+# Also keep a safety-net 308 (NOT 301) so existing inbound links don't hit a hard fail.
+
 # 2026-07 起:老 starlink-coverage 7-Report Dashboard → 统一 Orbital Console
 # CF Pages 静态托管会把 .html 自动 strip 掉 (308 → no .html),
 # 所以 _redirects 写"短"路径 (no .html) 即可同时覆盖两种形式

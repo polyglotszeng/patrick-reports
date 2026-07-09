@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[v3.b OK] Orbital Console · 真 SGP4 全球卫星统一看板</title>
+<meta name="description" content="基于 CelesTrak 真 TLE + satellite.js SGP4 传播 · 1491 颗真卫星 · 实时覆盖分析">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<style>
+:root {
+  --bg: #0A0E15; --panel: #101623; --panel-2: #151D2E; --line: #1D2736;
+  --text: #D5DEEC; --muted: #7A8AA3;
+  --amber: #F5A623; --cyan: #56C8E8; --violet: #B48CF2;
+  --red: #E4574D; --green: #6BCB77;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+a { color: var(--cyan); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+header { display: flex; align-items: center; gap: 24px; padding: 0 20px; height: 56px;
+  border-bottom: 1px solid var(--line); background: var(--panel); }
+.brand { font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+.brand .dot { color: var(--amber); }
+.brand .v2 { font-family: var(--mono); font-size: 11px; color: var(--amber);
+  border: 1px solid var(--amber); padding: 1px 6px; border-radius: 4px; margin-left: 8px; }
+nav { display: flex; gap: 4px; overflow-x: auto; }
+nav a { display: block; padding: 6px 14px; color: var(--muted); text-decoration: none;
+  font-size: 14px; border-radius: 6px; white-space: nowrap; }
+nav a:hover { color: var(--text); background: var(--panel-2); }
+nav a[aria-current="page"] { color: var(--bg); background: var(--cyan); font-weight: 500; }
+
+#mission-strip { display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 8px 20px; border-bottom: 1px solid var(--line); background: var(--bg);
+  font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+#mission-strip b { color: var(--text); font-weight: 500; }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line); font-size: 11.5px; }
+.chip.ok { color: var(--green); border-color: rgba(107,203,119,.4); }
+.chip.warn { color: var(--amber); border-color: rgba(245,166,35,.4); }
+.chip.err { color: var(--red); border-color: rgba(228,87,77,.4); }
+.timectl { display: flex; gap: 2px; margin-left: auto; }
+.timectl button { font-family: var(--mono); font-size: 11.5px; padding: 2px 10px; cursor: pointer;
+  color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 4px; }
+.timectl button[aria-pressed="true"] { color: var(--bg); background: var(--amber); border-color: var(--amber); font-weight: 500; }
+
+main { padding: 20px; max-width: 1280px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 16px; }
+.panel h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+.panel p.hint { color: var(--muted); font-size: 13.5px; }
+canvas.map { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; background: #060910; cursor: crosshair; }
+
+.ctlrow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 10px 0 8px; }
+.ctlrow label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+input[type=range] { accent-color: var(--amber); width: 200px; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-family: var(--mono);
+  color: var(--muted); cursor: pointer; padding: 3px 10px; border: 1px solid var(--line); border-radius: 5px; user-select: none; }
+.toggle input { accent-color: var(--cyan); }
+.toggle[data-on="true"] { color: var(--text); }
+.swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
+.kpi { background: var(--panel-2); border-radius: 8px; padding: 10px 14px; }
+.kpi .v { font-family: var(--mono); font-size: 20px; color: var(--cyan); }
+.kpi .k { font-size: 12px; color: var(--muted); }
+
+.legend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); margin-top: 8px; font-family: var(--mono); flex-wrap: wrap; }
+.legend .bar { height: 8px; width: 160px; border-radius: 4px;
+  background: linear-gradient(90deg,#060910,#112233,#1B5F7A,#2FA3C7,#56C8E8,#BFF0FF); }
+
+#sat-info { font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-top: 8px; min-height: 22px; }
+#sat-info b { color: var(--amber); }
+#overhead-out { font-family: var(--mono); font-size: 12.5px; margin-top: 6px; color: var(--muted); }
+#overhead-out b { color: var(--cyan); }
+button.act { font-family: var(--mono); font-size: 12px; cursor: pointer; padding: 4px 12px;
+  border-radius: 5px; color: var(--bg); background: var(--cyan); border: 1px solid var(--cyan); font-weight: 500; }
+select { font-family: var(--mono); font-size: 12.5px; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 5px; padding: 3px 8px; }
+
+table.cmp { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 10px; }
+table.cmp th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12.5px;
+  padding: 6px 10px; border-bottom: 1px solid var(--line); }
+table.cmp td { font-family: var(--mono); font-size: 13px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+table.cmp td:first-child { font-family: var(--sans); }
+.bar-bg { background: var(--panel-2); border-radius: 4px; height: 10px; min-width: 90px; overflow: hidden; }
+.bar-fg { height: 100%; border-radius: 4px; }
+
+.about p { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+.about code { font-family: var(--mono); font-size: 12.5px; color: var(--cyan); background: var(--panel-2); padding: 1px 6px; border-radius: 4px; }
+.about h3 { font-size: 14.5px; margin: 14px 0 4px; color: var(--text); }
+.about table { font-size: 12.5px; color: var(--muted); border-collapse: collapse; margin: 8px 0; }
+.about th, .about td { padding: 4px 12px; border: 1px solid var(--line); text-align: left; }
+.about th { color: var(--amber); }
+
+#load-overlay { position: fixed; inset: 0; background: rgba(10,14,21,.92); z-index: 999;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+  font-family: var(--mono); color: var(--muted); }
+#load-overlay .spinner { width: 36px; height: 36px; border: 3px solid var(--line);
+  border-top-color: var(--amber); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#load-overlay.done { display: none; }
+
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 8px 0 24px; font-family: var(--mono); }
+
+@media (max-width: 720px) { header { gap: 12px; } main { padding: 12px; } .timectl { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">ORBITAL<span class="dot">·</span>CONSOLE<span class="v2">v2</span></div>
+  <nav id="tabs" aria-label="视图切换"></nav>
+</header>
+
+<div id="mission-strip">
+  <span>UTC <b id="ms-utc">--:--:--</b></span>
+  <span>仿真基准 <b id="ms-epoch">--</b></span>
+  <span id="ms-age-wrap">数据 <span id="ms-age" class="chip warn">加载中…</span></span>
+  <span>在轨 <b id="ms-count">--</b> 颗</span>
+  <div class="timectl" role="group" aria-label="时间控制">
+    <button data-speed="1" aria-pressed="true">LIVE</button>
+    <button data-speed="8" aria-pressed="false">×8</button>
+    <button data-speed="60" aria-pressed="false">×60</button>
+    <button data-speed="600" aria-pressed="false">×600</button>
+    <button data-speed="0" aria-pressed="false">暂停</button>
+  </div>
+</div>
+
+<main id="views"></main>
+
+<footer>Orbital Console v2 · 真 SGP4 传播(satellite.js@5)· CelesTrak TLE · 1491 颗卫星</footer>
+
+<div id="load-overlay">
+
+<script src="data/tle-unpack.js?v=20260708154310"></script>
+<script src="data/topojson-client.min.js?v=20260708154310"></script>
+  <div class="spinner"></div>
+  <div id="load-msg">加载 TLE 数据 + SGP4 传播…</div>
+  <div id="load-sub" style="font-size:11px;opacity:.7"></div>
+</div>
+
+<script>
+"use strict";
+/* DEPLOY RECEIPT v3.b · 2026-07-08T15:43Z · cache-buster default (PITFALL #156) */
+console.log('[v3.b OK] orbital-console loaded · cache-buster=20260708154310 · 3 .ztle files deploy pending');
+/* ============================================================
+   0. 常量与数学(与 v1 保持一致)
+   ============================================================ */
+const RE = 6371.0, MU = 398600.4418, WE = 7.2921159e-5;
+const DEG = Math.PI / 180, R2D = 180 / Math.PI;
+
+function footprintCentralAngle(altKm, minElevDeg) {
+  const eps = minElevDeg * DEG;
+  const x = RE / (RE + altKm) * Math.cos(eps);
+  return x >= 1 ? 0 : Math.acos(x) - eps;
+}
+const footprintRadiusKm = (a, e) => RE * footprintCentralAngle(a, e);
+const footprintAreaFraction = (a, e) => (1 - Math.cos(footprintCentralAngle(a, e))) / 2;
+const wrapLon = (d) => ((d + 180) % 360 + 360) % 360 - 180;
+
+/* ============================================================
+   1. TLE 解码 + SGP4 传播(用 satellite.js)
+   pack_tles.py 输出:每 71 字节 = [3 byte name][2x 34 byte TLE line]
+   ============================================================ */
+const SHELLS = [
+  { key: "starlink", label: "Starlink",     color: "#56C8E8", file: "starlink.ztle" },
+  { key: "stations", label: "空间站 / 飞行器", color: "#F5A623", file: "stations.ztle" },
+  { key: "visual",   label: "高亮星等",       color: "#B48CF2", file: "visual.ztle" },
+];
+
+// 每颗星:{ shell, name, line1, line2, satrec, norad, epochYr, epochDoy }
+const sats = [];
+
+// ZTLE v1 二进制解包 — 调用 sister project 的 canonical decoder
+//   (tle-unpack.js 与 pack_tles.py 严格对应,直接还原标准 TLE 两行)
+//   浏览器加载 script src="data/tle-unpack.js" 后用 window.ZTLE.loadZTLE(url)
+function unpackZTLE(blob) {
+  // 兼容旧调用:接 Uint8Array → 转 ArrayBuffer → 走 ZTLE decoder → 展平成 name+line1+line2
+  const ab = blob.buffer.slice(blob.byteOffset, blob.byteOffset + blob.byteLength);
+  const { sats } = window.ZTLE.decodeZTLE(ab);
+  return sats.map(s => ({ name: s.name, l1: s.line1, l2: s.line2 }));
+}
+
+// TLE epoch 解析(line1 col 19-32:" YYDDD.DDDDDDDD ")
+function parseEpoch(l1) {
+  const ystr = l1.slice(19, 21);
+  const dstr = l1.slice(21, 32);
+  let yr = parseInt(ystr, 10);
+  yr += (yr < 57) ? 2000 : 1900;
+  const doy = parseFloat(dstr);
+  const date = new Date(Date.UTC(yr, 0, 1) + (doy - 1) * 86400e3);
+  return { yr, doy, date };
+}
+
+// 一次性 SGP4 satrec 构建
+function buildSatrecs(records) {
+  const now = Date.now();
+  let valid = 0, expired = 0;
+  for (const r of records) {
+    let satrec;
+    try {
+      satrec = window.satellite.twoline2satrec(r.l1, r.l2);
+      if (satrec.error) continue;
+    } catch { continue; }
+    const ep = parseEpoch(r.l1);
+    const ageDays = (now - ep.date.getTime()) / 86400e3;
+    sats.push({
+      shell: null,         // mount 时绑定
+      name: r.name || `NORAD-${satrec.satnum}`,
+      line1: r.l1, line2: r.l2,
+      satrec, norad: satrec.satnum,
+      epochYr: ep.yr, epochDoy: ep.doy, epochDate: ep.date, ageDays,
+    });
+    if (ageDays > 14) expired++; else valid++;
+  }
+  return { valid, expired };
+}
+
+// 单星单时刻 SGP4 传播 → { lat, lon, altKm, velKmS }
+function propagateOne(s, date) {
+  const pv = window.satellite.propagate(s.satrec, date);
+  if (!pv || !pv.position) return null;
+  const gmst = window.satellite.gstime(date);
+  const geo = window.satellite.eciToGeodetic(pv.position, gmst);
+  const lat = geo.latitude * R2D;
+  const lon = geo.longitude * R2D;
+  const altKm = geo.height;
+  const speed = Math.sqrt(
+    pv.velocity.x ** 2 + pv.velocity.y ** 2 + pv.velocity.z ** 2
+  );
+  return { lat, lon, altKm, velKmS: speed };
+}
+
+// 批量传播(给覆盖 / 对比视图用,避免每帧 new Date)
+function propagateBatch(filterFn, date) {
+  const out = [];
+  for (const s of sats) {
+    if (filterFn && !filterFn(s)) continue;
+    const p = propagateOne(s, date);
+    if (!p) continue;
+    out.push({ s, ...p });
+  }
+  return out;
+}
+
+/* ============================================================
+   2. 覆盖网格(原样复用 v1 算法)
+   ============================================================ */
+function computeCoverageGrid(positions, minElevDeg, gridDeg) {
+  const rows = Math.round(180 / gridDeg), cols = Math.round(360 / gridDeg);
+  const grid = new Uint16Array(rows * cols);
+  const lamCache = new Map();
+  const lamOf = (alt) => {
+    const k = Math.round(alt);
+    let v = lamCache.get(k);
+    if (v === undefined) { v = footprintCentralAngle(k, minElevDeg) * R2D; lamCache.set(k, v); }
+    return v;
+  };
+  const rowOfLat = (lat) => Math.min(rows - 1, Math.max(0, Math.floor((90 - lat) / gridDeg)));
+  for (const p of positions) {
+    const lam = lamOf(p.altKm);
+    if (lam <= 0) continue;
+    const rTop = rowOfLat(Math.min(90, p.lat + lam));
+    const rBot = rowOfLat(Math.max(-90, p.lat - lam));
+    const cosLam = Math.cos(lam * DEG), sinLs = Math.sin(p.lat * DEG), cosLs = Math.cos(p.lat * DEG);
+    for (let r = rTop; r <= rBot; r++) {
+      const phi = 90 - (r + 0.5) * gridDeg;
+      const denom = Math.cos(phi * DEG) * cosLs;
+      let hw;
+      if (denom < 1e-9) hw = Math.abs(phi - p.lat) <= lam ? 180 : -1;
+      else {
+        const c = (cosLam - Math.sin(phi * DEG) * sinLs) / denom;
+        if (c >= 1) continue;
+        hw = c <= -1 ? 180 : Math.acos(c) * R2D;
+      }
+      if (hw < 0) continue;
+      const base = r * cols;
+      if (hw >= 180) { for (let c = 0; c < cols; c++) grid[base + c]++; continue; }
+      const c0 = Math.floor((p.lon - hw + 180) / gridDeg), c1 = Math.floor((p.lon + hw + 180) / gridDeg);
+      for (let c = c0; c <= c1; c++) grid[base + ((c % cols) + cols) % cols]++;
+    }
+  }
+  let covered = 0, total = 0, sum = 0, maxCount = 0;
+  for (let r = 0; r < rows; r++) {
+    const w = Math.cos((90 - (r + 0.5) * gridDeg) * DEG);
+    for (let c = 0; c < cols; c++) {
+      const v = grid[r * cols + c];
+      total += w; sum += v * w;
+      if (v > 0) covered += w;
+      if (v > maxCount) maxCount = v;
+    }
+  }
+  return { grid, rows, cols, stats: { maxCount, coveredFraction: covered / total, meanVisible: sum / total } };
+}
+
+/* ============================================================
+   3. 太阳与昼夜晨昏线
+   ============================================================ */
+function sunSubpoint(tMs) {
+  const d = new Date(tMs);
+  const start = Date.UTC(d.getUTCFullYear(), 0, 0);
+  const doy = (tMs - start) / 86400e3;
+  const decl = -23.44 * Math.cos(2 * Math.PI * (doy + 10) / 365.24);
+  const hours = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+  const lon = wrapLon((12 - hours) * 15);
+  return { lat: decl, lon };
+}
+function nightPath(ctx, W, H, sun) {
+  const tanD = Math.tan(sun.lat * DEG);
+  ctx.beginPath();
+  if (Math.abs(tanD) < 1e-4) {
+    const x0 = ((wrapLon(sun.lon + 90) + 180) / 360) * W;
+    const wHalf = W / 2;
+    ctx.rect(x0, 0, Math.min(wHalf, W - x0), H);
+    if (x0 + wHalf > W) ctx.rect(0, 0, x0 + wHalf - W, H);
+  } else {
+    for (let i = 0; i <= 360; i++) {
+      const lon = -180 + i;
+      const phi = Math.atan(-Math.cos((lon - sun.lon) * DEG) / tanD) * R2D;
+      const x = (lon + 180) / 360 * W, y = (90 - phi) / 180 * H;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    const yPole = sun.lat > 0 ? H : 0;
+    ctx.lineTo(W, yPole); ctx.lineTo(0, yPole);
+  }
+  ctx.closePath();
+}
+
+/* ============================================================
+   4. 共享状态、时间控制、海岸线、UI
+   ============================================================ */
+const App = { simTime: Date.now(), speed: 1 };
+document.querySelectorAll(".timectl button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    App.speed = Number(btn.dataset.speed);
+    document.querySelectorAll(".timectl button").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  });
+});
+
+let landGeo = null;
+(async () => {
+  try {
+    const topo = await fetch("data/land-110m.json").then(r => r.json());
+    // topojson-client 通过 <script> tag 预先加载到 window.topojson
+    landGeo = window.topojson.feature(topo, topo.objects.land);
+  } catch { /* 降级 */ }
+})();
+
+function drawBase(ctx, W, H, withNight) {
+  ctx.fillStyle = "#060910"; ctx.fillRect(0, 0, W, H);
+  if (landGeo) {
+    ctx.fillStyle = "#16202F"; ctx.strokeStyle = "#2A3A50"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (const f of landGeo.features) {
+      const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+      for (const poly of polys) for (const ring of poly) {
+        ring.forEach(([lon, lat], i) => {
+          const x = (lon + 180) / 360 * W, y = (90 - lat) / 180 * H;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+      }
+    }
+    ctx.fill(); ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(122,138,163,.18)"; ctx.lineWidth = 1; ctx.beginPath();
+  for (let lon = -150; lon <= 150; lon += 30) { const x = (lon + 180) / 360 * W; ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+  for (let lat = -60; lat <= 60; lat += 30) { const y = (90 - lat) / 180 * H; ctx.moveTo(0, y); ctx.lineTo(W, y); }
+  ctx.stroke();
+  if (withNight) {
+    const sun = sunSubpoint(App.simTime);
+    ctx.save(); ctx.fillStyle = "rgba(3,6,14,.55)";
+    nightPath(ctx, W, H, sun); ctx.fill(); ctx.restore();
+    const sx = (sun.lon + 180) / 360 * W, sy = (90 - sun.lat) / 180 * H;
+    ctx.fillStyle = "#F5A623"; ctx.beginPath(); ctx.arc(sx, sy, 4, 0, 7); ctx.fill();
+    ctx.strokeStyle = "rgba(245,166,35,.5)"; ctx.beginPath(); ctx.arc(sx, sy, 8, 0, 7); ctx.stroke();
+  }
+}
+
+/* ============================================================
+   5. 路由框架(同 v1)
+   ============================================================ */
+const views = [];
+const registerView = (v) => views.push(v);
+let activeView = null;
+function route() {
+  const h = location.hash.replace(/^#\/?/, "") || "live";
+  const [id, query = ""] = h.split("?");
+  const target = views.find(v => v.id === id) || views[0];
+  document.querySelectorAll("#tabs a").forEach(a =>
+    a.setAttribute("aria-current", a.dataset.view === target.id ? "page" : "false"));
+  if (activeView && activeView !== target) {
+    activeView.hide?.();
+    document.getElementById("view-" + activeView.id)?.classList.remove("active");
+  }
+  let el = document.getElementById("view-" + target.id);
+  if (!el) {
+    el = document.createElement("section");
+    el.id = "view-" + target.id; el.className = "view";
+    document.getElementById("views").appendChild(el);
+    target.mount(el, new URLSearchParams(query));
+  }
+  el.classList.add("active");
+  target.show?.(new URLSearchParams(query));
+  activeView = target;
+  document.title = target.label + " · Orbital Console v2";
+}
+window.addEventListener("hashchange", route);
+
+/* ============================================================
+   6. 视图:实时 Live(用真 SGP4)
+   ============================================================ */
+const LiveView = {
+  id: "live", label: "实时",
+  selected: null, night: true, tracks: true, visible: new Set(SHELLS.map(s => s.key)),
+  observer: null,
+
+  mount(el) {
+    this.el = el;
+    const shellToggles = SHELLS.map(sh => `
+      <label class="toggle" data-on="true"><input type="checkbox" checked data-shell="${sh.key}">
+      <span class="swatch" style="background:${sh.color}"></span>${sh.label}
+      <span style="color:var(--muted)" data-count="${sh.key}">--</span></label>`).join("");
+    el.innerHTML = `
+      <div class="panel">
+        <h2>实时轨道 · <span id="lv-total">--</span> 颗(<b style="color:var(--cyan)">真 SGP4</b>)</h2>
+        <p class="hint">每颗卫星按其真实 TLE 元组的 SGP4 传播器计算位置。
+        时间条 ×8/×60/×600 直接驱动 simTime 推算未来星下点。点击卫星看 NORAD 编号 + 轨道六根数。</p>
+        <div class="ctlrow">
+          ${shellToggles}
+          <label class="toggle" data-on="true"><input type="checkbox" checked id="lv-night">昼夜线</label>
+          <label class="toggle" data-on="true"><input type="checkbox" checked id="lv-tracks">选中轨迹</label>
+        </div>
+        <canvas class="map" id="lv-canvas" width="1440" height="720"></canvas>
+        <div id="sat-info">点击地图上的卫星查看详情</div>
+        <div class="ctlrow" style="margin-top:12px">
+          <button class="act" id="lv-locate">现在我头顶有什么?</button>
+          <select id="lv-city" aria-label="选择城市">
+            <option value="34.05,-118.24">洛杉矶</option><option value="39.90,116.40">北京</option>
+            <option value="31.23,121.47">上海</option><option value="51.51,-0.13">伦敦</option>
+            <option value="-33.87,151.21">悉尼</option><option value="64.13,-21.90">雷克雅未克</option>
+          </select>
+          <span style="font-size:12px;color:var(--muted)">最低仰角 25°</span>
+        </div>
+        <div id="overhead-out"></div>
+      </div>`;
+
+    el.querySelectorAll("[data-shell]").forEach(cb => cb.addEventListener("change", (e) => {
+      e.target.checked ? this.visible.add(e.target.dataset.shell) : this.visible.delete(e.target.dataset.shell);
+      e.target.closest(".toggle").dataset.on = e.target.checked;
+    }));
+    const bind = (id, key) => el.querySelector(id).addEventListener("change", (e) => {
+      this[key] = e.target.checked; e.target.closest(".toggle").dataset.on = e.target.checked;
+    });
+    bind("#lv-night", "night"); bind("#lv-tracks", "tracks");
+
+    const cv = el.querySelector("#lv-canvas");
+    cv.addEventListener("click", (e) => this.pick(e, cv));
+    el.querySelector("#lv-locate").addEventListener("click", () => {
+      const [lat, lon] = el.querySelector("#lv-city").value.split(",").map(Number);
+      this.observer = { lat, lon, name: el.querySelector("#lv-city").selectedOptions[0].text };
+      if (navigator.geolocation) navigator.geolocation.getCurrentPosition(
+        (pos) => { this.observer = { lat: pos.coords.latitude, lon: pos.coords.longitude, name: "你的位置" }; },
+        () => {}, { timeout: 3000 });
+    });
+  },
+
+  pick(e, cv) {
+    const rect = cv.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width * cv.width;
+    const my = (e.clientY - rect.top) / rect.height * cv.height;
+    const t = new Date(App.simTime);
+    let best = null, bestD = 12 * 12;
+    for (const s of sats) {
+      if (!this.visible.has(s.shell.key)) continue;
+      const p = propagateOne(s, t);
+      if (!p) continue;
+      const dx = (p.lon + 180) / 360 * cv.width - mx, dy = (90 - p.lat) / 180 * cv.height - my;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = s; }
+    }
+    this.selected = best;
+    const info = this.el.querySelector("#sat-info");
+    if (best) {
+      const p = propagateOne(best, t);
+      const period = 1440 / ((2 * Math.PI) / best.satrec.no * 60);  // 分钟
+      const ageStr = best.ageDays > 14 ? `<span class="chip warn" style="margin-left:6px">TLE ${best.ageDays.toFixed(0)}d 旧</span>` : `<span class="chip ok" style="margin-left:6px">TLE ${best.ageDays.toFixed(1)}d 龄</span>`;
+      info.innerHTML = `<b>${best.name}</b> · NORAD ${best.norad} · 高度 ${p.altKm.toFixed(0)} km · 速度 ${p.velKmS.toFixed(2)} km/s · 周期 ${period.toFixed(1)} min${ageStr}`;
+    } else info.textContent = "点击地图上的卫星查看详情";
+  },
+
+  frame() {
+    if (sats.length === 0) return;
+    const cv = this.el.querySelector("#lv-canvas");
+    const ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height;
+    drawBase(ctx, W, H, this.night);
+    const t = new Date(App.simTime);
+
+    if (this.selected && this.tracks) {
+      const s = this.selected;
+      // 轨道周期(秒)
+      const T = (2 * Math.PI) / s.satrec.no;
+      ctx.strokeStyle = "rgba(245,166,35,.8)"; ctx.lineWidth = 1.5; ctx.beginPath();
+      let prevX = null;
+      for (let i = 0; i <= 90; i++) {
+        const dt = new Date(App.simTime + (i / 90) * T * 1000);
+        const p = propagateOne(s, dt);
+        if (!p) continue;
+        const x = (p.lon + 180) / 360 * W, y = (90 - p.lat) / 180 * H;
+        (prevX === null || Math.abs(x - prevX) > W / 2) ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        prevX = x;
+      }
+      ctx.stroke();
+    }
+    // 批量绘制
+    const visible = sats.filter(s => this.visible.has(s.shell.key));
+    for (const s of visible) {
+      const p = propagateOne(s, t);
+      if (!p) continue;
+      const x = (p.lon + 180) / 360 * W, y = (90 - p.lat) / 180 * H;
+      const isSel = s === this.selected;
+      ctx.fillStyle = isSel ? "#FFFFFF" : s.shell.color;
+      ctx.fillRect(x - 1, y - 1, isSel ? 5 : 2, isSel ? 5 : 2);
+    }
+    if (this.observer) {
+      const o = this.observer;
+      const ox = (o.lon + 180) / 360 * W, oy = (90 - o.lat) / 180 * H;
+      ctx.strokeStyle = "#6BCB77"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(ox, oy, 6, 0, 7); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox - 10, oy); ctx.lineTo(ox + 10, oy); ctx.moveTo(ox, oy - 10); ctx.lineTo(ox, oy + 10); ctx.stroke();
+      let count = 0, bestEl = -90, bestSat = null;
+      for (const s of visible) {
+        const p = propagateOne(s, t);
+        if (!p) continue;
+        const g = Math.acos(Math.min(1, Math.sin(p.lat * DEG) * Math.sin(o.lat * DEG) +
+          Math.cos(p.lat * DEG) * Math.cos(o.lat * DEG) * Math.cos((p.lon - o.lon) * DEG)));
+        if (g < footprintCentralAngle(p.altKm, 25)) {
+          count++;
+          const r = RE + p.altKm;
+          const elv = Math.atan2(Math.cos(g) - RE / r, Math.sin(g)) * R2D;
+          if (elv > bestEl) { bestEl = elv; bestSat = s; }
+        }
+      }
+      this.el.querySelector("#overhead-out").innerHTML = count
+        ? `${o.name}上空(仰角>25°):<b>${count}</b> 颗可见,最高 <b>${bestSat?.name || "?"}</b>(仰角 ${bestEl.toFixed(0)}°)`
+        : `${o.name}上空(仰角>25°):当前 0 颗——等几分钟或按 ×60 快进看看`;
+    }
+  },
+};
+registerView(LiveView);
+
+/* ============================================================
+   7. 视图:覆盖分析
+   ============================================================ */
+const CoverageView = {
+  id: "coverage", label: "覆盖分析", elev: 25, shellIdx: 0, raf: 0,
+
+  mount(el, params) {
+    this.el = el;
+    el.innerHTML = `
+      <div class="panel">
+        <h2>覆盖热力图 · 最低仰角滑块</h2>
+        <p class="hint">基于真 SGP4 传播的 <b id="cv-shell-name">--</b> 星座位置快照。ε=0° 是几何地平线,真实服务受用户终端最低仰角限制。</p>
+        <div class="ctlrow">
+          <label>最低仰角 ε = <b id="cv-ev" style="font-family:var(--mono);color:var(--amber)">25°</b></label>
+          <input type="range" id="cv-elev" min="0" max="60" step="1" value="25" aria-label="最低仰角">
+          <span id="cv-shells"></span>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="v" id="cv-k1">--</div><div class="k">全球面积覆盖率</div></div>
+          <div class="kpi"><div class="v" id="cv-k2">--</div><div class="k">平均同时可见(颗)</div></div>
+          <div class="kpi"><div class="v" id="cv-k3">--</div><div class="k">单星足迹半径</div></div>
+          <div class="kpi"><div class="v" id="cv-k4">--</div><div class="k">单星足迹 / 地表</div></div>
+        </div>
+        <canvas class="map" id="cv-canvas" width="1440" height="720" style="cursor:default"></canvas>
+        <div class="legend"><span>0</span><span class="bar"></span><span id="cv-max">max</span><span>颗同时可见 · 快照取自当前仿真时刻</span></div>
+      </div>`;
+    const box = el.querySelector("#cv-shells");
+    SHELLS.forEach((sh, i) => {
+      const b = document.createElement("button");
+      b.className = "toggle"; b.style.cursor = "pointer"; b.textContent = sh.label;
+      b.dataset.idx = i;
+      b.addEventListener("click", () => { this.shellIdx = i; this.sync(); this.redraw(); });
+      box.appendChild(b);
+    });
+    el.querySelector("#cv-elev").addEventListener("input", (e) => {
+      this.elev = Number(e.target.value);
+      el.querySelector("#cv-ev").textContent = this.elev + "°";
+      cancelAnimationFrame(this.raf);
+      this.raf = requestAnimationFrame(() => this.redraw());
+    });
+    el.querySelector("#cv-elev").addEventListener("change", () =>
+      history.replaceState(null, "", `#/coverage?elev=${this.elev}&shell=${this.shellIdx}`));
+    const e0 = Number(params.get("elev")); if (Number.isFinite(e0) && e0 >= 0 && e0 <= 60) this.elev = e0;
+    const s0 = Number(params.get("shell")); if (Number.isFinite(s0) && SHELLS[s0]) this.shellIdx = s0;
+    this.sync();
+  },
+
+  sync() {
+    this.el.querySelector("#cv-elev").value = this.elev;
+    this.el.querySelector("#cv-ev").textContent = this.elev + "°";
+    this.el.querySelectorAll("#cv-shells .toggle").forEach(b =>
+      b.dataset.on = String(Number(b.dataset.idx) === this.shellIdx));
+    this.el.querySelector("#cv-shell-name").textContent = SHELLS[this.shellIdx].label;
+  },
+
+  show() { this.redraw(); },
+
+  redraw() {
+    if (sats.length === 0) return;
+    const sh = SHELLS[this.shellIdx];
+    const t = new Date(App.simTime);
+    const positions = propagateBatch(s => s.shell.key === sh.key, t)
+      .map(p => ({ lat: p.lat, lon: p.lon, altKm: p.altKm }));
+    if (positions.length === 0) {
+      this.el.querySelector("#cv-k1").textContent = "0%";
+      return;
+    }
+    const meanAlt = positions.reduce((a, p) => a + p.altKm, 0) / positions.length;
+    const g = computeCoverageGrid(positions, this.elev, 1);
+    this.el.querySelector("#cv-k1").textContent = (g.stats.coveredFraction * 100).toFixed(1) + "%";
+    this.el.querySelector("#cv-k2").textContent = g.stats.meanVisible.toFixed(1);
+    this.el.querySelector("#cv-k3").textContent = footprintRadiusKm(meanAlt, this.elev).toFixed(0) + " km";
+    this.el.querySelector("#cv-k4").textContent = (footprintAreaFraction(meanAlt, this.elev) * 100).toFixed(2) + "%";
+    this.el.querySelector("#cv-max").textContent = g.stats.maxCount;
+
+    const cv = this.el.querySelector("#cv-canvas"), ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height, cw = W / g.cols, chh = H / g.rows;
+    ctx.fillStyle = "#060910"; ctx.fillRect(0, 0, W, H);
+    const maxC = Math.max(1, g.stats.maxCount);
+    for (let r = 0; r < g.rows; r++) for (let c = 0; c < g.cols; c++) {
+      const v = g.grid[r * g.cols + c];
+      if (!v) continue;
+      const tt = Math.pow(v / maxC, 0.55);
+      ctx.fillStyle = heat(tt);
+      ctx.fillRect(c * cw, r * chh, cw + .5, chh + .5);
+    }
+    if (landGeo) {
+      ctx.strokeStyle = "rgba(213,222,236,.35)"; ctx.lineWidth = 1; ctx.beginPath();
+      for (const f of landGeo.features) {
+        const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+        for (const poly of polys) for (const ring of poly) {
+          ring.forEach(([lon, lat], i) => {
+            const x = (lon + 180) / 360 * W, y = (90 - lat) / 180 * H;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          });
+          ctx.closePath();
+        }
+      }
+      ctx.stroke();
+    }
+  },
+};
+registerView(CoverageView);
+
+function heat(t) {
+  const stops = [[0,[6,9,16]],[.15,[17,34,51]],[.4,[27,95,122]],[.7,[47,163,199]],[.9,[86,200,232]],[1,[191,240,255]]];
+  for (let i = 1; i < stops.length; i++) if (t <= stops[i][0]) {
+    const [t0, c0] = stops[i-1], [t1, c1] = stops[i], k = (t - t0) / (t1 - t0);
+    const c = c0.map((v, j) => Math.round(v + (c1[j] - v) * k));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  return "rgb(191,240,255)";
+}
+
+/* ============================================================
+   8. 视图:星座对比
+   ============================================================ */
+registerView({
+  id: "compare", label: "星座对比",
+  mount(el) { this.el = el; el.innerHTML = `<div class="panel"><h2>三个真 TLE 组对比(ε = 25°)</h2>
+    <p class="hint">同一时刻快照下,各组的可用覆盖对比。所有位置由 SGP4 传播得到。</p>
+    <div id="cmp-body"></div></div>`; },
+  show() {
+    if (sats.length === 0) return;
+    const t = new Date(App.simTime);
+    const rows = SHELLS.map(sh => {
+      const positions = propagateBatch(s => s.shell.key === sh.key, t)
+        .map(p => ({ lat: p.lat, lon: p.lon, altKm: p.altKm }));
+      if (positions.length === 0) return { sh, n: 0, cov: 0, mean: 0, r: 0, period: 0, meanAlt: 0 };
+      const g = computeCoverageGrid(positions, 25, 1);
+      const meanAlt = positions.reduce((a, p) => a + p.altKm, 0) / positions.length;
+      // 用第一颗算周期(SGP4 satrec.no)
+      const ref = sats.find(s => s.shell.key === sh.key);
+      const period = ref ? 1440 / ((2 * Math.PI) / ref.satrec.no * 60) : 0;
+      return { sh, n: positions.length, cov: g.stats.coveredFraction * 100,
+               mean: g.stats.meanVisible, r: footprintRadiusKm(meanAlt, 25),
+               period, meanAlt };
+    });
+    const maxMean = Math.max(...rows.map(r => r.mean), 0.1);
+    this.el.querySelector("#cmp-body").innerHTML = `
+      <table class="cmp"><thead><tr>
+        <th>星座组</th><th>卫星</th><th>平均高度</th><th>周期</th>
+        <th>足迹半径</th><th>全球覆盖</th><th>平均可见</th><th></th>
+      </tr></thead><tbody>${rows.map(r => `
+        <tr>
+          <td><span class="swatch" style="background:${r.sh.color};margin-right:6px"></span>${r.sh.label}</td>
+          <td>${r.n.toLocaleString()}</td>
+          <td>${r.meanAlt.toFixed(0)} km</td>
+          <td>${r.period.toFixed(0)} min</td>
+          <td>${r.r.toFixed(0)} km</td>
+          <td>${r.cov.toFixed(1)}%</td>
+          <td>${r.mean.toFixed(1)} 颗</td>
+          <td><div class="bar-bg"><div class="bar-fg" style="width:${(r.mean / maxMean * 100).toFixed(0)}%;background:${r.sh.color}"></div></div></td>
+        </tr>`).join("")}</tbody></table>
+      <p class="hint" style="margin-top:10px">Starlink 在 ~550 km 是 LEO 宽带主力;空间站/飞行器组含 ISS / Hubble / 天宫 等;
+      高亮星等组是天文爱好者肉眼可识别的真卫星。注意覆盖与卫星数不成线性——SGP4 计算下 ISS 单星覆盖 ≈ 整个欧洲 + 半个中国。</p>`;
+  },
+});
+
+/* ============================================================
+   9. 视图:关于(从 manifest 拉真数据)
+   ============================================================ */
+registerView({
+  id: "about", label: "关于",
+  async mount(el) {
+    el.innerHTML = `<div class="panel about">
+      <h2>关于 Orbital Console v2</h2>
+      <p>v1 是合成 Walker 星座 + 解析圆轨道;v2 升级为 <b>真 TLE + SGP4 传播</b>。
+      数据源是 CelesTrak.org 的 NORAD GP element set,服务端每日打包为 71 字节/颗的紧凑二进制(开源 <code>pack_tles.py</code>),
+      浏览器在 <code>unpackZTLE()</code> 里 1 行还原回 3 段(3 字节名字 + 2x34 字节 TLE 行),
+      然后用 <code>satellite.js@5</code> 的 <code>twoline2satrec()</code> 编译 satrec,
+      每一帧 <code>propagate()</code> 出真 ECI 位置再 <code>eciToGeodetic()</code> 转经纬高。</p>
+      <h3>数据清单(从 manifest.json 实时读)</h3>
+      <div id="about-manifest">加载中…</div>
+      <h3>数据龄期</h3>
+      <p>TLE 是 SGP4 模型的快照参数,精度会随时间衰减。北美防空司令部(NAA)建议 <b>7-14 天</b>内使用。
+      本页用 NORAD epoch 字段计算 <code>ageDays</code>,> 14 天的卫星在选中详情时会显示橙色警告 chip。</p>
+      <h3>v1 vs v2 差异</h3>
+      <table>
+        <tr><th></th><th>v1</th><th>v2(本页)</th></tr>
+        <tr><td>卫星来源</td><td>3 组合成 Walker 星座</td><td>3 组真 TLE(CelesTrak)</td></tr>
+        <tr><td>卫星数</td><td>2,376</td><td>1,491</td></tr>
+        <tr><td>传播器</td><td>解析圆轨道 + 固定倾角</td><td>SGP4(satellite.js@5.0.0)</td></tr>
+        <tr><td>TLE 龄期</td><td>无</td><td>实时计算,NORAD epoch 字段</td></tr>
+        <tr><td>数据大小</td><td>0 KB(代码生成)</td><td>~106 KB(3 个 .ztle + manifest)</td></tr>
+        <tr><td>Manifest</td><td>无</td><td>有(data/manifest.json)</td></tr>
+      </table>
+      <h3>常见坑</h3>
+      <p>1. SGP4 是 <b>非保守力下的真实模型</b>——J2 扁率 / 大气阻力 / 日月引力都进方程。Starlink 在 ~550 km 高度下会有
+      "轨道衰减 + RAAN 漂移",所以 1072 颗星的分布会随时间与合成 Walker 拉开。</p>
+      <p>2. <b>TLE 不可外推太远</b>。超过 14 天的 TLE 解算出的位置误差可达几公里,本视图默认时间控制 LIVE → ×600 短时快进用。</p>
+      <p>3. Starlink 实际 7000+ 颗在轨,CelesTrak "starlink" group 只列当前仍可解析的活跃卫星(目前 1283 颗),
+      其余已失效/再入的会被 NORAD 主动从 element set 移除。</p>
+    </div>`;
+    try {
+      const m = await fetch("data/manifest.json").then(r => r.json());
+      const groups = m.groups || {};
+      const rows = Object.entries(groups).map(([k, v]) => `
+        <tr><td>${k}</td><td>${v.count}</td><td>${v.size_bytes.toLocaleString()}</td><td><code>${v.sha256}</code></td><td><a href="${v.url}">${v.url}</a></td></tr>`).join("");
+      const ageDays = ((Date.now() - Date.parse(m.generated_at_utc)) / 86400e3).toFixed(2);
+      el.querySelector("#about-manifest").innerHTML = `
+        <p style="font-size:12px;color:var(--muted)">生成于 <b>${m.generated_at_utc}</b>(${ageDays} 天前) · ${m.source}</p>
+        <table>
+          <tr><th>组</th><th>卫星</th><th>大小</th><th>SHA-256(截短)</th><th>URL</th></tr>
+          ${rows}
+          <tr><td colspan="5" style="color:var(--muted)">总 ${Object.values(groups).reduce((a, g) => a + g.count, 0)} 颗 · ${(Object.values(groups).reduce((a, g) => a + g.size_bytes, 0) / 1024).toFixed(1)} KB · pack_tles.py canonical record = 71 字节</td></tr>
+        </table>`;
+    } catch (e) {
+      el.querySelector("#about-manifest").innerHTML = `<span class="chip err">manifest 加载失败:${e.message}</span>`;
+    }
+  },
+});
+
+/* ============================================================
+   10. 启动:加载所有 ZTLE + 构建 satrecs
+   ============================================================ */
+const nav = document.getElementById("tabs");
+for (const v of views) {
+  const a = document.createElement("a");
+  a.href = "#/" + v.id; a.textContent = v.label; a.dataset.view = v.id;
+  nav.appendChild(a);
+}
+
+async function loadAll() {
+  const overlay = document.getElementById("load-overlay");
+  const loadMsg = document.getElementById("load-msg");
+  const loadSub = document.getElementById("load-sub");
+  let manifest = null;
+  try {
+    const r = await fetch("data/manifest.json");
+    manifest = await r.json();
+    loadSub.textContent = `manifest v${manifest.version} · ${Object.keys(manifest.groups).length} 组`;
+  } catch (e) {
+    overlay.innerHTML = `<div style="color:var(--red);font-family:var(--mono)">manifest.json 加载失败: ${e.message}<br><br><a href="data/manifest.json" target="_blank">点击查看 manifest</a></div>`;
+    return;
+  }
+
+  // 按 group 并发 fetch
+  const results = await Promise.all(SHELLS.map(async sh => {
+    const url = `data/${sh.file}`;
+    loadSub.textContent = `正在拉 ${sh.label} (${url})…`;
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const buf = await r.arrayBuffer();
+      const blob = new Uint8Array(buf);
+      const records = unpackZTLE(blob);
+      const { valid, expired } = buildSatrecs(records);
+      // 绑定 shell 引用
+      const added = sats.length;
+      for (let i = added; i < sats.length; i++) sats[i].shell = sh;
+      return { sh, count: sats.length - added, valid, expired, total: records.length };
+    } catch (e) {
+      console.error(`load ${sh.key} failed:`, e);
+      return { sh, count: 0, valid: 0, expired: 0, total: 0, error: e.message };
+    }
+  }));
+
+  // 更新 mission strip + 各 shell 计数
+  const totalAll = results.reduce((a, r) => a + r.count, 0);
+  document.getElementById("ms-count").textContent = totalAll.toLocaleString();
+  // LiveView shell counts(等 mount 后填)
+  setTimeout(() => {
+    for (const r of results) {
+      const el = document.querySelector(`[data-count="${r.sh.key}"]`);
+      if (el) el.textContent = r.count.toLocaleString();
+    }
+    const totalEl = document.getElementById("lv-total");
+    if (totalEl) totalEl.textContent = totalAll.toLocaleString();
+  }, 100);
+
+  // 数据龄期 chip
+  const ageH = ((Date.now() - Date.parse(manifest.generated_at_utc)) / 3600e3).toFixed(1);
+  const ageChip = document.getElementById("ms-age");
+  if (ageH < 72) { ageChip.className = "chip ok"; ageChip.textContent = `${ageH}h 前 (CelesTrak)`; }
+  else if (ageH < 336) { ageChip.className = "chip warn"; ageChip.textContent = `${ageH}h 前`; }
+  else { ageChip.className = "chip err"; ageChip.textContent = `${ageH}h 前 (> 14d)`; }
+
+  // 控制台 banner
+  console.log(`%c[Orbital Console v2] 已加载 ${totalAll} 颗真卫星(SGP4 ready)`, "color:#56C8E8;font-weight:bold");
+  for (const r of results) {
+    if (r.error) console.warn(`  ${r.sh.key}: FAILED ${r.error}`);
+    else console.log(`  ${r.sh.label}: ${r.count} 颗(TLE ${r.valid} 新鲜, ${r.expired} 旧)`);
+  }
+
+  document.getElementById("ms-epoch").textContent = new Date().toISOString().slice(0, 16).replace("T", " ");
+  overlay.classList.add("done");
+  route();
+}
+loadAll();
+
+let lastTick = performance.now();
+function loop(now) {
+  const dt = now - lastTick; lastTick = now;
+  if (App.speed > 0) {
+    App.simTime += dt * App.speed;
+    if (App.speed === 1) App.simTime = Date.now();
+  }
+  document.getElementById("ms-utc").textContent =
+    new Date(App.simTime).toISOString().slice(11, 19) +
+    (App.speed === 1 ? "" : App.speed === 0 ? " ⏸" : " ×" + App.speed);
+  if (activeView === LiveView && LiveView.el) LiveView.frame();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
