@@ -4,9 +4,36 @@
 .last_sync_marker
 .vercel
 
-# wrangler files
-.wrangler
-.dev.vars*
-!.dev.vars.example
+# wrangler / local runtime caches (never commit)
+.wrangler/
+**/.wrangler/
 .env*
 !.env.example
+!.dev.vars.example
+.dev.vars*
+
+# Next.js local build outputs (deploy via CF Pages, never commit)
+**/.next/
+**/out-*-snapshot/
+**/out-*/
+
+# Session / debug trail (operational, not production)
+youtube/*.html
+track-*.txt
+track-*.json
+public-deploy/agentic-os-dashboard/index.html
+workers-push/
+
+# 2026-07-08: GH Actions workflow files require PAT `workflow` scope.
+# We deploy via wrangler pages deploy from this Mac, so no need to push workflow files.
+# Leave them local so git push doesn't fail with "without workflow scope" error.
+.github/workflows/*.yml
+
+# 2026-07-09: archive/ = local backups (PITFALL #114-A "bak must not deploy").
+# neo-labs.bak-* / *.bak.html moved here from public-deploy/ to prevent shipping
+# stale dev backups to CF Pages. Keep archived locally (Patrick: "旧版也留着")
+# but exclude from git + wrangler deploy.
+archive/
+**/*.bak
+**/*.bak.html
+**/*.bak-*/

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Salon — 27 Models, One Question</title>
+<meta name="description" content="A virtual roundtable of 27 free LLM models from OpenRouter. Pose one question, get 27 answers, then pick two models to debate each other in 3 rounds.">
+<style>
+  :root {
+    --bg-deep: #0c0a08;
+    --bg-card: rgba(244, 235, 222, 0.04);
+    --bg-card-hover: rgba(244, 235, 222, 0.07);
+    --border-soft: rgba(200, 156, 93, 0.18);
+    --border-strong: rgba(200, 156, 93, 0.35);
+    --accent-gold: #c89c5d;
+    --accent-gold-dim: #8a6e44;
+    --accent-rust: #b35c3a;
+    --accent-emerald: #6ea47c;
+    --text-primary: #f4ebde;
+    --text-secondary: #c4b8a4;
+    --text-dim: #8a8273;
+    --text-faint: #5a5448;
+    --success: #6ea47c;
+    --error: #c45a4a;
+    --warn: #d4a847;
+    --shadow: 0 2px 18px rgba(0,0,0,0.5);
+    --radius: 8px;
+    --font-serif: 'Cormorant Garamond', 'Noto Serif SC', Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(ellipse at top, #1a1410 0%, var(--bg-deep) 60%);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ────────── Layout ────────── */
+  .app {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: 320px 1fr;
+    grid-template-areas:
+      "header header"
+      "controls controls"
+      "sidebar main";
+    height: 100vh;
+  }
+
+  /* ────────── Header ────────── */
+  header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(12, 10, 8, 0.6);
+    backdrop-filter: blur(8px);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-serif);
+    font-size: 20px;
+    letter-spacing: 0.04em;
+  }
+  .brand-mark { font-size: 22px; }
+  .brand-name { color: var(--accent-gold); font-weight: 600; }
+  .brand-sub  { color: var(--text-dim); font-size: 12px; font-family: var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; }
+  .status {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: rgba(110, 164, 124, 0.12);
+    color: var(--success);
+    border: 1px solid rgba(110, 164, 124, 0.3);
+  }
+  .status-pill.down { background: rgba(196, 90, 74, 0.12); color: var(--error); border-color: rgba(196, 90, 74, 0.3); }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ────────── Controls (mode + question) ────────── */
+  .controls {
+    grid-area: controls;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(12, 10, 8, 0.3);
+  }
+  .mode-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+  .mode-tab {
+    padding: 7px 16px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-soft);
+    border-radius: 99px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-tab:hover { color: var(--text-secondary); border-color: var(--border-strong); }
+  .mode-tab.active {
+    background: var(--accent-gold);
+    color: var(--bg-deep);
+    border-color: var(--accent-gold);
+    font-weight: 600;
+  }
+  .question-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .question-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(244, 235, 222, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    transition: border-color 0.2s;
+  }
+  .question-input:focus { outline: none; border-color: var(--accent-gold); }
+  .btn {
+    padding: 10px 22px;
+    background: var(--accent-gold);
+    color: var(--bg-deep);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover:not(:disabled) { background: #d4ab6e; transform: translateY(-1px); }
+  .btn:disabled { background: var(--text-faint); color: var(--text-dim); cursor: not-allowed; }
+  .btn-rust { background: var(--accent-rust); }
+  .btn-rust:hover:not(:disabled) { background: #c46e4a; }
+  .example-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 12px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-soft);
+    border-radius: 99px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover { color: var(--accent-gold); border-color: var(--accent-gold); }
+  .chip .chip-emoji { margin-right: 4px; }
+
+  /* Diss-specific row */
+  .diss-pickers {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .diss-pickers select {
+    padding: 8px 10px;
+    background: rgba(244, 235, 222, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .diss-vs { color: var(--accent-gold); font-family: var(--font-serif); font-size: 20px; text-align: center; }
+
+  /* ────────── Sidebar (roster) ────────── */
+  .sidebar {
+    grid-area: sidebar;
+    overflow-y: auto;
+    border-right: 1px solid var(--border-soft);
+    background: rgba(12, 10, 8, 0.4);
+  }
+  .sidebar-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; background: rgba(12, 10, 8, 0.95); z-index: 5;
+  }
+  .sidebar-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim);
+  }
+  .roster-search {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(244, 235, 222, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    font-size: 12px;
+    margin: 10px 16px;
+    width: calc(100% - 32px);
+  }
+  .roster-search:focus { outline: none; border-color: var(--accent-gold); }
+  .provider-group { padding: 4px 0 8px; }
+  .provider-header {
+    padding: 6px 16px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim);
+    display: flex; justify-content: space-between;
+  }
+  .roster-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-left: 3px solid transparent;
+  }
+  .roster-item:hover { background: var(--bg-card-hover); }
+  .roster-item.selected { background: rgba(200, 156, 93, 0.08); border-left-color: var(--accent-gold); }
+  .roster-item.diss-a { border-left-color: #5d9ccc; }
+  .roster-item.diss-b { border-left-color: #c45a4a; }
+  .check {
+    width: 16px; height: 16px;
+    border: 1px solid var(--border-soft);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--accent-gold);
+    flex-shrink: 0;
+  }
+  .check.checked { background: var(--accent-gold); color: var(--bg-deep); border-color: var(--accent-gold); }
+  .check.a-tag { background: #5d9ccc; color: var(--bg-deep); border-color: #5d9ccc; }
+  .check.b-tag { background: #c45a4a; color: var(--bg-deep); border-color: #c45a4a; }
+  .model-name { font-size: 13px; color: var(--text-primary); }
+  .model-ctx { font-size: 10px; color: var(--text-faint); margin-left: auto; font-family: var(--font-mono); }
+  .provider-color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ────────── Main (round-table + cards) ────────── */
+  .main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state h2 { font-family: var(--font-serif); font-size: 28px; color: var(--text-secondary); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; max-width: 480px; margin: 0 auto; }
+
+  /* Round-table */
+  .table-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    margin-bottom: 24px;
+  }
+  .round-table {
+    position: relative;
+    width: 560px; height: 560px;
+    border: 2px solid var(--border-soft);
+    border-radius: 50%;
+    background: radial-gradient(circle at center, rgba(200, 156, 93, 0.04) 0%, transparent 70%);
+  }
+  .table-label {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-serif); font-size: 18px; color: var(--text-dim);
+    text-align: center; pointer-events: none;
+    line-height: 1.4;
+  }
+  .seat {
+    position: absolute;
+    width: 44px; height: 44px;
+    margin-left: -22px; margin-top: -22px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .seat:hover { transform: scale(1.4); z-index: 10; box-shadow: var(--shadow); }
+  .seat.ok    { border-color: var(--success); background: rgba(110, 164, 124, 0.18); }
+  .seat.fail  { border-color: var(--error); background: rgba(196, 90, 74, 0.12); opacity: 0.55; }
+  .seat.pending { border-color: var(--text-faint); opacity: 0.45; }
+  .seat-loading { animation: spin 1.2s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* Custom hover tooltip for seats */
+  .seat-tip {
+    position: fixed;
+    background: var(--bg-deep);
+    border: 1px solid var(--accent-gold);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-primary);
+    pointer-events: none;
+    z-index: 100;
+    max-width: 280px;
+    box-shadow: var(--shadow);
+    line-height: 1.4;
+  }
+  .seat-tip-name { font-weight: 600; color: var(--accent-gold); margin-bottom: 2px; }
+  .seat-tip-meta { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
+  .seat-tip-blurb { color: var(--text-secondary); }
+
+  /* Cards */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .card:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+  .card-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .card-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    color: var(--bg-deep); flex-shrink: 0;
+  }
+  .card-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+  .card-meta { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-left: auto; }
+  .card-text {
+    font-size: 13px; line-height: 1.55;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+  }
+  .card-text.error { color: var(--error); font-family: var(--font-mono); font-size: 11px; }
+  .card-fail { opacity: 0.7; }
+
+  /* DISS layout */
+  .diss-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .diss-round {
+    margin-bottom: 20px;
+  }
+  .diss-round-label {
+    font-family: var(--font-serif);
+    font-size: 14px; color: var(--accent-gold);
+    margin-bottom: 8px; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .diss-card-side { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .diss-card-side.a { color: #5d9ccc; }
+  .diss-card-side.b { color: #c45a4a; }
+
+  /* Progress */
+  .progress {
+    text-align: center; padding: 8px;
+    font-size: 12px; color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+  .progress-num { color: var(--accent-gold); font-weight: 600; }
+  .progress-bar {
+    height: 3px; background: rgba(200, 156, 93, 0.1);
+    border-radius: 2px; margin: 6px auto 0;
+    max-width: 400px; overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent-gold);
+    transition: width 0.3s ease;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; grid-template-areas: "header" "controls" "main"; }
+    .sidebar { display: none; }
+    .round-table { width: 280px; height: 280px; }
+    .seat { width: 44px; height: 44px; margin-left: -22px; margin-top: -22px; }
+    .diss-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="brand-mark">🎭</span>
+      <div>
+        <span class="brand-name">LLM SALON</span>
+        <span class="brand-sub" style="margin-left:8px">27 free models · OpenRouter</span>
+      </div>
+    </div>
+    <div class="status">
+      <span class="status-pill" id="statusPill">
+        <span class="status-dot"></span>
+        <span id="statusText">checking proxy…</span>
+      </span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="convene">🪑 Convene Salon</button>
+      <button class="mode-tab" data-mode="diss">⚔️ DISS Showdown</button>
+    </div>
+
+    <div class="question-row">
+      <input type="text" class="question-input" id="questionInput"
+             placeholder="Pose a question to the salon…"
+             value="Will AI replace software engineers by 2028?">
+      <button class="btn" id="conveneBtn">Convene Salon ▶</button>
+    </div>
+
+    <div class="diss-pickers" id="dissPickers" style="display:none">
+      <select id="dissA"></select>
+      <span class="diss-vs">⚔️</span>
+      <select id="dissB"></select>
+    </div>
+
+    <div class="example-chips">
+      <button class="chip" data-q="Will AI replace software engineers by 2028?"><span class="chip-emoji">💼</span>AI vs. software engineers</button>
+      <button class="chip" data-q="What is the most overhyped AI capability in 2026?"><span class="chip-emoji">🧠</span>Most overhyped AI capability</button>
+      <button class="chip" data-q="Can AI be truly creative, or is it just remixing?"><span class="chip-emoji">🎨</span>AI &amp; creativity</button>
+    </div>
+  </div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title" id="sidebarTitle">Roster · 27 models</span>
+      <span>
+        <button class="chip" id="toggleAllBtn" style="font-size:10px; padding:3px 8px">all</button>
+        <button class="chip" id="clearDissBtn" style="font-size:10px; padding:3px 8px; display:none" title="clear diss picks">↺</button>
+      </span>
+    </div>
+    <input type="text" class="roster-search" id="rosterSearch" placeholder="filter models…">
+    <div id="roster"></div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="empty-state" id="emptyState">
+      <h2>The salon is empty.</h2>
+      <p>Type a question above, or pick a chip. The 27 free models will each answer in parallel.
+      Then you can name any two models and pit them against each other in a 3-round debate.</p>
+    </div>
+    <div class="table-wrap" id="tableWrap" style="display:none">
+      <div class="round-table" id="roundTable">
+        <div class="table-label">round table</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+    <div class="cards-grid" id="cardsGrid" style="display:none"></div>
+    <div id="dissContainer" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+// ────────── Embedded free-tier catalog (2026-07-09) ──────────
+// Kept in sync with proxy's FREE_MODELS list. Used as fallback so the roster
+// is visible even when the proxy is offline. The proxy's /v1/models is the
+// source of truth; if it returns a different list, we use that instead.
+const EMBEDDED_MODELS = [
+  {id:"cognitivecomputations/dolphin-mistral-24b-venice-edition:free",provider:"Cognitive Computations",short:"Dolphin-Mistral-24B",ctx:32768,blurb:"Uncensored Mistral fine-tune, strong on creative + uncensored reasoning."},
+  {id:"cohere/north-mini-code:free",provider:"Cohere",short:"Cohere North Mini Code",ctx:256000,blurb:"Code-specialized small model, very long context."},
+  {id:"google/gemma-4-26b-a4b-it:free",provider:"Google",short:"Gemma 4 26B (A4B)",ctx:131072,blurb:"Google sparse MoE, instruction-tuned, multilingual."},
+  {id:"google/gemma-4-31b-it:free",provider:"Google",short:"Gemma 4 31B",ctx:262144,blurb:"Google dense 31B, strong generalist."},
+  {id:"google/lyria-3-clip-preview",provider:"Google",short:"Lyria 3 (Music)",ctx:1048576,blurb:"Music generation (audio out, not chat). Surfaced for completeness."},
+  {id:"google/lyria-3-pro-preview",provider:"Google",short:"Lyria 3 Pro (Music)",ctx:1048576,blurb:"Pro music model. Surfaced for completeness; chat may 4xx."},
+  {id:"liquid/lfm-2.5-1.2b-instruct:free",provider:"Liquid AI",short:"LFM 2.5 1.2B Instruct",ctx:32768,blurb:"Liquid's tiny instruct model — fast, edge-deployable."},
+  {id:"liquid/lfm-2.5-1.2b-thinking:free",provider:"Liquid AI",short:"LFM 2.5 1.2B Thinking",ctx:32768,blurb:"Reasoning-tuned 1.2B. Tiny but tries to think step-by-step."},
+  {id:"meta-llama/llama-3.2-3b-instruct:free",provider:"Meta",short:"Llama 3.2 3B",ctx:131072,blurb:"Meta small model, fast + multilingual."},
+  {id:"meta-llama/llama-3.3-70b-instruct:free",provider:"Meta",short:"Llama 3.3 70B",ctx:65536,blurb:"Meta flagship 70B. Strong general reasoning."},
+  {id:"nousresearch/hermes-3-llama-3.1-405b:free",provider:"Nous Research",short:"Hermes 3 405B",ctx:131072,blurb:"Massive 405B fine-tune, top open-weight generalist."},
+  {id:"nvidia/nemotron-3-nano-30b-a3b:free",provider:"NVIDIA",short:"Nemotron 3 Nano 30B (A3B)",ctx:256000,blurb:"NVIDIA MoE, hybrid Mamba/Transformer. Reasoning + chat."},
+  {id:"nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",provider:"NVIDIA",short:"Nemotron 3 Nano Omni Reasoning",ctx:256000,blurb:"Omni-modal small model with reasoning mode."},
+  {id:"nvidia/nemotron-3-super-120b-a12b:free",provider:"NVIDIA",short:"Nemotron 3 Super 120B (A12B)",ctx:262144,blurb:"NVIDIA mid-tier MoE, balanced cost/quality."},
+  {id:"nvidia/nemotron-3-ultra-550b-a55b:free",provider:"NVIDIA",short:"Nemotron 3 Ultra 550B (A55B)",ctx:1000000,blurb:"NVIDIA flagship 550B MoE, 1M context. Slow but huge."},
+  {id:"nvidia/nemotron-3.5-content-safety:free",provider:"NVIDIA",short:"Nemotron 3.5 Content-Safety",ctx:128000,blurb:"Safety classifier. Not chat — surfaced for completeness."},
+  {id:"nvidia/nemotron-nano-12b-v2-vl:free",provider:"NVIDIA",short:"Nemotron Nano 12B v2 VL",ctx:128000,blurb:"Vision-language small model."},
+  {id:"nvidia/nemotron-nano-9b-v2:free",provider:"NVIDIA",short:"Nemotron Nano 9B v2",ctx:128000,blurb:"Small chat model, fast."},
+  {id:"openai/gpt-oss-120b:free",provider:"OpenAI",short:"GPT-OSS 120B",ctx:131072,blurb:"OpenAI's open-weight 120B. Reasoning model."},
+  {id:"openai/gpt-oss-20b:free",provider:"OpenAI",short:"GPT-OSS 20B",ctx:131072,blurb:"OpenAI's open-weight 20B. Fast + decent."},
+  {id:"openrouter/free",provider:"OpenRouter",short:"OpenRouter Free Router",ctx:null,blurb:"OpenRouter's auto-routed free model. Use for fallback."},
+  {id:"poolside/laguna-m.1:free",provider:"Poolside",short:"Laguna M.1",ctx:262144,blurb:"Poolside's coding model. Strong on agentic code."},
+  {id:"poolside/laguna-xs-2.1:free",provider:"Poolside",short:"Laguna XS 2.1",ctx:262144,blurb:"Poolside's small code model, 262K context."},
+  {id:"poolside/laguna-xs.2:free",provider:"Poolside",short:"Laguna XS.2",ctx:262144,blurb:"Poolside's smallest code model, fast."},
+  {id:"qwen/qwen3-coder:free",provider:"Alibaba",short:"Qwen3 Coder",ctx:262000,blurb:"Qwen3 code-specialized, strong agentic coding."},
+  {id:"qwen/qwen3-next-80b-a3b-instruct:free",provider:"Alibaba",short:"Qwen3 Next 80B (A3B)",ctx:262144,blurb:"Qwen3 next-gen MoE instruct, multilingual."},
+  {id:"tencent/hy3:free",provider:"Tencent",short:"Tencent HY3",ctx:262144,blurb:"Tencent's HY3 chat model. Multilingual incl. 中文."},
+];
+
+// State
+const STATE = {
+  models: EMBEDDED_MODELS,    // populated synchronously from embedded catalog
+  selected: new Set(),         // model ids currently selected for convene
+  dissA: null,                 // model id for diss A
+  dissB: null,                 // model id for diss B
+  mode: 'convene',             // 'convene' | 'diss'
+  results: {},                 // model_id -> {ok, text, error, latency_ms}
+  dissResults: null,           // last diss response
+};
+
+const PROXY = 'http://127.0.0.1:9876';
+
+// Provider colors (must match Python catalog order)
+const PROVIDER_COLORS = {
+  'Cognitive Computations': '#FF6B6B',
+  'Cohere': '#D18EE2',
+  'Google': '#4285F4',
+  'Liquid AI': '#00B4D8',
+  'Meta': '#0668E1',
+  'Nous Research': '#9B59B6',
+  'NVIDIA': '#76B900',
+  'OpenAI': '#10A37F',
+  'OpenRouter': '#606060',
+  'Poolside': '#E91E63',
+  'Alibaba': '#FF6A00',
+  'Tencent': '#FAAD14',
+};
+
+const PROVIDER_SHORT_INITIALS = {
+  'Cognitive Computations': 'CC',
+  'Cohere': 'CO',
+  'Google': 'GO',
+  'Liquid AI': 'LQ',
+  'Meta': 'M',
+  'Nous Research': 'NR',
+  'NVIDIA': 'NV',
+  'OpenAI': 'OA',
+  'OpenRouter': 'OR',
+  'Poolside': 'PS',
+  'Alibaba': 'AL',
+  'Tencent': 'TC',
+};
+
+// ────────── Init ──────────
+async function init() {
+  // Render roster IMMEDIATELY from embedded catalog (no proxy needed for UI)
+  STATE.models.forEach(m => STATE.selected.add(m.id));
+  renderRoster();
+  populateDissPickers();
+  attachHandlers();
+  // Restore from localStorage
+  const saved = localStorage.getItem('llm-salon-state');
+  if (saved) {
+    try {
+      const s = JSON.parse(saved);
+      if (s.question) document.getElementById('questionInput').value = s.question;
+      if (s.selected && s.selected.length) STATE.selected = new Set(s.selected);
+      if (s.dissA) STATE.dissA = s.dissA;
+      if (s.dissB) STATE.dissB = s.dissB;
+    } catch {}
+  }
+  saveState();
+  renderRoster(document.getElementById('rosterSearch').value);
+  populateDissPickers();
+  // Probe proxy in the background (non-blocking)
+  checkProxy().then(() => loadModels());  // upgrades catalog from proxy if available
+}
+
+async function checkProxy() {
+  const pill = document.getElementById('statusPill');
+  const text = document.getElementById('statusText');
+  try {
+    const r = await fetch(`${PROXY}/health`);
+    const j = await r.json();
+    if (j.ok) {
+      pill.classList.remove('down');
+      text.textContent = `proxy live · ${j.models} models · key ${j.key_preview}`;
+    } else {
+      pill.classList.add('down');
+      text.textContent = `proxy: ${j.error || 'no key'}`;
+    }
+  } catch (e) {
+    pill.classList.add('down');
+    text.textContent = `proxy unreachable: ${e.message}`;
+  }
+}
+
+async function loadModels() {
+  try {
+    const r = await fetch(`${PROXY}/v1/models`);
+    if (!r.ok) return;  // keep embedded list
+    const j = await r.json();
+    if (j.data && Array.isArray(j.data) && j.data.length > 0) {
+      // Merge: prefer proxy's data on field conflicts, but keep our short/blurb for known models
+      const knownShorts = new Map(STATE.models.map(m => [m.id, m]));
+      STATE.models = j.data.map(pm => {
+        const known = knownShorts.get(pm.id);
+        return known ? {...known, ...pm, short: known.short, blurb: known.blurb} : pm;
+      });
+      renderRoster(document.getElementById('rosterSearch').value);
+      populateDissPickers();
+    }
+  } catch (e) {
+    // silent — embedded list is the fallback
+  }
+}
+
+function saveState() {
+  localStorage.setItem('llm-salon-state', JSON.stringify({
+    question: document.getElementById('questionInput').value,
+    selected: [...STATE.selected],
+    dissA: STATE.dissA,
+    dissB: STATE.dissB,
+  }));
+}
+
+// ────────── Roster (sidebar) ──────────
+function renderRoster(filter = '') {
+  const el = document.getElementById('roster');
+  el.innerHTML = '';
+  const f = filter.toLowerCase().trim();
+  const byProvider = {};
+  for (const m of STATE.models) {
+    if (f && !(m.id + ' ' + m.short + ' ' + m.provider).toLowerCase().includes(f)) continue;
+    if (!byProvider[m.provider]) byProvider[m.provider] = [];
+    byProvider[m.provider].push(m);
+  }
+  const providers = Object.keys(byProvider).sort();
+  document.getElementById('sidebarTitle').textContent = `Roster · ${STATE.models.length} models`;
+
+  const isDiss = (STATE.mode === 'diss');
+
+  for (const prov of providers) {
+    const group = document.createElement('div');
+    group.className = 'provider-group';
+    const header = document.createElement('div');
+    header.className = 'provider-header';
+    header.innerHTML = `<span>${prov}</span><span>${byProvider[prov].length}</span>`;
+    group.appendChild(header);
+    for (const m of byProvider[prov]) {
+      const item = document.createElement('div');
+      item.className = 'roster-item';
+      if (STATE.selected.has(m.id)) item.classList.add('selected');
+      // Only show A/B tags in DISS mode
+      if (isDiss && STATE.dissA === m.id) item.classList.add('diss-a');
+      if (isDiss && STATE.dissB === m.id) item.classList.add('diss-b');
+      // Compute check display based on mode
+      let checkClass, checkChar;
+      if (isDiss) {
+        if (STATE.dissA === m.id) { checkClass = 'a-tag'; checkChar = 'A'; }
+        else if (STATE.dissB === m.id) { checkClass = 'b-tag'; checkChar = 'B'; }
+        else { checkClass = ''; checkChar = ''; }
+      } else {
+        checkClass = STATE.selected.has(m.id) ? 'checked' : '';
+        checkChar = STATE.selected.has(m.id) ? '✓' : '';
+      }
+      item.innerHTML = `
+        <div class="check ${checkClass}">${checkChar}</div>
+        <div class="provider-color-dot" style="background:${PROVIDER_COLORS[m.provider] || '#666'}"></div>
+        <div class="model-name">${m.short}</div>
+        <div class="model-ctx">${formatCtx(m.ctx)}</div>
+      `;
+      item.addEventListener('click', () => onRosterClick(m));
+      group.appendChild(item);
+    }
+    el.appendChild(group);
+  }
+  if (providers.length === 0) {
+    el.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-dim); font-size:12px">no matches</div>';
+  }
+}
+
+function formatCtx(n) {
+  if (n == null) return '?';
+  if (n >= 1000000) return (n / 1000000).toFixed(0) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+  return n;
+}
+
+function onRosterClick(m) {
+  if (STATE.mode === 'convene') {
+    if (STATE.selected.has(m.id)) STATE.selected.delete(m.id);
+    else STATE.selected.add(m.id);
+  } else {
+    // diss mode: assign to A, then B, then clear
+    if (STATE.dissA === m.id) { STATE.dissA = null; }
+    else if (STATE.dissB === m.id) { STATE.dissB = null; }
+    else if (!STATE.dissA) { STATE.dissA = m.id; }
+    else if (!STATE.dissB) { STATE.dissB = m.id; }
+    else { STATE.dissA = STATE.dissB; STATE.dissB = m.id; }
+  }
+  saveState();
+  renderRoster(document.getElementById('rosterSearch').value);
+  populateDissPickers();
+}
+
+function populateDissPickers() {
+  const a = document.getElementById('dissA');
+  const b = document.getElementById('dissB');
+  for (const sel of [a, b]) {
+    sel.innerHTML = '<option value="">— pick a model —</option>';
+    for (const m of STATE.models) {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.short} (${m.provider})`;
+      sel.appendChild(opt);
+    }
+  }
+  a.value = STATE.dissA || '';
+  b.value = STATE.dissB || '';
+}
+
+// ────────── Convene flow ──────────
+async function conveneSalon() {
+  const question = document.getElementById('questionInput').value.trim();
+  if (!question) { alert('please type a question first'); return; }
+  if (STATE.selected.size === 0) { alert('select at least 1 model from the roster'); return; }
+
+  const models = [...STATE.selected];
+  const btn = document.getElementById('conveneBtn');
+  btn.disabled = true;
+  btn.textContent = 'Convening…';
+  showMain();
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('tableWrap').style.display = 'flex';
+  document.getElementById('cardsGrid').style.display = 'grid';
+  document.getElementById('dissContainer').style.display = 'none';
+  document.getElementById('cardsGrid').innerHTML = '';
+  document.getElementById('progress').innerHTML = `<span class="progress-num">0</span> / ${models.length} speaking…<div class="progress-bar"><div class="progress-bar-fill" style="width:0%"></div></div>`;
+
+  renderRoundTableSeats(models.map(id => ({id, state: 'pending', ms: null})));
+
+  // Use the streaming batch endpoint: it returns ALL results at once
+  // (we render progressively as JSON parses; for true streaming we'd need SSE)
+  const t0 = Date.now();
+  // Clear any previous error / progress
+  document.getElementById('progress').innerHTML = `<span class="progress-num">0</span> / ${models.length} speaking…<div class="progress-bar"><div class="progress-bar-fill" style="width:0%"></div></div>`;
+  // Show pending seats
+  renderRoundTableSeats(models.map(id => ({id, state: 'pending', ms: null})));
+  try {
+    const r = await fetch(`${PROXY}/v1/chat/batch`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question, models, max_tokens: 500, temperature: 0.85}),
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'batch failed');
+
+    // Render progressively to simulate streaming
+    const all = j.results;
+    let done = 0;
+    for (let i = 0; i < all.length; i++) {
+      done++;
+      STATE.results[all[i].model] = all[i];
+      renderRoundTableSeats(all.map(r => ({id: r.model, state: r.ok ? 'ok' : 'fail', ms: r.latency_ms})));
+      appendOrUpdateCard(all[i]);
+      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      document.getElementById('progress').innerHTML = `<span class="progress-num">${done}</span> / ${all.length} done in ${elapsed}s · ${j.results.filter(r => r.ok).length} succeeded<div class="progress-bar"><div class="progress-bar-fill" style="width:${(done/all.length*100).toFixed(0)}%"></div></div>`;
+      await sleep(40);  // small render budget
+    }
+    const final = ((Date.now() - t0) / 1000).toFixed(1);
+    const okCount = j.results.filter(r => r.ok).length;
+    document.getElementById('progress').innerHTML = `<span class="progress-num">✓ ${okCount}/${j.results.length}</span> complete in ${final}s · <a href="#" id="dissStartLink" style="color:var(--accent-gold)">start a diss</a> with 2 of them`;
+    document.getElementById('dissStartLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      switchMode('diss');
+    });
+  } catch (e) {
+    document.getElementById('progress').innerHTML = `<span style="color:var(--error)">⚠ ${e.message} — is the proxy running on port 9876?</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Convene Salon ▶';
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ────────── Render helpers ──────────
+function showMain() {
+  // nothing to do — main is always in grid
+}
+
+function renderRoundTableSeats(seats) {
+  const N = seats.length;
+  if (N === 0) return;
+  const table = document.getElementById('roundTable');
+  // Clear old seats + tooltips (but keep label)
+  table.querySelectorAll('.seat').forEach(s => s.remove());
+  document.querySelectorAll('.seat-tip').forEach(t => t.remove());
+  // Adaptive radius: bigger N → smaller relative radius so seats don't overlap
+  // circumference @ r% = 2π × r × (size/2) ÷ 100. For size 560, seat 44: need ≥ 50px/arc
+  // 50px / (π × 560 / 100) = 50/17.6 = 2.84% per seat
+  // For 27 seats, need r ≥ 27 × 2.84 = 77% from center
+  // But that's outside the table. So use multi-ring for N > 16.
+  const useMultiRing = N > 16;
+  const modelsById = Object.fromEntries(STATE.models.map(m => [m.id, m]));
+  for (let i = 0; i < N; i++) {
+    const s = seats[i];
+    let angle, r;
+    if (useMultiRing) {
+      // Even-index seats outer ring, odd-index inner ring (interleaved)
+      const ring = (i % 2 === 0) ? 0 : 1;
+      const idxInRing = Math.floor(i / 2);
+      const totalInRing = (ring === 0) ? Math.ceil(N / 2) : Math.floor(N / 2);
+      angle = (idxInRing / totalInRing) * 2 * Math.PI - Math.PI / 2;
+      r = (ring === 0) ? 42 : 28;
+    } else {
+      angle = (i / N) * 2 * Math.PI - Math.PI / 2;
+      r = 42;
+    }
+    const x = 50 + r * Math.cos(angle);
+    const y = 50 + r * Math.sin(angle);
+    const seat = document.createElement('div');
+    const cls = s.state === 'ok' ? 'ok' : (s.state === 'fail' ? 'fail' : (s.state === 'pending' ? 'pending' : ''));
+    seat.className = `seat ${cls}`;
+    seat.style.left = `calc(${x}% - 22px)`;
+    seat.style.top = `calc(${y}% - 22px)`;
+    const m = modelsById[s.id];
+    const color = PROVIDER_COLORS[m?.provider] || '#666';
+    const init = (PROVIDER_SHORT_INITIALS[m?.provider] || '?').slice(0, 2);
+    seat.textContent = init;
+    seat.style.color = color;
+    // Custom tooltip on hover (no native title)
+    seat.addEventListener('mouseenter', (e) => showSeatTip(e, m, s));
+    seat.addEventListener('mousemove', (e) => moveSeatTip(e));
+    seat.addEventListener('mouseleave', () => hideSeatTip());
+    table.appendChild(seat);
+  }
+}
+
+function showSeatTip(e, m, s) {
+  hideSeatTip();
+  if (!m) return;
+  const tip = document.createElement('div');
+  tip.className = 'seat-tip';
+  const ms = s.ms ? ` · ${(s.ms/1000).toFixed(1)}s` : '';
+  const stateEmoji = s.state === 'ok' ? '🟢' : (s.state === 'fail' ? '🔴' : (s.state === 'pending' ? '⏳' : '⚪'));
+  tip.innerHTML = `
+    <div class="seat-tip-name">${stateEmoji} ${m.short}${ms}</div>
+    <div class="seat-tip-meta">${m.provider} · ctx ${formatCtx(m.ctx)}</div>
+    <div class="seat-tip-blurb">${m.blurb}</div>
+  `;
+  document.body.appendChild(tip);
+  moveSeatTip(e);
+}
+function moveSeatTip(e) {
+  const tip = document.querySelector('.seat-tip');
+  if (!tip) return;
+  const offset = 14;
+  let x = e.clientX + offset;
+  let y = e.clientY + offset;
+  // Keep on screen
+  const r = tip.getBoundingClientRect();
+  if (x + r.width > window.innerWidth) x = e.clientX - r.width - offset;
+  if (y + r.height > window.innerHeight) y = e.clientY - r.height - offset;
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+function hideSeatTip() {
+  document.querySelectorAll('.seat-tip').forEach(t => t.remove());
+}
+
+function appendOrUpdateCard(result) {
+  const grid = document.getElementById('cardsGrid');
+  let card = grid.querySelector(`[data-mid="${result.model}"]`);
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'card' + (result.ok ? '' : ' card-fail');
+    card.dataset.mid = result.model;
+    grid.appendChild(card);
+  }
+  const m = STATE.models.find(x => x.id === result.model);
+  const color = PROVIDER_COLORS[m?.provider] || '#666';
+  const init = (PROVIDER_SHORT_INITIALS[m?.provider] || '?').slice(0, 2);
+  card.innerHTML = `
+    <div class="card-header">
+      <div class="card-avatar" style="background:${color}">${init}</div>
+      <div class="card-name">${m ? m.short : result.model}</div>
+      <div class="card-meta">${m ? m.provider : '?'} · ${result.latency_ms}ms</div>
+    </div>
+    <div class="card-text ${result.ok ? '' : 'error'}">${result.ok ? escapeHtml(result.text) : '✗ ' + escapeHtml(result.error || 'failed')}</div>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ────────── DISS flow ──────────
+async function startDiss() {
+  const topic = document.getElementById('questionInput').value.trim();
+  const a = STATE.dissA;
+  const b = STATE.dissB;
+  if (!topic) { alert('please type a topic'); return; }
+  if (!a || !b) { alert('pick 2 models in the roster (first click = A, second = B)'); return; }
+  if (a === b) { alert('pick 2 different models'); return; }
+
+  const btn = document.getElementById('conveneBtn');
+  btn.disabled = true;
+  btn.textContent = 'Dissing…';
+  showMain();
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('tableWrap').style.display = 'none';
+  document.getElementById('cardsGrid').style.display = 'none';
+  const dc = document.getElementById('dissContainer');
+  dc.style.display = 'block';
+  dc.innerHTML = '<div class="progress"><span class="progress-num">⚔️</span> round 1/3 · both models are writing their opening statements…</div>';
+
+  try {
+    const r = await fetch(`${PROXY}/v1/chat/diss`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({topic, model_a: a, model_b: b, max_tokens: 500, temperature: 0.9}),
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'diss failed');
+    STATE.dissResults = j;
+    renderDiss(j);
+  } catch (e) {
+    dc.innerHTML = `<div class="progress"><span style="color:var(--error)">error: ${e.message}</span></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Convene Salon ▶';
+  }
+}
+
+function renderDiss(j) {
+  const dc = document.getElementById('dissContainer');
+  const aM = STATE.models.find(m => m.id === j.model_a);
+  const bM = STATE.models.find(m => m.id === j.model_b);
+  const aColor = PROVIDER_COLORS[aM?.provider] || '#5d9ccc';
+  const bColor = PROVIDER_COLORS[bM?.provider] || '#c45a4a';
+  const aInit = (PROVIDER_SHORT_INITIALS[aM?.provider] || 'A').slice(0, 2);
+  const bInit = (PROVIDER_SHORT_INITIALS[bM?.provider] || 'B').slice(0, 2);
+
+  const roundLabels = {1: 'opening', 2: 'rebuttal', 3: 'closing'};
+  let html = `<h2 style="font-family:var(--font-serif); font-size:18px; color:var(--accent-gold); margin-bottom:4px; text-align:center">⚔️ ${aM?.short || aM}  vs  ${bM?.short || bM}</h2>`;
+  html += `<p style="text-align:center; color:var(--text-dim); font-size:12px; margin-bottom:18px; font-style:italic">"${escapeHtml(j.topic)}"</p>`;
+
+  for (const round of j.rounds) {
+    html += `<div class="diss-round">`;
+    html += `<div class="diss-round-label">Round ${round.round} · ${roundLabels[round.round]}</div>`;
+    html += `<div class="diss-grid">`;
+    // A side
+    html += `<div class="card">`;
+    html += `<div class="card-header"><div class="card-avatar" style="background:${aColor}">${aInit}</div><div class="card-name">${aM?.short || j.model_a}</div><div class="card-meta">${round.a.latency_ms}ms</div></div>`;
+    html += `<div class="diss-card-side a">Side A</div>`;
+    html += `<div class="card-text">${round.a.ok ? escapeHtml(round.a.text) : '<span style="color:var(--error)">' + escapeHtml(round.a.error) + '</span>'}</div>`;
+    html += `</div>`;
+    // B side
+    html += `<div class="card">`;
+    html += `<div class="card-header"><div class="card-avatar" style="background:${bColor}">${bInit}</div><div class="card-name">${bM?.short || j.model_b}</div><div class="card-meta">${round.b.latency_ms}ms</div></div>`;
+    html += `<div class="diss-card-side b">Side B</div>`;
+    html += `<div class="card-text">${round.b.ok ? escapeHtml(round.b.text) : '<span style="color:var(--error)">' + escapeHtml(round.b.error) + '</span>'}</div>`;
+    html += `</div>`;
+    html += `</div></div>`;
+  }
+  dc.innerHTML = html;
+}
+
+// ────────── Mode switching ──────────
+function switchMode(mode) {
+  STATE.mode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  document.getElementById('conveneBtn').textContent = mode === 'convene' ? 'Convene Salon ▶' : 'Start Diss ⚔️';
+  document.getElementById('dissPickers').style.display = mode === 'diss' ? 'grid' : 'none';
+  document.getElementById('conveneBtn').onclick = mode === 'convene' ? conveneSalon : startDiss;
+  document.getElementById('clearDissBtn').style.display = mode === 'diss' ? 'inline-block' : 'none';
+  renderRoster(document.getElementById('rosterSearch').value);
+}
+
+function attachHandlers() {
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    t.addEventListener('click', () => switchMode(t.dataset.mode));
+  });
+  document.getElementById('conveneBtn').addEventListener('click', conveneSalon);
+  document.getElementById('questionInput').addEventListener('input', saveState);
+  document.getElementById('questionInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) conveneSalon();
+  });
+  document.querySelectorAll('.chip[data-q]').forEach(c => {
+    c.addEventListener('click', () => {
+      document.getElementById('questionInput').value = c.dataset.q;
+      saveState();
+    });
+  });
+  document.getElementById('rosterSearch').addEventListener('input', (e) => renderRoster(e.target.value));
+  document.getElementById('dissA').addEventListener('change', (e) => { STATE.dissA = e.target.value || null; saveState(); renderRoster(); });
+  document.getElementById('dissB').addEventListener('change', (e) => { STATE.dissB = e.target.value || null; saveState(); renderRoster(); });
+  document.getElementById('toggleAllBtn').addEventListener('click', () => {
+    if (STATE.selected.size === STATE.models.length) STATE.selected.clear();
+    else STATE.models.forEach(m => STATE.selected.add(m.id));
+    saveState();
+    renderRoster(document.getElementById('rosterSearch').value);
+  });
+  document.getElementById('clearDissBtn').addEventListener('click', () => {
+    STATE.dissA = null;
+    STATE.dissB = null;
+    saveState();
+    populateDissPickers();
+    renderRoster(document.getElementById('rosterSearch').value);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

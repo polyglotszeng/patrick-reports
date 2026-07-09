@@ -34,17 +34,9 @@ export default {
       return handleSalonApi(request, env);
     }
 
-    // === POST /api/salon/agent — Grad 3: 4-persona batch (legacy / fallback) ===
+    // === POST /api/salon/agent — Grad 3: multi-turn multi-agent debate ===
     if (path === "/api/salon/agent" && request.method === "POST") {
       return handleSalonAgentApi(request, env);
-    }
-
-    // === POST /api/salon/agent/stream/round{0,1,2,3} — Grad 3.1: streamed per round ===
-    // Each round = 1 fetch; panel can be 1-66 personas; CF free plan stays in budget per round.
-    const roundStreamMatch = path.match(/^\/api\/salon\/agent\/stream\/round([0-3])$/);
-    if (roundStreamMatch && request.method === "POST") {
-      const round = parseInt(roundStreamMatch[1], 10);
-      return handleSalonAgentStreamRound(request, env, round);
     }
 
     const archiveRepair = await repairDailyReportArchivePath(path, url, env, request);
@@ -101,198 +93,7 @@ async function repairDailyReportArchivePath(path, url, env, request) {
 }
 
 
-// === POST /api/salon/agent/stream/round{0,1,2,3} implementation (07-09 NEW, Grad 3.1) ===
-// Per-round streaming endpoint: each round = 1 fetch, panel can be 1-66.
-// Each round handler is sized to fit CF free-plan CPU/wall budget:
-//   round 0 = 1 LLM call (moderator opening)
-//   round 1 = N persona LLM calls in parallel (Promise.all)
-//   round 2 = N persona LLM calls in parallel (moderator excluded)
-//   round 3 = 2 LLM calls in parallel (mod summary + closing speaker)
-// Frontend calls these in sequence; cumulative panel history travels in body.
-async function handleSalonAgentStreamRound(request, env, round) {
-  const cors = {
-    "content-type": "application/json; charset=utf-8",
-    "cache-control": "no-store",
-    "access-control-allow-origin": "*",
-  };
-
-  let body;
-  try { body = await request.json(); } catch (e) {
-    return new Response(JSON.stringify({ error: `invalid JSON body: ${e.message}` }), { status: 400, headers: cors });
-  }
-  const topic = (body.topic || "").trim();
-  let personaIds = Array.isArray(body.persona_ids) ? body.persona_ids.slice(0, 66) : null;
-  if (!topic) return new Response(JSON.stringify({ error: "topic is required" }), { status: 400, headers: cors });
-  if (personaIds && (personaIds.length < 1 || personaIds.length > 66)) {
-    return new Response(JSON.stringify({ error: "persona_ids length must be 1-66" }), { status: 400, headers: cors });
-  }
-
-  const apiKey = env.MINIMAX_TOKEN || env.ANTHROPIC_API_KEY;
-  if (!apiKey) return new Response(JSON.stringify({ error: "no LLM key" }), { status: 500, headers: cors });
-  const isMinimax = apiKey.startsWith("sk-cp-") || !!env.MINIMAX_TOKEN;
-  const apiUrl = isMinimax ? "https://api.minimax.io/anthropic/v1/messages" : "https://api.anthropic.com/v1/messages";
-  const authHeaders = isMinimax ? { "authorization": `Bearer ${apiKey}` } : { "x-api-key": apiKey };
-
-  // Load agent profiles from ASSETS
-  let allProfiles = [];
-  try {
-    const r = await env.ASSETS.fetch(new URL("/philosophy-salon/agent-profiles.json", new URL(request.url)));
-    if (!r.ok) throw new Error(`ASSETS ${r.status}`);
-    allProfiles = await r.json();
-  } catch (e) {
-    return new Response(JSON.stringify({ error: `cannot load agent-profiles.json: ${e.message}` }), { status: 502, headers: cors });
-  }
-  const byId = new Map(allProfiles.map(p => [p.id, p]));
-
-  // Pick panel from requested ids (or default)
-  let panel = [];
-  if (personaIds) {
-    panel = personaIds.map(id => byId.get(id)).filter(Boolean);
-  }
-  if (panel.length < 2) {
-    // Default: curated starter set
-    const defaultIds = ["socrates", "laozi", "kant", "nietzsche", "plato", "aristotle"];
-    panel = defaultIds.map(id => byId.get(id)).filter(Boolean);
-  }
-  if (panel.length < 2) {
-    return new Response(JSON.stringify({ error: "not enough agents available" }), { status: 500, headers: cors });
-  }
-  const moderator = panel.find(p => p.id === "socrates") || panel[0];
-  const speakers = panel.filter(p => p.id !== moderator.id);
-
-  // History from prior rounds (for round 2+)
-  const history = {
-    round0: Array.isArray(body.history?.round0) ? body.history.round0 : [],
-    round1: Array.isArray(body.history?.round1) ? body.history.round1 : [],
-  };
-
-  // === One LLM call helper ===
-  async function llmCall(systemPrompt, userMsg, maxTokens = 250) {
-    const resp = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "content-type": "application/json", "anthropic-version": "2023-06-01", ...authHeaders },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-5",
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userMsg }],
-      }),
-    });
-    if (!resp.ok) {
-      const errText = await resp.text().catch(() => "(no body)");
-      throw new Error(`llm ${resp.status}: ${errText.slice(0, 300)}`);
-    }
-    const data = await resp.json();
-    return (data.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  }
-
-  // Moderator system prompt (shared across rounds 0 & 3)
-  const modSystemPrompt = `你是一位 2500 年哲学史的资深主持人。你的工作是为圆桌辩论定调、追问或总结。具体规则见每轮说明。中文为主,1 段。`;
-  const modUser = `议题:"${topic}"\n圆桌 panel(${panel.length} 位):${panel.map(p => `${p.id}(${(p.identity || '').split('(')[0].trim()})`).join('、')}\n请生成一段开场白,1 段,150-250 字。简短地点出核心张力、设定讨论边界、明确需要被追问的发言者。`;
-
-  // Round 1: opening positions (panel members each see the topic + Round 0)
-  const round1UserFor = (p) => `议题:"${topic}"\n\n主持人开场:\n${history.round0[0]?.text || ''}\n\n请发表你自己的第一轮立场(1-3 段,150-300 字,中文优先)。记住你是 ${p.id},请用你自己的声音。`;
-
-  // Round 2: cross-examinations (each panel member sees Round 0 + all Round 1 + their own Round 1)
-  const round2UserFor = (p, r1All, r1Mine) => {
-    const others = r1All.filter(s => s.id !== p.id);
-    const r1Block = others.map(s => `【${s.name}】\n${s.text}`).join("\n\n");
-    return `议题:"${topic}"\n\n主持人开场:\n${history.round0[0]?.text || ''}\n\n你上轮说:\n${r1Mine.text}\n\n其他人上轮说:\n${r1Block}\n\n现在请回应(反驳/追问/补充)上面至少一位发言者。1-3 段,150-300 字,中文优先,语气你自己的。`;
-  };
-
-  // === Run the round ===
-  let result = {};
-  try {
-    if (round === 0) {
-      const text = await llmCall(modSystemPrompt, modUser, 350);
-      result = {
-        round: 0,
-        title: "第 0 轮 · 主持人开场",
-        speeches: [{ type: "moderator", speaker_idx: 0, text, speaker: { id: moderator.id, name_zh: moderator.identity.split('(')[0].trim() } }],
-      };
-    } else if (round === 1) {
-      const modText = history.round0[0]?.text || "";
-      // Override user msg template with actual modText from history
-      const r1Results = await Promise.all(speakers.map(async (p) => {
-        try {
-          const userMsg = round1UserFor(p);
-          const text = await llmCall(p.voice_system_prompt, userMsg, 300);
-          return { id: p.id, name: p.identity.split('(')[0].trim(), text, error: null };
-        } catch (e) {
-          return { id: p.id, name: p.identity.split('(')[0].trim(), text: `(本轮失败: ${e.message.slice(0, 80)})`, error: e.message };
-        }
-      }));
-      result = {
-        round: 1,
-        title: "第 1 轮 · 立场陈述",
-        speeches: r1Results.map((r, i) => ({
-          type: "speech",
-          speaker_idx: i + 1,
-          text: r.text,
-          speaker: { id: r.id, name_zh: r.name, name_en: r.name },
-        })),
-      };
-    } else if (round === 2) {
-      const r1Results = history.round1.map(s => ({ id: s.speaker.id, name: s.speaker.name_zh, text: s.text }));
-      const r2Results = await Promise.all(speakers.map(async (p) => {
-        const r1Mine = r1Results.find(s => s.id === p.id);
-        if (!r1Mine) {
-          return { id: p.id, name: p.identity.split('(')[0].trim(), text: `(跳过: Round 1 missing)`, error: 'no r1' };
-        }
-        try {
-          const text = await llmCall(p.voice_system_prompt, round2UserFor(p, r1Results, r1Mine), 300);
-          return { id: p.id, name: p.identity.split('(')[0].trim(), text, error: null };
-        } catch (e) {
-          return { id: p.id, name: p.identity.split('(')[0].trim(), text: `(本轮失败: ${e.message.slice(0, 80)})`, error: e.message };
-        }
-      }));
-      result = {
-        round: 2,
-        title: "第 2 轮 · 交叉质询",
-        speeches: r2Results.map((r, i) => ({
-          type: "speech",
-          speaker_idx: i + 1,
-          text: r.text,
-          speaker: { id: r.id, name_zh: r.name, name_en: r.name },
-        })),
-      };
-    } else if (round === 3) {
-      const r1Results = history.round1.map(s => ({ id: s.speaker.id, name: s.speaker.name_zh, text: s.text }));
-      const r2Results = history.round2.map(s => ({ id: s.speaker.id, name: s.speaker.name_zh, text: s.text }));
-      const r1Block = r1Results.map(s => `【${s.name}】\n${s.text}`).join("\n\n");
-      const r2Block = r2Results.map(s => `【${s.name}】\n${s.text}`).join("\n\n");
-      const closingSpeaker = speakers[0];
-      const r3SummaryUser = `议题:"${topic}"\n\n第 1 轮发言:\n${r1Block}\n\n第 2 轮发言:\n${r2Block}\n\n现在请做 1 段总结,200-350 字,指出最尖锐的分歧(指明 1-2 位具体人物名字)+ 共识范围 + 仍有待回答的问题。`;
-      const r3ClosingUser = `议题:"${topic}"\n\n前两轮你已经说了:\n${r1Results.find(s => s.id === closingSpeaker.id)?.text || ''}\n\n其他人也回应了。请做收束性的终辩发言(1 段,150-300 字),用你自己的声音,说说你现在认为什么是最重要且最被忽视的。`;
-      const [modSummary, closingText] = await Promise.all([
-        llmCall(modSystemPrompt, r3SummaryUser, 450),
-        llmCall(closingSpeaker.voice_system_prompt, r3ClosingUser, 300),
-      ]);
-      result = {
-        round: 3,
-        title: "第 3 轮 · 总结与终辩",
-        speeches: [
-          { type: "moderator_close", speaker_idx: 0, text: modSummary, speaker: { id: moderator.id, name_zh: moderator.identity.split('(')[0].trim() } },
-          { type: "final", speaker_idx: panel.findIndex(p => p.id === closingSpeaker.id), text: closingText, speaker: { id: closingSpeaker.id, name_zh: closingSpeaker.identity.split('(')[0].trim() }, is_closing: true },
-        ],
-      };
-    }
-  } catch (e) {
-    return new Response(JSON.stringify({ error: `round ${round} failed: ${e.message}` }), { status: 502, headers: cors });
-  }
-
-  return new Response(JSON.stringify({
-    ...result,
-    round_count: panel.length,
-    panel_size: panel.length,
-    grad: "3.1",
-    provider: isMinimax ? "minimax (Anthropic-compatible)" : "anthropic",
-    fetched_at: new Date().toISOString(),
-  }), { headers: cors });
-}
-
-
-// === POST /api/salon/agent implementation (07-09 NEW, Grad 3 legacy 4-persona batch) ===
+// === POST /api/salon/agent implementation (07-09 NEW, Grad 3) ===
 // Multi-turn multi-agent philosophy debate.
 // Each persona = 1 independent LLM agent with its own system prompt and history.
 // Server runs a 4-round dialogue loop:
@@ -315,10 +116,10 @@ async function handleSalonAgentApi(request, env) {
     return new Response(JSON.stringify({ error: `invalid JSON body: ${e.message}` }), { status: 400, headers: cors });
   }
   const topic = (body.topic || "").trim();
-  let personaIds = Array.isArray(body.persona_ids) ? body.persona_ids.slice(0, 4) : null;
+  let personaIds = Array.isArray(body.persona_ids) ? body.persona_ids.slice(0, 6) : null;
   if (!topic) return new Response(JSON.stringify({ error: "topic is required" }), { status: 400, headers: cors });
-  if (personaIds && (personaIds.length < 2 || personaIds.length > 4)) {
-    return new Response(JSON.stringify({ error: "persona_ids length must be 2-4" }), { status: 400, headers: cors });
+  if (personaIds && (personaIds.length < 2 || personaIds.length > 6)) {
+    return new Response(JSON.stringify({ error: "persona_ids length must be 2-6" }), { status: 400, headers: cors });
   }
 
   const apiKey = env.MINIMAX_TOKEN || env.ANTHROPIC_API_KEY;
@@ -344,8 +145,8 @@ async function handleSalonAgentApi(request, env) {
     panel = personaIds.map(id => byId.get(id)).filter(Boolean);
   }
   if (panel.length < 3) {
-    // Default: top 4 of a curated "famous philosophers" starter set
-    const defaultIds = ["socrates", "laozi", "kant", "nietzsche"];
+    // Default: top 6 of a curated "famous philosophers" starter set
+    const defaultIds = ["socrates", "plato", "aristotle", "confucius", "laozi", "kant"];
     panel = defaultIds.map(id => byId.get(id)).filter(Boolean);
   }
   if (panel.length < 3) {
@@ -356,7 +157,7 @@ async function handleSalonAgentApi(request, env) {
   let speakers = panel.filter(p => p.id !== moderator.id);
 
   // === One LLM call helper ===
-  async function llmCall(systemPrompt, userMsg, maxTokens = 250) {
+  async function llmCall(systemPrompt, userMsg, maxTokens = 350) {
     const resp = await fetch(apiUrl, {
       method: "POST",
       headers: { "content-type": "application/json", "anthropic-version": "2023-06-01", ...authHeaders },
@@ -385,7 +186,7 @@ async function handleSalonAgentApi(request, env) {
 
   let modText;
   try {
-    modText = await llmCall(modSystemPrompt, modUser, 350);
+    modText = await llmCall(modSystemPrompt, modUser, 400);
   } catch (e) {
     return new Response(JSON.stringify({ error: `round 0 (moderator) failed: ${e.message}` }), { status: 502, headers: cors });
   }

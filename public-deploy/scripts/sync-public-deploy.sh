@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # Sync tracked root files to public-deploy/ (CF Workers deploy bundle)
 # Run this BEFORE git push if you changed any tracked HTML/file.
 # Worker + assets are read from public-deploy/, not root.
