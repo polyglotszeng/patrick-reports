@@ -93,14 +93,17 @@ jobs:
           with open("data/pads.json","w") as f: json.dump(pads_out, f, ensure_ascii=False)
           print(f"pads.json: {len(pads_top)} rankings + {len(enriched_top)} enriched (LL2 native)")
 
-          # Astronauts top-50 by flights_count
+          # Astronauts: pull all 858 from LL2 (paginated, 50 per page ~ 18 requests)
+          # then curate: top 100 by flights + ALL Chinese + ALL active + diversity top-3 per nationality + small nations
           crew = []; seen = set()
-          for page in range(6):
+          for page in range(20):  # 18 pages * 50 = 900 (LL2 caps at ~858)
             url = f"https://ll.thespacedevs.com/2.3.0/astronauts/?limit=50&offset={page*50}&mode=detailed"
             try:
               req = urllib.request.Request(url, headers=HEAD)
               d = json.loads(urllib.request.urlopen(req, timeout=60).read())
-              for a in d.get("results", []):
+              results = d.get("results", [])
+              if not results: break
+              for a in results:
                 if isinstance(a, dict) and a.get("id") not in seen:
                   seen.add(a["id"]); crew.append(a)
             except Exception as e:
@@ -108,39 +111,88 @@ jobs:
               break
             time.sleep(3)
 
-          def _nat(a):
+          def _nat_obj(a):
+            """v4.1.5: nationality is a LIST of dicts (LL2 returns [{id, name, nationality_name, alpha_2_code, ...}])"""
             n = a.get("nationality")
-            if isinstance(n, dict): return n.get("nationality_name", "Unknown")
-            if isinstance(n, str): return n
-            return "Unknown"
+            if isinstance(n, list) and n:
+              first = n[0]
+              return {
+                'name': first.get('name', 'Unknown'),
+                'nationality_name': first.get('nationality_name', 'Unknown'),
+                'alpha_2_code': first.get('alpha_2_code', ''),
+                'alpha_3_code': first.get('alpha_3_code', ''),
+              }
+            if isinstance(n, dict):
+              return {'name': n.get('name','Unknown'), 'nationality_name': n.get('nationality_name','Unknown'), 'alpha_2_code': n.get('alpha_2_code',''), 'alpha_3_code': n.get('alpha_3_code','')}
+            return {'name':'Unknown', 'nationality_name':'Unknown', 'alpha_2_code':'', 'alpha_3_code':''}
+          def _nat(a):
+            return _nat_obj(a)['nationality_name']
           def _ag(a):
             x = a.get("agency")
-            if isinstance(x, dict): return x.get("name", "Unknown")
-            return "Unknown" if x is None else x
+            if isinstance(x, dict):
+              return {'id': x.get('id'), 'name': x.get('name', 'Unknown'), 'abbrev': x.get('abbrev', '')}
+            return {'id': None, 'name': 'Unknown' if x is None else x, 'abbrev': ''}
+          def _ag_name(a): return _ag(a)['name']
           def _st(a):
             x = a.get("status")
+            if isinstance(x, dict): return x.get("name", "Unknown")
+            return "Unknown" if x is None else x
+          def _type(a):
+            x = a.get("type")
             if isinstance(x, dict): return x.get("name", "Unknown")
             return "Unknown" if x is None else x
           def _fld(a, key, exp="net"):
             v = a.get(key)
             if isinstance(v, dict): return v.get(exp)
             return v if isinstance(v, str) else None
+          def _img(a):
+            img = a.get("image")
+            if isinstance(img, dict): return img.get("image_url")
+            return img if isinstance(img, str) else None
 
-          crew.sort(key=lambda a: a.get("flights_count",0) or 0, reverse=True)
-          crew_top = crew[:50]
-          crew_out = {"generated_at":"{{ build_stamp }}","source":"The Space Devs LL2 /astronauts/ detailed (top 50 by flights_count, rate-limit aware)",
-                      "astronauts_total": 858, "astronauts": []}
-          for a in crew_top:
+          # v4.1.5: CURATE diverse set instead of just top-50
+          curated = {}
+          # 1. Top 100 by flights_count
+          for a in sorted(crew, key=lambda x: x.get("flights_count",0) or 0, reverse=True)[:100]:
+            curated[a["id"]] = a
+          # 2. ALL Chinese (priority - top of list)
+          for a in crew:
+            if _nat(a) == "Chinese":
+              curated[a["id"]] = a
+          # 3. ALL Active astronauts (current flying crew)
+          for a in crew:
+            if _st(a) == "Active":
+              curated[a["id"]] = a
+          # 4. Diversity: top 3 per nationality
+          by_nat = {}
+          for a in crew:
+            by_nat.setdefault(_nat(a), []).append(a)
+          for nat, grp in by_nat.items():
+            for a in sorted(grp, key=lambda x: x.get("flights_count",0) or 0, reverse=True)[:3]:
+              curated[a["id"]] = a
+          # 5. Special small nations (MY/SA/AE/IL/SY)
+          for a in crew:
+            nat = _nat_obj(a)
+            if nat['alpha_2_code'] in ('MY','SA','AE','IL','SY'):
+              curated[a["id"]] = a
+
+          crew_out = {"generated_at":"{{ build_stamp }}","source":f"The Space Devs LL2 /astronauts/ detailed ({len(crew)} pulled, curated to {len(curated)}: top 100 by flights + ALL Chinese + ALL Active + diversity per nationality + small nations)",
+                      "astronauts_total": len(crew), "curated_total": len(curated),
+                      "filters_meta": {"in_space_now": sum(1 for a in curated.values() if a.get("in_space"))},
+                      "astronauts": []}
+          for a in curated.values():
+            nat = _nat_obj(a); ag = _ag(a)
             crew_out["astronauts"].append({
               "id":a["id"],"name":a.get("name"),
-              "nationality": _nat(a), "agency": _ag(a),
-              "type":a.get("type"), "status": _st(a),
+              "nationality": nat['nationality_name'], "nationality_full": nat['name'], "country_code": nat['alpha_2_code'],
+              "agency": ag['name'], "agency_id": ag['id'], "agency_abbrev": ag['abbrev'],
+              "type":_type(a), "status": _st(a),
               "flights_count":a.get("flights_count",0),"spacewalks_count":a.get("spacewalks_count",0),
               "time_in_space":a.get("time_in_space"),"eva_time":a.get("eva_time"),"age":a.get("age"),
               "date_of_birth":a.get("date_of_birth"),"date_of_death":a.get("date_of_death"),
               "first_flight":_fld(a,"first_flight"),"last_flight":_fld(a,"last_flight"),
               "in_space":a.get("in_space"),
-              "image":(a.get("image") or {}).get("image_url") if isinstance(a.get("image"),dict) else None,
+              "image":_img(a),
               "bio_short":(a.get("bio") or "")[:300] if a.get("bio") else None,
               "wiki":a.get("wiki"),"url":a.get("url")
             })
