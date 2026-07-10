@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>🚀 Rocket Launch Live · 全球火箭发射实时追踪</title>
+<meta name="description" content="实时追踪全球火箭发射 — LL2 官方数据 + YouTube 直播 + Wikipedia + 任务徽章 + 社区更新流 + 实时 T- 倒计时。每 60 秒自动刷新。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='52'%3E🚀%3C/text%3E%3C/svg%3E">
+<style>
+  /* ===== Space-grade dark theme ===== */
+  :root{
+    --bg-0:#04060d;
+    --bg-1:#0a0e1a;
+    --bg-2:#111827;
+    --bg-3:#1a2235;
+    --line:#243049;
+    --line-2:#324466;
+    --text-0:#f1f5fb;
+    --text-1:#cbd5e1;
+    --text-2:#94a3b8;
+    --text-3:#64748b;
+    --accent:#06b6d4;       /* cyan-400 */
+    --accent-2:#22d3ee;
+    --accent-glow:rgba(6,182,212,.35);
+    --live:#ef4444;
+    --live-glow:rgba(239,68,68,.5);
+    --go:#22c55e;
+    --tbc:#f59e0b;
+    --tbd:#64748b;
+    --success:#22c55e;
+    --failure:#ef4444;
+    --partial:#f59e0b;
+    --hold:#a855f7;
+    --in-flight:#3b82f6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg-0);color:var(--text-1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(6,182,212,.06) 0%, transparent 40%),
+      radial-gradient(ellipse at 80% 100%, rgba(168,85,247,.05) 0%, transparent 40%),
+      var(--bg-0);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  /* Star field background */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      radial-gradient(1px 1px at 25% 15%, #fff 100%, transparent),
+      radial-gradient(1px 1px at 70% 35%, #cbd5e1 100%, transparent),
+      radial-gradient(1.5px 1.5px at 45% 65%, #fff 100%, transparent),
+      radial-gradient(1px 1px at 85% 80%, #94a3b8 100%, transparent),
+      radial-gradient(1px 1px at 10% 85%, #fff 100%, transparent),
+      radial-gradient(1px 1px at 55% 25%, #cbd5e1 100%, transparent),
+      radial-gradient(2px 2px at 35% 90%, #fff 100%, transparent),
+      radial-gradient(1px 1px at 92% 50%, #94a3b8 100%, transparent);
+    background-size: 1200px 800px;
+    opacity:.45;
+    animation: drift 240s linear infinite;
+  }
+  @keyframes drift{ from{background-position:0 0} to{background-position:-1200px -800px} }
+
+  .wrap{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:24px 20px 80px}
+
+  /* ===== Header ===== */
+  header.hero{
+    border:1px solid var(--line);border-radius:18px;padding:24px 28px;margin-bottom:24px;
+    background:linear-gradient(135deg, rgba(6,182,212,.08), rgba(168,85,247,.05));
+    backdrop-filter:blur(12px);
+    position:relative;overflow:hidden;
+  }
+  header.hero::after{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 80% 30%, var(--accent-glow), transparent 60%);
+    opacity:.4;
+  }
+  .hero-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .hero-emoji{font-size:42px;filter:drop-shadow(0 0 20px var(--accent-glow))}
+  .hero-title{font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--text-0);line-height:1.1}
+  .hero-sub{font-size:13px;color:var(--text-2);margin-top:4px;font-family:ui-monospace,SF Mono,Menlo,monospace}
+  .hero-stats{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap}
+  .stat{display:flex;flex-direction:column;align-items:flex-end;min-width:80px}
+  .stat-num{font-size:22px;font-weight:700;color:var(--text-0);font-variant-numeric:tabular-nums;font-family:ui-monospace,SF Mono,Menlo,monospace}
+  .stat-num.live{color:var(--live);text-shadow:0 0 12px var(--live-glow)}
+  .stat-label{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* ===== Tabs ===== */
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line);padding:0 4px;flex-wrap:wrap}
+  .tab{
+    background:transparent;border:0;color:var(--text-2);font-size:13px;font-weight:600;
+    padding:11px 16px;cursor:pointer;border-radius:8px 8px 0 0;position:relative;
+    transition:color .15s, background .15s;
+    display:flex;align-items:center;gap:6px;
+    font-family:inherit;
+  }
+  .tab:hover{color:var(--text-0);background:rgba(255,255,255,.02)}
+  .tab.active{color:var(--accent-2)}
+  .tab.active::after{
+    content:'';position:absolute;left:8px;right:8px;bottom:-1px;height:2px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    box-shadow:0 0 8px var(--accent-glow);
+  }
+  .tab-count{
+    background:var(--bg-3);color:var(--text-2);font-size:10px;
+    padding:1px 7px;border-radius:10px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .tab.active .tab-count{background:var(--accent);color:#000}
+
+  /* ===== Toolbar ===== */
+  .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .filter{
+    background:var(--bg-2);border:1px solid var(--line);color:var(--text-1);
+    padding:7px 12px;border-radius:8px;font-size:12px;outline:none;
+    font-family:inherit;cursor:pointer;
+  }
+  .filter:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .refresh-btn{
+    margin-left:auto;background:var(--bg-2);border:1px solid var(--line);color:var(--text-1);
+    padding:7px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;gap:6px;
+  }
+  .refresh-btn:hover{border-color:var(--accent);color:var(--accent-2)}
+  .refresh-btn.spinning svg{animation: spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .data-badge{
+    font-size:10px;color:var(--text-3);font-family:ui-monospace,SF Mono,Menlo,monospace;
+    padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-1);
+  }
+  .data-badge.fresh{color:var(--go);border-color:rgba(34,197,94,.3)}
+
+  /* ===== Launch card ===== */
+  .launch{
+    border:1px solid var(--line);border-radius:14px;background:var(--bg-1);
+    margin-bottom:12px;overflow:hidden;transition:border-color .15s, transform .15s;
+  }
+  .launch:hover{border-color:var(--line-2)}
+  .launch.is-live{border-color:rgba(239,68,68,.5);box-shadow:0 0 0 1px rgba(239,68,68,.3), 0 0 30px rgba(239,68,68,.15)}
+  .launch.is-go{border-color:rgba(34,197,94,.4)}
+  .launch-row{
+    display:grid;grid-template-columns:80px 1fr auto auto;gap:16px;align-items:center;
+    padding:14px 18px;cursor:pointer;
+  }
+  .launch-thumb{
+    width:80px;height:80px;border-radius:10px;overflow:hidden;background:var(--bg-3);
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .launch-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .launch-thumb-fallback{font-size:36px;opacity:.4}
+  .launch-thumb-pad{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top, rgba(0,0,0,.8), transparent);padding:8px 6px 4px;font-size:9px;color:var(--text-1);text-align:center;font-family:ui-monospace,SF Mono,Menlo,monospace}
+  .launch-info{min-width:0}
+  .launch-name{font-size:15px;font-weight:700;color:var(--text-0);margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .launch-name .agency-tag{font-size:10px;font-weight:500;color:var(--text-3);background:var(--bg-3);padding:2px 6px;border-radius:4px}
+  .launch-meta{font-size:11px;color:var(--text-3);display:flex;gap:12px;flex-wrap:wrap;font-family:ui-monospace,SF Mono,Menlo,monospace}
+  .launch-meta-item{display:flex;align-items:center;gap:4px}
+  .launch-meta-item svg{width:11px;height:11px;opacity:.6}
+
+  /* Status badge */
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;
+    padding:4px 9px;border-radius:6px;text-transform:uppercase;letter-spacing:.06em;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;white-space:nowrap;
+  }
+  .badge.go{background:rgba(34,197,94,.15);color:var(--go);border:1px solid rgba(34,197,94,.3)}
+  .badge.tbc{background:rgba(245,158,11,.15);color:var(--tbc);border:1px solid rgba(245,158,11,.3)}
+  .badge.tbd{background:rgba(100,116,139,.15);color:var(--tbd);border:1px solid rgba(100,116,139,.3)}
+  .badge.success{background:rgba(34,197,94,.15);color:var(--success);border:1px solid rgba(34,197,94,.3)}
+  .badge.failure{background:rgba(239,68,68,.15);color:var(--failure);border:1px solid rgba(239,68,68,.3)}
+  .badge.partial{background:rgba(245,158,11,.15);color:var(--partial);border:1px solid rgba(245,158,11,.3)}
+  .badge.hold{background:rgba(168,85,247,.15);color:var(--hold);border:1px solid rgba(168,85,247,.3)}
+  .badge.in-flight{background:rgba(59,130,246,.15);color:var(--in-flight);border:1px solid rgba(59,130,246,.3);animation: pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1} 50%{opacity:.65}}
+  .badge.live-dot::before{
+    content:'';width:6px;height:6px;border-radius:50%;background:currentColor;
+    box-shadow:0 0 6px currentColor;animation: blink 1.2s ease-in-out infinite;
+  }
+  @keyframes blink{0%,100%{opacity:1} 50%{opacity:.3}}
+
+  /* T- countdown */
+  .countdown{
+    text-align:right;min-width:120px;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+  }
+  .countdown-time{font-size:18px;font-weight:700;color:var(--text-0);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .countdown-time.t-zero{color:var(--live);text-shadow:0 0 12px var(--live-glow);animation: pulse 1.2s ease-in-out infinite}
+  .countdown-time.t-past{color:var(--text-3)}
+  .countdown-label{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* Expanded panel */
+  .launch-detail{
+    border-top:1px solid var(--line);padding:18px 22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.01), transparent);
+    display:none;
+  }
+  .launch.open .launch-detail{display:block}
+  .launch.open .launch-row{background:rgba(255,255,255,.02)}
+  .launch.open .chevron{transform:rotate(180deg)}
+  .chevron{width:16px;height:16px;color:var(--text-3);transition:transform .2s;margin-left:8px}
+
+  .detail-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;margin-bottom:20px}
+  @media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
+  .detail-section{margin-bottom:20px}
+  .detail-section-title{
+    font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;
+    letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .detail-section-title::after{content:'';flex:1;height:1px;background:var(--line)}
+  .detail-text{font-size:13px;color:var(--text-1);line-height:1.6}
+
+  /* Crew */
+  .crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+  .crew-card{
+    background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:12px;
+    display:flex;gap:10px;align-items:center;
+  }
+  .crew-avatar{
+    width:42px;height:42px;border-radius:50%;background:var(--bg-3);
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+    overflow:hidden;flex-shrink:0;
+  }
+  .crew-avatar img{width:100%;height:100%;object-fit:cover}
+  .crew-info{min-width:0}
+  .crew-name{font-size:13px;font-weight:600;color:var(--text-0)}
+  .crew-role{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+
+  /* Webcasts */
+  .webcast-list{display:flex;flex-direction:column;gap:8px}
+  .webcast{
+    display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center;
+    background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+    padding:10px;text-decoration:none;color:inherit;transition:border-color .15s;
+  }
+  .webcast:hover{border-color:var(--accent)}
+  .webcast-thumb{
+    width:120px;height:68px;border-radius:6px;overflow:hidden;background:var(--bg-3);
+    position:relative;
+  }
+  .webcast-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .webcast-thumb-placeholder{
+    width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, var(--bg-3), var(--bg-2));font-size:24px;
+  }
+  .webcast-type-tag{
+    position:absolute;top:4px;left:4px;background:rgba(0,0,0,.85);color:#fff;
+    font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .webcast-type-tag.official{background:var(--accent);color:#000}
+  .webcast-type-tag.recent{background:rgba(245,158,11,.9);color:#000}
+  .webcast-info{min-width:0}
+  .webcast-title{font-size:12px;font-weight:600;color:var(--text-0);margin-bottom:3px;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .webcast-meta{font-size:10px;color:var(--text-3);display:flex;gap:8px;flex-wrap:wrap}
+  .webcast-cta{
+    background:var(--accent);color:#000;font-size:11px;font-weight:700;
+    padding:6px 10px;border-radius:6px;text-transform:uppercase;letter-spacing:.05em;
+    white-space:nowrap;
+  }
+
+  /* Updates */
+  .updates{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
+  .update{
+    background:var(--bg-2);border-left:2px solid var(--accent);border-radius:0 8px 8px 0;
+    padding:8px 12px;font-size:12px;
+  }
+  .update-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .update-author{font-size:11px;font-weight:600;color:var(--text-1);display:flex;align-items:center;gap:6px}
+  .update-author img{width:16px;height:16px;border-radius:50%}
+  .update-time{font-size:10px;color:var(--text-3);font-family:ui-monospace,SF Mono,Menlo,monospace}
+  .update-text{color:var(--text-1);line-height:1.4}
+  .update-info-link{font-size:10px;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block}
+  .update-info-link:hover{text-decoration:underline}
+
+  /* Info URLs */
+  .info-list{display:flex;flex-direction:column;gap:6px}
+  .info-link{
+    display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-2);
+    border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit;
+    font-size:12px;transition:border-color .15s;
+  }
+  .info-link:hover{border-color:var(--accent)}
+  .info-link-icon{
+    width:28px;height:28px;border-radius:6px;background:var(--bg-3);
+    display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+  }
+  .info-link-text{flex:1;min-width:0}
+  .info-link-title{color:var(--text-0);font-weight:500;margin-bottom:2px}
+  .info-link-source{color:var(--text-3);font-size:10px;font-family:ui-monospace,SF Mono,Menlo,monospace}
+
+  /* Action row */
+  .action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .action-btn{
+    background:var(--bg-2);border:1px solid var(--line);color:var(--text-1);
+    padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;
+    text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+    transition:border-color .15s, color .15s;font-family:inherit;cursor:pointer;
+  }
+  .action-btn:hover{border-color:var(--accent);color:var(--accent-2)}
+  .action-btn svg{width:13px;height:13px}
+
+  /* Map */
+  .map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+  .map-card{
+    background:var(--bg-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px;display:flex;flex-direction:column;gap:6px;
+  }
+  .map-card-name{font-size:14px;font-weight:700;color:var(--text-0)}
+  .map-card-count{font-size:24px;font-weight:800;color:var(--accent);font-family:ui-monospace,SF Mono,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .map-card-launches{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+  .map-launch-mini{font-size:11px;color:var(--text-2);padding:6px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:6px}
+  .map-launch-mini-time{color:var(--text-3);font-family:ui-monospace,SF Mono,Menlo,monospace;white-space:nowrap}
+
+  /* Empty / loading */
+  .empty-state{
+    text-align:center;padding:60px 20px;color:var(--text-3);
+  }
+  .empty-state-emoji{font-size:48px;opacity:.5;margin-bottom:12px}
+  .empty-state-text{font-size:14px}
+  .loading{
+    display:flex;align-items:center;justify-content:center;gap:10px;padding:60px;
+    color:var(--text-3);font-size:13px;
+  }
+  .loading-spinner{
+    width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation: spin .8s linear infinite;
+  }
+
+  /* World pad dots */
+  .pad-pin{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;box-shadow:0 0 6px var(--accent-glow)}
+
+  /* Footer */
+  footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:11px;color:var(--text-3);font-family:ui-monospace,SF Mono,Menlo,monospace;text-align:center;line-height:1.8}
+  footer a{color:var(--text-2);text-decoration:none}
+  footer a:hover{color:var(--accent-2)}
+
+  /* Lightbox for rocket image */
+  .lightbox{
+    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;
+    display:none;align-items:center;justify-content:center;cursor:pointer;padding:40px;
+  }
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 0 40px var(--accent-glow)}
+  .lightbox-close{position:absolute;top:20px;right:20px;color:#fff;font-size:32px;cursor:pointer}
+
+  /* Responsive */
+  @media(max-width:760px){
+    .hero-row{flex-direction:column;align-items:flex-start}
+    .hero-stats{margin-left:0;width:100%;justify-content:space-between;gap:14px}
+    .stat{align-items:flex-start;min-width:0}
+    .stat-num{font-size:18px}
+    .launch-row{grid-template-columns:60px 1fr auto;gap:10px;padding:10px 12px}
+    .launch-thumb{width:60px;height:60px}
+    .launch-meta{gap:6px;font-size:10px}
+    .launch-name{font-size:13px}
+    .countdown{grid-column:1/3;display:flex;justify-content:space-between;align-items:center;background:var(--bg-2);padding:8px 12px;border-radius:8px;margin-top:6px}
+    .countdown-time{font-size:16px}
+    .badge{font-size:9px;padding:3px 6px}
+    .webcast{grid-template-columns:1fr}
+    .webcast-thumb{width:100%;height:140px}
+    .tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+    .tab{white-space:nowrap;font-size:12px;padding:9px 12px}
+    .wrap{padding:14px 12px 60px}
+    header.hero{padding:18px 18px}
+    .hero-title{font-size:22px}
+  }
+  @media(max-width:440px){
+    .hero-stats{flex-wrap:wrap}
+    .stat{flex:0 0 calc(50% - 8px);min-width:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="hero-row">
+      <div class="hero-emoji">🚀</div>
+      <div>
+        <div class="hero-title">Rocket Launch Live</div>
+        <div class="hero-sub">全球火箭发射实时追踪 · LL2 + YouTube + Wikipedia · 每 60s 自动刷新</div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Upcoming</div></div>
+        <div class="stat"><div class="stat-num" id="statRecent">—</div><div class="stat-label">Past 30d</div></div>
+        <div class="stat"><div class="stat-num" id="statLive" style="color:var(--text-3)">—</div><div class="stat-label">Live now</div></div>
+        <div class="stat"><div class="stat-num" id="statNext">—</div><div class="stat-label">Next 7d</div></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-tab="upcoming7">⏭️ Next 7 days <span class="tab-count" id="tabCount7">0</span></button>
+    <button class="tab" data-tab="live">🔴 Live / Imminent <span class="tab-count" id="tabCountLive">0</span></button>
+    <button class="tab" data-tab="upcoming">📅 All upcoming <span class="tab-count" id="tabCountAll">0</span></button>
+    <button class="tab" data-tab="recent">✅ Recent (30d) <span class="tab-count" id="tabCountRecent">0</span></button>
+    <button class="tab" data-tab="map">🗺️ World map</button>
+  </div>
+
+  <div class="toolbar">
+    <select class="filter" id="agencyFilter">
+      <option value="">All agencies</option>
+    </select>
+    <select class="filter" id="rocketFilter">
+      <option value="">All rockets</option>
+    </select>
+    <div class="data-badge" id="dataBadge">loading…</div>
+    <button class="refresh-btn" id="refreshBtn" title="Force refresh now">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div id="contentArea"></div>
+
+  <footer>
+    Data: <a href="https://ll.thespacedevs.com/" target="_blank" rel="noopener">Launch Library 2</a> (CC-BY) ·
+    Refreshed every 60s · Cached locally · Last sync: <span id="lastSync">—</span><br>
+    <span style="opacity:.7">v1.0 · built 2026-07-10 · Patrick Liu · Powered by CelesTrak · LL2 detailed mode · YouTube search auto-derive</span>
+  </footer>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+  <span class="lightbox-close">×</span>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+// CONFIG
+// ============================================================
+const LL2 = 'https://ll.thespacedevs.com/2.2.0';
+const REFRESH_MS = 60_000;
+const COUNTDOWN_REFRESH_MS = 1_000;
+const STORAGE_KEY = 'rocket-launch-live-v1';
+const DETAIL_CACHE_KEY = 'rocket-launch-live-detail-v1';
+const DETAIL_CACHE_TTL_MS = 30 * 60 * 1000; // 30 min for detailed launches
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  upcoming: [],
+  previous: [],
+  detailMap: {},     // id -> detailed launch
+  detailPromises: {},// id -> in-flight Promise
+  activeTab: 'upcoming7',
+  filters: { agency: '', rocket: '' },
+  lastFetchAt: null,
+  countdownTimer: null,
+  view: null, // 'live' | 'upcoming7' | 'upcoming' | 'recent' | 'map'
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
+
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtUtc(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toISOString().replace('T',' ').replace(/\.\d+Z$/, ' UTC').slice(0, 17);
+}
+function fmtLocal(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false});
+}
+function fmtLocalShort(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:false});
+}
+function fmtLocalTime(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit', hour12:false});
+}
+function fmtRel(iso){
+  if(!iso) return '';
+  const now = Date.now();
+  const t = new Date(iso).getTime();
+  const diff = t - now;
+  const abs = Math.abs(diff);
+  const sec = Math.floor(abs / 1000);
+  const future = diff > 0;
+  const fmt = () => {
+    const d = Math.floor(sec / 86400);
+    const h = Math.floor((sec % 86400) / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if(d > 0) return `${d}d ${h}h ${m}m`;
+    if(h > 0) return `${h}h ${m}m ${s}s`;
+    if(m > 0) return `${m}m ${String(s).padStart(2,'0')}s`;
+    return `${s}s`;
+  };
+  return future ? `T-${fmt()}` : `T+${fmt()}`;
+}
+function statusBadgeClass(s){
+  const abbr = (s && s.abbrev || '').toLowerCase();
+  if(abbr === 'go') return 'go';
+  if(abbr === 'tbc') return 'tbc';
+  if(abbr === 'tbd') return 'tbd';
+  if(abbr === 'success') return 'success';
+  if(abbr === 'failure') return 'failure';
+  if(abbr === 'partial failure' || abbr === 'partial success') return 'partial';
+  if(abbr === 'hold' || abbr === 'on hold') return 'hold';
+  if(abbr === 'in flight') return 'in-flight';
+  return 'tbd';
+}
+
+// Wikipedia URL auto-derive from rocket configuration / mission
+function wikiUrl(launch){
+  const candidates = [];
+  const r = launch.rocket && launch.rocket.configuration;
+  if(r){
+    candidates.push(r.full_name, r.name, r.family);
+  }
+  if(launch.mission && launch.mission.name){
+    candidates.push(launch.mission.name);
+  }
+  if(launch.launch_service_provider){
+    candidates.push(launch.launch_service_provider.name + ' ' + (r ? r.name : ''));
+  }
+  // Pick first non-generic
+  const filtered = candidates.filter(c => c && c.toLowerCase() !== 'unknown payload' && !/^demo flight$/i.test(c));
+  if(filtered.length === 0) return null;
+  const q = encodeURIComponent(filtered[0]);
+  return `https://en.wikipedia.org/w/index.php?search=${q}`;
+}
+
+// YouTube search URL auto-derive
+function ytSearchUrl(launch){
+  const r = launch.rocket && launch.rocket.configuration;
+  const rocketName = r ? r.full_name : '';
+  const mission = launch.mission && launch.mission.name;
+  let query = `${rocketName} ${mission}`.trim();
+  query = query.replace(/\bUnknown Payload\b/g, '').replace(/\s+/g, ' ').trim();
+  if(!query) return null;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query + ' launch')}`;
+}
+
+// SpaceX specific launch page (if detected)
+function spacexLaunchUrl(launch){
+  if(!launch.launch_service_provider) return null;
+  const n = launch.launch_service_provider.name || '';
+  if(n !== 'SpaceX') return null;
+  // Try to derive slug from mission name (e.g. "Starlink Group 17-48" -> "sl-17-48")
+  const m = launch.mission && launch.mission.name || '';
+  const sl = m.match(/Starlink\s+(\d+)-(\d+)/i);
+  if(sl) return `https://www.spacex.com/launches/sl-${sl[1]}-${sl[2]}`;
+  return 'https://www.spacex.com/launches/';
+}
+
+// Roscosmos / NASA / ISRO page heuristics
+function agencyLaunchUrl(launch){
+  const ag = launch.launch_service_provider;
+  if(!ag) return null;
+  const n = ag.name || '';
+  const map = {
+    'SpaceX': 'https://www.spacex.com/launches/',
+    'NASA': 'https://www.nasa.gov/launchschedule/',
+    'Russian Federal Space Agency (ROSCOSMOS)': 'https://en.roscosmos.ru/launches/',
+    'Rocket Lab': 'https://www.rocketlabusa.com/missions/launch-watch/',
+    'Indian Space Research Organization': 'https://www.isro.gov.in/Launchers.html',
+    'Japan Aerospace Exploration Agency': 'https://global.jaxa.jp/launch/',
+    'China Aerospace Science and Technology Corporation': 'http://www.spacechina.com/n25/index.html',
+    'Blue Origin': 'https://www.blueorigin.com/missions',
+    'United Launch Alliance (ULA)': 'https://www.ulalaunch.com/',
+    'Arianespace': 'https://www.arianespace.com/',
+    'Northrop Grumman': 'https://www.northropgrumman.com/space/',
+  };
+  for(const k of Object.keys(map)){
+    if(n.includes(k.split(' (')[0]) || k.includes(n)) return map[k];
+  }
+  if(ag.info_url) return ag.info_url;
+  if(ag.wiki_url) return ag.wiki_url;
+  return null;
+}
+
+// Cache helpers
+function loadCache(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(_){ return null; }
+}
+function saveCache(upcoming, previous){
+  try {
+    const slim = upcoming.map(slimLaunch);
+    const slimPrev = previous.map(slimLaunch);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({upcoming:slim, previous:slimPrev, ts: Date.now()}));
+  } catch(_){}
+}
+function slimLaunch(l){
+  return {
+    id: l.id, name: l.name, slug: l.slug, status: l.status, net: l.net, window_start: l.window_start, window_end: l.window_end,
+    last_updated: l.last_updated, webcast_live: l.webcast_live, image: l.image,
+    rocket: l.rocket, mission: l.mission, pad: l.pad, launch_service_provider: l.launch_service_provider,
+    program: l.program,
+    // Detailed fields if present
+    vidURLs: l.vidURLs, infoURLs: l.infoURLs, updates: l.updates, mission_patches: l.mission_patches,
+    flightclub_url: l.flightclub_url,
+  };
+}
+
+// ============================================================
+// DATA FETCH
+// ============================================================
+async function fetchLL2(endpoint){
+  const r = await fetch(`${LL2}${endpoint}`, {cache:'no-store'});
+  if(!r.ok) throw new Error(`${endpoint} → ${r.status}`);
+  return r.json();
+}
+
+async function fetchDetail(launchId){
+  if(state.detailMap[launchId]) return state.detailMap[launchId];
+  if(state.detailPromises[launchId]) return state.detailPromises[launchId];
+  const p = (async () => {
+    try {
+      const d = await fetchLL2(`/launch/${launchId}/?mode=detailed`);
+      state.detailMap[launchId] = d;
+      return d;
+    } catch(e){
+      console.warn('detail fail', launchId, e);
+      return null;
+    } finally {
+      delete state.detailPromises[launchId];
+    }
+  })();
+  state.detailPromises[launchId] = p;
+  return p;
+}
+
+async function fetchAll(){
+  // Fetch upcoming 50 + previous 50 in parallel
+  const [upRes, prevRes] = await Promise.all([
+    fetchLL2('/launch/upcoming/?limit=100&mode=detailed'),
+    fetchLL2('/launch/previous/?limit=100&mode=detailed'),
+  ]);
+  state.upcoming = upRes.results;
+  state.previous = prevRes.results;
+  state.lastFetchAt = Date.now();
+  saveCache(state.upcoming, state.previous);
+  updateLastSyncBadge();
+  populateFilters();
+  // Pre-fetch detail for top 20 launches by recency
+  const all = [...state.upcoming.slice(0, 30), ...state.previous.slice(0, 20)];
+  // LL2 detailed mode already returned vidURLs/updates in list - only enrich if missing
+  const need = all.filter(l => !l.vidURLs && !l.updates);
+  await Promise.all(need.slice(0, 8).map(l => fetchDetail(l.id).catch(()=>null)));
+}
+
+function updateLastSyncBadge(){
+  if(!state.lastFetchAt) return;
+  const secAgo = Math.floor((Date.now() - state.lastFetchAt) / 1000);
+  const badge = $('#dataBadge');
+  badge.textContent = `synced ${secAgo}s ago · ${state.upcoming.length + state.previous.length} loaded`;
+  badge.classList.toggle('fresh', secAgo < 90);
+}
+
+function populateFilters(){
+  const agencies = new Set(), rockets = new Set();
+  [...state.upcoming, ...state.previous].forEach(l => {
+    if(l.launch_service_provider && l.launch_service_provider.name) agencies.add(l.launch_service_provider.name);
+    if(l.rocket && l.rocket.configuration && l.rocket.configuration.full_name) rockets.add(l.rocket.configuration.full_name);
+  });
+  const fill = (sel, items) => {
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${sel.id === 'agencyFilter' ? 'All agencies' : 'All rockets'}</option>` +
+      [...items].sort().map(x => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('');
+    sel.value = cur;
+  };
+  fill($('#agencyFilter'), agencies);
+  fill($('#rocketFilter'), rockets);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  state.view = state.activeTab;
+  const area = $('#contentArea');
+  if(!state.upcoming.length && !state.previous.length){
+    area.innerHTML = '<div class="loading"><div class="loading-spinner"></div>Loading LL2 data…</div>';
+    return;
+  }
+  const now = Date.now();
+  const sevenDays = 7 * 86400 * 1000;
+  const oneMonth = 30 * 86400 * 1000;
+
+  const filt = l => {
+    if(state.filters.agency && l.launch_service_provider && l.launch_service_provider.name !== state.filters.agency) return false;
+    if(state.filters.rocket && l.rocket && l.rocket.configuration && l.rocket.configuration.full_name !== state.filters.rocket) return false;
+    return true;
+  };
+
+  // Build the canonical upcoming list: future NET OR live-flagged OR status not Success/Failure
+  const isPast = l => new Date(l.net).getTime() < now;
+  const isPastSuccess = l => {
+    const t = new Date(l.net).getTime();
+    return t < now && l.status && (l.status.abbrev === 'Success' || l.status.abbrev === 'Failure' || l.status.abbrev === 'Partial Failure' || l.status.abbrev === 'Partial Success');
+  };
+  // "active" upcoming = not yet successfully/unsuccessfully concluded
+  const activeUpcoming = state.upcoming.filter(l => !isPastSuccess(l));
+  // "recent" = past NET (any source, deduped by id)
+  const seenIds = new Set();
+  const allRecent = [];
+  [...state.previous, ...state.upcoming.filter(isPastSuccess)]
+    .sort((a,b) => new Date(b.net) - new Date(a.net))
+    .forEach(l => { if(!seenIds.has(l.id)){ seenIds.add(l.id); allRecent.push(l); } });
+
+  const upcomingFiltered = activeUpcoming.filter(filt);
+  const recentFiltered = allRecent.filter(filt);
+
+  let list, viewName;
+  switch(state.activeTab){
+    case 'upcoming7':
+      list = upcomingFiltered
+        .filter(l => { const t = new Date(l.net).getTime(); return t - now < sevenDays && t > now - 3600*1000; })
+        .sort((a,b) => new Date(a.net) - new Date(b.net));
+      viewName = 'Next 7 days';
+      break;
+    case 'live':
+      list = upcomingFiltered
+        .filter(l => {
+          const t = new Date(l.net).getTime();
+          const win = l.webcast_live || (t - now < 30 * 60 * 1000 && t - now > -2 * 3600 * 1000);
+          return win;
+        })
+        .sort((a,b) => Math.abs(new Date(a.net) - now) - Math.abs(new Date(b.net) - now));
+      viewName = 'Live / Imminent (T-30m → T+2h)';
+      break;
+    case 'upcoming':
+      list = upcomingFiltered.slice().sort((a,b) => new Date(a.net) - new Date(b.net));
+      viewName = 'All upcoming';
+      break;
+    case 'recent':
+      list = recentFiltered
+        .filter(l => now - new Date(l.net).getTime() < oneMonth)
+        .sort((a,b) => new Date(b.net) - new Date(a.net));
+      viewName = 'Recent (30 days)';
+      break;
+    case 'map':
+      renderMap(upcomingFiltered);
+      return;
+  }
+
+  if(list.length === 0){
+    area.innerHTML = `<div class="empty-state"><div class="empty-state-emoji">🌌</div><div class="empty-state-text">No launches in <b>${viewName}</b>${state.filters.agency || state.filters.rocket ? ' for current filters' : ''}.<br><span style="font-size:11px;opacity:.7">Try a different tab or clear filters.</span></div></div>`;
+    return;
+  }
+
+  area.innerHTML = list.map((l, i) => launchCardHtml(l, i)).join('');
+  attachCardHandlers();
+  updateCountdowns();
+
+  // Test mode: ?expand=<id> auto-opens one card for screenshot verification
+  const params = new URLSearchParams(location.search);
+  if(params.has('expand')){
+    const sel = params.get('expand');
+    const card = sel === 'first'
+      ? document.querySelector('.launch')
+      : document.querySelector(`.launch[data-id="${sel}"]`);
+    if(card) card.classList.add('open');
+  }
+}
+
+function launchCardHtml(l, idx){
+  const t = new Date(l.net).getTime();
+  const isLive = l.webcast_live || (t - Date.now() < 30*60*1000 && t - Date.now() > -2*3600*1000);
+  const isGo = l.status && l.status.abbrev === 'Go';
+  const cls = ['launch'];
+  if(isLive) cls.push('is-live');
+  else if(isGo) cls.push('is-go');
+
+  const rocket = l.rocket && l.rocket.configuration || {};
+  const agency = l.launch_service_provider || {};
+  const pad = l.pad || {};
+  const loc = pad.location || {};
+  const mission = l.mission || {};
+  const statusCls = statusBadgeClass(l.status);
+
+  // Pick best thumbnail: rocket image → mission patch → agency logo
+  const thumb = l.image || (l.mission_patches && l.mission_patches[0] && l.mission_patches[0].image_url) || (agency.logo_url) || null;
+  const thumbHtml = thumb
+    ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(rocket.full_name || 'rocket')}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'launch-thumb-fallback',textContent:'🚀'}))">`
+    : `<div class="launch-thumb-fallback">🚀</div>`;
+
+  return `
+    <article class="${cls.join(' ')}" data-id="${l.id}" data-net="${l.net}" data-tab="${state.activeTab}">
+      <div class="launch-row" data-toggle="${l.id}">
+        <div class="launch-thumb" onclick="event.stopPropagation(); window.open('${escapeHtml(thumb || 'https://ll.thespacedevs.com/')}','_blank')">
+          ${thumbHtml}
+          ${pad.name ? `<div class="launch-thumb-pad">${escapeHtml(pad.name)}</div>` : ''}
+        </div>
+        <div class="launch-info">
+          <div class="launch-name">
+            ${escapeHtml(l.name)}
+            <span class="agency-tag">${escapeHtml(agency.name || '—')}</span>
+          </div>
+          <div class="launch-meta">
+            <span class="launch-meta-item">📍 ${escapeHtml(loc.name || '—')}</span>
+            <span class="launch-meta-item">🚀 ${escapeHtml(rocket.full_name || '—')}</span>
+            <span class="launch-meta-item">🛰️ ${escapeHtml((mission.orbit && mission.orbit.name) || '—')}</span>
+            <span class="launch-meta-item">📋 ${escapeHtml(mission.type || '—')}</span>
+            ${l.program && l.program.length ? `<span class="launch-meta-item">🏷️ ${escapeHtml(l.program.map(p=>p.name).join(' · '))}</span>` : ''}
+          </div>
+        </div>
+        <div class="countdown">
+          <div class="countdown-time" data-net="${l.net}">${fmtRel(l.net)}</div>
+          <div class="countdown-label">${escapeHtml(fmtLocalShort(l.net))}</div>
+        </div>
+        <span class="badge ${statusCls}${isLive ? ' live-dot' : ''}">
+          ${isLive ? 'LIVE' : escapeHtml(l.status.abbrev || '—')}
+        </span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="launch-detail" id="detail-${l.id}">
+        ${launchDetailHtml(l)}
+      </div>
+    </article>`;
+}
+
+function launchDetailHtml(l){
+  const rocket = l.rocket && l.rocket.configuration || {};
+  const agency = l.launch_service_provider || {};
+  const pad = l.pad || {};
+  const loc = pad.location || {};
+  const mission = l.mission || {};
+  const spacecraft = l.rocket && l.rocket.spacecraft_stage;
+
+  const missionPatch = (l.mission_patches && l.mission_patches[0]) || null;
+  const patchSection = missionPatch ? `
+    <div class="detail-section">
+      <div class="detail-section-title">Mission patch</div>
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        <img src="${escapeHtml(missionPatch.image_url)}" alt="${escapeHtml(missionPatch.name || 'patch')}" style="width:140px;height:140px;border-radius:10px;background:var(--bg-2);cursor:pointer" onclick="document.getElementById('lightboxImg').src='${escapeHtml(missionPatch.image_url)}';document.getElementById('lightbox').classList.add('open')" onerror="this.style.display='none'">
+        <div class="detail-text">${escapeHtml(missionPatch.name || '')}</div>
+      </div>
+    </div>` : '';
+
+  // Description (mission)
+  const desc = mission.description ? `
+    <div class="detail-section">
+      <div class="detail-section-title">Mission</div>
+      <div class="detail-text">${escapeHtml(mission.description).replace(/\r\n/g,'<br>')}</div>
+    </div>` : '';
+
+  // Crew
+  let crewSection = '';
+  if(spacecraft && spacecraft.launch_crew && spacecraft.launch_crew.length){
+    crewSection = `
+      <div class="detail-section">
+        <div class="detail-section-title">Crew (${spacecraft.launch_crew.length})</div>
+        <div class="crew-grid">
+          ${spacecraft.launch_crew.map(c => {
+            const a = c.astronaut || {};
+            const avatar = a.profile_image || a.profile_image_thumbnail || '';
+            return `<div class="crew-card">
+              <div class="crew-avatar">${avatar ? `<img src="${escapeHtml(avatar)}" alt="${escapeHtml(a.name)}" loading="lazy">` : '👨‍🚀'}</div>
+              <div class="crew-info">
+                <div class="crew-name">${escapeHtml(a.name)}</div>
+                <div class="crew-role">${escapeHtml((c.role && c.role.role) || '')} · ${escapeHtml((a.agency && a.agency.abbrev) || (a.agency && a.agency.name) || '')}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Webcasts (vidURLs)
+  const vids = (l.vidURLs || []).slice().sort((a,b) => (b.priority||0) - (a.priority||0));
+  let webcastSection = '';
+  if(vids.length){
+    webcastSection = `
+      <div class="detail-section">
+        <div class="detail-section-title">🎬 Webcasts (${vids.length})</div>
+        <div class="webcast-list">
+          ${vids.map(v => {
+            const typeName = (v.type && v.type.name) || 'Webcast';
+            const typeId = v.type && v.type.id;
+            const isOfficial = typeId === 1;
+            const isRecent = v.end_time && new Date(v.end_time) > new Date(Date.now() - 12*3600*1000);
+            const isLive = v.end_time == null || new Date(v.end_time) > new Date();
+            const tagCls = isOfficial ? 'official' : (isRecent || isLive ? 'recent' : '');
+            const tagLabel = isOfficial ? '★ OFFICIAL' : (isLive ? 'LIVE' : (typeName.includes('Re-stream') ? 'RE-STREAM' : typeName.toUpperCase()));
+            return `<a class="webcast" href="${escapeHtml(v.url)}" target="_blank" rel="noopener">
+              <div class="webcast-thumb">
+                ${v.feature_image ? `<img src="${escapeHtml(v.feature_image)}" alt="" loading="lazy">` : `<div class="webcast-thumb-placeholder">▶️</div>`}
+                <span class="webcast-type-tag ${tagCls}">${tagLabel}</span>
+              </div>
+              <div class="webcast-info">
+                <div class="webcast-title">${escapeHtml(v.title || '')}</div>
+                <div class="webcast-meta">
+                  <span>${escapeHtml(v.publisher || '')}</span>
+                  ${v.language ? `<span>🌐 ${escapeHtml((v.language.code || '').toUpperCase())}</span>` : ''}
+                  ${v.start_time ? `<span>🕐 ${escapeHtml(fmtUtc(v.start_time))}</span>` : ''}
+                </div>
+              </div>
+              <span class="webcast-cta">Watch ↗</span>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Updates
+  const updates = (l.updates || []).slice().sort((a,b) => new Date(b.created_on) - new Date(a.created_on)).slice(0, 6);
+  let updatesSection = '';
+  if(updates.length){
+    updatesSection = `
+      <div class="detail-section">
+        <div class="detail-section-title">📡 Live updates (${l.updates.length} total · showing ${updates.length})</div>
+        <div class="updates">
+          ${updates.map(u => `
+            <div class="update">
+              <div class="update-header">
+                <span class="update-author">${u.profile_image ? `<img src="${escapeHtml(u.profile_image)}" alt="">` : ''}${escapeHtml(u.created_by || 'system')}</span>
+                <span class="update-time">${escapeHtml(fmtUtc(u.created_on))}</span>
+              </div>
+              <div class="update-text">${escapeHtml(u.comment || '')}</div>
+              ${u.info_url ? `<a class="update-info-link" href="${escapeHtml(u.info_url)}" target="_blank" rel="noopener">source ↗</a>` : ''}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Info URLs
+  const infos = l.infoURLs || [];
+  let infoSection = '';
+  if(infos.length){
+    infoSection = `
+      <div class="detail-section">
+        <div class="detail-section-title">📚 Reference links (${infos.length})</div>
+        <div class="info-list">
+          ${infos.map(u => `
+            <a class="info-link" href="${escapeHtml(u.url)}" target="_blank" rel="noopener">
+              <div class="info-link-icon">${urlIcon(u.source || u.url)}</div>
+              <div class="info-link-text">
+                <div class="info-link-title">${escapeHtml(u.title || u.url)}</div>
+                <div class="info-link-source">${escapeHtml(u.source || new URL(u.url).hostname.replace('www.',''))}${u.publisher && u.publisher !== u.source ? ' · ' + escapeHtml(u.publisher) : ''}</div>
+              </div>
+              <span style="color:var(--text-3)">↗</span>
+            </a>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Auto-derive extra links
+  const wiki = wikiUrl(l);
+  const ytSearch = ytSearchUrl(l);
+  const agUrl = agencyLaunchUrl(l);
+  const spxUrl = spacexLaunchUrl(l);
+
+  const autoLinks = [];
+  if(spxUrl) autoLinks.push({href:spxUrl, icon:'🚀', label:'SpaceX launch page', src:'spacex.com'});
+  if(agUrl && agUrl !== spxUrl) autoLinks.push({href:agUrl, icon:'🏢', label:`${agency.name} page`, src:new URL(agUrl).hostname.replace('www.','')});
+  if(ytSearch) autoLinks.push({href:ytSearch, icon:'▶️', label:'YouTube search', src:'youtube.com'});
+  if(wiki) autoLinks.push({href:wiki, icon:'📖', label:'Wikipedia', src:'wikipedia.org'});
+  if(l.flightclub_url) autoLinks.push({href:l.flightclub_url, icon:'🛩️', label:'Flight Club trajectory', src:'flightclub.io'});
+  if(pad.map_url) autoLinks.push({href:pad.map_url, icon:'📍', label:'Pad map (Google Maps)', src:'google.com/maps'});
+  if(pad.wiki_url) autoLinks.push({href:pad.wiki_url, icon:'📖', label:`Pad (${escapeHtml(pad.name)})`, src:'wikipedia.org'});
+
+  const autoLinksSection = autoLinks.length ? `
+    <div class="action-row">
+      ${autoLinks.map(a => `<a class="action-btn" href="${escapeHtml(a.href)}" target="_blank" rel="noopener">${a.icon} ${escapeHtml(a.label)}</a>`).join('')}
+    </div>` : '';
+
+  // Pad / location
+  const padSection = `
+    <div class="detail-section">
+      <div class="detail-section-title">🚀 ${escapeHtml(rocket.full_name || 'Rocket')} · ${escapeHtml(agency.name || '')}</div>
+      <div class="detail-text">
+        <b>${escapeHtml(loc.name || '—')}</b><br>
+        Pad: ${escapeHtml(pad.name || '—')} · ${escapeHtml(loc.country_code || '')}<br>
+        ${pad.latitude ? `Coords: ${parseFloat(pad.latitude).toFixed(4)}, ${parseFloat(pad.longitude).toFixed(4)}<br>` : ''}
+        Launch window: ${escapeHtml(fmtUtc(l.window_start))} → ${escapeHtml(fmtUtc(l.window_end))}<br>
+        ${l.probability != null ? `Weather probability: ${l.probability}%<br>` : ''}
+        ${l.holdreason ? `Hold reason: ${escapeHtml(l.holdreason)}<br>` : ''}
+        ${l.failreason ? `Fail reason: ${escapeHtml(l.failreason)}<br>` : ''}
+      </div>
+    </div>`;
+
+  return `
+    <div class="detail-grid">
+      <div>
+        ${desc}
+        ${crewSection}
+        ${updatesSection}
+      </div>
+      <div>
+        ${padSection}
+        ${patchSection}
+      </div>
+    </div>
+    ${webcastSection}
+    ${infoSection}
+    ${autoLinksSection}
+  `;
+}
+
+function urlIcon(u){
+  if(!u) return '🔗';
+  const s = u.toLowerCase();
+  if(s.includes('youtube.com') || s.includes('youtu.be')) return '▶️';
+  if(s.includes('wikipedia')) return '📖';
+  if(s.includes('reddit')) return '💬';
+  if(s.includes('spacex.com')) return '🚀';
+  if(s.includes('nasa.gov')) return '🛰️';
+  if(s.includes('twitter.com') || s.includes('x.com')) return '🐦';
+  if(s.includes('flightclub')) return '🛩️';
+  if(s.includes('plus.nasa.gov')) return '🛰️';
+  return '🔗';
+}
+
+function renderMap(list){
+  const groups = {};
+  list.forEach(l => {
+    const key = (l.pad && l.pad.location && l.pad.location.name) || 'Unknown';
+    if(!groups[key]) groups[key] = {name:key, country:(l.pad && l.pad.location && l.pad.location.country_code)||'', lat:(l.pad && l.pad.latitude), lng:(l.pad && l.pad.longitude), launches:[]};
+    groups[key].launches.push(l);
+  });
+  const sorted = Object.values(groups).sort((a,b) => b.launches.length - a.launches.length);
+  $('#contentArea').innerHTML = sorted.length === 0
+    ? '<div class="empty-state"><div class="empty-state-emoji">🗺️</div><div class="empty-state-text">No upcoming launches.</div></div>'
+    : `<div class="map-grid">
+        ${sorted.map(g => `
+          <div class="map-card">
+            <div class="map-card-launches"><span class="pad-pin"></span>${escapeHtml(g.country)} · ${g.lat != null ? `${parseFloat(g.lat).toFixed(2)}, ${parseFloat(g.lng).toFixed(2)}` : ''}</div>
+            <div class="map-card-name">${escapeHtml(g.name)}</div>
+            <div class="map-card-count">${g.launches.length}</div>
+            <div class="map-card-launches">upcoming launches</div>
+            <div style="margin-top:8px;max-height:160px;overflow-y:auto">
+              ${g.launches.slice(0, 8).map(l => `
+                <div class="map-launch-mini">
+                  <span>${escapeHtml(l.rocket && l.rocket.configuration && l.rocket.configuration.full_name || '—')}</span>
+                  <span class="map-launch-mini-time">${escapeHtml(fmtLocalTime(l.net))} · ${escapeHtml((l.status && l.status.abbrev) || '—')}</span>
+                </div>`).join('')}
+              ${g.launches.length > 8 ? `<div class="map-launch-mini" style="justify-content:center;color:var(--text-3)">+ ${g.launches.length - 8} more</div>` : ''}
+            </div>
+            <div class="action-row">
+              ${g.lat != null ? `<a class="action-btn" href="https://www.google.com/maps?q=${parseFloat(g.lat)},${parseFloat(g.lng)}" target="_blank" rel="noopener">📍 Open map</a>` : ''}
+              <button class="action-btn" onclick="state.activeTab='upcoming';render()">→ See all launches</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+}
+
+// ============================================================
+// INTERACTION
+// ============================================================
+function attachCardHandlers(){
+  $$('.launch-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const card = row.closest('.launch');
+      card.classList.toggle('open');
+    });
+  });
+}
+
+function updateCountdowns(){
+  $$('.countdown-time').forEach(el => {
+    const iso = el.dataset.net;
+    if(!iso) return;
+    const diff = new Date(iso).getTime() - Date.now();
+    el.textContent = fmtRel(iso);
+    el.classList.toggle('t-zero', Math.abs(diff) < 30 * 60 * 1000);
+    el.classList.toggle('t-past', diff < -2 * 3600 * 1000);
+  });
+}
+
+function updateHeaderStats(){
+  const now = Date.now();
+  const oneMonth = 30 * 86400 * 1000;
+  const sevenDays = 7 * 86400 * 1000;
+  const total = state.upcoming.length;
+  const recent = state.previous.filter(l => now - new Date(l.net).getTime() < oneMonth).length;
+  const live = state.upcoming.filter(l => {
+    const t = new Date(l.net).getTime();
+    return l.webcast_live || (t - now < 30 * 60 * 1000 && t - now > -2 * 3600 * 1000);
+  }).length;
+  const next7 = state.upcoming.filter(l => {
+    const t = new Date(l.net).getTime();
+    return t - now < sevenDays;
+  }).length;
+
+  $('#statTotal').textContent = total;
+  $('#statRecent').textContent = recent;
+  $('#statLive').textContent = live;
+  $('#statLive').style.color = live > 0 ? 'var(--live)' : 'var(--text-3)';
+  $('#statNext').textContent = next7;
+
+  $('#tabCount7').textContent = next7;
+  $('#tabCountLive').textContent = live;
+  $('#tabCountAll').textContent = total;
+  $('#tabCountRecent').textContent = recent;
+}
+
+function updateLastSync(){
+  if(!state.lastFetchAt) return;
+  const secAgo = Math.floor((Date.now() - state.lastFetchAt) / 1000);
+  $('#dataBadge').textContent = `synced ${secAgo}s ago · ${state.upcoming.length + state.previous.length} loaded`;
+  $('#dataBadge').classList.toggle('fresh', secAgo < 90);
+  $('#lastSync').textContent = new Date(state.lastFetchAt).toLocaleString();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+$$('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    $$('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    state.activeTab = t.dataset.tab;
+    const url = new URL(location.href);
+    url.searchParams.set('tab', t.dataset.tab);
+    history.replaceState(null, '', url);
+    render();
+  });
+});
+
+// ============================================================
+// FILTERS
+// ============================================================
+$('#agencyFilter').addEventListener('change', e => { state.filters.agency = e.target.value; render(); });
+$('#rocketFilter').addEventListener('change', e => { state.filters.rocket = e.target.value; render(); });
+
+// ============================================================
+// REFRESH
+// ============================================================
+$('#refreshBtn').addEventListener('click', async () => {
+  const btn = $('#refreshBtn');
+  btn.classList.add('spinning');
+  try { await fetchAll(); render(); updateHeaderStats(); }
+  finally { btn.classList.remove('spinning'); }
+});
+
+// ============================================================
+// BOOT
+// ============================================================
+(async function init(){
+  // URL-driven initial tab
+  const initParams = new URLSearchParams(location.search);
+  const initTab = initParams.get('tab');
+  if(initTab && ['upcoming7','live','upcoming','recent','map'].includes(initTab)){
+    state.activeTab = initTab;
+    $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === initTab));
+  }
+
+  // Load cached data first for instant render
+  const cache = loadCache();
+  if(cache && cache.upcoming && cache.previous){
+    state.upcoming = cache.upcoming;
+    state.previous = cache.previous;
+    state.lastFetchAt = cache.ts;
+    populateFilters();
+    updateLastSync();
+    render();
+    updateHeaderStats();
+  } else {
+    $('#contentArea').innerHTML = '<div class="loading"><div class="loading-spinner"></div>Loading LL2 data (first visit, ~10s)…</div>';
+  }
+
+  // Always do a fresh fetch
+  try {
+    await fetchAll();
+    render();
+    updateHeaderStats();
+  } catch(e){
+    console.error('LL2 fetch failed', e);
+    if(!cache) {
+      $('#contentArea').innerHTML = `<div class="empty-state"><div class="empty-state-emoji">⚠️</div><div class="empty-state-text">LL2 fetch failed: ${escapeHtml(e.message)}<br><span style="font-size:11px;opacity:.7">Try Refresh button above.</span></div></div>`;
+    }
+  }
+
+  // Periodic refresh
+  setInterval(async () => {
+    try {
+      await fetchAll();
+      render();
+      updateHeaderStats();
+    } catch(e){
+      console.warn('auto refresh failed', e);
+    }
+  }, REFRESH_MS);
+
+  // Tick countdowns every second
+  setInterval(() => { updateCountdowns(); updateLastSync(); }, COUNTDOWN_REFRESH_MS);
+})();
+</script>
+</body>
+</html>
