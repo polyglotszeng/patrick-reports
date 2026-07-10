@@ -86,6 +86,17 @@
     border: 1px solid rgba(110, 164, 124, 0.3);
   }
   .status-pill.down { background: rgba(196, 90, 74, 0.12); color: var(--error); border-color: rgba(196, 90, 74, 0.3); }
+  .backend-pills { display: inline-flex; gap: 6px; }
+  .backend-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 99px;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em;
+    background: rgba(244, 235, 222, 0.04);
+    border: 1px solid var(--border-soft);
+    color: var(--text-dim);
+  }
+  .backend-pill.ok { background: rgba(110, 164, 124, 0.12); color: var(--success); border-color: rgba(110, 164, 124, 0.3); }
+  .backend-pill.missing { background: rgba(196, 90, 74, 0.08); color: var(--error); border-color: rgba(196, 90, 74, 0.2); }
   .status-dot {
     width: 6px; height: 6px; border-radius: 50%; background: currentColor;
     animation: pulse 2s ease-in-out infinite;
@@ -353,7 +364,12 @@
     font-size: 13px; line-height: 1.55;
     color: var(--text-secondary);
     white-space: pre-wrap;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
   }
+  .card-text::-webkit-scrollbar { width: 4px; }
+  .card-text::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 2px; }
   .card-text.error { color: var(--error); font-family: var(--font-mono); font-size: 11px; }
   .card-fail { opacity: 0.7; }
 
@@ -416,7 +432,7 @@
       <span class="brand-mark">🎭</span>
       <div>
         <span class="brand-name">LLM SALON</span>
-        <span class="brand-sub" style="margin-left:8px">27 free models · OpenRouter</span>
+        <span class="brand-sub" style="margin-left:8px" id="brandSub">checking…</span>
       </div>
     </div>
     <div class="status">
@@ -424,6 +440,7 @@
         <span class="status-dot"></span>
         <span id="statusText">checking proxy…</span>
       </span>
+      <span class="backend-pills" id="backendPills" title="Backend key status"></span>
     </div>
   </header>
 
@@ -487,34 +504,17 @@
 // Kept in sync with proxy's FREE_MODELS list. Used as fallback so the roster
 // is visible even when the proxy is offline. The proxy's /v1/models is the
 // source of truth; if it returns a different list, we use that instead.
+// 2026-07-09 curate: 27 free → 1 free (gpt-oss-120b:free) + 5 paid MiniMax.
+// OpenAI backend dropped (quota + SSL).
 const EMBEDDED_MODELS = [
-  {id:"cognitivecomputations/dolphin-mistral-24b-venice-edition:free",provider:"Cognitive Computations",short:"Dolphin-Mistral-24B",ctx:32768,blurb:"Uncensored Mistral fine-tune, strong on creative + uncensored reasoning."},
-  {id:"cohere/north-mini-code:free",provider:"Cohere",short:"Cohere North Mini Code",ctx:256000,blurb:"Code-specialized small model, very long context."},
-  {id:"google/gemma-4-26b-a4b-it:free",provider:"Google",short:"Gemma 4 26B (A4B)",ctx:131072,blurb:"Google sparse MoE, instruction-tuned, multilingual."},
-  {id:"google/gemma-4-31b-it:free",provider:"Google",short:"Gemma 4 31B",ctx:262144,blurb:"Google dense 31B, strong generalist."},
-  {id:"google/lyria-3-clip-preview",provider:"Google",short:"Lyria 3 (Music)",ctx:1048576,blurb:"Music generation (audio out, not chat). Surfaced for completeness."},
-  {id:"google/lyria-3-pro-preview",provider:"Google",short:"Lyria 3 Pro (Music)",ctx:1048576,blurb:"Pro music model. Surfaced for completeness; chat may 4xx."},
-  {id:"liquid/lfm-2.5-1.2b-instruct:free",provider:"Liquid AI",short:"LFM 2.5 1.2B Instruct",ctx:32768,blurb:"Liquid's tiny instruct model — fast, edge-deployable."},
-  {id:"liquid/lfm-2.5-1.2b-thinking:free",provider:"Liquid AI",short:"LFM 2.5 1.2B Thinking",ctx:32768,blurb:"Reasoning-tuned 1.2B. Tiny but tries to think step-by-step."},
-  {id:"meta-llama/llama-3.2-3b-instruct:free",provider:"Meta",short:"Llama 3.2 3B",ctx:131072,blurb:"Meta small model, fast + multilingual."},
-  {id:"meta-llama/llama-3.3-70b-instruct:free",provider:"Meta",short:"Llama 3.3 70B",ctx:65536,blurb:"Meta flagship 70B. Strong general reasoning."},
-  {id:"nousresearch/hermes-3-llama-3.1-405b:free",provider:"Nous Research",short:"Hermes 3 405B",ctx:131072,blurb:"Massive 405B fine-tune, top open-weight generalist."},
-  {id:"nvidia/nemotron-3-nano-30b-a3b:free",provider:"NVIDIA",short:"Nemotron 3 Nano 30B (A3B)",ctx:256000,blurb:"NVIDIA MoE, hybrid Mamba/Transformer. Reasoning + chat."},
-  {id:"nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",provider:"NVIDIA",short:"Nemotron 3 Nano Omni Reasoning",ctx:256000,blurb:"Omni-modal small model with reasoning mode."},
-  {id:"nvidia/nemotron-3-super-120b-a12b:free",provider:"NVIDIA",short:"Nemotron 3 Super 120B (A12B)",ctx:262144,blurb:"NVIDIA mid-tier MoE, balanced cost/quality."},
-  {id:"nvidia/nemotron-3-ultra-550b-a55b:free",provider:"NVIDIA",short:"Nemotron 3 Ultra 550B (A55B)",ctx:1000000,blurb:"NVIDIA flagship 550B MoE, 1M context. Slow but huge."},
-  {id:"nvidia/nemotron-3.5-content-safety:free",provider:"NVIDIA",short:"Nemotron 3.5 Content-Safety",ctx:128000,blurb:"Safety classifier. Not chat — surfaced for completeness."},
-  {id:"nvidia/nemotron-nano-12b-v2-vl:free",provider:"NVIDIA",short:"Nemotron Nano 12B v2 VL",ctx:128000,blurb:"Vision-language small model."},
-  {id:"nvidia/nemotron-nano-9b-v2:free",provider:"NVIDIA",short:"Nemotron Nano 9B v2",ctx:128000,blurb:"Small chat model, fast."},
-  {id:"openai/gpt-oss-120b:free",provider:"OpenAI",short:"GPT-OSS 120B",ctx:131072,blurb:"OpenAI's open-weight 120B. Reasoning model."},
-  {id:"openai/gpt-oss-20b:free",provider:"OpenAI",short:"GPT-OSS 20B",ctx:131072,blurb:"OpenAI's open-weight 20B. Fast + decent."},
-  {id:"openrouter/free",provider:"OpenRouter",short:"OpenRouter Free Router",ctx:null,blurb:"OpenRouter's auto-routed free model. Use for fallback."},
-  {id:"poolside/laguna-m.1:free",provider:"Poolside",short:"Laguna M.1",ctx:262144,blurb:"Poolside's coding model. Strong on agentic code."},
-  {id:"poolside/laguna-xs-2.1:free",provider:"Poolside",short:"Laguna XS 2.1",ctx:262144,blurb:"Poolside's small code model, 262K context."},
-  {id:"poolside/laguna-xs.2:free",provider:"Poolside",short:"Laguna XS.2",ctx:262144,blurb:"Poolside's smallest code model, fast."},
-  {id:"qwen/qwen3-coder:free",provider:"Alibaba",short:"Qwen3 Coder",ctx:262000,blurb:"Qwen3 code-specialized, strong agentic coding."},
-  {id:"qwen/qwen3-next-80b-a3b-instruct:free",provider:"Alibaba",short:"Qwen3 Next 80B (A3B)",ctx:262144,blurb:"Qwen3 next-gen MoE instruct, multilingual."},
-  {id:"tencent/hy3:free",provider:"Tencent",short:"Tencent HY3",ctx:262144,blurb:"Tencent's HY3 chat model. Multilingual incl. 中文."},
+  // Free (1) — only OpenRouter free model that returned a real answer in 2026-07-09 curation
+  {id:"openai/gpt-oss-120b:free",provider:"OpenAI",short:"GPT-OSS 120B",ctx:131072,blurb:"OpenAI's open-weight 120B. Only OpenRouter free model that returned a real (non-metagaming) answer in the 2026-07-09 curation test."},
+  // Paid (5) — vendor-direct MiniMax (api.minimax.io)
+  {id:"MiniMax/MiniMax-M2",provider:"MiniMax",short:"MiniMax M2",ctx:200000,blurb:"MiniMax M2 flagship. Reasoning + Chinese strong."},
+  {id:"MiniMax/MiniMax-M2.7",provider:"MiniMax",short:"MiniMax M2.7",ctx:200000,blurb:"MiniMax M2.7 (mid-2026). Balanced cost/quality."},
+  {id:"MiniMax/MiniMax-M3",provider:"MiniMax",short:"MiniMax M3",ctx:200000,blurb:"MiniMax M3 (2026 Q3). Latest gen, top of MiniMax tier."},
+  {id:"MiniMax/MiniMax-M2.5",provider:"MiniMax",short:"MiniMax M2.5",ctx:200000,blurb:"MiniMax M2.5. Stable, fast, decent quality."},
+  {id:"MiniMax/MiniMax-M2.1",provider:"MiniMax",short:"MiniMax M2.1",ctx:128000,blurb:"MiniMax M2.1. Older, cheapest. Good fallback."},
 ];
 
 // State
@@ -589,37 +589,63 @@ async function init() {
 async function checkProxy() {
   const pill = document.getElementById('statusPill');
   const text = document.getElementById('statusText');
+  const brandSub = document.getElementById('brandSub');
+  const backendPills = document.getElementById('backendPills');
   try {
     const r = await fetch(`${PROXY}/health`);
     const j = await r.json();
     if (j.ok) {
       pill.classList.remove('down');
-      text.textContent = `proxy live · ${j.models} models · key ${j.key_preview}`;
+      const free = j.free_models ?? 0, paid = j.paid_models ?? 0;
+      text.textContent = `proxy live · ${free + paid} models`;
+      if (brandSub) brandSub.textContent = `${free} free + ${paid} paid · 3 backends`;
+      if (backendPills && j.backends) {
+        const labels = {openrouter: 'OpenRouter', minimax: 'MiniMax', openai: 'OpenAI'};
+        backendPills.innerHTML = Object.entries(j.backends).map(([k, v]) => {
+          const cls = v.configured ? 'ok' : 'missing';
+          const sym = v.configured ? '✓' : '✗';
+          return `<span class="backend-pill ${cls}" title="${v.configured ? 'key: ' + v.preview : 'no key configured'}">${sym} ${labels[k] || k}</span>`;
+        }).join('');
+      }
     } else {
       pill.classList.add('down');
-      text.textContent = `proxy: ${j.error || 'no key'}`;
+      text.textContent = `proxy: ${j.error || 'unknown'}`;
+      if (backendPills) backendPills.innerHTML = '';
     }
   } catch (e) {
     pill.classList.add('down');
     text.textContent = `proxy unreachable: ${e.message}`;
+    if (backendPills) backendPills.innerHTML = '';
   }
 }
 
 async function loadModels() {
   try {
-    const r = await fetch(`${PROXY}/v1/models`);
-    if (!r.ok) return;  // keep embedded list
-    const j = await r.json();
-    if (j.data && Array.isArray(j.data) && j.data.length > 0) {
-      // Merge: prefer proxy's data on field conflicts, but keep our short/blurb for known models
-      const knownShorts = new Map(STATE.models.map(m => [m.id, m]));
-      STATE.models = j.data.map(pm => {
-        const known = knownShorts.get(pm.id);
-        return known ? {...known, ...pm, short: known.short, blurb: known.blurb} : pm;
-      });
-      renderRoster(document.getElementById('rosterSearch').value);
-      populateDissPickers();
-    }
+    // Fetch both free + paid catalogs in parallel and merge. Proxy is source of truth.
+    const [freeRes, paidRes] = await Promise.all([
+      fetch(`${PROXY}/v1/models`),
+      fetch(`${PROXY}/v1/models/paid`),
+    ]);
+    const freeJson = freeRes.ok ? await freeRes.json() : {data: []};
+    const paidJson = paidRes.ok ? await paidRes.json() : {data: []};
+    const combined = [...(freeJson.data || []), ...(paidJson.data || [])];
+    if (combined.length === 0) return;  // keep embedded list
+    // Merge: prefer proxy's data on field conflicts, but keep our short/blurb for known models
+    const knownShorts = new Map(STATE.models.map(m => [m.id, m]));
+    STATE.models = combined.map(pm => {
+      const known = knownShorts.get(pm.id);
+      return known ? {...known, ...pm, short: known.short, blurb: known.blurb} : pm;
+    });
+    // Reconcile STATE.selected: drop stale IDs (from old catalogs), add only AVAILABLE new IDs by default
+    const validIds = new Set(STATE.models.map(m => m.id));
+    [...STATE.selected].forEach(id => { if (!validIds.has(id)) STATE.selected.delete(id); });
+    STATE.models.forEach(m => {
+      const isAvail = m.available !== false && !['ssl_blocked','quota_exceeded','auth_error','network_error','no_key'].includes(m.backend_status || '');
+      if (isAvail) STATE.selected.add(m.id);
+    });
+    saveState();
+    renderRoster(document.getElementById('rosterSearch').value);
+    populateDissPickers();
   } catch (e) {
     // silent — embedded list is the fallback
   }
@@ -660,7 +686,10 @@ function renderRoster(filter = '') {
     for (const m of byProvider[prov]) {
       const item = document.createElement('div');
       item.className = 'roster-item';
-      if (STATE.selected.has(m.id)) item.classList.add('selected');
+      const status = m.backend_status || (m.id.endsWith(':free') ? 'ok' : 'unknown');
+      const isAvail = m.available !== false && status !== 'ssl_blocked' && status !== 'quota_exceeded' && status !== 'auth_error' && status !== 'network_error';
+      if (!isAvail) item.classList.add('unavailable');
+      if (STATE.selected.has(m.id) && isAvail) item.classList.add('selected');
       // Only show A/B tags in DISS mode
       if (isDiss && STATE.dissA === m.id) item.classList.add('diss-a');
       if (isDiss && STATE.dissB === m.id) item.classList.add('diss-b');
@@ -674,13 +703,19 @@ function renderRoster(filter = '') {
         checkClass = STATE.selected.has(m.id) ? 'checked' : '';
         checkChar = STATE.selected.has(m.id) ? '✓' : '';
       }
+      const statusBadge = !isAvail ? `<span class="status-badge" title="backend: ${status}">✗ ${status.replace('_', ' ')}</span>` : '';
       item.innerHTML = `
         <div class="check ${checkClass}">${checkChar}</div>
         <div class="provider-color-dot" style="background:${PROVIDER_COLORS[m.provider] || '#666'}"></div>
-        <div class="model-name">${m.short}</div>
+        <div class="model-name">${m.short} ${statusBadge}</div>
         <div class="model-ctx">${formatCtx(m.ctx)}</div>
       `;
-      item.addEventListener('click', () => onRosterClick(m));
+      if (!isAvail) {
+        item.style.opacity = '0.5';
+        item.style.cursor = 'not-allowed';
+        item.title = `Backend ${status.replace('_', ' ')} — cannot reach vendor API. Fix network or rotate key.`;
+      }
+      item.addEventListener('click', () => { if (isAvail) onRosterClick(m); });
       group.appendChild(item);
     }
     el.appendChild(group);
