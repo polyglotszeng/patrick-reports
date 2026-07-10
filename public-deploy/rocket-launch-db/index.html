@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#06b6d4">
-<meta name="description" content="全球火箭发射数据库 v4 — LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + Cesium 3-mode globe + Watchlist 关注任务">
+<meta name="description" content="全球火箭发射数据库 v4 — LL2 248 + CelesTrak 146 + pads 56 + crew 156 (36 国) + agencies 50 + Cesium 3-mode globe + Watchlist 关注任务">
 <!-- DISABLED PWA: <link rel="manifest"> removed, no SW registration, no cache. Patrick v4.1.1 SW was stuck unregistering. -->
 <!-- Repro: see git log dd00b2c / dc921ce for v4 PWA-stack. Re-add after SW debugging complete. -->
 <script>
@@ -54,17 +54,17 @@ console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '
 </script>
 <!-- END v4.1.2 inline bootstrap -->
 <!-- DISABLED PWA per v4.1.2. No external dependencies, no SW. Main script handles all fetch with 8s timeout. -->
-<!-- v4.1.4 early inline bootstrap: kick loadData() on DOMContentLoaded, fallback SEED. -->
+<!-- v4.1.5 early inline bootstrap: kick loadData() on DOMContentLoaded, fallback SEED. -->
 <script>
 (function(){
   // Test if this very early bootstrap script runs in Patrick's browser by writing a marker to title
-  document.title = '[v4.1.4 bootstrap OK] ' + (document.title || '');
+  document.title = '[v4.1.5 bootstrap OK] ' + (document.title || '');
   // Don't do anything else here — main script (later <script> tag) handles actual work.
-  // This script just confirms v4.1.4 reached Patrick's browser.
+  // This script just confirms v4.1.5 reached Patrick's browser.
 })();
 </script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='72' text-anchor='middle' x='50'>🚀</text></svg>">
-<title>全球火箭发射数据库 · v4 (PWA disabled · direct fetch) · v4.1.4-boot-OK</title>
+<title>全球火箭发射数据库 · v4 (PWA disabled · direct fetch) · v4.1.5-boot-OK</title>
 <style>
   :root{
     --bg:#0b0f1a; --panel:#121828; --panel2:#0f1522; --border:#1f2a44;
@@ -160,8 +160,12 @@ console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '
   .overlay.open{opacity:1;pointer-events:auto}
   .drawer{position:fixed;top:0;right:-560px;width:min(540px,94vw);height:100vh;background:var(--panel);border-left:1px solid var(--border);z-index:10;transition:right .25s;overflow-y:auto;padding:22px}
   .drawer.open{right:0}
-  .drawer h3{font-size:1.1rem;margin-bottom:4px;padding-right:36px}
-  .drawer .close{position:absolute;top:14px;right:14px;background:var(--chip);border:none;color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:1rem}
+  .drawer h3{font-size:1.1rem;margin-bottom:4px;padding-right:48px}
+  .drawer .close{position:absolute;top:14px;right:14px;background:rgba(255,90,95,.12);border:1px solid rgba(255,90,95,.4);color:#ff7a7f;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:1.15rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s ease;z-index:11;line-height:1}
+  .drawer .close:hover{background:rgba(255,90,95,.32);color:#fff;border-color:rgba(255,90,95,.7);transform:scale(1.08);box-shadow:0 4px 14px rgba(255,90,95,.4)}
+  .drawer .close:active{transform:scale(.94);background:rgba(255,90,95,.5)}
+  .drawer .close::after{content:'Esc';position:absolute;bottom:-16px;right:0;font-size:.6rem;color:var(--muted);opacity:0;transition:opacity .2s;font-weight:400;pointer-events:none}
+  .drawer .close:hover::after{opacity:.7}
   .drawer .sec{margin-top:18px}
   .drawer .sec h4{font-size:.82rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
   .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:.88rem}
@@ -218,12 +222,24 @@ console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '
 
   /* crew */
   .crew-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-  .crew-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;transition:all .15s;cursor:pointer}
-  .crew-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .crew-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;transition:all .15s;cursor:pointer;position:relative}
+  .crew-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,141,255,.18)}
   .crew-card img{width:80px;height:80px;border-radius:50%;object-fit:cover;background:#1a2340;margin-bottom:8px;border:2px solid var(--border)}
-  .crew-card .cname{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:2px}
-  .crew-card .cagency{font-size:.74rem;color:var(--muted)}
+  .crew-card .cname{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:4px}
+  .crew-card .cname .flag{font-size:1rem;line-height:1}
+  .crew-card .cagency{font-size:.74rem;color:var(--muted);min-height:1.6em}
   .crew-card .cn{font-size:.78rem;color:var(--accent);margin-top:6px;font-weight:700;font-variant-numeric:tabular-nums}
+  .crew-card .cn .inspace{color:var(--accent2);animation:pulse 1.4s ease-in-out infinite}
+  .crew-card .crowner-badge{position:absolute;top:8px;right:8px;background:rgba(57,208,164,.18);border:1px solid var(--accent2);color:var(--accent2);font-size:.62rem;padding:2px 6px;border-radius:6px;font-weight:700;letter-spacing:.04em}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .crew-globe-stats{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin:14px 0}
+  .crew-globe-stats .gs{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .crew-globe-stats .gs .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .crew-globe-stats .gs .num{font-size:1.45rem;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+  .crew-globe-stats .gs .num .unit{font-size:.7rem;color:var(--muted);font-weight:500;margin-left:4px}
+  .crew-globe-stats .gs .top{font-size:.7rem;color:var(--accent);margin-top:3px}
+  .nat-flag{font-size:1.1rem;line-height:1;vertical-align:middle;margin-right:4px}
+  .nat-name{font-weight:600}
 
   #satTable{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px}
   #satTable .row2{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:14px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem;align-items:center}
@@ -299,11 +315,11 @@ console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '
 </style>
 </head>
 <body>
-<div id="v414boot" style="background:linear-gradient(90deg,#ff5d6c,#06b6d4);color:#0b0f1a;padding:14px 20px;font-weight:700;font-size:16px;text-align:center;letter-spacing:.02em">✅ v4.1.4 booted — Patrick this is FRESH HTML from cloudflare (no cached v4)!</div>
+<div id="v414boot" style="background:linear-gradient(90deg,#ff5d6c,#06b6d4);color:#0b0f1a;padding:14px 20px;font-weight:700;font-size:16px;text-align:center;letter-spacing:.02em">✅ v4.1.5 booted — Patrick this is FRESH HTML from cloudflare (no cached v4)!</div>
 <div class="wrap">
   <header>
     <h1>🚀 全球火箭发射数据库 <span class="v-pill">v4</span></h1>
-    <span class="ver">LL2 248 + CelesTrak 146 + pads 56 + crew 50 + agencies 50 + 3D globe + watchlist + 自动更新</span>
+    <span class="ver">LL2 248 + CelesTrak 146 + pads 56 + crew 156 (36 国) + agencies 50 + 3D globe + watchlist + 自动更新</span>
   </header>
 
   <!-- PWA install banner -->
@@ -432,8 +448,14 @@ console.log('[rl-db bootstrap] ready, scope:', window.__rl_db_state__ ? 'ok' : '
 
   <!-- TAB 6: crew -->
   <div class="tab-pane" id="pane-crew">
+    <div class="callout">
+      <span class="ico">👨‍🚀</span>
+      <div><b>全球宇航员图谱</b> · 156 人 · 36 国 · LL2 detailed 拉取 · 按飞行次数排序 + 国籍多样性 + 当前在轨 · 点击展开生平</div>
+    </div>
+    <div class="crew-globe-stats" id="crewGlobeStats"></div>
     <div class="filters">
-      <input id="cSearch" type="search" placeholder="搜索宇航员…">
+      <input id="cSearch" type="search" placeholder="搜索姓名 / 机构 / 国籍…">
+      <select id="cNationality"><option value="">🌍 全部国籍</option></select>
       <select id="cAgency"><option value="">全部机构</option></select>
       <select id="cStatus"><option value="">全部状态</option><option value="Active">Active 在役</option><option value="Retired">Retired 退役</option><option value="Deceased">Deceased 已故</option></select>
       <select id="cInSpace"><option value="">全部</option><option value="yes">🟢 当前在轨</option></select>
@@ -1126,52 +1148,113 @@ function openAgencyDrawer(id){
 }
 
 /* ========== Crew tab ========== */
+function flagEmoji(alpha2){
+  if(!alpha2 || alpha2.length!==2) return "🌐";
+  const A=0x1F1E6;
+  return String.fromCodePoint(...alpha2.toUpperCase().split("").map(c=>A+(c.charCodeAt(0)-65)));
+}
+function renderCrewStats(all){
+  const inSpace = all.filter(a=>a.in_space).length;
+  const active = all.filter(a=>a.status==="Active").length;
+  const female = all.filter(a=>a.gender==="Female").length;
+  // EVA leader
+  const evaKing = [...all].sort((a,b)=>(b.spacewalks_count||0)-(a.spacewalks_count||0))[0];
+  // Flight king
+  const flightKing = [...all].sort((a,b)=>(b.flights_count||0)-(a.flights_count||0))[0];
+  // Longest in space
+  const longSojourner = [...all].filter(a=>a.time_in_space).sort((a,b)=>{
+    const parseDur = s => { if(!s||!s.startsWith("P")) return 0; const m=s.match(/P(?:(\d+)D)?T?(?:(\d+)H)?/); return m?((+m[1]||0)*86400+(+m[2]||0)*3600):0; };
+    return parseDur(b.time_in_space)-parseDur(a.time_in_space);
+  })[0];
+  // Nationality count
+  const natCount = new Set(all.map(a=>a.nationality)).size;
+  // agency count
+  const agCount = new Set(all.map(a=>a.agency)).size;
+
+  $("#crewGlobeStats").innerHTML = `
+    <div class="gs"><div class="lbl">总宇航员</div><div class="num">${all.length}<span class="unit">人</span></div><div class="top">${natCount} 国 · ${agCount} 机构</div></div>
+    <div class="gs"><div class="lbl">当前在轨</div><div class="num" style="color:var(--accent2)">🟢 ${inSpace}</div><div class="top">live now</div></div>
+    <div class="gs"><div class="lbl">Active 在役</div><div class="num">${active}</div><div class="top">${female} 女性 · ${all.length-female} 男性</div></div>
+    <div class="gs"><div class="lbl">飞行次数王</div><div class="num" style="font-size:.95rem">${esc(flightKing?.name||"—")}</div><div class="top">${flagEmoji(flightKing?.country_code||"")} ${flightKing?.flights_count||0} flights</div></div>
+    <div class="gs"><div class="lbl">EVA 太空行走王</div><div class="num" style="font-size:.95rem">${esc(evaKing?.name||"—")}</div><div class="top">${flagEmoji(evaKing?.country_code||"")} ${evaKing?.spacewalks_count||0} 次 EVAs</div></div>
+    <div class="gs"><div class="lbl">累计在轨最长</div><div class="num" style="font-size:.95rem">${esc(longSojourner?.name||"—")}</div><div class="top">${flagEmoji(longSojourner?.country_code||"")} ${esc(longSojourner?.time_in_space||"—")}</div></div>
+  `;
+}
+
 function renderCrew(){
   const all = DB.crew?.astronauts||[];
   $("#tabBadgeCrew").textContent = all.length;
-  const agencies = [...new Set(all.map(a=>a.agency).filter(Boolean))].sort();
-  $("#cAgency").insertAdjacentHTML("beforeend", agencies.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join(""));
+  // populate filters (preserve default if already set)
+  if(!$("#cNationality").dataset.filled){
+    const natCounts = {};
+    all.forEach(a=>{natCounts[a.nationality]=(natCounts[a.nationality]||0)+1;});
+    const nats = Object.entries(natCounts).sort((a,b)=>b[1]-a[1]);
+    $("#cNationality").insertAdjacentHTML("beforeend", nats.map(([n,c])=>`<option value="${esc(n)}">${flagEmoji(all.find(a=>a.nationality===n)?.country_code)} ${esc(n)} (${c})</option>`).join(""));
+    $("#cNationality").dataset.filled = "1";
+  }
+  if(!$("#cAgency").dataset.filled){
+    const agCounts = {};
+    all.forEach(a=>{agCounts[a.agency]=(agCounts[a.agency]||0)+1;});
+    const ags = Object.entries(agCounts).sort((a,b)=>b[1]-a[1]);
+    $("#cAgency").insertAdjacentHTML("beforeend", ags.map(([n,c])=>`<option value="${esc(n)}">${esc(n)} (${c})</option>`).join(""));
+    $("#cAgency").dataset.filled = "1";
+  }
+  renderCrewStats(all);
   function draw(){
     const q = ($("#cSearch").value||"").trim().toLowerCase();
-    const ag=$("#cAgency").value, st=$("#cStatus").value, ins=$("#cInSpace").value;
+    const nt=$("#cNationality").value, ag=$("#cAgency").value, st=$("#cStatus").value, ins=$("#cInSpace").value;
     const filt = all.filter(a=>{
+      if(nt && a.nationality!==nt) return false;
       if(ag && a.agency!==ag) return false;
       if(st && a.status!==st) return false;
       if(ins==="yes" && !a.in_space) return false;
-      if(q){const hay=[a.name,a.nationality,a.agency].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
+      if(q){const hay=[a.name,a.nationality,a.agency,a.nationality_full||""].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
       return true;
     });
-    $("#crewCountLine").innerHTML = `显示 <b>${filt.length}</b> / ${all.length} 位 · 当前在轨 <b style="color:var(--accent2)">${all.filter(a=>a.in_space).length}</b>`;
-    $("#crewGrid").innerHTML = filt.map(a=>`
+    $("#crewCountLine").innerHTML = `显示 <b>${filt.length}</b> / ${all.length} 位 · ${[...new Set(filt.map(a=>a.nationality))].length} 国 · 当前在轨 <b style="color:var(--accent2)">${filt.filter(a=>a.in_space).length}</b>`;
+    $("#crewGrid").innerHTML = filt.map(a=>{
+      const flag = flagEmoji(a.country_code);
+      const isActive = a.status==="Active";
+      const isInSpace = !!a.in_space;
+      return `
       <div class="crew-card" data-id="${a.id}">
+        ${isInSpace?'<div class="crowner-badge">🟢 IN SPACE</div>':''}
         ${a.image?`<img src="${esc(a.image)}" alt="${esc(a.name)}" loading="lazy" onerror="this.style.display='none'">`:`<div style="width:80px;height:80px;border-radius:50%;background:#1a2340;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:2rem">🧑‍🚀</div>`}
-        <div class="cname">${esc(a.name)}</div>
+        <div class="cname"><span class="flag" title="${esc(a.nationality_full||a.nationality)}">${flag}</span>${esc(a.name)}</div>
         <div class="cagency">${esc(a.nationality||"")} · ${esc(a.agency||"")}</div>
-        <div class="cn">${a.flights_count||0} flights · ${a.spacewalks_count||0} EVAs${a.in_space?' · 🟢 NOW':''}</div>
-      </div>`).join("") || '<div class="empty" style="grid-column:1/-1">没有匹配的宇航员</div>';
+        <div class="cn">${a.flights_count||0}✈ · ${a.spacewalks_count||0} EVA${isInSpace?' · <span class="inspace">🟢 NOW</span>':''}</div>
+      </div>`;
+    }).join("") || '<div class="empty" style="grid-column:1/-1">没有匹配的宇航员</div>';
     $$(".crew-card").forEach(el=>el.onclick=()=>openCrewDrawer(parseInt(el.dataset.id)));
   }
   draw();
-  $("#cSearch").oninput = draw; $("#cAgency").onchange = draw; $("#cStatus").onchange = draw; $("#cInSpace").onchange = draw;
-  $("#cReset").onclick = ()=>{$("#cSearch").value=""; $("#cAgency").value=""; $("#cStatus").value=""; $("#cInSpace").value=""; draw();};
+  $("#cSearch").oninput = draw; $("#cNationality").onchange = draw; $("#cAgency").onchange = draw; $("#cStatus").onchange = draw; $("#cInSpace").onchange = draw;
+  $("#cReset").onclick = ()=>{$("#cSearch").value=""; $("#cNationality").value=""; $("#cAgency").value=""; $("#cStatus").value=""; $("#cInSpace").value=""; draw();};
 }
 
 function openCrewDrawer(id){
   const a = (DB.crew?.astronauts||[]).find(x=>x.id===id);
   if(!a) return;
   const lifeSpan = (a.date_of_birth||"—")+(a.date_of_death?` → ${a.date_of_death}`:" · still alive");
+  const flag = flagEmoji(a.country_code);
+  // Find compatriots
+  const compatriots = DB.crew.astronauts.filter(x=>x.nationality===a.nationality && x.id!==a.id).slice(0,8);
+  // Find same-agency colleagues
+  const colleagues = DB.crew.astronauts.filter(x=>x.agency===a.agency && x.id!==a.id).slice(0,8);
+  const isInSpace = !!a.in_space;
   $("#drawerBody").innerHTML=`
     <div style="display:flex;gap:14px;align-items:start">
-      ${a.image?`<img src="${esc(a.image)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;background:#1a2340">`:`<div style="width:96px;height:96px;border-radius:50%;background:#1a2340;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🧑‍🚀</div>`}
+      ${a.image?`<img src="${esc(a.image)}" style="width:96px;height:96px;border-radius:50%;object-fit:cover;background:#1a2340;border:3px solid ${isInSpace?'var(--accent2)':'var(--border)'}">`:`<div style="width:96px;height:96px;border-radius:50%;background:#1a2340;display:flex;align-items:center;justify-content:center;font-size:2.5rem">🧑‍🚀</div>`}
       <div style="flex:1">
-        <h3 style="margin-bottom:2px">${esc(a.name)}</h3>
-        <div style="color:var(--muted);font-size:.84rem">${esc(a.nationality||"")} · ${esc(a.agency||"")}</div>
-        <div style="margin-top:6px">${a.in_space?'<span class="pill st-upcoming">🟢 当前在轨</span>':`<span class="chip">${esc(a.status||'—')}</span>`}</div>
+        <h3 style="margin-bottom:2px;display:flex;align-items:center;gap:6px"><span style="font-size:1.4rem">${flag}</span>${esc(a.name)}</h3>
+        <div style="color:var(--muted);font-size:.84rem">${esc(a.nationality_full||a.nationality||"")} · ${esc(a.agency||"")}</div>
+        <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">${a.in_space?'<span class="pill st-upcoming">🟢 当前在轨</span>':''}<span class="chip">${esc(a.status||'—')}</span>${a.type?`<span class="chip">${esc(a.type)}</span>`:''}</div>
       </div>
     </div>
     <div class="sec"><h4>📊 生涯数据</h4>
       <div class="kv">
-        <span class="k">类型</span><span>${esc(a.type||'—')}</span>
+        <span class="k">国籍</span><span><span class="nat-flag">${flag}</span><span class="nat-name">${esc(a.nationality_full||a.nationality||'—')}</span></span>
+        <span class="k">机构</span><span>${esc(a.agency||'—')}</span>
         <span class="k">Flights</span><span><b style="color:var(--accent)">${a.flights_count||0}</b></span>
         <span class="k">EVAs</span><span><b style="color:var(--accent2)">${a.spacewalks_count||0}</b></span>
         <span class="k">总时长</span><span>${esc(a.time_in_space||'—')}</span>
@@ -1182,6 +1265,16 @@ function openCrewDrawer(id){
       </div>
     </div>
     ${a.bio_short?`<div class="sec"><h4>📖 简介</h4><div class="mission-desc">${esc(a.bio_short)}…</div></div>`:''}
+    ${compatriots.length?`<div class="sec"><h4>🌍 同胞 (${flag} ${esc(a.nationality)})</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${compatriots.map(c=>`<span class="crew-chip" data-id="${c.id}" style="background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.78rem;cursor:pointer"><span class="nat-flag">${flag}</span>${esc(c.name)} <span style="color:var(--muted)">· ${c.flights_count||0}✈</span></span>`).join("")}
+      </div>
+    </div>`:''}
+    ${colleagues.length?`<div class="sec"><h4>👥 同事 (${esc((a.agency||'').split(' ').slice(0,2).join(' '))})</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${colleagues.map(c=>`<span class="crew-chip" data-id="${c.id}" style="background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.78rem;cursor:pointer">${flagEmoji(c.country_code)} ${esc(c.name)} <span style="color:var(--muted)">· ${c.flights_count||0}✈</span></span>`).join("")}
+      </div>
+    </div>`:''}
     ${a.wiki||a.url?`<div class="sec"><h4>🔗 外链</h4>
       ${a.wiki?`<div class="vid-item"><a href="${esc(a.wiki)}" target="_blank" rel="noopener">Wikipedia</a></div>`:''}
       ${a.url?`<div class="vid-item"><a href="${esc(a.url)}" target="_blank" rel="noopener">LL2 详情页</a></div>`:''}
@@ -1192,6 +1285,8 @@ function openCrewDrawer(id){
   `;
   $("#drawer").classList.add("open"); $("#overlay").classList.add("open");
   $("#crewWatchBtn")?.addEventListener("click", ()=>{if(a.agency) wlAddProvider(a.agency); $("#crewWatchBtn").textContent="✓ 已关注";});
+  // compatriot/colleague chips → open their drawer (replace body)
+  $$("#drawerBody .crew-chip").forEach(ch=>ch.onclick=()=>openCrewDrawer(parseInt(ch.dataset.id)));
 }
 
 /* ========== Live sats tab ========== */
@@ -1245,7 +1340,7 @@ function renderWorldMap(rows){
   const dots = rows.map(r=>{
     const [x,y]=proj(r.lon,r.lat);
     const color = /station|ISS|天宫|CSS/i.test(r.name)?"var(--accent2)":/weather/i.test(r.category)?"var(--warn)":/science/i.test(r.category)?"var(--accent)":"var(--muted)";
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="0.5" data-norad="${r.norad_id}" style="cursor:pointer"><title>${r.name} (${r.lat.toFixed(1)}°, ${r.lon.toFixed(1)}°) · v4.1.4-boot-OK</title></circle>`;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="0.5" data-norad="${r.norad_id}" style="cursor:pointer"><title>${r.name} (${r.lat.toFixed(1)}°, ${r.lon.toFixed(1)}°) · v4.1.5-boot-OK</title></circle>`;
   }).join("");
   const grid=[];
   for(let lon=-180;lon<=180;lon+=30){const[x,y1]=proj(lon,90),[,y2]=proj(lon,-90); grid.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="rgba(42,53,84,.3)" stroke-width="0.3"/>`);}
@@ -1438,7 +1533,13 @@ function bindEvents(){
   $("#fSearch").addEventListener("input",renderList);
   $("#fReset").addEventListener("click",()=>{$("#fSearch").value="";["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$(id).value="");renderList();});
   $("#launchList").addEventListener("click",e=>{if(e.target.closest("a")) return; const row=e.target.closest(".row"); if(row) openDrawer(row.dataset.id);});
-  $("#drawerClose").addEventListener("click",closeDrawer); $("#overlay").addEventListener("click",closeDrawer);
+  $("#drawerClose").addEventListener("click",e=>{e.stopPropagation();closeDrawer();});
+  $("#overlay").addEventListener("click",closeDrawer);
+  // Defensive: also handle clicks anywhere on drawer backdrop area (between drawer right edge and viewport right)
+  document.addEventListener("click",e=>{
+    const t = e.target;
+    if(t && t.id === "drawerClose") closeDrawer();
+  }, true); // capture phase so we always catch it
   document.addEventListener("keydown",e=>{if(e.key==="Escape") closeDrawer();});
   $("#refreshBtn").addEventListener("click",()=>{$("#refreshBtn").textContent="↻ 加载中…"; loadData().then(()=>$("#refreshBtn").textContent="↻ 刷新");});
   $("#wSearch").addEventListener("input", renderWatchlist);
@@ -1479,16 +1580,16 @@ if("serviceWorker" in navigator){
   }catch(e){ console.warn('sw cleanup', e); }
 }
 
-// v4.1.4: layer 1 — sync minimal render with empty state
+// v4.1.5: layer 1 — sync minimal render with empty state
 try { render(); } catch(e){console.warn('init render err:',e);}
-// v4.1.4: layer 2 — wrap main init in try-catch
+// v4.1.5: layer 2 — wrap main init in try-catch
 try {
   setupTabs();
 } catch(e){console.warn('init setupTabs err:',e);}
-// v4.1.4: layer 3 — call loadData with hard 6s timer fallback
+// v4.1.5: layer 3 — call loadData with hard 6s timer fallback
 let _loadDataFallbackTimer = setTimeout(() => {
   if(DB.mode !== 'json') {
-    console.warn('[v4.1.4 fallback] loadData did not resolve in 6s — using SEED');
+    console.warn('[v4.1.5 fallback] loadData did not resolve in 6s — using SEED');
     // Hard fallback: use SEED and update UI
     try {
       DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
@@ -1497,7 +1598,20 @@ let _loadDataFallbackTimer = setTimeout(() => {
     } catch(e){console.warn('hard fallback err:',e);}
   }
 }, 6000);
-loadData().finally(() => clearTimeout(_loadDataFallbackTimer));
+loadData().finally(() => {
+  clearTimeout(_loadDataFallbackTimer);
+  // URL hash routing: #pane=crew (re-render after data load)
+  const _h = (location.hash||"").match(/pane=([a-z]+)/);
+  if(_h){
+    const paneName = _h[1];
+    const t = $$(".tab").find(x=>x.dataset.pane===paneName);
+    if(t){
+      const paneEl = $("#pane-"+paneName);
+      if(paneEl) paneEl.dataset.loaded = ""; // force re-render with fresh data
+      t.click();
+    }
+  }
+});
 </script>
 </body>
 </html>
