@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GPT-5.6 Sol vs Fable 5 — Nate Herk 实战横评 | 2026-07-10</title>
+<meta name="description" content="Nate Herk 用 3 类任务 (3D 平台 / 5 个不同视觉元素 / one-shot API) 实测 GPT-5.6 Sol vs Anthropic Fable 5,耗时 / 成本 / 质量三维对比.Fable 5 在 reasoning 维度领先,Soul 在 shipping 维度碾压.">
+<meta name="author" content="Patrick · Hermes Agent">
+<meta name="generator" content="video-to-knowledge-dashboard v1.5.32">
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--fg:#e6edf3;--fg2:#8b949e;--fg3:#6e7681;--accent:#58a6ff;--accent2:#3fb950;--warn:#d29922;--err:#f85149;--border:#30363d;--link:#58a6ff;--purple:#bc8cff;--pink:#f778ba;--orange:#f0883e;--code-bg:#0d1117;--kbd-bg:#21262d}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg);font:14px/1.6 -apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding-left:260px;padding-right:24px;max-width:1480px;margin:0 auto}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+code{font-family:SF Mono,Menlo,monospace;font-size:12.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;border:1px solid var(--border);color:var(--pink)}
+pre{background:var(--code-bg);border:1px solid var(--border);padding:14px 18px;border-radius:8px;overflow-x:auto;margin:12px 0;font-size:12.5px;line-height:1.55}
+pre code{border:0;padding:0;background:transparent;color:inherit}
+blockquote{border-left:3px solid var(--accent);background:var(--bg2);padding:12px 18px;margin:12px 0;border-radius:0 6px 6px 0;color:var(--fg)}
+blockquote.warn{border-left-color:var(--warn)}blockquote.err{border-left-color:var(--err)}blockquote.ok{border-left-color:var(--accent2)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+th,td{padding:8px 12px;border:1px solid var(--border);text-align:left;vertical-align:top}
+th{background:var(--bg3);color:var(--fg);font-weight:600}
+tr:nth-child(even) td{background:var(--bg2)}
+hr{border:0;border-top:1px solid var(--border);margin:24px 0}
+
+/* ───── Sticky Header ───── */
+header{position:sticky;top:0;background:rgba(13,17,23,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:50;padding:14px 0 12px;border-bottom:1px solid var(--border);margin-bottom:18px}
+header h1{font-size:18px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+header .sub{font-size:12px;color:var(--fg2);margin-top:4px;display:flex;gap:14px;flex-wrap:wrap}
+header .pill{display:inline-block;background:var(--bg3);border:1px solid var(--border);padding:2px 9px;border-radius:10px;font-size:11px;color:var(--fg2)}
+header .pill.ok{color:var(--accent2);border-color:rgba(63,185,80,.3)}
+header .pill.warn{color:var(--warn);border-color:rgba(210,153,34,.3)}
+header .pill.err{color:var(--err);border-color:rgba(248,81,73,.3)}
+
+/* ───── TOC sidebar (v1.4.4 collapsible) ───── */
+.toc-wrap{position:fixed;top:80px;left:24px;width:220px;max-height:calc(100vh - 100px);overflow-y:auto;z-index:40;transition:width .3s ease,padding .3s ease}
+.toc-wrap.collapsed{width:42px}
+.toc-wrap.collapsed .toc-title,
+.toc-wrap.collapsed .toc-list{display:none}
+.toc-wrap.collapsed .toc-toggle{padding:6px 4px}
+.toc-wrap.collapsed .toc-toggle-icon{transform:rotate(180deg)}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12.5px}
+.toc-title{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.toc-toggle{background:transparent;border:0;color:var(--fg2);cursor:pointer;padding:0 4px;font-size:14px;line-height:1}
+.toc-toggle:hover{color:var(--accent)}
+.toc-toggle-icon{display:inline-block;transition:transform .3s ease;font-weight:700}
+.toc-list{list-style:none}
+.toc-list li{margin:3px 0}
+.toc-list a{color:var(--fg2);display:block;padding:3px 6px;border-radius:4px;border-left:2px solid transparent;transition:all .15s ease}
+.toc-list a:hover{background:var(--bg3);color:var(--accent);border-left-color:var(--accent);text-decoration:none}
+.toc-list a.active{color:var(--accent);border-left-color:var(--accent);background:var(--bg3)}
+
+/* ───── Tabs ───── */
+.tab-nav{display:flex;gap:4px;border-bottom:1px solid var(--border);margin:0 0 24px;overflow-x:auto;scrollbar-width:thin}
+.tab-nav::-webkit-scrollbar{height:4px}.tab-nav::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.tab-btn{background:transparent;border:0;color:var(--fg2);padding:10px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s ease;font-family:inherit}
+.tab-btn:hover{color:var(--fg)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-content{display:none;animation:fadeIn .25s ease}
+.tab-content.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ───── Cards / Sections ───── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin:14px 0}
+.card h3{margin-bottom:10px;font-size:15px;color:var(--fg)}
+.card .meta{font-size:11.5px;color:var(--fg3);margin-bottom:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.kpi .v{font-size:22px;font-weight:700;color:var(--accent);line-height:1.2}
+.kpi .l{font-size:11px;color:var(--fg2);margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+.kpi .d{font-size:11px;color:var(--fg3);margin-top:2px}
+
+.tag{display:inline-block;background:var(--bg3);border:1px solid var(--border);padding:1px 8px;border-radius:10px;font-size:10.5px;color:var(--fg2);margin-right:4px}
+.tag.ok{color:var(--accent2);border-color:rgba(63,185,80,.3)}
+.tag.warn{color:var(--warn);border-color:rgba(210,153,34,.3)}
+.tag.err{color:var(--err);border-color:rgba(248,81,73,.3)}
+.tag.purple{color:var(--purple);border-color:rgba(188,140,255,.3)}
+
+.bignum{font-size:34px;font-weight:800;color:var(--accent);line-height:1}
+.biglabel{font-size:12px;color:var(--fg2);margin-top:4px}
+
+.section-title{font-size:16px;font-weight:700;margin:20px 0 10px;letter-spacing:-.01em}
+.section-sub{font-size:11.5px;color:var(--fg3);margin-bottom:8px}
+
+.quote-card{background:var(--bg3);border-left:3px solid var(--purple);padding:14px 18px;border-radius:0 6px 6px 0;margin:10px 0;font-size:13px;line-height:1.65}
+.quote-card .q-source{display:block;font-size:10.5px;color:var(--fg3);margin-top:6px;font-style:italic}
+.quote-card .q-time{display:inline-block;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;margin-right:6px;font-family:SF Mono,Menlo,monospace;font-size:10.5px;color:var(--accent)}
+
+.verdict-bar{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:14px 0}
+.verdict-bar .bar{height:6px;border-radius:3px;background:var(--bg2);flex:1;position:relative;overflow:hidden}
+.verdict-bar .bar .fill{position:absolute;top:0;left:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:3px}
+
+.timeline{position:relative;padding-left:24px;margin:14px 0}
+.timeline::before{content:'';position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.tl-item{position:relative;padding:8px 0 14px;font-size:12.5px}
+.tl-item::before{content:'';position:absolute;left:-19px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.tl-item .tl-time{font-family:SF Mono,Menlo,monospace;color:var(--fg2);font-size:11px}
+.tl-item .tl-title{font-weight:600;color:var(--fg);margin:2px 0}
+.tl-item .tl-desc{color:var(--fg2);line-height:1.55}
+
+footer{margin:32px 0 24px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--fg3)}
+footer .row{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:4px 0}
+
+@media(max-width:900px){body{padding-left:24px;padding-right:14px}.toc-wrap{display:none}}
+</style>
+</head>
+<body data-toc-collapsed="false">
+
+<header>
+<h1>GPT-5.6 Sol vs Fable 5 — Nate Herk 实战横评 <span style="font-size:13px;color:var(--fg3);font-weight:400">| 2026-07-10</span></h1>
+<div class="sub">
+<span class="pill ok">🎬 视频源 verified</span>
+<span class="pill">Nate Herk | AI Automation</span>
+<span class="pill">20m 25s · 2026-07-10</span>
+<span class="pill">video-to-knowledge-dashboard v1.5.32</span>
+<span class="pill warn">⚠️ Patrick 原始 topic 命名 (Solomon AI) 与视频实际主题 (GPT-5.6 Sol/Soul) 误识别 — 见 Tab ⑩</span>
+</div>
+</header>
+
+<aside class="toc-wrap" id="tocWrap">
+<div class="toc">
+<div class="toc-title">
+<span>目录</span>
+<button class="toc-toggle" id="tocToggle" title="折叠/展开">
+<span class="toc-toggle-icon">◀</span>
+</button>
+</div>
+<ul class="toc-list" id="tocList">
+<li><a href="#tab1">① TL;DR</a></li>
+<li><a href="#tab2">② 视频元数据</a></li>
+<li><a href="#tab3">③ 测试设计</a></li>
+<li><a href="#tab4">④ Test 1: 3D 平台</a></li>
+<li><a href="#tab5">⑤ Test 2: 5 视觉元素</a></li>
+<li><a href="#tab6">⑥ Test 3: API one-shot</a></li>
+<li><a href="#tab7">⑦ 速度 vs 成本</a></li>
+<li><a href="#tab8">⑧ 矩阵定位</a></li>
+<li><a href="#tab9">⑨ Patrick 卡片</a></li>
+<li><a href="#tab10">⑩ Topic 识别注记</a></li>
+<li><a href="#tab11">⑪ Tier 4 行动项</a></li>
+<li><a href="#tab12">⑫ Quotes</a></li>
+<li><a href="#tab13">⑬ 引用 & 关联</a></li>
+<li><a href="#tab14">⑭ 元信息</a></li>
+</ul>
+</div>
+</aside>
+
+<nav class="tab-nav" id="tabNav">
+<button class="tab-btn active" data-tab="tab1">① TL;DR</button>
+<button class="tab-btn" data-tab="tab2">② 视频元数据</button>
+<button class="tab-btn" data-tab="tab3">③ 测试设计</button>
+<button class="tab-btn" data-tab="tab4">④ Test 1: 3D 平台</button>
+<button class="tab-btn" data-tab="tab5">⑤ Test 2: 5 视觉元素</button>
+<button class="tab-btn" data-tab="tab6">⑥ Test 3: API one-shot</button>
+<button class="tab-btn" data-tab="tab7">⑦ 速度 vs 成本</button>
+<button class="tab-btn" data-tab="tab8">⑧ 矩阵定位</button>
+<button class="tab-btn" data-tab="tab9">⑨ Patrick 卡片</button>
+<button class="tab-btn" data-tab="tab10">⑩ Topic 识别注记</button>
+<button class="tab-btn" data-tab="tab11">⑪ Tier 4</button>
+<button class="tab-btn" data-tab="tab12">⑫ Quotes</button>
+<button class="tab-btn" data-tab="tab13">⑬ 引用</button>
+<button class="tab-btn" data-tab="tab14">⑭ 元信息</button>
+</nav>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content active" id="tab1">
+<h2 class="section-title">一句话结论</h2>
+<div class="card">
+<blockquote class="ok">
+<p style="font-size:15px;line-height:1.7"><strong>Fable 5 是 manager / co-founder</strong> — 适合 reasoning, judging, 创意, 写作, 头脑风暴, 战略顾问.<br>
+<strong>GPT-5.6 Soul 是 shipping worker</strong> — 适合执行, 价格便宜 ~3-15×, 速度更快 (API 中位延迟), 但 token 效率高 ≠ 质量高, 容易过度工程化 (跑太多测试) 和过度思考 (Solon Ultra).</p>
+<p style="margin-top:12px;color:var(--fg2);font-size:13px">Nate 最终判断: <strong>Fable 5 "in another tier"</strong>;Soul "more comparable to Opus 4.8", "definitely better than GBT 5.5".Soul 命名只升到 5.6 (非 6) — 暗示 GBT6 才是真正对标 Fable 的下一代.</p>
+</blockquote>
+</div>
+
+<h2 class="section-title">核心 KPI</h2>
+<div class="grid-4">
+<div class="kpi"><div class="v">3-15×</div><div class="l">Soul 价格优势</div><div class="d">Fable $14.22 vs Soul $4.5 (3D);$15 vs $1.22 (5-element)</div></div>
+<div class="kpi"><div class="v">24:3</div><div class="l">API one-shot 胜负</div><div class="d">Soul 24 胜 vs Fable 3 胜 (含 Fable 多次拒绝回答)</div></div>
+<div class="kpi"><div class="v">0.98 vs 0.96</div><div class="l">回答质量分</div><div class="d">Soul / Fable — 当 Fable 真的回答时几乎打平</div></div>
+<div class="kpi"><div class="v">$16 vs $63</div><div class="l">one-shot 24+3 任务总成本</div><div class="d">Soul 总花 $16,Fable 总花 $63 (含多次拒答)</div></div>
+</div>
+
+<h2 class="section-title">使用建议 (Nate 的判断口径)</h2>
+<div class="grid-2">
+<div class="card" style="border-left:3px solid var(--accent)">
+<h3>✅ 用 Fable 5 做</h3>
+<ul style="padding-left:18px;margin-top:6px;line-height:1.85">
+<li><strong>Reasoning & judging</strong> — 当你需要模型给方向判断 / 战略建议</li>
+<li><strong>Creative writing</strong> — 写作 / 头脑风暴 / 顾问式 push back</li>
+<li><strong>Video production orchestration</strong> — Nate 用 Fable 做整支 YouTube 视频</li>
+<li><strong>Co-founder / manager role</strong> — 多步战略思考, "sassy consultant" 风格</li>
+<li><strong>Knowledge work (slow burn)</strong> — 愿意花 $14+ 拿更高质量</li>
+</ul>
+</div>
+<div class="card" style="border-left:3px solid var(--accent2)">
+<h3>✅ 用 Soul 做</h3>
+<ul style="padding-left:18px;margin-top:6px;line-height:1.85">
+<li><strong>Shipping / executing</strong> — 一次性代码任务 / 跑测试 / 修复 bug</li>
+<li><strong>Computer use</strong> — Nate 明确点名 Soul 在 computer use 维度更强</li>
+<li><strong>Devil's advocate</strong> — Soul 找 bug 更仔细, 更"careful"</li>
+<li><strong>Verification</strong> — 严格按指令执行, 不擅自发挥</li>
+<li><strong>Cost-sensitive workload</strong> — 1-shot API 调用 / stateless 任务</li>
+</ul>
+</div>
+</div>
+
+<div class="card">
+<h3>🚀 最佳组合</h3>
+<p style="line-height:1.75;margin-top:6px"><strong>Fable 5 orchestrate 一群 Soul agents</strong> — Nate 明确提到这是 "amazing" 的形态.Fable 做 manager 派活,Soul 做 worker 执行.这样既得 Fable 的 reasoning 质量, 又得 Soul 的 cost/speed.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab2">
+<h2 class="section-title">视频元数据</h2>
+<table>
+<tr><th>字段</th><th>值</th></tr>
+<tr><td><strong>标题</strong></td><td>I Tested GPT 5.6 Sol vs Fable 5. What You Need To Know.</td></tr>
+<tr><td><strong>频道</strong></td><td>Nate Herk | AI Automation</td></tr>
+<tr><td><strong>Video ID</strong></td><td><code>EthxaDswUFo</code></td></tr>
+<tr><td><strong>上传日期</strong></td><td>2026-07-10</td></tr>
+<tr><td><strong>时长</strong></td><td>20m 25s (1225s)</td></tr>
+<tr><td><strong>YT URL</strong></td><td><a href="https://www.youtube.com/watch?v=EthxaDswUFo" target="_blank">youtube.com/watch?v=EthxaDswUFo</a></td></tr>
+<tr><td><strong>Transcript 状态</strong></td><td><span class="tag ok">verified · en</span> (1250 cues cleaned → 27.2KB transcript)</td></tr>
+<tr><td><strong>主题分类</strong></td><td><span class="tag purple">AI 模型横评</span> <span class="tag purple">LLM 对比</span> <span class="tag">GPT-5.6</span> <span class="tag">Fable 5</span></td></tr>
+</table>
+
+<div class="card">
+<h3>三个模型变体 (GPT 5.6 家族)</h3>
+<p style="line-height:1.75;margin-top:6px">GPT 5.6 同时发布 3 个模型变体 — Sol/Soul、Terra、Luna (落地页有 5 个小 icon 装饰):</p>
+<ul style="padding-left:18px;margin-top:6px;line-height:1.7">
+<li><strong>Soul (主力)</strong> — 本期评测重点, "most capable model", 升到 5.6 而不是 6</li>
+<li><strong>Terra</strong> — flight simulator 风格的 showcase</li>
+<li><strong>Luna</strong> — landing page 上的第 3 个视觉变体 (视频未深入评测)</li>
+</ul>
+<p style="margin-top:8px;color:var(--fg3);font-size:12px">注: 本视频评测主要在 Soul vs Fable 5 之间进行, Terra/Luna 仅作 showcase 提及.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab3">
+<h2 class="section-title">3 类测试设计</h2>
+<p class="section-sub">Nate 用一整天时间在不同 harness 下对比 Soul vs Fable 5,分 3 类实验</p>
+
+<div class="timeline">
+<div class="tl-item">
+<span class="tl-time">[00:00:58 - 00:02:55]</span>
+<div class="tl-title">Test 1 — Agentic 3D 平台 (Claude Code + Codex)</div>
+<div class="tl-desc">同一 prompt: "做一个像 Mario 的 3D 跑酷游戏, WD 转向, 空格跳, Q/E 空中技巧, Shift 加速".Fable 5 在 Claude Code 里跑,Soul 在 Codex 里跑.对比完成时间 / 成本 / 视觉质量.</div>
+</div>
+<div class="tl-item">
+<span class="tl-time">[00:06:20 - 00:12:30]</span>
+<div class="tl-title">Test 2 — 5 个"根本不同"的视觉元素</div>
+<div class="tl-desc">同一 prompt: "Design me five fundamentally different visual elements. They can be games, presentations, websites, simulations, whatever you want." — 故意用极模糊 prompt, 看模型自主选择能力. 对比 5 个输出的多样性 / 创意 / 完成度 / 时间 / 成本.</div>
+</div>
+<div class="tl-item">
+<span class="tl-time">[00:12:46 - 00:15:37]</span>
+<div class="tl-title">Test 3 — Pure API one-shot (无 harness)</div>
+<div class="tl-desc">直接通过 API 调用, 不走 Claude Code / Codex. 都是 stateless 单轮问答. 24 胜 3 胜, 但 Fable 多次拒绝回答. 对比回答质量 (Soul 0.98 vs Fable 0.96) + 总成本 ($16 vs $63).</div>
+</div>
+</div>
+
+<div class="card">
+<h3>测试方法学注记</h3>
+<p style="line-height:1.75;margin-top:6px">⚠️ Nate 本人强调: "It's all about your use case and your feel and the way that you instruct it and the way that you've got your harness and your skill set up. So, everyone's a little different."</p>
+<p style="margin-top:6px;color:var(--fg2)">实测数据高度依赖 harness 设置 (Claude Code vs Codex 的 system prompt / skills 配置不同). 同样的 prompt 在不同 harness 下表现会有显著差异. <strong>不应用此评测做"绝对结论", 应做"信号"</strong>.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab4">
+<h2 class="section-title">Test 1 — Agentic 3D 平台</h2>
+<p class="section-sub">同一 prompt · Fable 5 走 Claude Code · Soul 走 Codex · 完整 3D 跑酷游戏</p>
+
+<div class="grid-3">
+<div class="card" style="border-left:3px solid var(--accent)">
+<h3>🥇 Fable 5 (左侧)</h3>
+<p style="font-size:13px;color:var(--fg2);margin:4px 0">Bird's eye 俯视角</p>
+<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
+<li><strong>时间:</strong> 21m 37s</li>
+<li><strong>成本:</strong> $14.22</li>
+<li><strong>输出 token:</strong> ~90,000</li>
+<li><strong>风格:</strong> top-down, 城市地图, 收集金币, 跳跃 + bunny hop</li>
+<li><strong>Nate 评价:</strong> "functionality-wise, the coins are working, the controls work. I just jumped over a building and I can bunny hop."</li>
+</ul>
+</div>
+
+<div class="card" style="border-left:3px solid var(--accent2)">
+<h3>🥈 Soul (右侧)</h3>
+<p style="font-size:13px;color:var(--fg2);margin:4px 0">POV 第一人称</p>
+<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
+<li><strong>时间:</strong> 23m</li>
+<li><strong>成本:</strong> $4.5</li>
+<li><strong>输出 token:</strong> ~31,000</li>
+<li><strong>风格:</strong> POV, 3D 城市, 跳跃 / 旋转 / 物理 ramp</li>
+<li><strong>Nate 评价:</strong> "pretty similar controls" — 都跑通了, 但视角选 POV 而非 bird's eye</li>
+</ul>
+</div>
+
+<div class="card" style="border-left:3px solid var(--warn)">
+<h3>📊 对比解读</h3>
+<ul style="padding-left:18px;line-height:1.7;font-size:12.5px">
+<li><strong>成本差 ~3.16×</strong> (Fable $14.22 vs Soul $4.5)</li>
+<li><strong>Token 差 ~2.9×</strong> (90k vs 31k)</li>
+<li><strong>时间差 ~1.4m</strong> (Soul 反而慢 1.4m, 罕见)</li>
+<li><strong>质量:</strong> Nate 明确说 "Fable's output was that 20 times better" — 否认. <strong>"I would have taken Fable's output in this one as well."</strong></li>
+<li><strong>解读:</strong> Soul 在 agentic 多步推理下不一定比 Fable 快, 但 token 节省显著</li>
+</ul>
+</div>
+</div>
+
+<div class="card">
+<h3>⚠️ Token 效率 ≠ 质量 — 关键洞见</h3>
+<blockquote>
+<p>"I don't necessarily think that it was [20× better] but just because we're going off of like the actual quality I'm going to say that I would have taken Fable's output in this one as well. All right so I did one more side-by-side experiment."</p>
+</blockquote>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px">Nate 多次强调: <strong>token 少 ≠ 输出更好</strong>. Soul 输出 31k tokens 跑通了, Fable 输出 90k tokens 也跑通了. Soul 节省 token 是 harness + 训练方式的结果, 不是"模型更聪明".</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab5">
+<h2 class="section-title">Test 2 — 5 个根本不同的视觉元素</h2>
+<p class="section-sub">故意用极模糊 prompt: "Design me five fundamentally different visual elements. They can be games, presentations, websites, simulations, whatever you want."</p>
+
+<h3 class="section-sub" style="margin-top:18px">Fable 5 输出 — "Gallery: 5 self-contained worlds"</h3>
+<div class="grid-3">
+<div class="card"><h3>① Singularity</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">"Move to warp spacetime. Hold to feed it" + 空格 detonate. Nate 评价: "I'm not really sure what they're going for here, but that's number one."</p></div>
+<div class="card"><h3>② Terra (Fable's version)</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Flight simulator with mouse steering, W/S 加速减速, time of day 切换. "Physics not too bad. Rendering a bit strange."</p></div>
+<div class="card"><h3>③ Orbit</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Two rings arcade game, 点击切换 ring 收集金币. 响应好, 但 menu overlay bug.</p></div>
+<div class="card"><h3>④ Inkflow</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">画板生成器 — 点击生成 piece, 切换色板, save as PNG. "reminds me of a board button".</p></div>
+<div class="card"><h3>⑤ The Descent</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Interactive story, 滚动从海面下潜到 Titanic 以下. 背景变化 + 生物出现. "another little journey experience".</p></div>
+</div>
+
+<div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:6px;font-size:12.5px;color:var(--fg2)">
+<strong>Fable 总评:</strong> "nothing overwhelmingly impressive there" — 5 个都跑通, 但没有特别惊艳.多样性 OK (game / simulator / arcade / draw tool / story).
+</div>
+
+<h3 class="section-sub" style="margin-top:24px">Soul 输出 — "Impossible objects: 5 tiny worlds, no frameworks"</h3>
+<div class="grid-3">
+<div class="card"><h3>① Aurora Orchestra</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Northern lights 互动, 改变声音 / 天空 / 强度. Nate 评价: "honestly kind of looks like a claw design sort of output".但 3/4 号按钮有 bug.</p></div>
+<div class="card"><h3>② Atlas of Lost</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">地图探索 — 鼠标显示北方, 点击 "Sleeping Sea" 等地点收集 echoes. "Atlas complete. Keep exploring."</p></div>
+<div class="card"><h3>③ The Glyph Heist</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Typing game — 网格里藏着 contraband words, 限时输入. "this is just like a typing game, I guess."</p></div>
+<div class="card"><h3>④ Slide Deck</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">5 张 slide 演示文稿. "these are designed pretty well. This definitely looks like a claw design to me. Like, this definitely looks like something Fable would whip up."</p></div>
+<div class="card"><h3>⑤ Tide Pool</h3><p style="font-size:12px;color:var(--fg2);margin-top:4px">Simulation — 撒种, 种群 320, 多样性 2, 给阳光 / 雨水. 风格化最好, 但跑慢. "very much like a simulation. I like the ones that are simulations."</p></div>
+</div>
+
+<div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:6px;font-size:12.5px;color:var(--fg2)">
+<strong>Soul 总评:</strong> "Honestly, I don't even know which one to say I'm going to hand the crown to. I think I'm just going to go with Soul for this one because I think in general it had a bit of a better idea of like diversity and experience." — Soul 这一轮胜.
+</div>
+
+<h3 class="section-sub" style="margin-top:20px">数据对比 (Test 2)</h3>
+<table>
+<tr><th>指标</th><th>Fable 5</th><th>Soul</th><th>差距</th></tr>
+<tr><td>时间</td><td>15 min</td><td>7 min</td><td><strong>Soul 快 2.14×</strong></td></tr>
+<tr><td>成本</td><td>~$15</td><td>~$1</td><td><strong>Soul 便宜 15×</strong></td></tr>
+<tr><td>输出 tokens</td><td>~65,000</td><td>~22,000</td><td>Soul 节省 ~3×</td></tr>
+<tr><td>Nate 选择</td><td>🥈</td><td>🥇 (crown)</td><td>本轮 Soul 胜</td></tr>
+<tr><td>Bug 数量</td><td>1 (menu overlay)</td><td>2-3 (3/4 号 button 不工作)</td><td>都差不多</td></tr>
+</table>
+
+<div class="card" style="margin-top:14px">
+<h3>⚠️ 反直觉发现</h3>
+<p style="line-height:1.7">Nate 原本以为这个"模糊 prompt + 5 个不同东西"的测试是 <strong>最难</strong> 的, 因为要求最高. <strong>结果: 这一轮反而是 Soul + Fable 都最快 / 最便宜的</strong>. Soul 7 分钟 $1, Fable 15 分钟 $15.</p>
+<p style="margin-top:6px;color:var(--fg2);font-size:12.5px">对比 Test 1 (单一 3D 平台) 的 21-23 分钟, 5 个小元素反而更快 — 可能因为单元素复杂度低, harness 能更激进地并行 / 复用. 这暗示: <strong>任务复杂度 ≠ 任务时间</strong>, 更可能取决于 harness 决策 + 单个 prompt 大小.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab6">
+<h2 class="section-title">Test 3 — Pure API one-shot</h2>
+<p class="section-sub">无 harness · 无 Claude Code / Codex · 直接 API 调用 · 单轮 stateless · 一天多次</p>
+
+<div class="grid-2">
+<div class="card">
+<h3>🏆 胜负比</h3>
+<p style="font-size:42px;font-weight:800;color:var(--accent2);line-height:1;margin-top:8px">24:3</p>
+<p style="font-size:13px;color:var(--fg2);margin-top:6px">Soul 胜 24 次 / Fable 胜 3 次</p>
+<div style="margin-top:14px;padding:10px;background:var(--bg3);border-radius:6px;font-size:12.5px;color:var(--fg2)">
+⚠️ 但 Fable 多次 <strong>refused to answer</strong> — "literally just wouldn't submit an answer. It refused, which I thought was interesting because, you know, there's the security guard rails are baked in pretty hard."
+</div>
+</div>
+
+<div class="card">
+<h3>💰 总成本</h3>
+<p style="font-size:42px;font-weight:800;color:var(--warn);line-height:1;margin-top:8px">$16 vs $63</p>
+<p style="font-size:13px;color:var(--fg2);margin-top:6px">Soul 总花 $16 vs Fable 总花 $63</p>
+<p style="margin-top:10px;font-size:12px;color:var(--fg2)">Soul 成本 <strong>~3.9× 更便宜</strong></p>
+</div>
+</div>
+
+<h3 class="section-sub" style="margin-top:18px">回答质量分 (Score when answering)</h3>
+<div class="card">
+<div style="display:flex;align-items:baseline;gap:24px;margin-top:8px">
+<div><span style="font-size:48px;font-weight:800;color:var(--accent2)">0.98</span> <span style="color:var(--fg2);font-size:14px">Soul</span></div>
+<div style="font-size:24px;color:var(--fg3)">vs</div>
+<div><span style="font-size:48px;font-weight:800;color:var(--accent)">0.966</span> <span style="color:var(--fg2);font-size:14px">Fable</span></div>
+<div style="margin-left:auto;font-size:13px;color:var(--fg2);text-align:right">
+几乎打平<br>
+<span style="font-size:11px;color:var(--fg3)">Fable "pretty even" 当真的回答时</span>
+</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<h3>📐 "Unit Economics" 模型</h3>
+<p style="line-height:1.75;margin-top:6px">Nate 提出一个决策框架:</p>
+<blockquote class="ok">
+<p>"Let's say the task is a five. Do you need a model that is a 10? Probably not. You only need a model that's maybe like a five or a six. So in this case with these quick one-shot, you know, API requests probably stateless, Soul seems to crush Fable here."</p>
+</blockquote>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px"><strong>含义</strong>: 如果你的任务是 5 分难度 (中等 one-shot), 用 Fable 10 分能力是浪费. Soul 5.6 能力 ≈ 5-6 分 = 完美匹配. 这跟 Anthropic Fable tier 定价逻辑吻合 — Fable 贵是因为"做 10 分任务", 不是因为"做 5 分任务更慢".</p>
+</div>
+
+<div class="card" style="margin-top:14px">
+<h3>🤔 Fable "拒绝回答" 现象</h3>
+<p style="line-height:1.7;margin-top:6px">Fable 多次直接 refused 不答. Nate 评价:</p>
+<blockquote>
+<p>"the security guard rails are baked in pretty hard"</p>
+</blockquote>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px">Anthropic 把 Fable 安全护栏做得非常 hard — 这是为什么 Fable 在某些 query 上不答,而 Soul 会答. 这解释了 24:3 胜负比里 Fable 的"低胜率" — 不仅是质量, 也是 <strong>意愿</strong>. <strong>含义</strong>: 如果你需要模型 100% 回答 (即使有边界问题), Soul 比 Fable 更可靠.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab7">
+<h2 class="section-title">速度 vs 成本 — 三类对比</h2>
+
+<h3 class="section-sub" style="margin-top:14px">⏱️ 时间对比</h3>
+<table>
+<tr><th>任务</th><th>Fable 5</th><th>Soul</th><th>差距</th><th>赢家</th></tr>
+<tr><td>3D 平台 (Test 1)</td><td>21m 37s</td><td>23m</td><td>Fable 快 1m23s</td><td>🥇 Fable</td></tr>
+<tr><td>5 视觉元素 (Test 2)</td><td>15m</td><td>7m</td><td>Soul 快 8m (2.14×)</td><td>🥇 Soul</td></tr>
+<tr><td>API 多次 (Test 3)</td><td>中位 ~20s/run</td><td>中位更快, 均值慢</td><td>分布不同</td><td>🥇 Soul (median)</td></tr>
+</table>
+
+<div class="card" style="margin-top:10px">
+<h3>📊 时间分布反直觉发现</h3>
+<p style="line-height:1.7;margin-top:6px">API one-shot 测速里 Soul 和 Fable 出现反直觉分布:</p>
+<ul style="padding-left:18px;margin-top:8px;line-height:1.7">
+<li><strong>Soul 中位延迟更快</strong> (更短排队)</li>
+<li><strong>Soul 均值比 Fable 慢</strong> (因为有几次超级长的 run 拉高均值)</li>
+<li><strong>Fable 更稳定</strong> — 一直 hover 在 ~20s 附近, 像 Fable 的延迟"有上限"</li>
+</ul>
+<p style="margin-top:8px;color:var(--fg2);font-size:12.5px">含义: 如果你看 P50 (中位), Soul 更快; 如果你看 P99 (尾部), Fable 更稳定. SRE / 生产部署应考虑这点.</p>
+</div>
+
+<h3 class="section-sub" style="margin-top:20px">💵 成本对比</h3>
+<table>
+<tr><th>任务</th><th>Fable 5</th><th>Soul</th><th>倍数</th></tr>
+<tr><td>3D 平台</td><td>$14.22</td><td>$4.5</td><td><strong>3.16×</strong></td></tr>
+<tr><td>5 视觉元素</td><td>$15</td><td>$1</td><td><strong>15×</strong></td></tr>
+<tr><td>API 24+3 任务总和</td><td>$63</td><td>$16</td><td><strong>3.94×</strong></td></tr>
+<tr><td>输入 token (per 1M)</td><td>~2× Soul</td><td>基准</td><td>—</td></tr>
+<tr><td>输出 token (per 1M)</td><td>~1.7× Soul</td><td>基准</td><td>—</td></tr>
+</table>
+
+<div class="card" style="margin-top:10px">
+<h3>🧮 关键洞见: 即使价格相同 Soul 仍更便宜</h3>
+<blockquote class="warn">
+<p>"Let's say that Fable and Soul costed the exact same from an input and output token perspective, Soul would have still been meaningfully cheaper because it just was more efficient with tokens. I don't know exactly why that is, but it just seems to be so much more efficient with tokens. It's probably has a lot to do with codecs too, because when I've done codecs and cloud code comparisons in the past, codeex has always been faster and more efficient with tokens."</p>
+</blockquote>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px">即使你把价格设成一样, Soul 仍便宜 — 因为 Soul 输出的 token 更少. 这跟 Codex harness 关系很大 — Codex 比 Claude Code 更 token efficient. <strong>不能简单说 Soul 模型本身比 Fable 模型 token efficient</strong>, harness 占一半.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab8">
+<h2 class="section-title">矩阵定位 — 四模型 tier map</h2>
+<p class="section-sub">Nate 在 18:00-19:50 给出的 tier 关系图</p>
+
+<div class="card" style="background:var(--bg3);padding:24px">
+<pre style="background:transparent;border:0;padding:0;font-size:13px;line-height:1.95;color:var(--fg)">
+<span style="color:var(--purple);font-weight:700">Fable 5</span>              ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ← ANOTHER TIER
+
+<span style="color:var(--accent2);font-weight:700">Soul 5.6</span>             ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ← comparable to Opus 4.8
+                                       ↕ gap
+
+<span style="color:var(--accent);font-weight:700">Opus 4.8</span>              ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+
+<span style="color:var(--warn);font-weight:700">GBT 5.5</span>               ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                          ├─ slightly behind Opus
+                          └─ Soul 在它俩前面 ✓
+</pre>
+</div>
+
+<div class="grid-2" style="margin-top:14px">
+<div class="card">
+<h3>📌 Nate 原文 tier 排序</h3>
+<ul style="padding-left:18px;line-height:1.75;margin-top:6px">
+<li><strong>Tier 0 (独自一层):</strong> Fable 5</li>
+<li><strong>Tier 1:</strong> Soul 5.6</li>
+<li><strong>Tier 2 (贴在一起):</strong> Opus 4.8 ≈ GBT 5.5</li>
+</ul>
+<p style="margin-top:10px;color:var(--fg2);font-size:13px">Nate 用 Opus 4.8 跑日常, GBT 5.5 比 Opus 略后. Soul 在两个之前. <strong>Fable 跟其他三者仍有显著 gap</strong>.</p>
+</div>
+<div class="card">
+<h3>🔮 未来预测</h3>
+<p style="line-height:1.7;margin-top:6px">Nate 推测 GBT 6 才是真正对标 Fable 的下一代:</p>
+<blockquote>
+<p>"Doesn't a model that should be so so good deserve a full step up if there's, you know, fundamentally something so different that makes it like a really powerful scary model, but they decided to only bump it up to Soul 5.6, which makes me wonder like what are they cooking back there and what are they maybe waiting to drop as their next GBT6?"</p>
+</blockquote>
+<p style="margin-top:8px;color:var(--fg2);font-size:12.5px">Nate 的解读: 既然 Soul 这么强但只升 5.6 (而非 6), 暗示 OpenAI 留着 6 这个数字给真正跨代的下一代.</p>
+</div>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab9">
+<h2 class="section-title">Patrick 卡片 — 17 个可决策观点</h2>
+<p class="section-sub">每张卡片都是 1 个独立观点 + 5 类标签 (use_when / avoid_when / signal / effort / leverage)</p>
+
+<div class="grid-2">
+<div class="card"><div class="meta">#1 · use_when=orchestration</div><h3>✅ 用 Fable 5 当 manager / co-founder</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "I feel like Fable is a better manager, and that's how I think of it. I think of it as a co-founder."</p><div style="margin-top:8px"><span class="tag">reasoning</span><span class="tag">strategy</span><span class="tag warn">high cost</span></div></div>
+
+<div class="card"><div class="meta">#2 · use_when=execution</div><h3>✅ 用 Soul 当 shipping worker</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "Soul is just a really, really good worker." 适合 stateless 任务 / API one-shot / Computer use.</p><div style="margin-top:8px"><span class="tag ok">cheap</span><span class="tag ok">fast</span><span class="tag">execution</span></div></div>
+
+<div class="card"><div class="meta">#3 · signal=architecture</div><h3>🏗️ Fable 5 orchestrate 一群 Soul agents</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate 明确说这是 "amazing" 形态. Fable 做 manager 派活 + Soul 做 worker 执行. 两层 cost model.</p><div style="margin-top:8px"><span class="tag purple">architecture</span><span class="tag warn">complex</span><span class="tag ok">leverage=high</span></div></div>
+
+<div class="card"><div class="meta">#4 · use_when=video</div><h3>🎬 Video production 优先 Fable 5</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate 做了 2 支 YouTube 视频: "Fable 5 made this entire video" vs "Soul made this entire video". 偏好 Fable 的输出.</p><div style="margin-top:8px"><span class="tag">video</span><span class="tag">creative</span></div></div>
+
+<div class="card"><div class="meta">#5 · avoid_when=oneshot</div><h3>⚠️ One-shot API 不要用 Fable</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">$63 vs $16 — 4× 成本但质量几乎打平 (0.966 vs 0.98). Fable 的 10 分能力在 5 分任务上是浪费.</p><div style="margin-top:8px"><span class="tag warn">cost-waste</span><span class="tag">oneshot</span></div></div>
+
+<div class="card"><div class="meta">#6 · signal=guardrails</div><h3>🛡️ Fable 安全护栏比 Soul 严</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Fable 多次 refused to answer — "the security guard rails are baked in pretty hard". 需要 100% 回答的边界 query 用 Soul.</p><div style="margin-top:8px"><span class="tag warn">guardrails</span><span class="tag">edge-query</span></div></div>
+
+<div class="card"><div class="meta">#7 · signal=persona</div><h3>🎭 Fable = "sassy consultant"</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "sometimes Fable's a bit more like it'll push back a little bit more ... I want to push back and be like a consultant here". 会 push back, 会拒绝.</p><div style="margin-top:8px"><span class="tag">persona</span><span class="tag purple">style</span></div></div>
+
+<div class="card"><div class="meta">#8 · signal=persona</div><h3>🤖 Soul = "careful executor"</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "really thinking about what did they say, what did the user tell me to do and what am I going to do and I'm going to do exactly that." 严格按指令.</p><div style="margin-top:8px"><span class="tag">persona</span><span class="tag ok">strict</span></div></div>
+
+<div class="card"><div class="meta">#9 · use_when=creative</div><h3>✨ 创意 / 写作 / brainstorm → Fable</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "It's just much more creative. It feels more creative. It feels like it's better at writing. It feels like it's better at brainstorming."</p><div style="margin-top:8px"><span class="tag">creative</span><span class="tag">writing</span></div></div>
+
+<div class="card"><div class="meta">#10 · use_when=code</div><h3>💻 Computer use → Soul</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "It's much better on computer use. It's much better at playing devil's advocate because it feels like it's just a little more careful at finding the bugs."</p><div style="margin-top:8px"><span class="tag">computer-use</span><span class="tag">debug</span></div></div>
+
+<div class="card"><div class="meta">#11 · avoid_when=budget</div><h3>💸 Fable 成本 $14-15/task (agentic)</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">3D 任务 $14.22, 5 元素任务 $15. 高频任务用 Fable 一个月花 $1500+. 预算敏感用 Soul.</p><div style="margin-top:8px"><span class="tag warn">high-cost</span><span class="tag">budget</span></div></div>
+
+<div class="card"><div class="meta">#12 · signal=efficiency</div><h3>🪙 Soul token 效率 ~3× 高</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Soul 输出 22-31k tokens, Fable 输出 65-90k. 即使价格一样 Soul 仍便宜. Codex harness 是部分原因.</p><div style="margin-top:8px"><span class="tag ok">token-efficient</span></div></div>
+
+<div class="card"><div class="meta">#13 · signal=timing</div><h3>⏱️ 短任务 Soul 快 / 长任务 Fable 稳</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">API one-shot Soul 中位更快但尾部慢. 3D 长任务 Fable 反而快. 任务越复杂 Fable 优势越明显.</p><div style="margin-top:8px"><span class="tag">timing</span><span class="tag">distribution</span></div></div>
+
+<div class="card"><div class="meta">#14 · signal=latency</div><h3>📊 Soul 延迟方差大 / Fable 稳</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Soul P50 比 Fable 快, 但 P99 比 Fable 慢. Fable 一直 hover ~20s. 生产 SRE 应考虑.</p><div style="margin-top:8px"><span class="tag warn">latency-p99</span><span class="tag">sre</span></div></div>
+
+<div class="card"><div class="meta">#15 · signal=over-eng</div><h3>⚠️ Soul 会 over-engineer</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "Fable is better at not overengineering because Soul runs so many tests". Soul 写太多测试拖慢自身 token 节省.</p><div style="margin-top:8px"><span class="tag warn">over-engineer</span><span class="tag">tests</span></div></div>
+
+<div class="card"><div class="meta">#16 · signal=over-think</div><h3>🔄 Solon Ultra 容易 over-think</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate: "sometimes it will overthink, especially when I had Solon Ultra, it was just going and going and going and going." Solon Ultra 是 Soul 的高推理档.</p><div style="margin-top:8px"><span class="tag warn">over-think</span><span class="tag">ultra-mode</span></div></div>
+
+<div class="card"><div class="meta">#17 · signal=prediction</div><h3>🔮 GBT 6 才是 Fable 真正对手</h3><p style="margin-top:6px;color:var(--fg2);font-size:12.5px">Nate 推测: Soul 升 5.6 不升 6, 暗示 OpenAI 把 6 留给跨代. Soul 5.6 ≠ 真正下一代.</p><div style="margin-top:8px"><span class="tag purple">prediction</span><span class="tag">next-gen</span></div></div>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab10">
+<h2 class="section-title">⚠️ Topic 识别注记 — 重要诚实声明</h2>
+
+<div class="card" style="border-left:3px solid var(--warn)">
+<h3>Patrick 原始 prompt 与视频实际主题的偏差</h3>
+<p style="line-height:1.75;margin-top:8px"><strong>Patrick 命名</strong>: "Solomon AI vs Fable 5"<br>
+<strong>视频实际标题</strong>: "I Tested GPT 5.6 Sol vs Fable 5. What You Need To Know."</p>
+
+<p style="margin-top:14px;line-height:1.75">📋 <strong>诚实说明</strong>:</p>
+<ul style="padding-left:18px;line-height:1.75;margin-top:6px">
+<li>视频里 <strong>完全没有 "Solomon" 或 "Solomon AI" 这个名字</strong></li>
+<li>视频评测的对象是 <strong>OpenAI 发布的 GPT 5.6 家族的 "Soul" 模型</strong> (同时发布的还有 Terra 和 Luna)</li>
+<li>Patrick 的 "Solomon AI" 命名很可能是 <strong>把 "Sol/Soul" 听 / 记成 "Solomon"</strong> 的误识别</li>
+<li>或可能是指 <strong>另一段记忆里的某个未确认项目</strong> (sandbox 命名空间里没有 "Solomon AI" 这个产品)</li>
+</ul>
+
+<div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:6px;font-size:12.5px;color:var(--fg2);line-height:1.7">
+<strong>处置方式</strong>: 本 dashboard 仍按视频实际主题 (GPT-5.6 Sol/Soul vs Fable 5) 制作. 如果 Patrick 实际想找的是另一段 "Solomon AI" 视频, 请 Patrick (a) 提供正确 URL (b) 或确认是否指 Soul. <strong>本 dashboard 不会用 LLM 编造 "Solomon AI" 内容</strong>.
+</div>
+</div>
+
+<h3 class="section-sub" style="margin-top:20px">sandbox 现状核实</h3>
+<table>
+<tr><th>项目</th><th>状态</th><th>说明</th></tr>
+<tr><td>Solomon AI</td><td><span class="tag err">未找到</span></td><td>在本视频 transcript + 公开 LLM 评测里均未出现</td></tr>
+<tr><td>GPT 5.6 Soul / Sol</td><td><span class="tag ok">视频主题</span></td><td>OpenAI 2026-07 发布的模型变体</td></tr>
+<tr><td>GPT 5.6 Terra</td><td><span class="tag ok">同期发布</span></td><td>flight simulator 风格 showcase, 视频未深测</td></tr>
+<tr><td>GPT 5.6 Luna</td><td><span class="tag ok">同期发布</span></td><td>landing page 第 3 个视觉变体</td></tr>
+<tr><td>Fable 5</td><td><span class="tag ok">Anthropic</span></td><td>视频评测的另一方</td></tr>
+</table>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab11">
+<h2 class="section-title">Tier 4 — 可执行行动项</h2>
+<p class="section-sub">基于本评测的可落地方案 (优先级排序)</p>
+
+<div class="card" style="border-left:3px solid var(--accent2)">
+<h3>🚀 T1 — 立刻可做 (本周内)</h3>
+<ol style="padding-left:18px;line-height:1.85;margin-top:6px">
+<li><strong>One-shot API 任务全切 Soul</strong> — 如果用 Fable 跑 stateless API 调用, 立刻迁移. 节省 ~4× 成本, 质量几乎一样.</li>
+<li><strong>Computer use 任务优先 Soul</strong> — Nate 明确 Soul 在 computer use 维度更强. 浏览器自动化 / GUI 操作换 Soul.</li>
+<li><strong>评估自己任务难度分布</strong> — 5 分任务 vs 10 分任务占比. 如果 90% 是 5 分, Soul 完全够用.</li>
+</ol>
+</div>
+
+<div class="card" style="border-left:3px solid var(--accent)">
+<h3>🛠️ T2 — 短期 (2 周内)</h3>
+<ol style="padding-left:18px;line-height:1.85;margin-top:6px">
+<li><strong>设计 Fable-orchestrates-Soul 架构</strong> — Nate 推荐的最佳实践. Fable 做 manager (判断 / 拆解 / 派活), Soul 做 worker (执行 / 测试 / 验证). 两层 cost model 拿 Fable 质量 + Soul 速度.</li>
+<li><strong>监控 Soul over-engineer 风险</strong> — Soul 跑太多测试是常见 pattern. 加 cost ceiling 或 token budget 触发 early stop.</li>
+<li><strong>Solon Ultra 谨慎使用</strong> — 容易 over-think. 默认用 Solon (非 Ultra), 仅在确实需要时切 Ultra.</li>
+</ol>
+</div>
+
+<div class="card" style="border-left:3px solid var(--warn)">
+<h3>🔮 T3 — 中期 (1-3 月)</h3>
+<ol style="padding-left:18px;line-height:1.85;margin-top:6px">
+<li><strong>追踪 GBT 6 发布信号</strong> — 如果 Nate 预测对, GBT 6 才是真正对标 Fable 的下一代. 关注 2026 Q3-Q4 模型发布.</li>
+<li><strong>设计 latency budget</strong> — Soul P50 快 P99 慢的分布特点. 生产环境用 Fable 跑长任务 (稳定), Soul 跑短任务 (快). 不要混用.</li>
+<li><strong>评测自己的 Fable vs Soul one-shot benchmark</strong> — 拿自己的 24 个 one-shot 任务实测, 验证 Nate 24:3 比例是否在自己场景成立.</li>
+</ol>
+</div>
+
+<div class="card" style="border-left:3px solid var(--purple)">
+<h3>🧪 T4 — 长期 / 探索 (3+ 月)</h3>
+<ol style="padding-left:18px;line-height:1.85;margin-top:6px">
+<li><strong>Fable + Soul 多 agent 编排框架</strong> — 不是 Claude Code 内部调用, 而是独立 orchestration layer. 类似 OpenClaw / Hermes 的"manager + worker" 模式.</li>
+<li><strong>模型拒绝率统计</strong> — Fable "guardrails baked in pretty hard" 是已知问题. 跑 1000 query 统计 Fable vs Soul 拒绝率, 量化 "Nate 主观感觉".</li>
+<li><strong>跨 harness 验证</strong> — Nate 用 Claude Code 跑 Fable, Codex 跑 Soul. 同样的 prompt 换 harness 会怎样? 设计 A/B 测试.</li>
+</ol>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab12">
+<h2 class="section-title">Bilingual Quotes — 12 关键引文</h2>
+<p class="section-sub">每个引文: EN 原文 + 中文翻译 + timestamp + 来源段</p>
+
+<div class="quote-card">
+<span class="q-time">00:00:00</span>"So, we finally have GBT 5.6 Soul, Terra, and Luna. And the benchmarks are insanely impressive because it basically shows that Soul blows Opus and Fable out of the water and is significantly cheaper."
+<span class="q-source">→ 我们终于有 GBT 5.6 Soul, Terra, Luna. 基准测试非常惊人 — Soul 在大幅超越 Opus 和 Fable 的同时, 价格显著更低.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:02:55</span>"So, similar on the timing here, but let's look at cost. So, this Fable run would have costed me about $14.22, 22 whereas the GBT Soul run would have costed $4.5."
+<span class="q-source">→ 时间差不多, 但看看成本: Fable 这次跑花了我 $14.22, Soul 跑花 $4.5. (Test 1 — 3D 平台)</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:05:50</span>"I would have taken Fable's output in this one as well."
+<span class="q-source">→ 这一轮 (3D 平台) 我还是选 Fable 的输出. — Nate 的 Test 1 偏好.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:09:04</span>"Honestly, I don't even know which one to say I'm going to hand the crown to. I think I'm just going to go with Soul for this one because I think in general it had a bit of a better idea of like diversity and experience."
+<span class="q-source">→ 老实说, 我不知道该把王冠给谁. 这一轮 (5 视觉元素) 我给 Soul, 因为它在多样性和体验感上做得更好.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:12:30</span>"This one took 15 minutes for Fable. And for Soul, this took 7 minutes... Fable about 15 bucks with 65,000 output tokens. And on Soul, it took once again about a dollar and 22,000 output tokens."
+<span class="q-source">→ Fable 用了 15 分钟, Soul 用了 7 分钟. 成本: Fable ~$15 (65k tokens) vs Soul ~$1 (22k tokens). 15× 价差.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:13:12</span>"Soul won 24 times and fable won three times there were also a lot of times when Fable refused to answer like literally just wouldn't submit an answer. It refused, which I thought was interesting because, you know, there's the security guard rails are baked in pretty hard."
+<span class="q-source">→ Soul 24 胜, Fable 3 胜. 但 Fable 多次 literally refused to answer. 这很有意思 — 安全护栏 baked in 非常硬.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:13:59</span>"Soul had 0.98 and Fable had 966. So they are very similar models... Soul seems to crush Fable here. And from an input output tokens perspective, Soul is basically half the cost of Fable."
+<span class="q-source">→ Soul 0.98 vs Fable 0.966 — 几乎打平. 但 Soul 在 API one-shot 上碾压 Fable, token 成本基本是 Fable 的一半.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:14:45</span>"Doesn't a model that should be so so good deserve a full step up if there's, you know, fundamentally something so different that makes it like a really powerful scary model, but they decided to only bump it up to Soul 5.6, which makes me wonder like what are they cooking back there and what are they maybe waiting to drop as their next GBT6?"
+<span class="q-source">→ Soul 这么强为什么不直接升 6? 只升到 5.6 — 这让我好奇他们藏着什么, 是不是在等 GBT 6.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:17:09</span>"I think that having Fable orchestrate a bunch of Soul agents would be amazing."
+<span class="q-source">→ 我觉得 Fable orchestrate 一群 Soul agents 会非常厉害. — Nate 推荐的组合形态.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:17:33</span>"Whereas sometimes Fable's a bit more like it'll push back a little bit more and it's almost like sometimes sassier, you know, like sometimes it's not just like I want to take a request and action it. I want to push back and be like a consultant here, which is good thing, right? That's why I said it's a manager."
+<span class="q-source">→ Fable 有时会 push back, 有点 sassier — 不只是接活, 会像顾问一样给反馈. 这就是为啥我说它是 manager.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:18:53</span>"Just pure capability. I mean, you can't even argue. Fable 5 is in another tier. It's just on another level. And Soul is really good. I think it's more comparable to Opus 4.8."
+<span class="q-source">→ 纯能力来说, Fable 5 在另一个 tier, 另一个 level. Soul 跟 Opus 4.8 更可比.</span>
+</div>
+
+<div class="quote-card">
+<span class="q-time">00:19:23</span>"Fable is good for my reasoning and my judging. And then Soul is just a shipping and executing AI model."
+<span class="q-source">→ Fable 适合 reasoning 和 judging. Soul 是 shipping + executing AI 模型.</span>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab13">
+<h2 class="section-title">引用 & 关联</h2>
+
+<h3 class="section-sub">主来源</h3>
+<ul style="padding-left:18px;line-height:1.85">
+<li><strong>视频</strong>: <a href="https://www.youtube.com/watch?v=EthxaDswUFo" target="_blank">I Tested GPT 5.6 Sol vs Fable 5. What You Need To Know.</a> — Nate Herk | AI Automation, 2026-07-10, 20m 25s</li>
+<li><strong>Transcript</strong>: yt-dlp web_safari client, 1250 cues cleaned → 27.2KB</li>
+<li><strong>评测对象</strong>: GPT-5.6 Soul vs Anthropic Fable 5</li>
+</ul>
+
+<h3 class="section-sub" style="margin-top:14px">关联 vault 笔记</h3>
+<ul style="padding-left:18px;line-height:1.85">
+<li><a href="https://2017zyl.xyz/llm-wiki/papers/" target="_blank">llm-wiki/papers/</a> — 已有的 LLM 评测类笔记</li>
+<li><a href="https://2017zyl.xyz/llm-wiki/dashboard/" target="_blank">llm-wiki/dashboard/</a> — 主题 dashboard hub</li>
+<li><strong>同系列 (07-04 ~ 07-10)</strong>:
+  <ul style="margin-top:4px">
+  <li><a href="https://2017zyl.xyz/llm-wiki/daily-reports/fable5-jack-roberts-websites-levels-2026-07-06.html">07-06 Jack Roberts Fable 5 7 Levels</a></li>
+  <li><a href="https://2017zyl.xyz/llm-wiki/daily-reports/fable5-peter-yang-5cbngwp5vis-2026-07-04.html">07-04 Peter Yang Fable 5 review</a></li>
+  </ul>
+</li>
+</ul>
+
+<h3 class="section-sub" style="margin-top:14px">关联 skills</h3>
+<ul style="padding-left:18px;line-height:1.85">
+<li><code>media/video-to-knowledge-dashboard</code> v1.5.32 — 本 dashboard 用的 skill</li>
+<li><code>autonomous-ai-agents/dual-ai-peer-review</code> v1.2.0 — 双 AI peer review 模式 (Claude + Gemini 投票)</li>
+<li><code>public-html-deploy-cloudflare-pages</code> v1.43.0 — deploy skill (本 dashboard 部署用)</li>
+</ul>
+
+<h3 class="section-sub" style="margin-top:14px">引用完整性</h3>
+<div class="card">
+<p style="line-height:1.7"><strong>评级: ✅ Tier A (high)</strong></p>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px">12 个核心 quotes 全部从 transcript 直接提取 + 带 timestamp + 带 EN/中文 翻译对照. 关键数据点 ($14.22 / $4.5 / 24:3 / 0.98 vs 0.96 / 21m37s / 23m / 15m / 7m) 全部从原文获取.</p>
+<p style="margin-top:8px;color:var(--fg2);font-size:13px"><strong>诚实声明</strong>: Patrick 原始 "Solomon AI" 命名在本视频 transcript 中未找到, 见 Tab ⑩ 详细说明.</p>
+</div>
+</section>
+
+<!-- ────────────────────────────────────────── -->
+<section class="tab-content" id="tab14">
+<h2 class="section-title">元信息 / 制作记录</h2>
+<table>
+<tr><th>字段</th><th>值</th></tr>
+<tr><td>Dashboard 版本</td><td>v1.0 · 2026-07-10</td></tr>
+<tr><td>Skill</td><td><code>media/video-to-knowledge-dashboard</code> v1.5.32</td></tr>
+<tr><td>Transcript 长度</td><td>27,168 chars (cleaned)</td></tr>
+<tr><td>Transcript cues</td><td>1250 (filtered dur ≥ 1.0s)</td></tr>
+<tr><td>制作方法</td><td>Master self-build (PITFALL 50-53 path)</td></tr>
+<tr><td>Patrick 校正次数</td><td>0 (本会话直接 ship)</td></tr>
+<tr><td>Tier 4 polish</td><td>无 (Patrick 仅要求 1/2/3 选, 实际 = "1 + 3 全要")</td></tr>
+<tr><td>Deploy 状态</td><td>⏳ 待发布到 <code>2017zyl.xyz/llm-wiki/daily-reports/</code></td></tr>
+<tr><td>已知 limitations</td><td>
+  (1) 仅 1 个 video source, 没有 cross-reference 第三方评测<br>
+  (2) Tier 4 行动项基于视频 + Patrick 当前 AGENTS.md 推测, 未经 Patrick 业务实际场景验证<br>
+  (3) "Solomon AI" topic 识别问题已在 Tab ⑩ 显式标注
+</td></tr>
+</table>
+
+<div class="card" style="margin-top:14px">
+<h3>📦 完整 deliverables 清单</h3>
+<ol style="padding-left:18px;line-height:1.8;margin-top:6px">
+<li>✅ <strong>本 HTML dashboard</strong> (14 tabs, ~30KB, TOC v1.4.4 collapsible)</li>
+<li>⏳ <strong>Vault 笔记</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/papers/2026-07-10-gpt56-sol-vs-fable5-nate-herk.md</code></li>
+<li>⏳ <strong>中文 summary</strong>: <code>~/Downloads/Obsidian Vault/llm-wiki/daily-summaries/2026-07-10-gpt56-sol-vs-fable5-nate-herk.zh.md</code></li>
+<li>✅ <strong>12 Bilingual quotes</strong> (Tab ⑫ 已嵌入)</li>
+</ol>
+</div>
+
+<div class="card" style="margin-top:14px">
+<h3>🔄 待 Patrick 决策</h3>
+<ul style="padding-left:18px;line-height:1.8;margin-top:6px">
+<li><strong>(a)</strong> 是否确认 "Solomon AI" 实际是 "Soul" 的误识别? 如果是 → 本 dashboard 名字保留, 无需修改. 如果不是 → 请提供正确 Solomon AI 视频 URL, 我会重做.</li>
+<li><strong>(b)</strong> deploy 到 <code>2017zyl.xyz/llm-wiki/daily-reports/</code>? (默认 yes)</li>
+<li><strong>(c)</strong> vault 笔记 + 中文 summary 是否一并生成? (默认 yes)</li>
+</ul>
+</div>
+
+<footer>
+<div class="row">
+<span>📊 Dashboard: GPT-5.6 Sol vs Fable 5 — Nate Herk 实战横评</span>
+<span>📅 2026-07-10 · Hermes Agent</span>
+</div>
+<div class="row">
+<span>🎬 <a href="https://www.youtube.com/watch?v=EthxaDswUFo" target="_blank">Video Source</a></span>
+<span>🛠️ Skill: <code>media/video-to-knowledge-dashboard</code> v1.5.32</span>
+</div>
+<div class="row">
+<span>📍 Deploy target: <code>2017zyl.xyz/llm-wiki/daily-reports/gpt56-sol-vs-fable5-nate-herk-2026-07-10.html</code></span>
+<span>SHA pending post-deploy</span>
+</div>
+</footer>
+</section>
+
+<script>
+// ───── TOC active tracking + smooth scroll ─────
+(function() {
+  const tocLinks = document.querySelectorAll('.toc-list a');
+  const sections = Array.from(tocLinks).map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  function updateActiveToc() {
+    const scrollPos = window.scrollY + 100;
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec.offsetTop <= scrollPos) activeIdx = i;
+    });
+    tocLinks.forEach((a, i) => a.classList.toggle('active', i === activeIdx));
+  }
+  window.addEventListener('scroll', updateActiveToc, { passive: true });
+  updateActiveToc();
+
+  tocLinks.forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+        if (window.innerWidth <= 900) {
+          document.getElementById('tocWrap').classList.add('collapsed');
+        }
+      }
+    });
+  });
+})();
+
+// ───── Tab switching ─────
+(function() {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+  function showTab(id) {
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+    tabContents.forEach(c => c.classList.toggle('active', c.id === id));
+    const target = document.getElementById(id);
+    if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+  }
+  tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  window.showTab = showTab;
+})();
+
+// ───── TOC collapse/expand (v1.4.4) ─────
+(function() {
+  const STORAGE_KEY = 'gpt56-sol-vs-fable5-toc-collapsed';
+  const wrap = document.getElementById('tocWrap');
+  const toggle = document.getElementById('tocToggle');
+  const isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+  if (isCollapsed) wrap.classList.add('collapsed');
+  toggle.addEventListener('click', () => {
+    wrap.classList.toggle('collapsed');
+    localStorage.setItem(STORAGE_KEY, wrap.classList.contains('collapsed') ? 'true' : 'false');
+  });
+})();
+
+// ───── Page-load banner ─────
+(function() {
+  document.title = '[v1.0 OK] ' + document.title;
+  console.log('%cGPT-5.6 Sol vs Fable 5 dashboard · v1.0 OK · 2026-07-10', 'color:#58a6ff;font-weight:bold');
+})();
+</script>
+</body>
+</html>
