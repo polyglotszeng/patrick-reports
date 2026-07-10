@@ -828,7 +828,7 @@ function fillLaunchFilters(){
   $("#fSource").insertAdjacentHTML("beforeend",uniq(DB.launches.flatMap(l=>l.sources||[])).map(opt).join(""));
 }
 function filterLaunches(){
-  const get = id => { const el = $(id); return el ? (el.value ?? "") : ""; };
+  const get = id => { const el = $(id.startsWith("#")?id:("#"+id)); return el ? (el.value ?? "") : ""; };
   const f={q:get("#fSearch").trim().toLowerCase(),provider:get("#fProvider"),country:get("#fCountry"),year:get("#fYear"),status:get("#fStatus"),source:get("#fSource")};
   return DB.launches.filter(l=>{
     if(f.provider&&l.provider!==f.provider) return false;
@@ -1529,9 +1529,9 @@ function setupTabs(){
 
 /* ========== events ========== */
 function bindEvents(){
-  ["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$(id).addEventListener("change",renderList));
+  ["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$("#"+id).addEventListener("change",renderList));
   $("#fSearch").addEventListener("input",renderList);
-  $("#fReset").addEventListener("click",()=>{$("#fSearch").value="";["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$(id).value="");renderList();});
+  $("#fReset").addEventListener("click",()=>{$("#fSearch").value="";["fProvider","fCountry","fYear","fStatus","fSource"].forEach(id=>$("#"+id).value="");renderList();});
   $("#launchList").addEventListener("click",e=>{if(e.target.closest("a")) return; const row=e.target.closest(".row"); if(row) openDrawer(row.dataset.id);});
   $("#drawerClose").addEventListener("click",e=>{e.stopPropagation();closeDrawer();});
   $("#overlay").addEventListener("click",closeDrawer);
