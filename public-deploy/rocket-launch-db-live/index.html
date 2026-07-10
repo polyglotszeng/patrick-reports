@@ -369,6 +369,101 @@
     .hero-stats{flex-wrap:wrap}
     .stat{flex:0 0 calc(50% - 8px);min-width:0}
   }
+
+  /* ===== Polish v2 — day-separator, recent-summary, status-pills, keyboard focus ===== */
+  .day-separator{
+    display:flex;align-items:center;gap:12px;margin:18px 0 10px;
+    font-size:10px;font-weight:700;letter-spacing:.12em;
+    color:var(--text-3);text-transform:uppercase;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+  }
+  .day-separator::before,.day-separator::after{
+    content:'';flex:1;height:1px;background:var(--line);
+  }
+  .day-separator .day-count{
+    background:var(--bg-3);color:var(--text-2);
+    padding:2px 8px;border-radius:10px;font-size:9px;
+    font-weight:600;letter-spacing:.06em;
+  }
+  .recent-summary{
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    background:linear-gradient(135deg, rgba(6,182,212,.06), rgba(168,85,247,.04));
+    border:1px solid var(--line);border-radius:12px;
+    padding:12px 16px;margin-bottom:16px;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+    font-size:12px;color:var(--text-1);
+  }
+  .recent-summary .rs-stats{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex:1 1 auto;
+  }
+  .recent-summary .rs-spark{
+    flex:0 0 auto;display:flex;align-items:center;gap:8px;
+    padding-left:14px;border-left:1px solid var(--line);
+  }
+  .recent-summary .rs-spark::before{
+    content:'30d';font-size:9px;color:var(--text-3);
+    text-transform:uppercase;letter-spacing:.1em;writing-mode:vertical-rl;
+    transform:rotate(180deg);
+  }
+  .recent-summary .sparkline{display:block;flex:0 0 auto}
+  .recent-summary .rs-total{
+    font-size:18px;font-weight:700;color:var(--text-0);
+    font-variant-numeric:tabular-nums;
+  }
+  .recent-summary .rs-rate{
+    margin-left:auto;font-size:13px;font-weight:700;
+    padding:4px 10px;border-radius:6px;
+    font-variant-numeric:tabular-nums;
+  }
+  .recent-summary .rs-rate.high{background:rgba(34,197,94,.15);color:var(--go);border:1px solid rgba(34,197,94,.3)}
+  .recent-summary .rs-rate.mid{background:rgba(245,158,11,.15);color:var(--tbc);border:1px solid rgba(245,158,11,.3)}
+  .recent-summary .rs-rate.low{background:rgba(239,68,68,.15);color:var(--failure);border:1px solid rgba(239,68,68,.3)}
+  .status-pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:5px;
+    background:var(--bg-2);border:1px solid var(--line);
+    color:var(--text-2);font-size:11px;font-weight:600;
+    padding:5px 10px;border-radius:14px;cursor:pointer;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+    transition:all .15s;
+  }
+  .status-pill:hover{border-color:var(--accent);color:var(--text-0)}
+  .status-pill.active{background:var(--accent);color:#000;border-color:var(--accent)}
+  .status-pill .pill-count{
+    background:rgba(0,0,0,.2);padding:1px 6px;border-radius:8px;
+    font-size:10px;font-weight:700;
+  }
+  .status-pill.active .pill-count{background:rgba(255,255,255,.25);color:#000}
+  .launch.focused{outline:2px solid var(--accent);outline-offset:-2px}
+  .launch.highlight{animation: highlight-flash 2.4s ease-out}
+  @keyframes highlight-flash{
+    0%{box-shadow:0 0 0 3px var(--accent-glow), 0 0 40px var(--accent-glow)}
+    100%{box-shadow:0 0 0 0 transparent, 0 0 0 transparent}
+  }
+  .countdown-time.ago{color:var(--text-2);font-weight:500}
+  .copy-link-btn{
+    position:absolute;top:8px;right:8px;z-index:2;
+    background:rgba(0,0,0,.6);border:1px solid var(--line);
+    color:var(--text-2);font-size:10px;font-weight:600;
+    padding:4px 8px;border-radius:6px;cursor:pointer;
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+    transition:all .15s;
+  }
+  .copy-link-btn:hover{color:var(--accent);border-color:var(--accent)}
+  .copy-link-btn.copied{color:var(--go);border-color:var(--go)}
+  .launch-detail{position:relative}
+  kbd{
+    display:inline-block;background:var(--bg-3);border:1px solid var(--line-2);
+    color:var(--text-1);font-family:ui-monospace,SF Mono,Menlo,monospace;
+    font-size:10px;font-weight:600;padding:1px 5px;border-radius:4px;
+    box-shadow:0 1px 0 var(--line-2);
+  }
+  .kb-hint{
+    font-size:10px;color:var(--text-3);
+    font-family:ui-monospace,SF Mono,Menlo,monospace;
+    margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;
+  }
+  .kb-hint kbd{font-size:9px}
 </style>
 </head>
 <body>
@@ -405,10 +500,25 @@
       <option value="">All rockets</option>
     </select>
     <div class="data-badge" id="dataBadge">loading…</div>
-    <button class="refresh-btn" id="refreshBtn" title="Force refresh now">
+    <span class="kb-hint">
+      <span><kbd>J</kbd><kbd>K</kbd> nav</span>
+      <span><kbd>R</kbd> refresh</span>
+      <span><kbd>1</kbd>-<kbd>5</kbd> tab</span>
+      <span><kbd>/</kbd> filter</span>
+    </span>
+    <button class="refresh-btn" id="refreshBtn" title="Force refresh now (R)">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       Refresh
     </button>
+  </div>
+
+  <div class="status-pills" id="statusPills" style="display:none">
+    <button class="status-pill active" data-status="">All <span class="pill-count" id="pillCountAll">0</span></button>
+    <button class="status-pill" data-status="success">✓ Success <span class="pill-count" id="pillCountSuccess">0</span></button>
+    <button class="status-pill" data-status="failure">✗ Failure <span class="pill-count" id="pillCountFailure">0</span></button>
+    <button class="status-pill" data-status="partial failure">⚠ Partial <span class="pill-count" id="pillCountPartial">0</span></button>
+    <button class="status-pill" data-status="in flight">🛸 In Flight <span class="pill-count" id="pillCountInflight">0</span></button>
+    <button class="status-pill" data-status="hold">⏸ Hold <span class="pill-count" id="pillCountHold">0</span></button>
   </div>
 
   <div id="contentArea"></div>
@@ -447,10 +557,12 @@ const state = {
   detailMap: {},     // id -> detailed launch
   detailPromises: {},// id -> in-flight Promise
   activeTab: 'upcoming7',
-  filters: { agency: '', rocket: '' },
+  filters: { agency: '', rocket: '', status: '' },
   lastFetchAt: null,
   countdownTimer: null,
   view: null, // 'live' | 'upcoming7' | 'upcoming' | 'recent' | 'map'
+  focusedIdx: -1,    // -1 = none, otherwise index into rendered list
+  currentList: [],   // current rendered list (for J/K navigation)
 };
 
 // ============================================================
@@ -502,6 +614,113 @@ function fmtRel(iso){
     return `${s}s`;
   };
   return future ? `T-${fmt()}` : `T+${fmt()}`;
+}
+function humanizeAgo(iso){
+  if(!iso) return '';
+  const now = Date.now();
+  const t = new Date(iso).getTime();
+  const diff = t - now;
+  const abs = Math.abs(diff);
+  const sec = Math.floor(abs / 1000);
+  const future = diff > 0;
+  const d = Math.floor(sec / 86400);
+  const h = Math.floor((sec % 86400) / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  let txt;
+  if(d >= 7) txt = `${Math.floor(d/7)}w ${d%7}d ago`;
+  else if(d > 0) txt = `${d}d ${h}h ago`;
+  else if(h > 0) txt = `${h}h ${m}m ago`;
+  else if(m > 0) txt = `${m}m ago`;
+  else txt = `${sec}s ago`;
+  return future ? `in ${txt.replace(' ago','')}` : txt;
+}
+function dayLabel(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayDiff = Math.round((today - target) / 86400000);
+  if(dayDiff === 0) return 'Today';
+  if(dayDiff === 1) return 'Yesterday';
+  if(dayDiff < 7) return d.toLocaleDateString(undefined, {weekday:'long'});
+  return d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+}
+function flagEmoji(cc){
+  if(!cc || !/^[A-Za-z]{2,3}$/.test(cc)) return '🌍';
+  const code = cc.slice(0,2).toUpperCase();
+  if(code.length !== 2) return '🌍';
+  return String.fromCodePoint(...[...code].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+function computeRecentSummary(list){
+  const s = {total: list.length, success: 0, failure: 0, partial: 0, hold: 0, inflight: 0, tbd: 0};
+  list.forEach(l => {
+    const ab = (l.status && l.status.abbrev || '').toLowerCase();
+    if(ab === 'success') s.success++;
+    else if(ab === 'failure') s.failure++;
+    else if(ab === 'partial failure' || ab === 'partial success') s.partial++;
+    else if(ab === 'hold' || ab === 'on hold') s.hold++;
+    else if(ab === 'in flight') s.inflight++;
+    else s.tbd++;
+  });
+  const concluded = s.success + s.failure + s.partial;
+  s.rate = concluded === 0 ? null : Math.round((s.success / concluded) * 100);
+  return s;
+}
+
+// 30-day daily success-rate buckets for sparkline (oldest → newest)
+function computeDailyBuckets(list, days){
+  const buckets = [];
+  const now = new Date();
+  // Compute day boundaries in user's local timezone (today at 00:00, yesterday at 00:00, ...)
+  for(let i = days - 1; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    buckets.push({label: d.toLocaleDateString(undefined,{month:'numeric',day:'numeric'}), date: d, dayEnd, launches: [], total: 0, success: 0, partial: 0, failure: 0 });
+  }
+  list.forEach(l => {
+    const t = new Date(l.net);
+    for(const b of buckets){
+      if(t >= b.date && t < b.dayEnd){
+        b.launches.push(l);
+        b.total++;
+        const ab = ((l.status && l.status.abbrev) || '').toLowerCase();
+        if(ab === 'success') b.success++;
+        else if(ab === 'partial failure' || ab === 'partial success') b.partial++;
+        else if(ab === 'failure') b.failure++;
+        break;
+      }
+    }
+  });
+  return buckets;
+}
+
+function renderSparkline(buckets){
+  const W = 280, H = 38, BAR_GAP = 2;
+  const n = buckets.length;
+  const barW = Math.max(2, (W - BAR_GAP * (n - 1)) / n);
+  const maxTotal = Math.max(1, ...buckets.map(b => b.total));
+  // Color: green (all success), amber (any partial OR 0 launches), red (any failure)
+  const colorFor = b => {
+    if(b.total === 0) return 'var(--bg-3)';
+    if(b.failure > 0) return 'var(--failure)';
+    if(b.partial > 0) return 'var(--partial)';
+    if(b.success === b.total) return 'var(--go)';
+    return 'var(--tbd)';
+  };
+  const bars = buckets.map((b, i) => {
+    const x = i * (barW + BAR_GAP);
+    const h = b.total === 0 ? 2 : Math.max(4, (b.total / maxTotal) * (H - 8));
+    const y = H - h;
+    const title = `${b.label} · ${b.total} launches (${b.success}✓ ${b.partial?`${b.partial}⚠ `:''}${b.failure?`${b.failure}✗ `:''})`.trim();
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" fill="${colorFor(b)}" rx="1.5"><title>${escapeHtml(title)}</title></rect>`;
+  }).join('');
+  // X-axis ticks: first / middle / last
+  const ticks = [0, Math.floor(n/2), n-1].map(i => {
+    const x = i * (barW + BAR_GAP) + barW/2;
+    return `<text x="${x.toFixed(1)}" y="${H-0.5}" text-anchor="middle" fill="var(--text-3)" font-size="8" font-family="ui-monospace,SF Mono,Menlo,monospace">${buckets[i].label}</text>`;
+  }).join('');
+  return `<svg class="sparkline" viewBox="0 0 ${W} ${H+4}" width="${W}" height="${H+4}" preserveAspectRatio="xMidYMid meet" aria-label="30-day launch success trend">${bars}${ticks}</svg>`;
 }
 function statusBadgeClass(s){
   const abbr = (s && s.abbrev || '').toLowerCase();
@@ -696,8 +915,18 @@ function render(){
   const filt = l => {
     if(state.filters.agency && l.launch_service_provider && l.launch_service_provider.name !== state.filters.agency) return false;
     if(state.filters.rocket && l.rocket && l.rocket.configuration && l.rocket.configuration.full_name !== state.filters.rocket) return false;
+    if(state.filters.status){
+      const ab = ((l.status && l.status.abbrev) || '').toLowerCase();
+      if(state.filters.status === 'partial failure'){
+        if(ab !== 'partial failure' && ab !== 'partial success') return false;
+      } else if(ab !== state.filters.status.toLowerCase()) return false;
+    }
     return true;
   };
+
+  // Hide status pills by default; Recent tab toggles them on
+  const pillsEl = $('#statusPills');
+  if(pillsEl) pillsEl.style.display = 'none';
 
   // Build the canonical upcoming list: future NET OR live-flagged OR status not Success/Failure
   const isPast = l => new Date(l.net).getTime() < now;
@@ -739,12 +968,28 @@ function render(){
       list = upcomingFiltered.slice().sort((a,b) => new Date(a.net) - new Date(b.net));
       viewName = 'All upcoming';
       break;
-    case 'recent':
+    case 'recent': {
       list = recentFiltered
         .filter(l => now - new Date(l.net).getTime() < oneMonth)
         .sort((a,b) => new Date(b.net) - new Date(a.net));
       viewName = 'Recent (30 days)';
-      break;
+      // Show status pills for Recent tab only
+      $('#statusPills').style.display = 'flex';
+      updateStatusPills(list);
+      // Compute summary + render day-separator-wrapped list
+      const summary = computeRecentSummary(list);
+      const buckets = computeDailyBuckets(list, 30);
+      const summaryHtml = renderRecentSummary(summary, buckets);
+      const cardsHtml = renderRecentWithDayHeaders(list);
+      state.currentList = list;
+      state.focusedIdx = list.length > 0 ? 0 : -1;
+      area.innerHTML = summaryHtml + cardsHtml;
+      attachCardHandlers();
+      updateCountdowns();
+      applyFocus();
+      applyDeepLink();
+      return;
+    }
     case 'map':
       renderMap(upcomingFiltered);
       return;
@@ -758,15 +1003,26 @@ function render(){
   area.innerHTML = list.map((l, i) => launchCardHtml(l, i)).join('');
   attachCardHandlers();
   updateCountdowns();
+  state.currentList = list;
+  state.focusedIdx = list.length > 0 ? 0 : -1;
+  applyFocus();
+  applyDeepLink();
 
-  // Test mode: ?expand=<id> auto-opens one card for screenshot verification
+  // Test mode: ?expand=first | <id> | id1,id2,id3 | all — auto-opens cards for screenshot/share
   const params = new URLSearchParams(location.search);
   if(params.has('expand')){
     const sel = params.get('expand');
-    const card = sel === 'first'
-      ? document.querySelector('.launch')
-      : document.querySelector(`.launch[data-id="${sel}"]`);
-    if(card) card.classList.add('open');
+    if(sel === 'all'){
+      document.querySelectorAll('.launch').forEach(c => c.classList.add('open'));
+    } else {
+      const ids = sel.split(',').map(s => s.trim()).filter(Boolean);
+      ids.forEach(id => {
+        const card = id === 'first'
+          ? document.querySelector('.launch')
+          : document.querySelector(`.launch[data-id="${id}"]`);
+        if(card) card.classList.add('open');
+      });
+    }
   }
 }
 
@@ -812,7 +1068,7 @@ function launchCardHtml(l, idx){
           </div>
         </div>
         <div class="countdown">
-          <div class="countdown-time" data-net="${l.net}">${fmtRel(l.net)}</div>
+          <div class="countdown-time${t < Date.now() ? ' ago' : ''}" data-net="${l.net}">${t < Date.now() ? escapeHtml(humanizeAgo(l.net)) : fmtRel(l.net)}</div>
           <div class="countdown-label">${escapeHtml(fmtLocalShort(l.net))}</div>
         </div>
         <span class="badge ${statusCls}${isLive ? ' live-dot' : ''}">
@@ -987,6 +1243,7 @@ function launchDetailHtml(l){
     </div>`;
 
   return `
+    <button class="copy-link-btn" onclick="event.stopPropagation(); navigator.clipboard.writeText('${location.origin}${location.pathname}?tab=${state.activeTab}&launch=${l.id}&v=20260711a'); this.textContent='✓ copied'; this.classList.add('copied'); setTimeout(()=>{this.textContent='🔗 copy link'; this.classList.remove('copied')}, 1500)">🔗 copy link</button>
     <div class="detail-grid">
       <div>
         ${desc}
@@ -1031,7 +1288,7 @@ function renderMap(list){
     : `<div class="map-grid">
         ${sorted.map(g => `
           <div class="map-card">
-            <div class="map-card-launches"><span class="pad-pin"></span>${escapeHtml(g.country)} · ${g.lat != null ? `${parseFloat(g.lat).toFixed(2)}, ${parseFloat(g.lng).toFixed(2)}` : ''}</div>
+            <div class="map-card-launches"><span class="pad-pin"></span>${flagEmoji(g.country)} ${escapeHtml(g.country)} · ${g.lat != null ? `${parseFloat(g.lat).toFixed(2)}, ${parseFloat(g.lng).toFixed(2)}` : ''}</div>
             <div class="map-card-name">${escapeHtml(g.name)}</div>
             <div class="map-card-count">${g.launches.length}</div>
             <div class="map-card-launches">upcoming launches</div>
@@ -1068,10 +1325,90 @@ function updateCountdowns(){
     const iso = el.dataset.net;
     if(!iso) return;
     const diff = new Date(iso).getTime() - Date.now();
-    el.textContent = fmtRel(iso);
-    el.classList.toggle('t-zero', Math.abs(diff) < 30 * 60 * 1000);
+    if(diff < 0){
+      el.textContent = humanizeAgo(iso);
+      el.classList.add('ago');
+      el.classList.remove('t-zero');
+    } else {
+      el.textContent = fmtRel(iso);
+      el.classList.remove('ago');
+      el.classList.toggle('t-zero', diff < 30 * 60 * 1000);
+    }
     el.classList.toggle('t-past', diff < -2 * 3600 * 1000);
   });
+}
+
+function renderRecentSummary(s, buckets){
+  const parts = [];
+  parts.push(`<span><b>Past 30 days</b> · <span class="rs-total">${s.total}</span> launches</span>`);
+  parts.push(`<span style="color:var(--go)">✓ ${s.success} Success</span>`);
+  if(s.failure > 0) parts.push(`<span style="color:var(--failure)">✗ ${s.failure} Failure</span>`);
+  if(s.partial > 0) parts.push(`<span style="color:var(--partial)">⚠ ${s.partial} Partial</span>`);
+  if(s.inflight > 0) parts.push(`<span style="color:var(--in-flight)">🛸 ${s.inflight} In Flight</span>`);
+  if(s.hold > 0) parts.push(`<span style="color:var(--hold)">⏸ ${s.hold} Hold</span>`);
+  if(s.rate !== null){
+    const cls = s.rate >= 95 ? 'high' : (s.rate >= 80 ? 'mid' : 'low');
+    parts.push(`<span class="rs-rate ${cls}">${s.rate}% success</span>`);
+  }
+  const spark = buckets ? renderSparkline(buckets) : '';
+  return `<div class="recent-summary"><div class="rs-stats">${parts.join(' · ')}</div>${spark ? `<div class="rs-spark">${spark}</div>` : ''}</div>`;
+}
+
+function renderRecentWithDayHeaders(list){
+  if(list.length === 0) return '';
+  const out = [];
+  let currentDay = '';
+  list.forEach((l, i) => {
+    const day = dayLabel(l.net);
+    if(day !== currentDay){
+      currentDay = day;
+      // Count items in this day-group
+      const sameDayCount = list.filter(x => dayLabel(x.net) === day).length;
+      out.push(`<div class="day-separator" data-day="${escapeHtml(day)}"><span>${escapeHtml(day)}</span><span class="day-count">${sameDayCount}</span></div>`);
+    }
+    out.push(launchCardHtml(l, i));
+  });
+  return out.join('');
+}
+
+function updateStatusPills(list){
+  if(!$('#statusPills')) return;
+  const s = computeRecentSummary(list);
+  const map = {
+    pillCountAll: s.total,
+    pillCountSuccess: s.success,
+    pillCountFailure: s.failure,
+    pillCountPartial: s.partial,
+    pillCountInflight: s.inflight,
+    pillCountHold: s.hold,
+  };
+  Object.entries(map).forEach(([id, n]) => { const el = $('#'+id); if(el) el.textContent = n; });
+  // Update active state
+  $$('#statusPills .status-pill').forEach(p => {
+    p.classList.toggle('active', (p.dataset.status || '') === (state.filters.status || ''));
+  });
+}
+
+function applyFocus(){
+  $$('.launch.focused').forEach(el => el.classList.remove('focused'));
+  if(state.focusedIdx < 0) return;
+  const cards = $$('.launch');
+  if(!cards[state.focusedIdx]) return;
+  const c = cards[state.focusedIdx];
+  c.classList.add('focused');
+  c.scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+
+function applyDeepLink(){
+  const params = new URLSearchParams(location.search);
+  const launchId = params.get('launch');
+  if(!launchId) return;
+  const card = document.querySelector(`.launch[data-id="${launchId}"]`);
+  if(!card) return;
+  // expand + highlight + scroll
+  card.classList.add('open', 'highlight');
+  setTimeout(() => card.classList.remove('highlight'), 2400);
+  card.scrollIntoView({block:'center', behavior:'smooth'});
 }
 
 function updateHeaderStats(){
@@ -1079,7 +1416,14 @@ function updateHeaderStats(){
   const oneMonth = 30 * 86400 * 1000;
   const sevenDays = 7 * 86400 * 1000;
   const total = state.upcoming.length;
-  const recent = state.previous.filter(l => now - new Date(l.net).getTime() < oneMonth).length;
+  // Use shared source-of-truth so hero count matches tab content
+  const seenIds = new Set();
+  const allRecent = [];
+  [...state.previous, ...state.upcoming.filter(l => {
+    const t = new Date(l.net).getTime();
+    return t < now && l.status && (l.status.abbrev === 'Success' || l.status.abbrev === 'Failure' || l.status.abbrev === 'Partial Failure' || l.status.abbrev === 'Partial Success');
+  })].forEach(l => { if(!seenIds.has(l.id)){ seenIds.add(l.id); allRecent.push(l); } });
+  const recent = allRecent.filter(l => now - new Date(l.net).getTime() < oneMonth).length;
   const live = state.upcoming.filter(l => {
     const t = new Date(l.net).getTime();
     return l.webcast_live || (t - now < 30 * 60 * 1000 && t - now > -2 * 3600 * 1000);
@@ -1092,7 +1436,9 @@ function updateHeaderStats(){
   $('#statTotal').textContent = total;
   $('#statRecent').textContent = recent;
   $('#statLive').textContent = live;
-  $('#statLive').style.color = live > 0 ? 'var(--live)' : 'var(--text-3)';
+  const liveEl = $('#statLive');
+  liveEl.style.color = live > 0 ? 'var(--live)' : 'var(--text-3)';
+  liveEl.classList.toggle('live', live > 0);
   $('#statNext').textContent = next7;
 
   $('#tabCount7').textContent = next7;
@@ -1130,6 +1476,62 @@ $$('.tab').forEach(t => {
 $('#agencyFilter').addEventListener('change', e => { state.filters.agency = e.target.value; render(); });
 $('#rocketFilter').addEventListener('change', e => { state.filters.rocket = e.target.value; render(); });
 
+// Status pill click handlers
+$$('#statusPills .status-pill').forEach(p => {
+  p.addEventListener('click', () => {
+    state.filters.status = p.dataset.status || '';
+    render();
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  // Skip if user is typing in an input/select
+  const tag = (e.target && e.target.tagName || '').toLowerCase();
+  if(tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const cards = $$('.launch');
+  switch(e.key){
+    case 'j': case 'J':
+      e.preventDefault();
+      if(cards.length === 0) return;
+      state.focusedIdx = Math.min(state.focusedIdx + 1, cards.length - 1);
+      applyFocus();
+      break;
+    case 'k': case 'K':
+      e.preventDefault();
+      if(cards.length === 0) return;
+      state.focusedIdx = Math.max(state.focusedIdx - 1, 0);
+      applyFocus();
+      break;
+    case 'Enter': case ' ':
+      if(state.focusedIdx >= 0 && cards[state.focusedIdx]){
+        e.preventDefault();
+        cards[state.focusedIdx].classList.toggle('open');
+      }
+      break;
+    case 'r': case 'R':
+      e.preventDefault();
+      $('#refreshBtn').click();
+      break;
+    case '1': case '2': case '3': case '4': case '5':{
+      const tabMap = ['upcoming7','live','upcoming','recent','map'];
+      const target = tabMap[parseInt(e.key,10)-1];
+      const tabEl = document.querySelector(`.tab[data-tab="${target}"]`);
+      if(tabEl) tabEl.click();
+      break;
+    }
+    case '/':
+      e.preventDefault();
+      $('#agencyFilter').focus();
+      break;
+    case 'Escape':
+      // Blur active input
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      break;
+  }
+});
+
 // ============================================================
 // REFRESH
 // ============================================================
@@ -1151,6 +1553,8 @@ $('#refreshBtn').addEventListener('click', async () => {
     state.activeTab = initTab;
     $$('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === initTab));
   }
+
+  // Auto-expand deep-link target after first render (handled by applyDeepLink in render())
 
   // Load cached data first for instant render
   const cache = loadCache();
