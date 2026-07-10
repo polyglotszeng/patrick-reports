@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hermes Pet (Web)</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 0; background: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; }
+  .pet {
+    position: fixed; top: 24px; right: 24px;
+    width: 240px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.78);
+    border-radius: 12px;
+    border: 2px solid #555;
+    box-shadow: 0 4px 12px rgba(0,0,0,.4);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab;
+    z-index: 2147483646;
+    transition: border-color .3s ease;
+  }
+  .pet.dragging { cursor: grabbing; opacity: .9; }
+  .pet.ok      { border-color: #22c55e; }
+  .pet.err     { border-color: #ef4444; }
+  .pet.human   { border-color: #f59e0b; }
+  .pet.down    { border-color: #6b7280; }
+
+  .head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .emoji { font-size: 16px; line-height: 1; }
+  .title { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.7); letter-spacing: .03em; }
+  .spacer { flex: 1; }
+  .refresh {
+    width: 22px; height: 22px; border-radius: 11px;
+    display: grid; place-items: center;
+    background: rgba(255,255,255,.06);
+    border: 0; color: rgba(255,255,255,.55); cursor: pointer;
+    font-size: 11px;
+  }
+  .refresh:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .tile {
+    padding: 4px 0;
+    background: rgba(255,255,255,.04);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .tile .v { font: 700 18px/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .tile .l { font-size: 9px; color: rgba(255,255,255,.55); margin-top: 2px; letter-spacing: .04em; }
+  .tile.ok    .v { color: #22c55e; }
+  .tile.err   .v { color: #ef4444; }
+  .tile.human .v { color: #f59e0b; }
+  .tile.inbox .v { color: #60a5fa; }
+
+  .foot { font-size: 9px; color: rgba(255,255,255,.4); margin-top: 6px; min-height: 12px; }
+</style>
+</head>
+<body>
+
+<div class="pet" id="pet">
+  <div class="head">
+    <span class="emoji" id="emoji">😴</span>
+    <span class="title">Hermes Pet</span>
+    <span class="spacer"></span>
+    <button class="refresh" id="refresh" title="Refresh now">↻</button>
+  </div>
+  <div class="tiles">
+    <div class="tile ok">    <div class="v" id="v_ok">—</div>     <div class="l">ok</div></div>
+    <div class="tile err">   <div class="v" id="v_err">—</div>    <div class="l">err</div></div>
+    <div class="tile human"> <div class="v" id="v_human">—</div>  <div class="l">human</div></div>
+    <div class="tile inbox"> <div class="v" id="v_inbox">—</div>  <div class="l">inbox</div></div>
+  </div>
+  <div class="foot" id="foot">starting…</div>
+</div>
+
+<script>
+(() => {
+  const pet    = document.getElementById('pet');
+  const emoji  = document.getElementById('emoji');
+  const vOk    = document.getElementById('v_ok');
+  const vErr   = document.getElementById('v_err');
+  const vHuman = document.getElementById('v_human');
+  const vInbox = document.getElementById('v_inbox');
+  const foot   = document.getElementById('foot');
+  const btn    = document.getElementById('refresh');
+
+  const ENDPOINT = 'http://127.0.0.1:7799/api/v3/cron';
+  const REFRESH_MS = 30000;
+  let lastSync = null;
+
+  function setClass(state) {
+    pet.classList.remove('ok','err','human','down');
+    pet.classList.add(state);
+  }
+
+  function timeAgo(d) {
+    const s = Math.floor((Date.now() - d) / 1000);
+    if (s < 60) return s + 's ago';
+    return Math.floor(s / 60) + 'm ago';
+  }
+
+  function setDown(reason) {
+    emoji.textContent = '😴';
+    vOk.textContent = vErr.textContent = vHuman.textContent = vInbox.textContent = '—';
+    setClass('down');
+    foot.textContent = 'server :7799 down (' + reason + ')';
+  }
+
+  function setData(d) {
+    vOk.textContent    = d.ok;
+    vErr.textContent   = d.error;
+    vHuman.textContent = d.needs_human;
+    vInbox.textContent = d.inbox_unacked;
+    lastSync = new Date();
+    if (d.error > 0)      { emoji.textContent = '🚨'; setClass('err'); }
+    else if (d.needs_human > 0) { emoji.textContent = '⚠️'; setClass('human'); }
+    else                  { emoji.textContent = '✅'; setClass('ok'); }
+    foot.textContent = `sync ${timeAgo(lastSync)} · total ${d.total}`;
+  }
+
+  async function fetchOnce() {
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 8000);
+      const resp = await fetch(ENDPOINT, { cache: 'no-store', signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!resp.ok) { setDown('HTTP ' + resp.status); return; }
+      const data = await resp.json();
+      setData(data);
+    } catch (e) {
+      setDown(e.name === 'AbortError' ? 'timeout' : e.message);
+    }
+  }
+
+  // Drag anywhere on the bubble (PITFALL #105 family: don't break pointer on transparent area)
+  let dragState = null;
+  pet.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'BUTTON') return;  // let refresh button work
+    dragState = {
+      startX: e.clientX, startY: e.clientY,
+      origLeft: pet.offsetLeft, origTop: pet.offsetTop,
+      moved: false
+    };
+    pet.classList.add('dragging');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragState) return;
+    const dx = e.clientX - dragState.startX;
+    const dy = e.clientY - dragState.startY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) dragState.moved = true;
+    pet.style.left = (dragState.origLeft + dx) + 'px';
+    pet.style.top  = (dragState.origTop  + dy) + 'px';
+    pet.style.right = 'auto';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragState) return;
+    pet.classList.remove('dragging');
+    dragState = null;
+  });
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fetchOnce();
+  });
+
+  // Tick the "sync Xs ago" label locally without re-fetching
+  setInterval(() => {
+    if (lastSync && !pet.classList.contains('down')) {
+      foot.textContent = `sync ${timeAgo(lastSync)}`;
+    }
+  }, 1000);
+
+  fetchOnce();
+  setInterval(fetchOnce, REFRESH_MS);
+})();
+</script>
+
+</body>
+</html>

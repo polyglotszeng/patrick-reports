@@ -68,6 +68,17 @@ p.lede{color:var(--fg-mute);margin-bottom:24px;font-size:13px}
 .budget-summary .row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--fg-mute)}
 .budget-summary .row strong{color:var(--fg);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .budget-summary .row.warn strong{color:var(--warn)}
+.budget-summary .bd-section{margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--border)}
+.budget-summary .bd-section:last-of-type{border-bottom:none}
+.budget-summary .bd-header{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--fg-mute);font-weight:600}
+.budget-summary .bd-header strong{color:var(--accent-2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px}
+.budget-summary .bd-breakdown{margin-top:4px;padding-left:8px;border-left:2px solid var(--border-2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.budget-summary .bd-breakdown .bd-row{display:flex;justify-content:space-between;font-size:10px;color:var(--fg-mute);padding:1px 0}
+.budget-summary .bd-breakdown .bd-row .bd-key{color:var(--fg-dim);cursor:help;border-bottom:1px dotted transparent}
+.budget-summary .bd-breakdown .bd-row:hover .bd-key{color:var(--accent-2);border-bottom-color:var(--accent-2)}
+.budget-summary .bd-breakdown .bd-row .bd-val{color:var(--fg)}
+.budget-summary .bd-sources{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--fg-dim);line-height:1.5;font-style:italic}
+.budget-summary .bd-sources strong{color:var(--fg-mute);font-style:normal;font-weight:600}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
 .modal.open{display:flex}
 .modal .panel{background:var(--bg-card);border:1px solid var(--border-2);border-radius:14px;padding:28px;max-width:540px;width:90%;max-height:80vh;overflow-y:auto}
@@ -82,6 +93,11 @@ p.lede{color:var(--fg-mute);margin-bottom:24px;font-size:13px}
 .modal .panel .subsystems li{font-size:11px;padding:3px 8px;background:var(--bg-card-2);border:1px solid var(--border);border-radius:6px;color:var(--accent-2)}
 .modal .panel .wiki-link{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:12px}
 .modal .panel .wiki-link a{color:var(--accent-2);font-weight:600}
+.modal .panel .nasa-photo{margin-top:10px}
+.modal .panel .nasa-photo-label{font-size:11px;color:var(--fg-mute);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:4px}
+.modal .panel .nasa-photo img{width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:block;margin-top:4px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.modal .panel .nasa-photo img:hover{transform:scale(1.02);box-shadow:0 0 0 1px var(--accent),0 4px 16px rgba(91,140,255,.2)}
+.modal .panel .nasa-photo .nasa-credit{font-size:10px;color:var(--fg-dim);text-align:right;margin-top:2px;font-style:italic}
 .modal .panel .sat3d-wrap{margin:0 0 14px 0;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#070b18 0%,#0e1525 100%);border:1px solid var(--border);position:relative;height:240px}
 .modal .panel .sat3d-wrap canvas{display:block;width:100%;height:100%}
 .modal .panel .sat3d-hint{position:absolute;bottom:6px;left:8px;font-size:10px;color:var(--fg-dim);background:rgba(14,21,37,.7);padding:2px 6px;border-radius:4px;pointer-events:none}
@@ -99,7 +115,7 @@ p.lede{color:var(--fg-mute);margin-bottom:24px;font-size:13px}
 .sub-list::-webkit-scrollbar{width:6px}
 .sub-list::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}
 .sub-card{background:var(--bg-card-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;position:relative}
-.sub-card:hover{border-color:var(--border-2);transform:translateX(2px)}
+.sub-card:hover{border-color:var(--border-2);transform:translateX(2px);box-shadow:0 0 0 1px var(--border-2)}
 .sub-card.active{border-color:var(--accent);background:linear-gradient(90deg,rgba(91,140,255,.14) 0%,transparent 100%);box-shadow:0 0 0 1px var(--accent)}
 .sub-card.active::before{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;background:var(--accent);border-radius:2px}
 .sub-card .head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
@@ -227,10 +243,19 @@ p.lede{color:var(--fg-mute);margin-bottom:24px;font-size:13px}
           <select id="sb-payload"><option value="camera" selected data-i18n="sbPayCamera">Camera (EO)</option><option value="iot" data-i18n="sbPayIot">IoT sensor</option><option value="ssr" data-i18n="sbPaySsr">SSR/Store-and-forward</option><option value="ais" data-i18n="sbPayAis">AIS receiver</option></select>
         </div>
         <div class="budget-summary" id="sb-budget">
-          <div class="row"><span data-i18n="bdMass">Mass (estimate)</span><strong id="bd-mass">— kg</strong></div>
-          <div class="row"><span data-i18n="bdPower">Power avg</span><strong id="bd-power">— W</strong></div>
+          <div class="bd-section">
+            <div class="bd-header"><span data-i18n="bdMass">Mass (estimate)</span><strong id="bd-mass">— kg</strong></div>
+            <div class="bd-breakdown" id="bd-mass-breakdown"></div>
+          </div>
+          <div class="bd-section">
+            <div class="bd-header"><span data-i18n="bdPower">Power avg</span><strong id="bd-power">— W</strong></div>
+            <div class="bd-breakdown" id="bd-power-breakdown"></div>
+          </div>
           <div class="row"><span data-i18n="bdCost">Cost class</span><strong id="bd-cost">—</strong></div>
           <div class="row"><span data-i18n="bdFit">Mission fit</span><strong id="bd-fit">—</strong></div>
+          <div class="bd-sources" data-i18n="bdSources">
+            <strong>Sources:</strong> Pumpkin Kit / ISIS iOBC / EnduroSat EPS / BlueCanyon XACT
+          </div>
         </div>
         <button id="sb-save" style="margin-top:14px;width:100%" data-i18n="btnSave">💾 Save design (localStorage)</button>
       </div>
@@ -329,29 +354,36 @@ const SUBSYSTEMS = [
 ];
 
 // Atlas 10 entries — real Wikipedia-sourced data (SAT-002 v0.1)
-// Mass, power, Wikipedia URL added. All values verified against public sources.
+// + NASA iconic reference photos (nasaImageId from images-api.nasa.gov)
 const ATLAS = [
   { id:'SAT-ISS',  name:'ISS',          agency:'NASA / Roscosmos / ESA / JAXA / CSA', orbit:'LEO',  alt:408,    year:1998, mass:419725, power:120000, mission:'Permanently crewed modular space station, microgravity research',
-    subs:['structure','eps','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/International_Space_Station' },
+    subs:['structure','eps','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/International_Space_Station', nasaImageId:'iss068e031344' },
   { id:'SAT-HUB',  name:'Hubble',       agency:'NASA / ESA',     orbit:'LEO',  alt:540,    year:1990, mass:11110,  power:2800,   mission:'UV / visible / IR astronomy observatory, 1.2 m mirror',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Hubble_Space_Telescope' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Hubble_Space_Telescope', nasaImageId:'PIA01267' },
   { id:'SAT-JWST', name:'JWST',         agency:'NASA / ESA / CSA', orbit:'L2', alt:1500000, year:2021, mass:6200,   power:2000,   mission:'Infrared deep-space observatory, 6.5 m segmented mirror, sun-shield',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/James_Webb_Space_Telescope' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/James_Webb_Space_Telescope', nasaImageId:'NHQ202201080008' },
   { id:'SAT-SLK',  name:'Starlink v2 mini', agency:'SpaceX',   orbit:'LEO',  alt:550,    year:2023, mass:800,    power:60,     mission:'Satellite internet, mega-constellation (>7000 launched)',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Starlink' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Starlink', nasaImageId:'KSC-20220421-PH-KLS01_0042' },
   { id:'SAT-GPS',  name:'GPS Block III',agency:'USSF',         orbit:'MEO',  alt:20200,  year:2018, mass:2160,   power:1950,   mission:'Global navigation, 31-satellite constellation',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/GPS_Block_III' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/GPS_Block_III', nasaImageId:'iss050e031340' },
   { id:'SAT-GOES', name:'GOES-18',      agency:'NOAA',         orbit:'GEO',  alt:35786,  year:2022, mass:5192,   power:2300,   mission:'Geostationary weather, ABI imager + GLM lightning mapper',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/GOES-18' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/GOES-18', nasaImageId:'KSC-20161109-PH_JBS01_0098' },
   { id:'SAT-S2',   name:'Sentinel-2',   agency:'ESA',          orbit:'SSO',  alt:786,    year:2015, mass:1140,   power:1730,   mission:'Multispectral land imaging, Copernicus program',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Sentinel-2' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Sentinel-2', nasaImageId:'PIA23549' },
   { id:'SAT-L9',   name:'Landsat-9',    agency:'NASA / USGS',    orbit:'SSO',  alt:705,    year:2021, mass:2711,   power:2100,   mission:'Earth observation, 50+ year continuous land imaging record',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Landsat_9' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/Landsat_9', nasaImageId:'KSC-20210614-PH-RNB01_0041' },
   { id:'SAT-N20',  name:'NOAA-20',      agency:'NOAA',         orbit:'SSO',  alt:824,    year:2017, mass:2540,   power:1900,   mission:'Polar weather (JPSS), VIIRS imager + CrIS sounder',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/NOAA-20' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/NOAA-20', nasaImageId:'KSC-20220810-PH-RNB01_0010' },
   { id:'SAT-CS1',  name:'1U CubeSat',   agency:'CalPoly (template)', orbit:'LEO', alt:400, year:2014, mass:1.0,    power:2.5,    mission:'Educational 10×10×10 cm standard, ~50% payload mass fraction',
-    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/CubeSat' },
+    subs:['structure','eps','obc','adcs','comms','thermal','payload'], wiki:'https://en.wikipedia.org/wiki/CubeSat', nasaImageId:'iss068e026117' },
 ];
+
+// Helper: build NASA image asset URL
+function nasaImageUrl(id, size){
+  // size: 'thumb' (small) | 'medium' (default) | 'large'
+  const suffix = size || 'medium';
+  return `https://images-assets.nasa.gov/image/${id}/${id}~${suffix}.jpg`;
+}
 
 // Orbit bands — DEC-003 4 categories (each is a RANGE, not a line)
 const EARTH_R_KM = 6371;
@@ -449,6 +481,8 @@ const I18N = {
     bdPower:       '平均功率',
     bdCost:        '成本档',
     bdFit:         '任务适配',
+    bdSources:     '<strong>来源：</strong> Pumpkin Kit / ISIS iOBC / EnduroSat EPS / BlueCanyon XACT（教育估算，非真实工程验证）',
+    bdStructure:   '结构（1U）',
     btnSave:       '💾 保存设计（本地）',
     atlasPicked:   '选中卫星',
     atlasSubsys:   '子系统（依据 DEC-005）',
@@ -529,6 +563,8 @@ const I18N = {
     bdPower:       'Power avg',
     bdCost:        'Cost class',
     bdFit:         'Mission fit',
+    bdSources:     '<strong>Sources:</strong> Pumpkin Kit / ISIS iOBC / EnduroSat EPS / BlueCanyon XACT (educational estimates, not engineering validation)',
+    bdStructure:   'Structure (1U)',
     btnSave:       '💾 Save design (localStorage)',
     atlasPicked:   'Picked satellite',
     atlasSubsys:   'Subsystems (per DEC-005)',
@@ -585,7 +621,7 @@ let cubeExploded = false;
 let orbitScene, orbitCamera, orbitRenderer, orbitControls, orbitSpinning=true;
 let issEpoch = null, issMeanMotion = 0, issMeanAnomaly0 = 0, issR = 2.5;
 let liveGroup;  // ISS live marker group (module-scope so animateOrbit can move it)
-let sbScene, sbCamera, sbRenderer, sbCubeGroup, sbSelected={};
+let sbScene, sbCamera, sbRenderer, sbControls, sbCubeGroup, sbSelected={};
 
 /* ===========================================================
    TAB ROUTING (hash-based)
@@ -1526,6 +1562,17 @@ function openAtlasModal(sat){
     <div class="sat3d-wrap" id="sat3d-wrap">
       <div class="sat3d-hint">🖱 ${currentLang==='zh'?'拖动旋转':'Drag to rotate'}</div>
     </div>
+    ${sat.nasaImageId ? `
+    <div class="nasa-photo">
+      <div class="nasa-photo-label">📷 ${currentLang==='zh'?'NASA 参考图':'NASA reference photo'}</div>
+      <a href="https://images.nasa.gov/details-${sat.nasaImageId}" target="_blank" rel="noopener" title="${currentLang==='zh'?'点击查看原图':'Click to view full size'}">
+        <img src="${nasaImageUrl(sat.nasaImageId, 'medium')}" alt="${sat.name}" loading="lazy"
+             onerror="this.parentElement.style.display='none';"
+             style="aspect-ratio:16/9">
+      </a>
+      <div class="nasa-credit">NASA / ${currentLang==='zh'?'点击放大':'Click to enlarge'}</div>
+    </div>
+    ` : ''}
     <dl>
       <dt>${t('atlasAgency')}</dt><dd>${sat.agency}</dd>
       <dt>${t('atlasOrbit')}</dt><dd>${sat.orbit}</dd>
@@ -1828,7 +1875,15 @@ function initCube(){
       new THREE.CylinderGeometry(0.06, 0.06, 0.02, 12),
       new THREE.MeshStandardMaterial({color:0x444444, metalness:0.5, roughness:0.5})
     );
+    mount.position.y = 0.01;
     antenna.add(mount);
+    // RF connector (small metallic cylinder on mount, characteristic SMA connector)
+    const rfConn = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.02, 0.05, 6),
+      new THREE.MeshStandardMaterial({color:0xc8c8cc, metalness:0.85, roughness:0.2})
+    );
+    rfConn.position.set(0.05, 0.03, 0);
+    antenna.add(rfConn);
     antenna.position.set(px, BODY/2+0.01, pz);
     cubeGroup.add(antenna);
     cubeParts.push({mesh:antenna, name:'Comms', base:antenna.position.clone(), offset:antenna.position.clone(), target:antenna.position.clone()});
@@ -1887,6 +1942,33 @@ function initCube(){
   );
   obcBoard.position.set(-0.2, BODY/2+0.03, -0.4);
   cubeGroup.add(obcBoard);
+  // PCB standoffs (4 corners, small metallic cylinders)
+  const standoffMat = new THREE.MeshStandardMaterial({color:0xccccd0, metalness:0.8, roughness:0.3});
+  for (const [sx, sz] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+    const standoff = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.02, 0.08, 8),
+      standoffMat
+    );
+    standoff.position.set(-0.2 + sx*0.36, BODY/2+0.08, -0.4 + sz*0.36);
+    cubeGroup.add(standoff);
+  }
+  // Heat sink fins on top of OBC (5 parallel fins, characteristic of SoC thermal management)
+  const finMat = new THREE.MeshStandardMaterial({color:0xb0b4b8, metalness:0.7, roughness:0.4});
+  for (let i=0;i<5;i++){
+    const fin = new THREE.Mesh(
+      new THREE.BoxGeometry(0.22, 0.04, 0.012),
+      finMat
+    );
+    fin.position.set(-0.2 + (i-2)*0.05, BODY/2+0.07, -0.55);
+    cubeGroup.add(fin);
+  }
+  // SoC chip under fins (small dark square)
+  const socChip = new THREE.Mesh(
+    new THREE.BoxGeometry(0.22, 0.02, 0.22),
+    new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.4, roughness:0.6})
+  );
+  socChip.position.set(-0.2, BODY/2+0.05, -0.55);
+  cubeGroup.add(socChip);
   cubeParts.push({mesh:obcBoard, name:'OBC', base:obcBoard.position.clone(), offset:obcBoard.position.clone(), target:obcBoard.position.clone()});
 
   // === 4 fine sun sensors (ADCS) on top face, at face centers ===
@@ -1966,25 +2048,82 @@ function initCube(){
   cubeGroup.add(payloadGroup);
   cubeParts.push({mesh:payloadGroup, name:'Payload', base:payloadGroup.position.clone(), offset:payloadGroup.position.clone(), target:payloadGroup.position.clone()});
 
-  // Click pick
+  // Click pick + Hover pick (raycaster for both)
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  cubeRenderer.domElement.addEventListener('click', e=>{
+  let hoverPartName = null;
+
+  function pickAt(clientX, clientY){
     const rect = cubeRenderer.domElement.getBoundingClientRect();
-    mouse.x = ((e.clientX-rect.left)/rect.width)*2-1;
-    mouse.y = -((e.clientY-rect.top)/rect.height)*2+1;
+    mouse.x = ((clientX-rect.left)/rect.width)*2-1;
+    mouse.y = -((clientY-rect.top)/rect.height)*2+1;
     raycaster.setFromCamera(mouse, cubeCamera);
     const hits = raycaster.intersectObjects(cubeParts.map(p=>p.mesh));
-    if (hits.length){
-      const hit = hits[0].object;
-      const part = cubeParts.find(p=>p.mesh===hit);
-      if (part) {
-        document.getElementById('cube-picked').textContent = t('pickedPrefix')+' '+part.name;
-        const sub = SUBSYSTEMS.find(s=>s.name===part.name);
-        if (sub) highlightSubCard(sub.id);
+    if (!hits.length) return null;
+    return cubeParts.find(p=>p.mesh===hits[0].object) || null;
+  }
+
+  // Hover: highlight sub-card temporarily, pulse 3D part subtly
+  function pulsePart(part, scale){
+    if (!part) return;
+    const orig = part.mesh.scale.clone();
+    const big = orig.clone().multiplyScalar(scale || 1.15);
+    let step = 0;
+    const id = setInterval(()=>{
+      step++;
+      if (step<5) part.mesh.scale.lerp(big, 0.5);
+      else if (step<10) part.mesh.scale.lerp(orig, 0.5);
+      else { part.mesh.scale.copy(orig); clearInterval(id); }
+    }, 25);
+  }
+  function onCardHover(subId){
+    // Find first 3D part matching this subsystem and pulse
+    if (!subId) return;
+    const part = cubeParts.find(p=>p.name===subId);
+    if (part) pulsePart(part, 1.12);
+  }
+  // Bind hover on sub-cards (delegated)
+  document.addEventListener('mouseover', e=>{
+    const card = e.target.closest('.sub-card');
+    if (!card) return;
+    onCardHover(card.dataset.subId);
+  });
+
+  // Hover on 3D part: highlight matching sub-card
+  function onCanvasHover(part){
+    const name = part ? part.name : null;
+    if (name === hoverPartName) return;
+    hoverPartName = name;
+    if (name){
+      highlightSubCard(SUBSYSTEMS.find(s=>s.name===name)?.id);
+    } else {
+      // Restore persistent active card if any
+      const persistent = document.querySelector('.sub-card.active');
+      if (persistent) {
+        // Keep it
       } else {
-        document.getElementById('cube-picked').textContent = t('pickedPrefix')+' —';
+        highlightSubCard(null);
       }
+    }
+  }
+  cubeRenderer.domElement.addEventListener('mousemove', e=>{
+    const part = pickAt(e.clientX, e.clientY);
+    onCanvasHover(part);
+  });
+  cubeRenderer.domElement.addEventListener('mouseleave', ()=>{
+    hoverPartName = null;
+    // Restore active if any, else clear
+    const active = document.querySelector('.sub-card.active');
+    if (!active) highlightSubCard(null);
+  });
+
+  // Click: persistent highlight + bigger pulse + HUD update
+  cubeRenderer.domElement.addEventListener('click', e=>{
+    const part = pickAt(e.clientX, e.clientY);
+    if (part){
+      document.getElementById('cube-picked').textContent = t('pickedPrefix')+' '+part.name;
+      const sub = SUBSYSTEMS.find(s=>s.name===part.name);
+      if (sub) highlightSubCard(sub.id);
     } else {
       document.getElementById('cube-picked').textContent = t('pickedPrefix')+' —';
       highlightSubCard(null);
@@ -2297,6 +2436,18 @@ function initSandbox(){
   sbCubeGroup = new THREE.Group();
   sbScene.add(sbCubeGroup);
 
+  // OrbitControls for drag-to-rotate + scroll-to-zoom (auto-rotate while idle)
+  sbControls = new THREE.OrbitControls(sbCamera, sbRenderer.domElement);
+  sbControls.enableDamping = true;
+  sbControls.dampingFactor = 0.08;
+  sbControls.target.set(0, 0.3, 0);
+  sbControls.minDistance = 2.0;
+  sbControls.maxDistance = 12.0;
+  let sbPointerDown = false;
+  sbRenderer.domElement.addEventListener('pointerdown', ()=>{ sbPointerDown = true; });
+  sbRenderer.domElement.addEventListener('pointerup', ()=>{ sbPointerDown = false; });
+  sbRenderer.domElement.addEventListener('pointerleave', ()=>{ sbPointerDown = false; });
+
   // Wireframe frame
   const frame = new THREE.Mesh(
     new THREE.BoxGeometry(2, 2, 2),
@@ -2352,50 +2503,226 @@ function updateSandboxPreview(){
   while (sbCubeGroup.children.length > 1) sbCubeGroup.remove(sbCubeGroup.children[1]);
 
   const eps = document.getElementById('sb-eps').value;
+  const obc = document.getElementById('sb-obc').value;
   const adcs = document.getElementById('sb-adcs').value;
+  const comms = document.getElementById('sb-comms').value;
   const payload = document.getElementById('sb-payload').value;
 
-  // Solar panels based on EPS choice
-  if (eps==='deploy' || eps==='gauntlet'){
-    const count = eps==='gauntlet' ? 8 : 4;
-    for (let i=0;i<count;i++){
-      const ang = (i/count)*Math.PI*2;
-      const panel = new THREE.Mesh(
-        new THREE.BoxGeometry(1.6, 0.04, 0.6),
-        new THREE.MeshStandardMaterial({color:0x1e3a8a, metalness:0.3, roughness:0.2})
-      );
+  // Reusable materials
+  const matSolar = new THREE.MeshStandardMaterial({color:0x1e3a8a, metalness:0.3, roughness:0.25});
+  const matAlum = new THREE.MeshStandardMaterial({color:0xb0b4b8, metalness:0.7, roughness:0.4});
+  const matPCB = new THREE.MeshStandardMaterial({color:0x0a4a2a, metalness:0.3, roughness:0.6});
+  const matPCBHi = new THREE.MeshStandardMaterial({color:0x2a8a4a, metalness:0.4, roughness:0.5});
+  const matBlack = new THREE.MeshStandardMaterial({color:0x1a1a1a, metalness:0.3, roughness:0.7});
+  const matGold = new THREE.MeshStandardMaterial({color:0xd4af37, metalness:0.85, roughness:0.2});
+  const matAperture = new THREE.MeshStandardMaterial({color:0x0a0a14, metalness:0.4, roughness:0.85});
+
+  // === EPS — Solar panels (varies by choice) ===
+  if (eps === 'body'){
+    // No deployed panels. Real-world: cells glued directly to body.
+  } else if (eps === 'deploy'){
+    for (let i=0;i<4;i++){
+      const ang = (i/4)*Math.PI*2;
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.04, 0.6), matSolar);
       panel.position.set(Math.cos(ang)*1.9, 0, Math.sin(ang)*1.9);
       panel.rotation.y = ang;
       sbCubeGroup.add(panel);
     }
+  } else if (eps === 'gauntlet'){
+    // 4 main + 4 wing tip
+    for (let i=0;i<4;i++){
+      const ang = (i/4)*Math.PI*2;
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.04, 0.6), matSolar);
+      panel.position.set(Math.cos(ang)*1.9, 0, Math.sin(ang)*1.9);
+      panel.rotation.y = ang;
+      sbCubeGroup.add(panel);
+    }
+    for (let i=0;i<4;i++){
+      const ang = (i/4)*Math.PI*2 + Math.PI/4;
+      const tip = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.3), matSolar);
+      tip.position.set(Math.cos(ang)*2.5, 0, Math.sin(ang)*2.5);
+      tip.rotation.y = ang;
+      sbCubeGroup.add(tip);
+      const boom = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.04), matAlum);
+      boom.position.set(Math.cos(ang)*2.2, 0, Math.sin(ang)*2.2);
+      boom.rotation.y = ang;
+      sbCubeGroup.add(boom);
+    }
   }
 
-  // ADCS visual — small sphere on top if wheels/magnetorquer
-  if (adcs==='magnetorquer' || adcs==='wheel'){
-    const sensor = new THREE.Mesh(
-      new THREE.SphereGeometry(0.18, 16, 12),
-      new THREE.MeshStandardMaterial({color:0x0ea5e9, emissive:0x0ea5e9, emissiveIntensity:0.3})
+  // === OBC — board size & density (visible on top face) ===
+  if (obc === 'arm-c0'){
+    const pcb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.5), matPCB);
+    pcb.position.set(0, 1.15, 0);
+    sbCubeGroup.add(pcb);
+  } else if (obc === 'arm-a53'){
+    const pcb = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.7), matPCBHi);
+    pcb.position.set(0, 1.15, 0);
+    sbCubeGroup.add(pcb);
+    const chip = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.04, 0.18), matBlack);
+    chip.position.set(0, 1.20, 0);
+    sbCubeGroup.add(chip);
+  } else if (obc === 'soc'){
+    // Large board + SoC chip + heat sink with fins
+    const pcb = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.05, 0.85), matPCBHi);
+    pcb.position.set(0, 1.16, 0);
+    sbCubeGroup.add(pcb);
+    const soc = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.05, 0.25), matBlack);
+    soc.position.set(-0.15, 1.21, -0.15);
+    sbCubeGroup.add(soc);
+    const sink = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 0.3), matAlum);
+    sink.position.set(-0.15, 1.27, -0.15);
+    sbCubeGroup.add(sink);
+    for (let i=0;i<4;i++){
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.07, 0.25), matAlum);
+      fin.position.set(-0.15 + (i-1.5)*0.06, 1.27, -0.15);
+      sbCubeGroup.add(fin);
+    }
+    const chip2 = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.04, 0.12), matBlack);
+    chip2.position.set(0.2, 1.21, 0.2);
+    sbCubeGroup.add(chip2);
+  }
+
+  // === ADCS — actuator type ===
+  if (adcs === 'none'){
+    // passive
+  } else if (adcs === 'magnetorquer'){
+    // 3 orthogonal coils (gold tori)
+    for (let i=0;i<3;i++){
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.025, 6, 24), matGold);
+      if (i === 0){ coil.rotation.x = Math.PI/2; }
+      else if (i === 1){ coil.rotation.y = Math.PI/2; }
+      sbCubeGroup.add(coil);
+    }
+  } else if (adcs === 'wheel'){
+    // 3 reaction wheels + star tracker
+    for (let i=0;i<3;i++){
+      const wheel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.12, 0.18, 12),
+        new THREE.MeshStandardMaterial({color:0x808088, metalness:0.6, roughness:0.3})
+      );
+      if (i === 0){ wheel.position.set(0.55, 0, 0); wheel.rotation.z = Math.PI/2; }
+      else if (i === 1){ wheel.position.set(0, 0, 0.55); wheel.rotation.x = Math.PI/2; }
+      else { wheel.position.set(0, 0.55, 0); }
+      sbCubeGroup.add(wheel);
+    }
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.05, 8), matAperture);
+    st.position.set(-0.4, 1.15, -0.4);
+    sbCubeGroup.add(st);
+  }
+
+  // === Comms — antenna type (visible on +Y face) ===
+  if (comms === 'uhf'){
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.6, 6), matGold);
+    ant.position.set(0.3, 1.45, 0);
+    sbCubeGroup.add(ant);
+    const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 8), matBlack);
+    mount.position.set(0.3, 1.17, 0);
+    sbCubeGroup.add(mount);
+  } else if (comms === 's-band'){
+    const patch = new THREE.Mesh(
+      new THREE.BoxGeometry(0.35, 0.02, 0.35),
+      new THREE.MeshStandardMaterial({color:0x2a4a6a, metalness:0.4, roughness:0.5})
     );
-    sensor.position.set(0, 1.15, 0);
-    sbCubeGroup.add(sensor);
+    patch.position.set(0.3, 1.18, 0);
+    sbCubeGroup.add(patch);
+    const dipole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.5, 6), matGold);
+    dipole.position.set(-0.2, 1.42, 0);
+    sbCubeGroup.add(dipole);
+  } else if (comms === 'x-band'){
+    // Big dish on boom
+    const dish = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 16, 8, 0, Math.PI*2, 0, Math.PI/2),
+      new THREE.MeshStandardMaterial({color:0xfff8e0, metalness:0.85, roughness:0.15})
+    );
+    dish.position.set(0, 1.55, 0);
+    dish.rotation.x = Math.PI;
+    sbCubeGroup.add(dish);
+    const boom = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.3, 6), matAlum);
+    boom.position.set(0, 1.35, 0);
+    sbCubeGroup.add(boom);
+    const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.03, 8), matBlack);
+    mount.position.set(0, 1.20, 0);
+    sbCubeGroup.add(mount);
   }
 
-  // Payload visual — top slot, color by choice
-  const payloadColors = {camera:0x10b981, iot:0x6366f1, ssr:0xf59e0b, ais:0xec4899};
-  const p = new THREE.Mesh(
-    new THREE.BoxGeometry(0.6, 0.3, 0.6),
-    new THREE.MeshStandardMaterial({color:payloadColors[payload]||0x10b981, metalness:0.4, roughness:0.4})
-  );
-  p.position.set(0, 1.15, 0);
-  sbCubeGroup.add(p);
+  // === Payload — sensor/instrument type (visible on -Z face) ===
+  if (payload === 'camera'){
+    const camBody = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.12, 16),
+      new THREE.MeshStandardMaterial({color:0x1a1a2a, metalness:0.7, roughness:0.3})
+    );
+    camBody.rotation.x = Math.PI/2;
+    camBody.position.set(0, 0, -1.0);
+    sbCubeGroup.add(camBody);
+    const hood = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.10, 16), matAperture);
+    hood.rotation.x = Math.PI/2;
+    hood.position.set(0, 0, -1.16);
+    sbCubeGroup.add(hood);
+    const lens = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 0.02, 16),
+      new THREE.MeshStandardMaterial({color:0x111122, metalness:0.95, roughness:0.05, emissive:0x223388, emissiveIntensity:0.3})
+    );
+    lens.rotation.x = Math.PI/2;
+    lens.position.set(0, 0, -1.21);
+    sbCubeGroup.add(lens);
+  } else if (payload === 'iot'){
+    const iotBox = new THREE.Mesh(
+      new THREE.BoxGeometry(0.25, 0.12, 0.25),
+      new THREE.MeshStandardMaterial({color:0x4a4a6a, metalness:0.5, roughness:0.5})
+    );
+    iotBox.position.set(0, 0, -1.0);
+    sbCubeGroup.add(iotBox);
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.6, 6), matGold);
+    ant.position.set(0.1, 0.32, -1.0);
+    sbCubeGroup.add(ant);
+  } else if (payload === 'ssr'){
+    const ssrBox = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 0.18, 0.18),
+      new THREE.MeshStandardMaterial({color:0x8a6a30, metalness:0.4, roughness:0.6})
+    );
+    ssrBox.position.set(0, 0, -1.0);
+    sbCubeGroup.add(ssrBox);
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 6), matGold);
+    ant.position.set(0.35, 0.25, -1.0);
+    sbCubeGroup.add(ant);
+  } else if (payload === 'ais'){
+    const aisBox = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.1, 0.3),
+      new THREE.MeshStandardMaterial({color:0xcc4488, metalness:0.4, roughness:0.5})
+    );
+    aisBox.position.set(0, 0, -1.0);
+    sbCubeGroup.add(aisBox);
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.0, 6), matGold);
+    ant.position.set(0.15, 0.5, -1.0);
+    sbCubeGroup.add(ant);
+  }
 
-  // Budget (placeholder formula — educational only per DEC-002)
-  const mass = (eps==='gauntlet'?1.6:eps==='deploy'?1.0:0.7) + (adcs==='wheel'?0.4:adcs==='magnetorquer'?0.2:0.05) + ({camera:0.3,iot:0.15,ssr:0.25,ais:0.2}[payload]||0.2);
-  const power = ({body:2.5,deploy:5.5,gauntlet:11}[eps]||0) + ({camera:4,iot:1.5,ssr:2.5,ais:2}[payload]||0);
-  const cost = mass + power/5 < 2 ? '$$' : mass + power/5 < 3.5 ? '$$$' : '$$$$';
-  const fit = (payload==='camera' && (eps==='deploy'||eps==='gauntlet')) ? '✓ EO mission' :
-              (payload==='iot' && eps==='body') ? '✓ IoT store-and-fwd' :
-              (payload==='ais' && adcs!=='none') ? '✓ Maritime tracking' :
+  // === Budget ===
+  const massBase = 0.6;
+  const massEps = {body:0.15, deploy:0.35, gauntlet:0.55}[eps] || 0.2;
+  const obcKey = obc.replace(/-/g,'');
+  const massObc = {armc0:0.02, arma53:0.04, soc:0.08}[obcKey] || 0.04;
+  const massAdcs = {none:0, magnetorquer:0.25, wheel:0.35}[adcs] || 0.1;
+  const massComms = {uhf:0.03, sband:0.06, xband:0.12}[comms] || 0.05;
+  const massPayload = {camera:0.3, iot:0.15, ssr:0.22, ais:0.2}[payload] || 0.2;
+  const mass = massBase + massEps + massObc + massAdcs + massComms + massPayload;
+
+  const powerEps = {body:0.5, deploy:5.5, gauntlet:11}[eps] || 1;
+  const powerObc = {armc0:0.1, arma53:0.5, soc:1.5}[obcKey] || 0.3;
+  const powerAdcs = {none:0, magnetorquer:0.5, wheel:2.0}[adcs] || 0.3;
+  const powerComms = {uhf:1, sband:3, xband:8}[comms] || 1;
+  const powerPayload = {camera:4, iot:1.5, ssr:2.5, ais:2}[payload] || 1.5;
+  const power = powerEps + powerObc + powerAdcs + powerComms + powerPayload;
+
+  const costScore = mass + power/5;
+  const cost = costScore < 1.5 ? '$$' : costScore < 2.5 ? '$$$' : '$$$$';
+
+  const fit = (payload==='camera' && (eps==='deploy'||eps==='gauntlet')) ? '✓ EO imaging mission' :
+              (payload==='iot' && (comms==='uhf'||comms==='s-band') && eps!=='gauntlet') ? '✓ IoT store-and-forward' :
+              (payload==='ais' && adcs!=='none' && comms==='uhf') ? '✓ Maritime tracking' :
+              (payload==='ssr' && (comms==='uhf'||comms==='s-band')) ? '✓ Ham radio relay' :
+              (mass > 1.5) ? '⚠ Over 1U mass limit' :
               '⚠ Mixed — review';
 
   document.getElementById('bd-mass').textContent = mass.toFixed(2)+' kg';
@@ -2403,10 +2730,128 @@ function updateSandboxPreview(){
   document.getElementById('bd-cost').textContent = cost;
   document.getElementById('bd-fit').innerHTML = fit;
   document.getElementById('bd-fit').parentElement.classList.toggle('warn', fit.startsWith('⚠'));
+
+  // Per-subsystem breakdown (educational transparency)
+  function getOptLabel(selId){
+    const opt = document.querySelector('#'+selId+' option:checked');
+    return opt ? opt.textContent.trim() : '';
+  }
+  function buildBD(items){
+    return items.filter(i=>i.v > 0).map(i=>
+      `<div class="bd-row"><span class="bd-key">${i.k}</span><span class="bd-val">${i.v.toFixed(2)}</span></div>`
+    ).join('');
+  }
+  const epsLbl = getOptLabel('sb-eps');
+  const obcLbl = getOptLabel('sb-obc');
+  const adcsLbl = getOptLabel('sb-adcs');
+  const commsLbl = getOptLabel('sb-comms');
+  const payLbl = getOptLabel('sb-payload');
+  // Formula tooltips (educational transparency)
+  // Each tooltip explains HOW the number was derived
+  const tip = (currentLang==='zh') ? {
+    structure:  '0.6 kg = 1U 铝制框架 (4 导轨 + 5 面板) | 0 W = 被动结构',
+    eps: {
+      body:    '0.15 kg = 体装电池粘在所有侧面 (贴片) | 0.5 W = 小面积, 无展开',
+      deploy:  '0.35 kg = 4 板 × 0.08 kg + 4 吊杆 | 5.5 W = 4 × 1.2 W 峰 + 电池充电 1 W',
+      gauntlet:'0.55 kg = 4 主 + 4 翼尖 + 4 吊杆 | 11 W = 8 × 1.2 W 峰 + 电池 2 W',
+    },
+    obc: {
+      'arm-c0':  '0.02 kg = 小绿 PCB, ARM Cortex-M0 | 0.1 W = 始终开机',
+      'arm-a53': '0.04 kg = 中等 PCB + SOIC 芯片 | 0.5 W = ARM A53 idle+active',
+      'soc':      '0.08 kg = 大板 + SoC + 散热 + 4 fins | 1.5 W = SoC peak + 热管理',
+    },
+    adcs: {
+      none:           '0 kg = 纯被动卫星 | 0 W = 无执行器',
+      magnetorquer:   '0.25 kg = 3 正交金线圈 (X/Y/Z) | 0.5 W = 持续低功率',
+      wheel:          '0.35 kg = 3 反作用轮 + 星敏感器 | 2 W = 轮电机主动',
+    },
+    comms: {
+      uhf:   '0.03 kg = 短鞭天线 + mount | 1 W = 1 W UHF TX',
+      sband: '0.06 kg = 贴片 + 偶极 | 3 W = S-band 典型 TX',
+      xband: '0.12 kg = 大碟 + boom + mount | 8 W = 高增益 X-band TX',
+    },
+    payload: {
+      camera: '0.3 kg = 相机体 + hood + 镜头 | 4 W = 成像 + 处理',
+      iot:    '0.15 kg = 小 IoT 模块 + LoRa 鞭 | 1.5 W = 低功率传感',
+      ssr:    '0.22 kg = 存储单元 + 偶极 | 2.5 W = store-and-forward + TX',
+      ais:    '0.2 kg = AIS 接收机 + VHF 鞭 | 2 W = 船追踪 RX',
+    },
+  } : {
+    structure:  '0.6 kg = 1U frame (4 rails) + chassis | 0 W = passive',
+    eps: {
+      body:    '0.15 kg = body-mount cells glued on all faces | 0.5 W = small area, no deploy',
+      deploy:  '0.35 kg = 4 panels × 0.08 kg + 4 booms | 5.5 W = 4 × 1.2 W peak + battery charge 1 W',
+      gauntlet:'0.55 kg = 4 main + 4 tip + 4 booms | 11 W = 8 × 1.2 W peak + battery 2 W',
+    },
+    obc: {
+      'arm-c0':  '0.02 kg = small PCB, ARM Cortex-M0 | 0.1 W = always-on',
+      'arm-a53': '0.04 kg = medium PCB + SOIC chip | 0.5 W = ARM A53 idle + active',
+      'soc':      '0.08 kg = large board + SoC + heat sink + 4 fins | 1.5 W = SoC peak + thermal',
+    },
+    adcs: {
+      none:           '0 kg = passive satellite | 0 W = no actuators',
+      magnetorquer:   '0.25 kg = 3 orthogonal coils (X/Y/Z) | 0.5 W = continuous low-power',
+      wheel:          '0.35 kg = 3 reaction wheels + star tracker | 2 W = wheel motors active',
+    },
+    comms: {
+      uhf:   '0.03 kg = short whip antenna + mount | 1 W = 1 W UHF TX',
+      sband: '0.06 kg = patch + dipole | 3 W = S-band typical TX',
+      xband: '0.12 kg = large dish + boom + mount | 8 W = high-gain X-band TX',
+    },
+    payload: {
+      camera: '0.3 kg = camera body + hood + lens | 4 W = imaging + processing',
+      iot:    '0.15 kg = small IoT module + LoRa whip | 1.5 W = low-power sensor',
+      ssr:    '0.22 kg = memory unit + dipole | 2.5 W = store-and-forward + TX',
+      ais:    '0.2 kg = AIS receiver + VHF whip | 2 W = ship tracking RX',
+    },
+  };
+
+  function buildBDWithTip(items, tipMap){
+    return items.filter(i=>i.v > 0).map(i=>
+      `<div class="bd-row"><span class="bd-key" title="${(tipMap[i.key]||'').replace(/"/g,'&quot;')}">${i.k}</span><span class="bd-val">${i.v.toFixed(2)}</span></div>`
+    ).join('');
+  }
+  // Helper: extract the option value (not text) for tooltips
+  const epsV = document.getElementById('sb-eps').value;
+  const obcV = document.getElementById('sb-obc').value;
+  const adcsV = document.getElementById('sb-adcs').value;
+  const commsV = document.getElementById('sb-comms').value;
+  const payV = document.getElementById('sb-payload').value;
+  const massTips = {
+    [t('bdStructure')]: tip.structure,
+    ['EPS · '+epsLbl]: tip.eps[epsV],
+    ['OBC · '+obcLbl]: tip.obc[obcV],
+    ['ADCS · '+adcsLbl]: tip.adcs[adcsV],
+    ['Comms · '+commsLbl]: tip.comms[commsV],
+    ['Payload · '+payLbl]: tip.payload[payV],
+  };
+  const powerTips = {
+    ['EPS · '+epsLbl]: tip.eps[epsV],
+    ['OBC · '+obcLbl]: tip.obc[obcV],
+    ['ADCS · '+adcsLbl]: tip.adcs[adcsV],
+    ['Comms · '+commsLbl]: tip.comms[commsV],
+    ['Payload · '+payLbl]: tip.payload[payV],
+  };
+  document.getElementById('bd-mass-breakdown').innerHTML = buildBDWithTip([
+    {k: t('bdStructure'), v: massBase, key: t('bdStructure')},
+    {k: 'EPS · '+epsLbl, v: massEps, key: 'EPS · '+epsLbl},
+    {k: 'OBC · '+obcLbl, v: massObc, key: 'OBC · '+obcLbl},
+    {k: 'ADCS · '+adcsLbl, v: massAdcs, key: 'ADCS · '+adcsLbl},
+    {k: 'Comms · '+commsLbl, v: massComms, key: 'Comms · '+commsLbl},
+    {k: 'Payload · '+payLbl, v: massPayload, key: 'Payload · '+payLbl},
+  ], massTips);
+  document.getElementById('bd-power-breakdown').innerHTML = buildBDWithTip([
+    {k: 'EPS · '+epsLbl, v: powerEps, key: 'EPS · '+epsLbl},
+    {k: 'OBC · '+obcLbl, v: powerObc, key: 'OBC · '+obcLbl},
+    {k: 'ADCS · '+adcsLbl, v: powerAdcs, key: 'ADCS · '+adcsLbl},
+    {k: 'Comms · '+commsLbl, v: powerComms, key: 'Comms · '+commsLbl},
+    {k: 'Payload · '+payLbl, v: powerPayload, key: 'Payload · '+payLbl},
+  ], powerTips);
 }
 
 function animateSb(){
   requestAnimationFrame(animateSb);
+  if (sbControls) sbControls.update();
   sbCubeGroup.rotation.y += 0.005;
   sbRenderer.render(sbScene, sbCamera);
 }
