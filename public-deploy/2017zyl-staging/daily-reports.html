@@ -302,7 +302,11 @@
       <div class="modal-head"><strong id="articleTrack">探索站</strong><button class="close" data-close="articleOverlay">关闭</button></div>
       <h2 id="articleTitle"></h2><p id="articleDesc"></p>
       <p id="articleNote">这是一份本地互动预览。正式站点可在这里接入原报告正文；现在你可以将它标记为已探索，继续下一站。</p>
-      <button class="primary" id="completeStop">标记完成，去下一站</button>
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center">
+        <a id="openOriginal" href="#" target="_blank" rel="noopener" class="primary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:var(--lime);color:#0b0b0b;border-radius:99px;padding:11px 18px;font-size:13px;font-weight:650">↗ 打开原始 HTML</a>
+        <a id="openOriginalPath" href="#" target="_blank" rel="noopener" style="font:11px ui-monospace,monospace;color:var(--muted);text-decoration:none;border-bottom:1px dashed var(--line);padding-bottom:1px;word-break:break-all;flex:1;min-width:200px"></a>
+        <button class="primary" id="completeStop" style="margin-left:auto">标记完成，去下一站</button>
+      </div>
     </article>
   </div>
 
@@ -321,16 +325,19 @@
   </div>
 
   
-  <div class="overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-    <section class="modal" style="max-width:520px">
-      <div class="modal-head"><strong>OPEN REPORT</strong><button class="close" data-close="confirmOverlay">关闭</button></div>
-      <h2 id="confirmTitle" style="font-size:20px;line-height:1.3;margin:8px 0 4px"></h2>
+  <div class="overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" style="z-index:50">
+    <section class="modal" style="max-width:580px;border:1px solid var(--lime);box-shadow:0 0 0 4px rgba(213,255,63,.08),0 30px 100px rgba(0,0,0,.6)">
+      <div class="modal-head" style="background:rgba(213,255,63,.08)"><strong style="color:var(--lime)">→ 打开档案报告</strong><button class="close" data-close="confirmOverlay">关闭</button></div>
+      <h2 id="confirmTitle" style="font-size:22px;line-height:1.3;margin:8px 0 4px"></h2>
       <p id="confirmTrack" style="font:12px ui-monospace,monospace;color:var(--violet);letter-spacing:.1em;margin-bottom:18px"></p>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-family:ui-monospace,monospace">→ 跳转目标</div>
-      <div id="confirmPath" style="font-size:12px;color:var(--ink);background:#191a1d;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:22px;word-break:break-all;font-family:ui-monospace,monospace"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="secondary" id="confirmCancel">取消</button>
-        <button class="primary" id="confirmOpen">在新窗口打开 ↗</button>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase">→ 真实 HTML 链接</div>
+      <a id="confirmPath" href="#" target="_blank" rel="noopener" style="display:block;font-size:13px;color:var(--lime);background:#0d0e10;border:1px solid var(--lime);border-radius:6px;padding:12px 14px;margin-bottom:22px;word-break:break-all;font-family:ui-monospace,monospace;text-decoration:none;transition:.2s"></a>
+      <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted);font-family:ui-monospace,monospace">点击下方按钮在新窗口打开</span>
+        <div style="display:flex;gap:10px">
+          <button class="secondary" id="confirmCancel">取消</button>
+          <button class="primary" id="confirmOpen" style="background:var(--lime);color:#0b0b0b">↗ 在新窗口打开</button>
+        </div>
       </div>
     </section>
   </div>
@@ -727,9 +734,19 @@
     }
     function openArticle(i){
       state.current=i;const r=state.route[i];
+      const url=r.file&&(r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`);
       $('#articleTrack').textContent=state.lang==='zh'?`第 ${i+1} 站 · ${reportText(r,'tag')}`:`Stop ${i+1} · ${reportText(r,'tag')}`;
       $('#articleTitle').textContent=reportText(r,'title');
       $('#articleDesc').textContent=reportText(r,'desc');
+      if(url){
+        $('#openOriginal').href=url;
+        $('#openOriginal').style.display='inline-flex';
+        $('#openOriginalPath').href=url;
+        $('#openOriginalPath').textContent=url;
+      }else{
+        $('#openOriginal').style.display='none';
+        $('#openOriginalPath').textContent='';
+      }
       $('#articleOverlay').classList.add('open');save();
     }
     function renderArchive(query=''){
@@ -745,15 +762,21 @@
       const url=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;
       $('#confirmTitle').textContent=reportText(r,'title');
       $('#confirmTrack').textContent=reportText(r,'tag')+(r.date?` · ${r.date}`:'');
-      $('#confirmPath').textContent=url;
+      // Make URL both display + clickable link
+      const pathEl=$('#confirmPath');
+      pathEl.href=url;pathEl.textContent=url;
+      // Close archive first so confirm stands alone (per Patrick 07-12 v6: 弹窗要明显)
+      $('#archiveOverlay').classList.remove('open');
       $('#confirmOverlay').classList.add('open');
       $('#confirmOpen').onclick=()=>{
         window.open(url,'_blank','noopener');
         state.route=[r,...reports.filter(x=>x!==r).sort(()=>Math.random()-.5).slice(0,2)];
-        save();$('#confirmOverlay').classList.remove('open');$('#archiveOverlay').classList.remove('open');
+        save();$('#confirmOverlay').classList.remove('open');
         showToast('archiveRoute');
       };
       $('#confirmCancel').onclick=()=>{$('#confirmOverlay').classList.remove('open')};
+      // Click on URL itself also opens
+      pathEl.onclick=(e)=>{e.preventDefault();window.open(url,'_blank','noopener');$('#confirmOverlay').classList.remove('open')};
     }
       $$('.archive-row').forEach((b,i)=>b.onclick=()=>{
         const r=list[i];
