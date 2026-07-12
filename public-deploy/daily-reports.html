@@ -116,6 +116,13 @@
     .archive-row.ghost-row:hover{background:none}
     .archive-row.ghost-row b{text-decoration:line-through;text-decoration-color:rgba(255,107,157,.55)}
     .ghost-badge{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(255,107,157,.18);color:#ff6b9d;letter-spacing:.08em;margin-left:4px}
+    /* v7: archive row is now an <a> tag — reset button styles, add hover arrow */
+    a.archive-row{color:inherit;text-decoration:none;align-items:center}
+    a.archive-row:hover{background:#191a1d}
+    a.archive-row .row-go{font-size:14px;color:var(--lime);opacity:0;transition:.2s;margin-left:auto}
+    a.archive-row:hover .row-go{opacity:1;transform:translateX(3px)}
+    a.archive-row.ghost-row{opacity:.45;cursor:not-allowed;pointer-events:none}
+    a.archive-row.ghost-row .row-go{display:none}
 
 </style>
 </head>
@@ -285,6 +292,12 @@
       <p>每日 08:00 cron · HN + GitHub + arXiv cs.AI · 67 items · impact 排序 · dark theme · just-in 7-12</p>
       <span class="go">launch →</span>
     </a>
+      <a class="fcard" style="--c1:#ff6b35;--c2:#ffb86c" href="https://2017zyl.xyz/rocket-launch-db/" title="🚀 Rocket Launch DB · 实时发射追踪 · LL2 + YouTube webcasts + Wikipedia crew + updates flow + world map · 60s auto-refresh · v4.1.5 (156 astronauts / 36 国)">
+        <div class="ico">🚀</div>
+        <h4>Rocket Launch DB · 实时发射追踪</h4>
+        <p>LL2 launch API + YouTube webcasts + Wikipedia crew + status flow + world map + 60s 自动刷新 · 156 宇航员 / 36 国 · 4.1.5 polish</p>
+        <span class="go">launch →</span>
+      </a>
     </div>
   </div>
 </section>
@@ -755,34 +768,10 @@
         const english=reportEnglish[r.title]?.join(' ')||'';
         return (r.title+r.desc+r.tag+r.file+(r.date||'')+(r.category||'')+english).toLowerCase().includes(q);
       });
-      $('#archiveResults').innerHTML=list.length?list.map(r=>`<button class="archive-row${r.ghost?' ghost-row':''}"><small>${reportText(r,'tag')}${r.ghost?' <span class="ghost-badge">🪦 缺失</span>':''}</small><b>${reportText(r,'title')}</b></button>`).join(''):`<p style="color:#777">${tr().noResults}</p>`;
+      $('#archiveResults').innerHTML=list.length?list.map(r=>{const u=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;return `<a class="archive-row${r.ghost?' ghost-row':''}" href="${u}" target="_blank" rel="noopener" data-i=""><small>${reportText(r,'tag')}${r.ghost?' <span class="ghost-badge">🪦 缺失</span>':''}</small><b>${reportText(r,'title')}</b><span class="row-go">↗</span></a>`}).join(''):`<p style="color:#777">${tr().noResults}</p>`;
 
-    // v5: 弹窗确认 — show title + path + 打开/取消 buttons before window.open
-    function showArchiveConfirm(r){
-      const url=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;
-      $('#confirmTitle').textContent=reportText(r,'title');
-      $('#confirmTrack').textContent=reportText(r,'tag')+(r.date?` · ${r.date}`:'');
-      // Make URL both display + clickable link
-      const pathEl=$('#confirmPath');
-      pathEl.href=url;pathEl.textContent=url;
-      // Close archive first so confirm stands alone (per Patrick 07-12 v6: 弹窗要明显)
-      $('#archiveOverlay').classList.remove('open');
-      $('#confirmOverlay').classList.add('open');
-      $('#confirmOpen').onclick=()=>{
-        window.open(url,'_blank','noopener');
-        state.route=[r,...reports.filter(x=>x!==r).sort(()=>Math.random()-.5).slice(0,2)];
-        save();$('#confirmOverlay').classList.remove('open');
-        showToast('archiveRoute');
-      };
-      $('#confirmCancel').onclick=()=>{$('#confirmOverlay').classList.remove('open')};
-      // Click on URL itself also opens
-      pathEl.onclick=(e)=>{e.preventDefault();window.open(url,'_blank','noopener');$('#confirmOverlay').classList.remove('open')};
-    }
-      $$('.archive-row').forEach((b,i)=>b.onclick=()=>{
-        const r=list[i];
-        // Show confirm popup (per Patrick 07-12 v5: 弹窗反馈)
-        showArchiveConfirm(r);
-      });
+    // v7: No JS click handler needed — <a href target=_blank> handles navigation natively.
+      // Right-click context menu works. cmd-click opens in new tab. Done.
     }
 
     function applyLanguage(){
