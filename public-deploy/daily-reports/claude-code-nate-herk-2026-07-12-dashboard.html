@@ -1,0 +1,2089 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Claude Code for Non-Coders — Nate Herk 6-Hour Course 中文解读</title>
+<style>
+:root{--bg:#0d0e12;--bg-elev:#181a20;--bg-card:#1d2028;--border:#2a2e38;--border-strong:#3a3f4d;--text:#e6e8ee;--text-dim:#9ba1b0;--text-mute:#6b7180;--accent:#d5ff3f;--accent-2:#74e0ff;--warn:#ffa94d;--danger:#ff6b6b;--good:#51cf66;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;line-height:1.6;font-size:14px;}
+body{padding:0 0 80px;}
+.hero{background:linear-gradient(135deg,#0d0e12 0%,#1d2028 60%,#0d0e12 100%);border-bottom:1px solid var(--border);padding:48px 32px 32px;}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px;color:var(--text);}
+.hero .sub{color:var(--accent);font-size:14px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:24px;}
+.hero p{color:var(--text-dim);max-width:780px;line-height:1.7;font-size:15px;}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.meta-row span{background:var(--bg-elev);border:1px solid var(--border);padding:4px 10px;border-radius:5px;font-size:11px;color:var(--text-dim);}
+.meta-row .red{background:#3a1f0e;border-color:#7a3a14;color:var(--warn);}
+.meta-row .ok{background:#0e2a14;border-color:#1d4a26;color:var(--good);}
+.warn-box{background:linear-gradient(135deg,#2a1a08 0%,#3a2410 100%);border:2px solid var(--warn);border-radius:10px;padding:18px 22px;margin:24px 32px;color:var(--text);}
+.warn-box h3{color:var(--warn);font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.warn-box .label{display:inline-block;background:var(--warn);color:#1a0e00;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.05em;margin-right:8px;}
+.warn-box ul{margin:8px 0 8px 20px;color:var(--text-dim);font-size:13px;}
+.warn-box ul li{margin-bottom:4px;}
+.warn-box .verdict{margin-top:12px;padding-top:12px;border-top:1px solid #5a3a18;color:var(--text);font-size:13px;}
+.nav{display:flex;flex-wrap:wrap;gap:4px;padding:0 32px;margin:24px 0 0;background:var(--bg-elev);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30;padding-top:16px;padding-bottom:0;}
+.nav button{background:transparent;border:none;color:var(--text-dim);padding:10px 14px;cursor:pointer;font-size:12px;font-weight:500;border-bottom:2px solid transparent;transition:all 0.15s;font-family:inherit;white-space:nowrap;}
+.nav button:hover{color:var(--text);background:var(--bg-card);}
+.nav button.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;padding:32px;max-width:1200px;}
+.tab-content.active{display:block;}
+h2.section{font-size:24px;font-weight:700;margin:0 0 16px;color:var(--text);letter-spacing:-0.01em;scroll-margin-top:80px;}
+h3.sub{font-size:16px;font-weight:600;margin:24px 0 10px;color:var(--accent-2);scroll-margin-top:80px;}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px;}
+.card h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;}
+.card p,.card li{color:var(--text-dim);font-size:13px;line-height:1.65;}
+.card ul{margin-left:18px;margin-top:6px;}
+.card ul li{margin-bottom:3px;}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+th{background:var(--bg-elev);color:var(--accent);padding:8px 12px;text-align:left;font-weight:600;border-bottom:1px solid var(--border-strong);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;}
+td strong{color:var(--text);}
+.quote{background:var(--bg-elev);border-left:3px solid var(--accent);padding:14px 18px;margin-bottom:10px;border-radius:0 8px 8px 0;font-style:italic;color:var(--text);font-size:14px;line-height:1.65;}
+.quote::before{content:"\201C";color:var(--accent);font-size:24px;margin-right:4px;}
+.quote::after{content:"\201D";color:var(--accent);font-size:24px;margin-left:4px;}
+.quote .src{display:block;margin-top:6px;font-style:normal;font-size:11px;color:var(--text-mute);}
+.takeaway{background:linear-gradient(135deg,#181a20 0%,#1d2028 100%);border:1px solid var(--accent);border-radius:10px;padding:18px 22px;margin:16px 0;}
+.takeaway h3{color:var(--accent);font-size:14px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;}
+.takeaway ul{margin-left:18px;color:var(--text-dim);font-size:13px;}
+.takeaway ul li{margin-bottom:4px;}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 16px;font-size:12px;color:var(--text-mute);}
+.legend span{display:inline-flex;align-items:center;gap:4px;}
+.legend i{font-style:normal;background:var(--bg-elev);padding:2px 6px;border-radius:3px;color:var(--accent);font-weight:600;}
+@media(max-width:768px){.hero{padding:32px 20px 20px;}.hero h1{font-size:24px;}.nav{padding:12px 16px;}.tab-content{padding:20px;}}
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+
+  /* v1.4.2 TOC (sub-pattern A: hover-expand) */
+  aside.toc {
+    position: fixed; top: 80px; left: 0;
+    width: 220px; max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    background: rgba(20, 20, 24, 0.92);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 0;
+    padding: 0.9rem 1rem;
+    z-index: 40;
+    font-size: 0.78rem;
+    transform: translateX(calc(-100% + 24px));
+    opacity: 0.95;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  aside.toc::after {
+    content: '›';
+    position: absolute; top: 50%; right: 6px;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 20px; font-weight: 700;
+    pointer-events: none;
+    animation: tocHandleBlink 2.5s ease-in-out infinite;
+  }
+  @keyframes tocHandleBlink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  aside.toc:hover, aside.toc:focus-within {
+    transform: translateX(0);
+    opacity: 1;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+  aside.toc:hover::after, aside.toc:focus-within::after {
+    opacity: 0; animation: none;
+  }
+  aside.toc > h3 {
+    color: var(--accent-2); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0 0 0.6rem; font-weight: 600;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;
+  }
+  aside.toc ol { list-style: none; padding: 0; margin: 0; }
+  aside.toc ol li { margin: 0; }
+  aside.toc a {
+    display: block; color: var(--text-dim); text-decoration: none;
+    padding: 0.3rem 0.4rem; border-radius: 5px;
+    border-left: 2px solid transparent; line-height: 1.3;
+    transition: all 0.12s; cursor: pointer;
+  }
+  aside.toc a:hover { color: var(--text); background: var(--bg-elevated); }
+  aside.toc a.active, aside.toc a.h3-link.active {
+    color: var(--accent-2); background: var(--bg-elevated);
+    border-left-color: var(--accent); font-weight: 500;
+  }
+  aside.toc a.h3-link { padding-left: 1rem; font-size: 0.72rem; color: var(--text-mute); }
+  @media (max-width: 1279px) { aside.toc { display: none; } }
+  h2, h3, .h2-section, .tab-content { scroll-margin-top: 20px; }
+
+
+  /* Mastery Check Quiz */
+  .quiz-progress{background:var(--bg-elev);border-radius:8px;height:8px;overflow:hidden;margin-bottom:16px;}
+  .quiz-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width 0.4s ease;width:0%;}
+  .quiz-meta{display:flex;justify-content:space-between;color:var(--text-mute);font-size:12px;margin-bottom:18px;}
+  .quiz-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px;}
+  .quiz-card .cat{color:var(--accent-2);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px;}
+  .quiz-card .q{color:var(--text);font-size:15px;font-weight:600;line-height:1.55;margin-bottom:14px;}
+  .quiz-card .ref{color:var(--text-mute);font-size:11px;margin-top:10px;font-style:italic;}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;}
+  .quiz-option{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:var(--bg-elev);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(--text-dim);font-size:13px;line-height:1.5;}
+  .quiz-option:hover{border-color:var(--accent-2);color:var(--text);}
+  .quiz-option.selected{border-color:var(--accent);background:rgba(213,255,63,0.06);color:var(--text);}
+  .quiz-option.correct{border-color:var(--good);background:rgba(81,207,102,0.1);color:var(--text);}
+  .quiz-option.wrong{border-color:var(--danger);background:rgba(255,107,107,0.1);color:var(--text);}
+  .quiz-option .letter{font-weight:700;color:var(--accent-2);min-width:22px;}
+  .quiz-option.correct .letter{color:var(--good);}
+  .quiz-option.wrong .letter{color:var(--danger);}
+  .quiz-actions{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px;}
+  .quiz-btn{background:var(--accent);color:#0a0c10;border:0;padding:9px 18px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;font-family:inherit;}
+  .quiz-btn:hover{background:#c4ee2d;}
+  .quiz-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .quiz-btn.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border);}
+  .quiz-btn.ghost:hover{color:var(--text);border-color:var(--text-dim);}
+  .quiz-explain{margin-top:14px;padding:14px 16px;background:var(--bg-elev);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:13px;color:var(--text-dim);line-height:1.65;display:none;}
+  .quiz-explain.show{display:block;}
+  .quiz-explain strong{color:var(--accent);}
+  .quiz-result{background:linear-gradient(135deg,#181a20 0%,#1d2028 100%);border:2px solid var(--accent);border-radius:14px;padding:28px 32px;margin:24px 0;text-align:center;display:none;}
+  .quiz-result.show{display:block;}
+  .quiz-result .score{font-size:48px;font-weight:800;color:var(--accent);margin:12px 0 4px;letter-spacing:-0.02em;}
+  .quiz-result .label{color:var(--text-dim);font-size:13px;text-transform:uppercase;letter-spacing:0.08em;}
+  .quiz-result .verdict{color:var(--text);font-size:18px;font-weight:600;margin:14px 0 8px;}
+  .quiz-result .blurb{color:var(--text-dim);font-size:13px;line-height:1.7;max-width:560px;margin:0 auto;}
+  .quiz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:18px;text-align:left;}
+  .quiz-grid div{padding:6px 10px;border-radius:5px;font-size:11px;color:var(--text-dim);background:var(--bg-elev);}
+  .quiz-grid div.correct{border-left:3px solid var(--good);}
+  .quiz-grid div.wrong{border-left:3px solid var(--danger);}
+  .quiz-grid div.skipped{border-left:3px solid var(--text-mute);opacity:0.6;}
+
+
+  /* SRS Mode */
+  .srs-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
+  .srs-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;}
+  .srs-stat .num{font-size:28px;font-weight:800;color:var(--accent);letter-spacing:-0.02em;line-height:1;margin-bottom:4px;}
+  .srs-stat .lbl{color:var(--text-mute);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+  .srs-stat.warn .num{color:var(--warn);}
+  .srs-stat.good .num{color:var(--good);}
+  .srs-stat.dim .num{color:var(--text-dim);}
+  .mode-toggle{display:flex;gap:0;background:var(--bg-elev);border:1px solid var(--border);border-radius:8px;padding:4px;margin-bottom:18px;width:fit-content;}
+  .mode-btn{background:transparent;border:0;color:var(--text-dim);padding:8px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:all 0.15s;}
+  .mode-btn.active{background:var(--accent);color:#0a0c10;}
+  .mode-btn:not(.active):hover{color:var(--text);}
+  .srs-intro{background:var(--bg-card);border:1px solid var(--border);border-left:3px solid var(--accent-2);border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:18px;font-size:13px;color:var(--text-dim);line-height:1.65;}
+  .srs-intro strong{color:var(--accent-2);}
+  .srs-due-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+  .srs-due-item{display:flex;align-items:center;gap:10px;background:var(--bg-elev);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--text-dim);}
+  .srs-due-item .box-badge{background:var(--bg-card);border:1px solid var(--accent);color:var(--accent);padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;font-family:monospace;}
+  .srs-due-item .box-badge.box5{border-color:var(--good);color:var(--good);}
+  .srs-due-item .qtitle{flex:1;color:var(--text);}
+  .srs-due-item .next{color:var(--text-mute);font-size:11px;}
+  .srs-controls{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .srs-controls .quiz-btn{min-width:140px;}
+  .srs-session-info{background:linear-gradient(135deg,#181a20 0%,#1d2028 100%);border:1px solid var(--accent);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+  .srs-session-info .box-now{font-family:monospace;color:var(--accent);font-weight:700;font-size:13px;}
+  .srs-session-info .due-count{color:var(--text-dim);}
+  .srs-empty{background:var(--bg-card);border:1px dashed var(--border);border-radius:10px;padding:24px 20px;text-align:center;color:var(--text-mute);font-size:13px;}
+  .srs-empty .emoji{font-size:32px;margin-bottom:8px;}
+  .srs-log{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-top:18px;font-size:12px;}
+  .srs-log h4{color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  .srs-log-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);color:var(--text-dim);}
+  .srs-log-row:last-child{border-bottom:0;}
+  .srs-log-row .date{color:var(--text-mute);font-family:monospace;font-size:11px;}
+  .srs-session-card .ref{margin-top:8px;}
+
+</style>
+</head>
+<body>
+
+<aside class="toc" aria-label="Table of contents">
+  <h3>目录</h3>
+  <ol>
+      <li><a href="#h2-1" data-toc-target="h2-1">核心论点</a></li>
+      <li><a class="h3-link" href="#h3-1" data-toc-target="h3-1">↳ PITFALL 28Honest Discount — 个人品牌内容折扣</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 核心数据</a></li>
+      <li><a class="h3-link" href="#h3-2" data-toc-target="h3-2">↳ 核心数据</a></li>
+      <li><a href="#h2-2" data-toc-target="h2-2">12 Mindset Shifts (Nate 主张)</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 🎯 Takeaway</a></li>
+      <li><a href="#h2-3" data-toc-target="h2-3">Foundations · Ch 1-7 (0-32 min)</a></li>
+      <li><a class="h3-link" href="#h3-3" data-toc-target="h3-3">↳ 🎯 Takeaway</a></li>
+      <li><a class="h3-link" href="#h3-4" data-toc-target="h3-4">↳ Model vs Harness 类比 (Ch 3)</a></li>
+      <li><a class="h3-link" href="#h3-5" data-toc-target="h3-5">↳ Prompt Eng vs Context Eng (Ch 5)</a></li>
+      <li><a href="#h2-4" data-toc-target="h2-4">Install + Setup · Ch 8-11 (32-48 min)</a></li>
+      <li><a class="h3-link" href="#h3-8" data-toc-target="h3-8">↳ Install + First Prompts (Ch 8)</a></li>
+      <li><a class="h3-link" href="#h3-9" data-toc-target="h3-9">↳ Local Files (Ch 9)</a></li>
+      <li><a class="h3-link" href="#h3-10" data-toc-target="h3-10">↳ Prompt Engineering + Verify (Ch 10)</a></li>
+      <li><a href="#h2-5" data-toc-target="h2-5">Project 配置 · Ch 12-14 (48-80 min) ⭐</a></li>
+      <li><a class="h3-link" href="#h3-12" data-toc-target="h3-12">↳ claude.md (Ch 12, 12 min deep dive)</a></li>
+      <li><a class="h3-link" href="#h3-13" data-toc-target="h3-13">↳ settings.json + Permissions (Ch 13-14)</a></li>
+      <li><a class="h3-link" href="#h3-14" data-toc-target="h3-14">↳ API Keys + .env (Ch 13)</a></li>
+      <li><a href="#h2-6" data-toc-target="h2-6">Tools + Connect · Ch 15-16 (80-100 min) ⭐</a></li>
+      <li><a class="h3-link" href="#h3-15" data-toc-target="h3-15">↳ AI Operating System (Ch 15, 5 min)</a></li>
+      <li><a class="h3-link" href="#h3-16" data-toc-target="h3-16">↳ Google Workspace CLI vs MCP (Ch 16, 15 m</a></li>
+      <li><a href="#h2-7" data-toc-target="h2-7">Skills Deep Dive · Ch 17 (100-116 min) ⭐⭐</a></li>
+      <li><a class="h3-link" href="#h3-17" data-toc-target="h3-17">↳ Skills = Cookbook Recipes</a></li>
+      <li><a class="h3-link" href="#h3-18" data-toc-target="h3-18">↳ Skill 文件结构</a></li>
+      <li><a class="h3-link" href="#h3-19" data-toc-target="h3-19">↳ Skills 放在哪里</a></li>
+      <li><a href="#h2-8" data-toc-target="h2-8">Context Window + Memory · Ch 18-19 (116-132 min)</a></li>
+      <li><a class="h3-link" href="#h3-21" data-toc-target="h3-21">↳ Context Window 管理 (Ch 18, 7 min)</a></li>
+      <li><a class="h3-link" href="#h3-22" data-toc-target="h3-22">↳ Session Handoff</a></li>
+      <li><a class="h3-link" href="#h3-23" data-toc-target="h3-23">↳ Memory 文件 + 2nd Brain (Ch 19, 8 min)</a></li>
+      <li><a href="#h2-9" data-toc-target="h2-9">Sub-Agents · Ch 20-23 (132-167 min) ⭐⭐⭐</a></li>
+      <li><a class="h3-link" href="#h3-24" data-toc-target="h3-24">↳ 5 Method Shifts (Ch 20, 9 min)</a></li>
+      <li><a class="h3-link" href="#h3-25" data-toc-target="h3-25">↳ Sub-Agents Explained (Ch 21, 11 min)</a></li>
+      <li><a class="h3-link" href="#h3-26" data-toc-target="h3-26">↳ Plan Roaster 实战 (Ch 22, 12 min)</a></li>
+      <li><a href="#h2-10" data-toc-target="h2-10">Build + Deploy · Ch 24-26 (167-199 min)</a></li>
+      <li><a class="h3-link" href="#h3-28" data-toc-target="h3-28">↳ Terminal + VS Code Install (Ch 24, 6 min</a></li>
+      <li><a class="h3-link" href="#h3-29" data-toc-target="h3-29">↳ Building & Cloning Websites (Ch 25, 18 m</a></li>
+      <li><a class="h3-link" href="#h3-30" data-toc-target="h3-30">↳ GitHub + Vercel Deploy (Ch 26, 8 min)</a></li>
+      <li><a href="#h2-11" data-toc-target="h2-11">2nd Brain · Ch 27-30 (199-272 min) ⭐⭐⭐</a></li>
+      <li><a class="h3-link" href="#h3-31" data-toc-target="h3-31">↳ AI Systems Pyramid (Ch 27, 17 min)</a></li>
+      <li><a class="h3-link" href="#h3-32" data-toc-target="h3-32">↳ Trusting the Output (Ch 27 后半)</a></li>
+      <li><a class="h3-link" href="#h3-33" data-toc-target="h3-33">↳ Building 2nd Brain (Ch 28, 20 min Obsidi</a></li>
+      <li><a href="#h2-12" data-toc-target="h2-12">Routines + Tokens · Ch 31-35 (272-359 min) ⭐⭐</a></li>
+      <li><a class="h3-link" href="#h3-36" data-toc-target="h3-36">↳ Sub-Agents vs Agent Teams (Ch 31, 14 min</a></li>
+      <li><a class="h3-link" href="#h3-37" data-toc-target="h3-37">↳ Scheduled Automations & Cloud Routines (</a></li>
+      <li><a class="h3-link" href="#h3-38" data-toc-target="h3-38">↳ Building Research Automation (Ch 33, 24 </a></li>
+      <li><a href="#h2-13" data-toc-target="h2-13">Patrick 工作关联 (15+ cards)</a></li>
+      <li><a class="h3-link" href="#h3-41" data-toc-target="h3-41">↳ 1. media/video-to-obsidian ↔ 4-step pipe</a></li>
+      <li><a class="h3-link" href="#h3-42" data-toc-target="h3-42">↳ 2. patricks-vault-os ↔ Herk 2 项目</a></li>
+      <li><a class="h3-link" href="#h3-43" data-toc-target="h3-43">↳ 3. agent-orchestration ↔ Sub-Agents vs A</a></li>
+      <li><a href="#h2-14" data-toc-target="h2-14">Patrick 实战路线</a></li>
+      <li><a class="h3-link" href="#h3-59" data-toc-target="h3-59">↳ 立即 (本周可做)</a></li>
+      <li><a class="h3-link" href="#h3-60" data-toc-target="h3-60">↳ 中期 (1-2 月)</a></li>
+      <li><a class="h3-link" href="#h3-61" data-toc-target="h3-61">↳ 长期 (3+ 月)</a></li>
+      <li><a href="#h2-15" data-toc-target="h2-15">金句库 (18 quotes)</a></li>
+      <li><a href="#h2-16" data-toc-target="h2-16">关键时间戳 (35 章节)</a></li>
+      <li><a href="#h2-17" data-toc-target="h2-17">资源</a></li>
+      <li><a class="h3-link" href="#h3-62" data-toc-target="h3-62">↳ 原视频</a></li>
+      <li><a class="h3-link" href="#h3-63" data-toc-target="h3-63">↳ Nate 推广资源 (⚠️ affiliate, 跳过 OK)</a></li>
+      <li><a class="h3-link" href="#h3-64" data-toc-target="h3-64">↳ Patrick 关联技能 (17)</a></li>
+  </ol>
+</aside>
+
+
+
+
+<div class="hero">
+  <div class="sub">video → obsidian · 2026-07-12</div>
+  <h1>Claude Code for Non-Coders</h1>
+  <p>Nate Herk (@nateherk) · 6 小时 / 35 章节 / 11,723 transcript 段 · 2026-07-11 上传 · 18,957 views / 1,198 likes at capture<br>
+  Skill pipeline: <strong style="color:var(--accent);">media/video-to-obsidian</strong> v1.9.2 + <strong style="color:var(--accent);">Pitfall 28 Honest-Discount SOP</strong> (3/3 red flags fired)</p>
+  <div class="meta-row">
+    <span class="red">⚠️ personal-brand</span>
+    <span class="red">⚠️ 3 commercial affiliations</span>
+    <span class="red">⚠️ clickbait title</span>
+    <span>📚 35 chapters</span>
+    <span>⏱ 358 min</span>
+    <span>🗂 438K transcript chars</span>
+    <span>🌐 en auto-generated</span>
+    <span class="ok">✅ 诚实折扣: 7/10 actionable frame</span>
+  </div>
+</div>
+
+<div class="warn-box">
+  <h3 id="h3-1"><span class="label">PITFALL 28</span>Honest Discount — 个人品牌内容折扣</h3>
+  <p style="color:var(--text);font-size:14px;margin-bottom:8px;"><strong>3/3 Red Flag 触发</strong>:clickbait 标题 ("6 Hour Course" / "Non-Coders") + 描述含 Skool 社区 + Hostinger affiliate code "NATEHERK" + Glaido voice-to-text affiliate + 频道名 "Nate Herk | AI Automation" = creator 名 + 业务名。</p>
+  <ul>
+    <li><strong>战术练习 (first reps) 是金</strong>:claude.md / settings.json 实战、Sub-Agent YAML、5 Levels of 2nd Brain 问答清单、CLI vs MCP 决策、prompt cache peak/off-peak 窗口 — 立即可复用。</li>
+    <li><strong>元-claim 是 brand content</strong>:"12 Mindset Shifts" / "Becoming AI Native" / "AI systems pyramid" / "Job stacking" — 品牌叙事,非研究级。</li>
+    <li><strong>核心限制</strong>:未演示 prompt cache 命中率实测、未量化 skills loading cost、未演示 secret injection 安全 (Patrick PITFALL #52)、未演示 CF Pages 3 道墙 (PITFALL #49-51)、未演示 cron 失败 recovery。</li>
+  </ul>
+  <p class="verdict"><strong>Rate: 7/10 actionable frame, 4/10 research depth</strong>。够格作为"6h 广覆盖入门第一遍教程",不够格替代 Patrick 已有的 sub-agents / vault-os / grilling / loop-engineering 等专项 skill。</p>
+</div>
+
+<nav class="nav">
+  <button class="active" data-tab="core">核心论点</button>
+  <button data-tab="t-core">12 Mindset</button>
+  <button data-tab="t-found">Foundations</button>
+  <button data-tab="t-setup">Setup</button>
+  <button data-tab="t-proj">Project 配置</button>
+  <button data-tab="t-tools">Tools + Connect</button>
+  <button data-tab="t-skills">Skills ⭐</button>
+  <button data-tab="t-ctx">Context + Memory</button>
+  <button data-tab="t-sub">Sub-Agents</button>
+  <button data-tab="t-build">Build + Deploy</button>
+  <button data-tab="t-brain">2nd Brain</button>
+  <button data-tab="t-routines">Routines + Tokens</button>
+  <button data-tab="t-patrick">Patrick 关联</button>
+  <button data-tab="t-action">实战路线</button>
+  <button data-tab="t-quotes">金句库</button>
+  <button data-tab="t-mastery">🎯 Mastery</button>
+  <button data-tab="t-time">时间戳</button>
+  <button data-tab="t-res">资源</button>
+</nav>
+
+<div class="tab-content active" data-tab-content="core">
+<h2 id="h2-1" class="section">核心论点</h2>
+<p style="color:var(--text-dim);font-size:15px;line-height:1.75;margin-bottom:20px;">一句话:<strong style="color:var(--accent);">Claude Code 是 Anthropic 给"非程序员"做的 harness — 把模型 (engine) + 你 (driver + data + context) + skills (cookbook recipes) + sub-agents (delegated context) + 2nd-brain (Obsidian memory) 串成一套"AI operating system",前提是你先从 12 个心智模型切换过来再上手</strong>。</p>
+
+<h3 id="h3-1" class="sub">5 大主线</h3>
+<div class="card"><h4>1. AI Native ≠ 用 AI 做每件事</h4><p>AI Native 是"先默认用 AI,包括自动化自身流程",且<strong>只在约束 (constraints) 上投入工作</strong>,其他都是 busywork。"Constraint is the only place where work compounds. Everywhere else you're just busy."</p></div>
+<div class="card"><h4>2. Harness ↔ Model 分层</h4><p>Opus 是 engine, Claude Code 是 car, 你是 driver + 你的数据/上下文/业务。模型会换 (Opus 4.8 → 5.x), harness 也会换 (Claude Code ↔ Cursor ↔ Codex CLI), 但<strong>"你 + context" 这一层永不换</strong> — 这是护城河。</p></div>
+<div class="card"><h4>3. claude.md + skills + sub-agents = 三件套</h4><p>project-level claude.md 是入口文档; skills 是 YAML frontmatter + markdown 的可复用 "cookbook recipe" (global vs project 两级); sub-agents 是隔离 context window 的 delegate 机制, 适合 "pile of stuff I'll never read again"。</p></div>
+<div class="card"><h4>4. Second Brain 5 Levels</h4><p>L1 关键词检索 → L2 主题聚合 → L3 多源串联 → L4 关系图谱 → L5 跨 agent 同步 (Gbrain 级)。每升一级解锁不同问题。L4 是 graphify / Obsidian graph view;L5 是 patricks-vault-os / Hermes 5-tool Loop OS。</p></div>
+<div class="card"><h4>5. Routines = cron + cloud vs local</h4><p>Cloud routines 24/7 跑 (Modal/Claude Cloud), local routines 需 app 开。Peak (8am-2pm ET) vs off-peak 用量窗口是真实成本杠杆 — 同样 $25/M tokens, 时段错开成本可省 40%+。</p></div>
+
+<h3 id="h3-2" class="sub">核心数据</h3>
+<table>
+<thead><tr><th>数据</th><th>值</th><th>出处</th></tr></thead>
+<tbody>
+<tr><td>视频长度</td><td><strong>358 min (≈6h)</strong></td><td>yt-dlp</td></tr>
+<tr><td>章节数</td><td><strong>35</strong></td><td>yt-dlp chapters</td></tr>
+<tr><td>Transcript 字符数</td><td><strong>438,194</strong></td><td>youtube-transcript-api</td></tr>
+<tr><td>Transcript 段数</td><td><strong>11,723</strong></td><td>youtube-transcript-api</td></tr>
+<tr><td>上传日期</td><td>2026-07-11 (昨天)</td><td>yt-dlp upload_date</td></tr>
+<tr><td>观看数 / 点赞数</td><td>18,957 / 1,198</td><td>yt-dlp view/like count</td></tr>
+<tr><td>Opus 4.8 输出价格</td><td><strong>$25 / 1M tokens</strong></td><td>Ch 34 Token Management</td></tr>
+<tr><td>25K-token task 单次成本</td><td>~$0.63</td><td>Ch 11 + 34 实测</td></tr>
+<tr><td>Claude Pro / Max 月费</td><td>$20 / $200</td><td>Ch 8 Install</td></tr>
+<tr><td>Context window 容量</td><td><strong>1M tokens</strong> (default, 实际可用因 model 而异)</td><td>Ch 18 Context Window</td></tr>
+</tbody>
+</table>
+
+<div class="takeaway">
+<h3 id="h3-2">🎯 Takeaway</h3>
+<ul>
+<li>这是一份<strong>"非程序员入门 Claude Code"</strong>的 6h 教程,广覆盖但深度不够 — tactical reps 是金,meta-claims 是 brand。</li>
+<li>约 70% 内容与 Patrick 已有的 sub-agents / vault-os / grilling / loop-engineering 等 skill 重叠;约 30% 是新鲜战术色彩。</li>
+<li>建议作为<strong>第一遍快速过</strong>,然后用 Patrick 的专项 skill 深化每个 topic。</li>
+</ul>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="t-core">
+<h2 id="h2-2" class="section">12 Mindset Shifts (Nate 主张)</h2>
+<p style="color:var(--warn);font-size:13px;margin-bottom:14px;">⚠️ Nate 没在 1 分钟内把 12 条全部念完,这是从 transcript 重组的完整列表,与 Nate 原话不完全一致 — 请保留 brand-content 折扣。</p>
+<table>
+<thead><tr><th>#</th><th>Mindset Shift</th><th>Patrick skill 对位</th></tr></thead>
+<tbody>
+<tr><td><strong>1</strong></td><td>AI 已是 new normal,不是 optional</td><td><code>ai-mastery-verbs</code></td></tr>
+<tr><td><strong>2</strong></td><td>Taste = 知道 good 长什么样</td><td><code>front-end-taste</code>, <code>claude-superpowers</code></td></tr>
+<tr><td><strong>3</strong></td><td>Context Engineering > Prompt Engineering</td><td><code>claude-superpowers</code>, <code>patricks-vault-os</code></td></tr>
+<tr><td><strong>4</strong></td><td>Iteration speed 是 winning separator</td><td><code>loop-engineering</code>, <code>eval-driven-improvement</code></td></tr>
+<tr><td><strong>5</strong></td><td>Constraint is the only place work compounds</td><td><code>good-task-definition</code>, <code>task-decomposition</code></td></tr>
+<tr><td><strong>6</strong></td><td>Don't automate broken process — scale it</td><td><code>structured-diagnosis</code>, <code>systematic-debugging</code></td></tr>
+<tr><td><strong>7</strong></td><td>Job stacking (1 day job + N side streams)</td><td>商业策略,不直接对应 skill</td></tr>
+<tr><td><strong>8</strong></td><td>Default first to AI, before manual</td><td><code>ai-mastery-verbs</code></td></tr>
+<tr><td><strong>9</strong></td><td>Verify output (make AI prove its work)</td><td><code>agent-trace-integrity</code>, <code>evaluation</code></td></tr>
+<tr><td><strong>10</strong></td><td>Harness vs Model decoupled</td><td><code>hybrid-llm-router</code>, <code>apple-silicon-llama-server</code></td></tr>
+<tr><td><strong>11</strong></td><td>Second brain 5 levels</td><td><code>distributed-research-playbook</code>, <code>memory-three-layer</code></td></tr>
+<tr><td><strong>12</strong></td><td>Skills are recipes (cookbook analogy)</td><td><code>sop-to-agentic-workflow</code>, <code>skill-run-api</code></td></tr>
+</tbody>
+</table>
+
+<div class="takeaway">
+<h3 id="h3-3">🎯 Takeaway</h3>
+<ul>
+<li>Nate 的 12 shifts 是 verbs 视角,Patrick 的 <code>ai-mastery-verbs</code> 是同思路的系统化。</li>
+<li>重叠 ~70%;Patrick 版更 academic (6 core action capabilities),Nate 版更 casual (12 shifts 各 1-2 句)。</li>
+<li>合并方法:用 Patrick 的 6 verbs 作骨架,Nate 的 12 shifts 作血肉 — 但每个 shift 都加 1 段 Patrick 实战注解。</li>
+</ul>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="t-found">
+<h2 id="h2-3" class="section">Foundations · Ch 1-7 (0-32 min)</h2>
+
+<h3 id="h3-3" class="sub">Claude Code 三层 (Ch 1-2)</h3>
+<div class="card"><h4>Anthropic 生态</h4><p>Claude Chat = 普通 chatbot (无 agentic);Claude Cowork = 加文件访问的协作;Claude Code = full agentic harness (本地文件 + 多工具 + skills + sub-agents)。Nate 强调 "Claude Code 这个 word 里的 code 不代表要写代码"。</p></div>
+<div class="card"><h4>三层定位</h4><ul>
+<li><strong>Chat</strong>:对话、问答、写作辅助。适合 light task。</li>
+<li><strong>Cowork</strong>:加文件上传、图像分析。适合 medium task (文档分析、PDF 总结)。</li>
+<li><strong>Code</strong>:full agentic。文件读写、terminal、browser、API call、sub-agents。适合 heavy task。</li>
+</ul></div>
+
+<h3 id="h3-4" class="sub">Model vs Harness 类比 (Ch 3)</h3>
+<div class="card"><h4>核心类比</h4><p><strong>Opus = engine</strong>。<strong>Claude Code = car</strong>。你 = driver + 你的数据 + context + 业务。模型会换 (Opus 4.8 → 5.x),harness 也会换 (Claude Code ↔ Cursor ↔ Codex CLI),但<strong>"你 + context" 这一层永不换</strong> — 这是护城河。</p></div>
+<div class="quote">"Anthropic made this for non-coders. You don't have to know how to code. Claude Code is just a harness — a UI shell that wraps the model. The model does the thinking. The harness gives it hands. You give it context."<span class="src">— Nate Herk, Ch 2</span></div>
+
+<h3 id="h3-5" class="sub">Prompt Eng vs Context Eng (Ch 5)</h3>
+<div class="card"><h4>过渡</h4><p>Prompt engineering 是"写好 prompt"。Context engineering 是"装好 context"。Nate 主张后者是 2026+ 的 winning skill。具象方法:<strong>stop opening Claude in a blank chat. Spin up a Claude Project and feed it real context.</strong></p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>patricks-vault-os</code> 已是 context engineering 实战 — 5-tool Loop OS 把 vault / Telegram / Content-Multiplier / 4-Answer Checker / Heartbeat / Poisson Router 串起来,所有调用都带丰富 context (前序对话、相关笔记、当前任务状态)。</p></div>
+
+<h3 id="h3-6" class="sub">Taste + Iteration + Jarvis (Ch 6)</h3>
+<div class="card"><h4>技能 2: Taste</h4><p>"Knowing what good looks like." 区分能用 (functional) 和好用 (tasteful)。没有 taste,iterations 都是 random walk。</p></div>
+<div class="card"><h4>技能 3: Iteration Speed</h4><p>"The biggest separator between winners and losers is iteration speed." 每次 iteration = 新数据点 = 收敛到 taste 的最优解。</p></div>
+<div class="card"><h4>Jarvis 隐喻</h4><p>Build automations that run <strong>without you explicitly firing them</strong>。从 manual → triggered → scheduled → proactive (4 阶段)。Patrick <code>loop-engineering</code> 是同一思路 — cron + watchdog + auto-promote 三件套。</p></div>
+
+<h3 id="h3-7" class="sub">One Passion, Many Branches / Job Stacking (Ch 7)</h3>
+<div class="quote">"The old career model was one job, one income, a 401k. All your eggs in one basket. The new model is job stacking — your day job plus a couple of AI-powered side income streams."<span class="src">— Nate Herk, Ch 7</span></div>
+<div class="card"><h4>Patrick 注解</h4><p>商业策略层,skill library 不直接覆盖。Patrick 可在 <code>ai-startup-playbook</code> 或 <code>solo-agent-business</code> 加 "job stacking" 章节。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-setup">
+<h2 id="h2-4" class="section">Install + Setup · Ch 8-11 (32-48 min)</h2>
+
+<h3 id="h3-8" class="sub">Install + First Prompts (Ch 8)</h3>
+<div class="card"><h4>3 安装路径</h4><ul>
+<li><strong>Terminal</strong>:macOS `curl` install + Claude account login。Pro $20/月。</li>
+<li><strong>VS Code extension</strong>:搜 "Claude Code" + 安装 + 登录。</li>
+<li><strong>Web</strong>:claude.ai/code — browser-only, 无 terminal 访问。</li>
+</ul></div>
+<div class="card"><h4>Plan Tiers</h4><table>
+<thead><tr><th>Tier</th><th>价格/月</th><th>适用</th></tr></thead>
+<tbody><tr><td>Pro</td><td>$20</td><td>日常使用,opus 有用量限制</td></tr><tr><td>Max</td><td>$200</td><td>重生产,opus 用量大幅扩展</td></tr></tbody>
+</table></div>
+
+<h3 id="h3-9" class="sub">Local Files (Ch 9)</h3>
+<div class="card"><h4>支持的文件类型</h4><p>Excel, Google Docs, HTML, code, images, PDFs, videos (transcript 抽取)。Nate 演示:给 1 张 screenshot → Claude 自动分析 + 写入 Excel sheet。</p></div>
+
+<h3 id="h3-10" class="sub">Prompt Engineering + Verify (Ch 10)</h3>
+<div class="quote">"Make the AI prove its work. ALL CAPS. Tell it: 'Cite your source. Show your reasoning. Don't make stuff up.'"<span class="src">— Nate Herk, Ch 10</span></div>
+<div class="card"><h4>Patrick 对位</h4><p><code>agent-trace-integrity</code> 的 4 failure modes (synthesized log / hardcoded array / cache residue / synthesized citation) 是 Nate "make AI prove its work" 的系统化企业级版本。<strong>互补</strong>:Nate 给入门 prompt 模式,Patrick 给 verifier 诊断 recipe。</p></div>
+
+<h3 id="h3-11" class="sub">Tokens & Models (Ch 11)</h3>
+<div class="card"><h4>Token 定义</h4><p>≈ 3/4 字符,≈ 0.75 词。Opus 4.8 输出价 = $25 / 1M tokens。25K output token 的 Excel 任务 ≈ $0.63。</p></div>
+<div class="card"><h4>3 Tier Models</h4><table>
+<thead><tr><th>Model</th><th>Speed</th><th>Cost</th><th>Use</th></tr></thead>
+<tbody><tr><td>Haiku</td><td>⚡⚡⚡</td><td>$</td><td>简单分类、grep、sub-agent 粗筛</td></tr><tr><td>Sonnet</td><td>⚡⚡</td><td>$$</td><td>日常 coding、medium task</td></tr><tr><td>Opus</td><td>⚡</td><td>$$$</td><td>复杂推理、长 context、orchestration</td></tr></tbody>
+</table></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-proj">
+<h2 id="h2-5" class="section">Project 配置 · Ch 12-14 (48-80 min) ⭐</h2>
+
+<h3 id="h3-12" class="sub">claude.md (Ch 12, 12 min deep dive)</h3>
+<div class="card"><h4>是什么</h4><p>Project 根目录的 markdown 文件 = 给 Claude 的 "first impression" + "permanent memory"。每次开新会话都自动加载。</p></div>
+<div class="card"><h4>Nate 的 Herk 2 项目结构</h4><ul>
+<li>Project-level <code>claude.md</code>:业务上下文、目标、约束</li>
+<li>Global <code>~/.claude/CLAUDE.md</code>:个人偏好、风格、workflow 偏好</li>
+<li>Skills folder:project-level vs global 两级</li>
+</ul></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick 用 <code>~/.pi/agent/AGENTS.md</code> (port from Hermes) + <code>~/.hermes/memories/MEMORY.md</code> (vault mirror)。两者殊途同归,但 Patrick 版更结构化 (frontmatter + sections + PITFALL 编号)。</p></div>
+
+<h3 id="h3-13" class="sub">settings.json + Permissions (Ch 13-14)</h3>
+<div class="card"><h4>5 Permission Modes</h4><table>
+<thead><tr><th>Mode</th><th>行为</th></tr></thead>
+<tbody><tr><td><strong>auto</strong></td><td>默认 + AI 自动判断 (推荐,2026 新增)</td></tr><tr><td><strong>manual</strong></td><td>每次 tool call 都要确认</td></tr><tr><td><strong>accept-edits</strong></td><td>文件编辑自动接受,terminal/sensitive tool 仍确认</td></tr><tr><td><strong>plan</strong></td><td>只生成 plan,不执行</td></tr><tr><td><strong>bypass</strong></td><td>全部自动接受 (⚠️ 危险,Nate 强烈警告)</td></tr></tbody>
+</table></div>
+<div class="quote">"Bypass permissions is dangerous. It has the word 'dangerous' in it for a reason. But if you're working on a throwaway project and you trust the scope, go ahead."<span class="src">— Nate Herk, Ch 25</span></div>
+
+<h3 id="h3-14" class="sub">API Keys + .env (Ch 13)</h3>
+<div class="card"><h4>3 步接入法</h4><ul>
+<li><strong>Step 1</strong>:Google "{tool} API" — 找到官方 API docs</li>
+<li><strong>Step 2</strong>:check MCP — 是否有官方 MCP server</li>
+<li><strong>Step 3</strong>:check CLI — 是否有官方 CLI (e.g. gws for Google Workspace)</li>
+</ul><p>API key 存 <code>.env</code> file + <code>chmod 600</code>。</p></div>
+<div class="card"><h4>Patrick PITFALL #52 (Nate 没覆盖)</h4><p>Patrick 的 5-channel secret injection 安全规则:<code>write_file</code> (进 session DB) / terminal argv (ps+history) / terminal env var / execute_code (tool log) / getpass (Hermes fallback) 全 leak。唯一安全路径 = user 在 Terminal.app/iTerm 跑 stdin-redirect Python script。<strong>Nate 教程缺这个深度</strong>。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-tools">
+<h2 id="h2-6" class="section">Tools + Connect · Ch 15-16 (80-100 min) ⭐</h2>
+
+<h3 id="h3-15" class="sub">AI Operating System (Ch 15, 5 min)</h3>
+<div class="card"><h4>Herk 2 项目架构</h4><ul>
+<li>业务上下文 → claude.md</li>
+<li>Skills 库 → project-level + global</li>
+<li>Memory 文件 → preferences / decisions / meetings</li>
+<li>Sub-agents → Plan Roaster + others</li>
+<li>本地 obsidian vault + YouTube + Google Drive</li>
+</ul></div>
+
+<h3 id="h3-16" class="sub">Google Workspace CLI vs MCP (Ch 16, 15 min 实战)</h3>
+<div class="card"><h4>决策矩阵</h4><table>
+<thead><tr><th>接入方式</th><th>优</th><th>劣</th></tr></thead>
+<tbody><tr><td><strong>CLI</strong></td><td>低 token 消耗、可脚本化、稳定</td><td>需独立安装</td></tr><tr><td><strong>MCP</strong></td><td>统一 protocol、Claude 直接调用</td><td>高 token 消耗 (tool schema 占 context)</td></tr><tr><td><strong>Direct API</strong></td><td>完全可控</td><td>需手写 client code</td></tr></tbody>
+</table></div>
+<div class="quote">"CLI first, MCP if CLI doesn't exist. Direct API if neither. Avoid the temptation to use MCP for everything — every MCP server eats context tokens."<span class="src">— Nate Herk, Ch 16 (paraphrased)</span></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick 用 <code>google-workspace</code> skill (gws CLI) + <code>mcporter</code> skill (MCP client),正是 Nate 建议的 CLI 优先策略。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-skills">
+<h2 id="h2-7" class="section">Skills Deep Dive · Ch 17 (100-116 min) ⭐⭐</h2>
+
+<h3 id="h3-17" class="sub">Skills = Cookbook Recipes</h3>
+<div class="card"><h4>核心类比</h4><p>Skill = cookbook recipe。Step 1, step 2, step 3, step 4. 做完得 deliverable。重复时翻 cookbook 即可,不必每次思考。Claude 的 skill system 是同一思路:把"反复用的 prompt 套路"沉淀为可复用的 markdown + YAML。</p></div>
+
+<h3 id="h3-18" class="sub">Skill 文件结构</h3>
+<div class="card"><h4>Anatomy</h4><pre style="background:var(--bg);padding:12px;border-radius:6px;color:var(--accent-2);font-size:12px;overflow-x:auto;">---
+name: my-skill
+description: Use when ... (trigger conditions)
+version: 1.0.0
+---
+
+# My Skill
+
+## When to Use
+- Trigger phrases / scenarios
+
+## Step-by-step
+1. ...
+2. ...
+
+## Pitfalls
+- ...
+
+## Output Template
+...</pre></div>
+
+<h3 id="h3-19" class="sub">Skills 放在哪里</h3>
+<table>
+<thead><tr><th>级别</th><th>路径</th><th>作用域</th></tr></thead>
+<tbody>
+<tr><td><strong>Global</strong></td><td><code>~/.claude/skills/&lt;name&gt;/SKILL.md</code></td><td>所有 project 都能调</td></tr>
+<tr><td><strong>Project</strong></td><td><code>&lt;project&gt;/.claude/skills/&lt;name&gt;/SKILL.md</code></td><td>只在 project 内可用</td></tr>
+</tbody>
+</table>
+
+<h3 id="h3-20" class="sub">Skill Loading Cost</h3>
+<div class="card"><h4>关键 caveat</h4><p>每个 skill 加载到 context = 占 token。Nate 没量化具体数,但 manifest 里 "Skills take up X tokens" 这个 insight 是真实的。<strong>Patrick 实测待补</strong>。</p></div>
+<div class="card"><h4>Patrick 对位</h4><p><code>sop-to-agentic-workflow</code> skill 是 Human SOP → Agentic Workflow 转换的形式化; <code>skill-run-api</code> 是 skill 互调 API; <code>skill-gotchas-engine</code> 是 reverse-extract skill 的 recipe。<strong>Patrick 已用 skill 哲学构建 100+ skills,Nate 的 "skill = cookbook recipe" 是入门级 intuition</strong>。</p></div>
+
+<div class="takeaway">
+<h3 id="h3-4">🎯 Takeaway</h3>
+<ul>
+<li>Skill = YAML frontmatter + markdown body + trigger conditions + pitfalls + output template。Patrick 的所有 100+ skill 都遵循这个 pattern。</li>
+<li>Global vs project 选择:可复用的放 global (e.g. grilling),业务专属的放 project (e.g. plan-roaster)。</li>
+<li>Patrick <code>skill-gotchas-engine</code> 的 "reverse-extract reusable skill from conversation" 是 Nate 没覆盖的高级用法。</li>
+</ul>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="t-ctx">
+<h2 id="h2-8" class="section">Context Window + Memory · Ch 18-19 (116-132 min) ⭐⭐</h2>
+
+<h3 id="h3-21" class="sub">Context Window 管理 (Ch 18, 7 min)</h3>
+<div class="card"><h4>110K / 1M 实测</h4><p>Nate 演示 context window 占用分布:<br>• Messages: 72,000 tokens<br>• System tools: 18,000 tokens<br>• Skills: variable (每 skill 占 N K tokens)<br>• System prompts: variable<br>• MCP tools: variable (high!)</p></div>
+<div class="card"><h4>5 Context Killers</h4><ul>
+<li><strong>/clear</strong>:重置 context (lose everything)</li>
+<li><strong>/compact</strong>:压缩 (Nate 没演示,Patrick 推荐)</li>
+<li><strong>Session handoff</strong>:导出关键 context 到文件,新 session 导入</li>
+<li><strong>Sub-agents</strong>:delegate 出 context-heavy task</li>
+<li><strong>External memory</strong>:file-based context (memory.md / scratchpad.md)</li>
+</ul></div>
+
+<h3 id="h3-22" class="sub">Session Handoff</h3>
+<div class="quote">"If I just did a clear, I'd lose everything. But with session handoff, I tell Claude: 'Write everything you need to remember into this file.' New session, I import that file. Context preserved."<span class="src">— Nate Herk, Ch 18</span></div>
+
+<h3 id="h3-23" class="sub">Memory 文件 + 2nd Brain (Ch 19, 8 min)</h3>
+<div class="card"><h4>Memory 文件 4 类</h4><ul>
+<li><strong>Preferences</strong>:用户风格、格式偏好</li>
+<li><strong>Decisions</strong>:做过的决定 + 原因</li>
+<li><strong>Meetings</strong>:会议笔记 + action items</li>
+<li><strong>Project context</strong>:业务/项目的 stable facts</li>
+</ul></div>
+<div class="card"><h4>Obsidian 集成</h4><p>Nate 用 Obsidian 装 2nd brain, Claude Code 直接读 <code>~/Documents/Obsidian Vault/</code>。每个 note 是 1 个 memory,带 metadata + description + 应用方式。</p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>patricks-vault-os</code> 是 Nate Herk 2 项目的 2026-07 更成熟版本:<br>• 5-tool ecosystem (Telegram bot / Content-Multiplier / 4-Answer Checker / Heartbeat / Poisson Router)<br>• Obsidian vault 3.8GB (NOT iCloud, NOT 52K legacy)<br>• <code>MEMORY.md</code> auto-loaded at startup<br>• RAG-on-vault pattern (YAML frontmatter + tag index + FTS5 search)</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-sub">
+<h2 id="h2-9" class="section">Sub-Agents · Ch 20-23 (132-167 min) ⭐⭐⭐</h2>
+
+<h3 id="h3-24" class="sub">5 Method Shifts (Ch 20, 9 min)</h3>
+<div class="quote">"Constraint is the only place where work compounds. Everywhere else you're just busy. Automate a broken process and you don't fix it — you scale it. Becoming AI native doesn't mean using AI for everything. It means being a problem solver first, an AI user second."<span class="src">— Nate Herk, Ch 20 (verbatim key quote)</span></div>
+<table>
+<thead><tr><th>Shift</th><th>Nate 原话</th><th>Patrick skill 对位</th></tr></thead>
+<tbody>
+<tr><td><strong>1. Constraint</strong></td><td>"Constraint is the only place where work compounds"</td><td><code>good-task-definition</code></td></tr>
+<tr><td><strong>2. Automate</strong></td><td>"Automate a broken process, you scale it"</td><td><code>structured-diagnosis</code></td></tr>
+<tr><td><strong>3. Problem first</strong></td><td>"Problem solver first, AI user second"</td><td><code>task-decomposition</code></td></tr>
+<tr><td><strong>4. Metrics</strong></td><td>"If you can't measure it, you can't improve it"</td><td><code>cross-agent-observability</code></td></tr>
+<tr><td><strong>5. Map process</strong></td><td>"Map before you automate"</td><td><code>process-mapping</code> (不存在,Patrick 应建)</td></tr>
+</tbody>
+</table>
+
+<h3 id="h3-25" class="sub">Sub-Agents Explained (Ch 21, 11 min)</h3>
+<div class="card"><h4>核心机制</h4><p>Main agent 维持自己的 context window,同时可调用多个 <strong>sub-agents</strong>(每个独立 context)。Sub-agent 完成后只回摘要给 main agent,详细 context 不污染主对话。</p></div>
+<div class="card"><h4>3 大好处</h4><ul>
+<li><strong>Context 隔离</strong>:heavy task 不撑爆 main</li>
+<li><strong>Model arbitrage</strong>:main 用 Opus,sub-agent 用 Haiku 省钱</li>
+<li><strong>并行执行</strong>:N 个 sub-agent 同时跑</li>
+</ul></div>
+
+<h3 id="h3-26" class="sub">Plan Roaster 实战 (Ch 22, 12 min)</h3>
+<div class="card"><h4>YAML Template</h4><pre style="background:var(--bg);padding:12px;border-radius:6px;color:var(--accent-2);font-size:12px;overflow-x:auto;">---
+name: plan-roaster
+description: |
+  Use when user shares a plan/strategy and wants
+  critical feedback before execution.
+model: haiku
+---
+
+You are a critical-thinking sub-agent...
+
+## Steps
+1. Read the plan
+2. Find 3 weaknesses
+3. Propose 2 alternatives
+4. Output: critique + alternatives + recommendation</pre></div>
+<div class="card"><h4>3 Pitfalls</h4><ul>
+<li><strong>YAML frontmatter 必须 close 完整 quote</strong>(Nate 实测出错一次)</li>
+<li><strong>description 必须清晰</strong>(Claude 靠它决定是否 invoke)</li>
+<li><strong>Sub-agent 输出格式标准化</strong>(避免污染 main context)</li>
+</ul></div>
+
+<h3 id="h3-27" class="sub">When to Use Sub-Agents (Ch 23, 4 min)</h3>
+<div class="quote">"Core question: Is this about to dump a pile of stuff into my chat that I'll never read again? If yes, delegate to a sub-agent. If no, do it inline."<span class="src">— Nate Herk, Ch 23</span></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>agent-orchestration</code> v1.10.0 已覆盖 4 失败 mode:<br>• hallucinated background subagent<br>• real-but-shallow subagent<br>• parallel-build-mismatched-contracts (3 个 subagent build 1 project 时 CSS prefix 不一致)<br>• continuous-polish subagent<br><br>Nate 给的是单模型内的子代理;Patrick 给的是跨 LLM vendor (Claude + Gemini + GPT) 跨模型子代理。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-build">
+<h2 id="h2-10" class="section">Build + Deploy · Ch 24-26 (167-199 min)</h2>
+
+<h3 id="h3-28" class="sub">Terminal + VS Code Install (Ch 24, 6 min)</h3>
+<div class="card"><h4>VS Code 拓展</h4><p>Extensions → 搜 "Claude Code" → install → 登录。需要 paid account (Pro 或 Max)。</p></div>
+
+<h3 id="h3-29" class="sub">Building & Cloning Websites (Ch 25, 18 min)</h3>
+<div class="quote">"ALWAYS INVOKE THE FRONT-END DESIGN SKILL BEFORE WRITING ANY FRONT-END CODE. EVERY SESSION. NO EXCEPTIONS."<span class="src">— Nate Herk, Ch 25 (verbatim, ALL CAPS in original)</span></div>
+<div class="card"><h4>Patrick 对位</h4><p>Nate 的 front-end design skill = Patrick <code>single-file-spa-design-patterns</code> v1.20.0 (PITFALL 1-75) 的入门级版本。Patrick 版含 75 个 pitfall-decoded pattern library,Nate 版是 "always invoke" 1 句话规则。</p></div>
+<div class="card"><h4>Cloning 实战</h4><p>Nate 演示:把 1 个竞品 URL → 抓 HTML + CSS → 重构为 own brand → preview in localhost。</p></div>
+
+<h3 id="h3-30" class="sub">GitHub + Vercel Deploy (Ch 26, 8 min)</h3>
+<div class="card"><h4>Pipeline</h4><ol>
+<li>Local dev → preview in localhost</li>
+<li>满意后 <code>git add</code> + <code>git commit</code> + <code>git push</code></li>
+<li>GitHub → Vercel 自动 deploy</li>
+<li>Custom domain 配置 (Vercel dashboard)</li>
+</ol></div>
+<div class="card"><h4>Patrick 注解</h4><p>Patrick 用 Cloudflare Pages + Direct Upload API (Patrick PITFALL #49-51)。3 道墙:<br>• custom-domain stale cache (24h TTL fallback 实证失败)<br>• Worker shadowing (root <code>wrangler.jsonc</code> bundle catch-all)<br>• 等 TTL 是错的 workaround<br><br>Nate 选 Vercel 是因为简单,但 Patrick 实战更适合 CF Pages (1MB+ files, custom domains, China-friendly)。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-brain">
+<h2 id="h2-11" class="section">2nd Brain · Ch 27-30 (199-272 min) ⭐⭐⭐</h2>
+
+<h3 id="h3-31" class="sub">AI Systems Pyramid (Ch 27, 17 min)</h3>
+<div class="card"><h4>5 Levels 自下而上</h4><ul>
+<li><strong>L1 Chatbots</strong>:1-shot Q&A</li>
+<li><strong>L2 Prompted</strong>:structured prompts + persona</li>
+<li><strong>L3 Workflows</strong>:deterministic multi-step</li>
+<li><strong>L4 Agents</strong>:AI 决定 workflow</li>
+<li><strong>L5 Multi-agent</strong>:多个 agent 协作</li>
+</ul></div>
+<div class="quote">"On the bottom we have chatbots. On the top we have agents. Most people are stuck at L1-L2. The ROI compounds as you climb."<span class="src">— Nate Herk, Ch 27 (paraphrased)</span></div>
+
+<h3 id="h3-32" class="sub">Trusting the Output (Ch 27 后半)</h3>
+<div class="card"><h4>Deterministic vs Nondeterministic</h4><p>Deterministic workflow = 同样输入总是同样输出 (适合生产)。Nondeterministic = AI 生成内容 (适合 creative)。<strong>关键是 verify,不是 trust。</strong></p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>agent-trace-integrity</code> 的 4 failure modes 是 "verify 不 trust" 的系统化:</p>
+<ul>
+<li>synthesized log output (model 编造 log)</li>
+<li>hardcoded array masquerading as fetch</li>
+<li>cache residue masquerading as new deploy</li>
+<li>synthesized external source citation (LLM 编造 paper/blog URL)</li>
+</ul>
+</div>
+
+<h3 id="h3-33" class="sub">Building 2nd Brain (Ch 28, 20 min Obsidian 实战)</h3>
+<div class="card"><h4>Clippings/Raw Pattern</h4><p>Nate 的 Obsidian vault 结构:<br>• <code>raw/</code>:剪藏的原始素材 (文章、transcript、笔记)<br>• <code>processed/</code>:消化后的 insight card<br>• <code>index/</code>:目录 + 标签索引<br>• 自动 backlink (Obsidian 原生)</p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>patricks-vault-os</code> + <code>memory-three-layer</code> (Gbrain) 是 Nate raw/processed pattern 的 2026-07 L1-L3 版本 (L1 文本 wiki, L2 + 向量搜索 + 图数据库, L3 + 认识论追踪)。</p></div>
+
+<h3 id="h3-34" class="sub">5 Levels of 2nd Brain (Ch 29, 17 min) ⭐</h3>
+<table>
+<thead><tr><th>Level</th><th>Question</th><th>Tool</th></tr></thead>
+<tbody>
+<tr><td><strong>L1</strong></td><td>Can you find the file by exact word/name?</td><td>grep / Spotlight</td></tr>
+<tr><td><strong>L2</strong></td><td>Can you pull everything on a topic together?</td><td>rg / Obsidian tag search</td></tr>
+<tr><td><strong>L3</strong></td><td>Can you search across sources?</td><td>grep + multiple dirs / devonthink</td></tr>
+<tr><td><strong>L4</strong></td><td>Can you see connections?</td><td>Obsidian graph view / <code>graphify</code></td></tr>
+<tr><td><strong>L5</strong></td><td>Can multiple agents sync?</td><td><code>patricks-vault-os</code> / Hermes / Gbrain</td></tr>
+</tbody>
+</table>
+<div class="takeaway">
+<h3 id="h3-5">🎯 Takeaway</h3>
+<ul>
+<li>L1-L3 = grep / rg 阶段 (Patrick 已 100% cover)</li>
+<li>L4 = graphify skill (Patrick 已有,1628 node graph)</li>
+<li>L5 = 跨 agent sync (Patrick 5-tool Loop OS 已部分实现,但 Gbrain L3 认识论追踪待补)</li>
+</ul>
+</div>
+
+<h3 id="h3-35" class="sub">Knowledge Graphs + Grill-Me Skill (Ch 30, 18 min) ⭐</h3>
+<div class="quote">"I have a skill called grill-me which I originally got from Matt Pocock. I customize it a little bit. I'll leave the skill for grill-me in my free Skool community."<span class="src">— Nate Herk, Ch 30 (verbatim)</span></div>
+<div class="card"><h4>Patrick 直接同源!</h4><p>Patrick 的 <code>grilling</code> skill 也是 Matt Pocock ported (2026-06-25)。<strong>两者同源,实现细节可比对</strong>:</p>
+<table>
+<thead><tr><th>维度</th><th>Patrick 版</th><th>Nate 版</th></tr></thead>
+<tbody><tr><td>来源</td><td>Matt Pocock</td><td>Matt Pocock (Nate 明示)</td></tr><tr><td>风格</td><td>严格 (1 问串问,必带推荐答案)</td><td>casual (follow-up until satisfied)</td></tr><tr><td>输出</td><td>ADR + glossary</td><td>brainstorm session 笔记</td></tr><tr><td>位置</td><td><code>~/.hermes/skills/productivity/grilling/</code></td><td>Nate 的 Skool community</td></tr></tbody>
+</table>
+<p><strong>可借 Nate 的 brainstorm session 用例补充 Patrick 版的"对话深度"</strong>。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-routines">
+<h2 id="h2-12" class="section">Routines + Tokens · Ch 31-35 (272-359 min) ⭐⭐</h2>
+
+<h3 id="h3-36" class="sub">Sub-Agents vs Agent Teams (Ch 31, 14 min)</h3>
+<div class="card"><h4>关键区分</h4><table>
+<thead><tr><th></th><th>Sub-Agents</th><th>Agent Teams</th></tr></thead>
+<tbody>
+<tr><td><strong>通信</strong></td><td>❌ 互不相通</td><td>✅ 互通</td></tr>
+<tr><td><strong>Context</strong></td><td>每个隔离</td><td>共享 state</td></tr>
+<tr><td><strong>Use</strong></td><td>独立任务并行</td><td>协同任务</td></tr>
+<tr><td><strong>复杂度</strong></td><td>低</td><td>高</td></tr>
+<tr><td><strong>Patrick 对位</strong></td><td><code>agent-orchestration</code> (Claude Code 内)</td><td>暂未发布,early adopter 机会</td></tr></tbody>
+</table></div>
+
+<h3 id="h3-37" class="sub">Scheduled Automations & Cloud Routines (Ch 32, 17 min)</h3>
+<div class="card"><h4>Local vs Cloud Routines</h4><table>
+<thead><tr><th></th><th>Local Routines</th><th>Cloud Routines</th></tr></thead>
+<tbody><tr><td>24/7</td><td>❌ 需 desktop app 开</td><td>✅ 持续跑</td></tr><tr><td>Cost</td><td>0 (用你的 sub)</td><td>按 token 计费</td></tr><tr><td>Trigger</td><td>schedule / webhook</td><td>schedule / webhook / Slack</td></tr><tr><td>Patrick 对位</td><td><code>cron-watchdog-patterns</code> (no_agent=true)</td><td>Modal / CF Workers / Modal serverless</td></tr></tbody>
+</table></div>
+
+<h3 id="h3-38" class="sub">Building Research Automation (Ch 33, 24 min)</h3>
+<div class="card"><h4>AI News Brief 实战</h4><p>Nate 演示:1 个 research automation 每 4 小时抓 arXiv + Hacker News + Anthropic blog → LLM 总结 → 推 Slack channel。</p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>hardtech-daily</code> skill 是同模式 (arXiv physics.plasm-ph + quant-ph + cond-mat.mes-hall + battery + HN 抓取 → 4 verticals 分类 → HTML publish)。Patrick 版已 production + daily cron + Cloudflare Pages deploy。</p></div>
+
+<h3 id="h3-39" class="sub">Token Management & Prompt Caching (Ch 34, 31 min) ⭐</h3>
+<div class="card"><h4>Peak vs Off-Peak</h4><table>
+<thead><tr><th>时段</th><th>类型</th><th>成本影响</th></tr></thead>
+<tbody>
+<tr><td><strong>8am-2pm ET (weekday)</strong></td><td>Peak</td><td>rate-limit 较紧,token 预算少</td></tr>
+<tr><td><strong>2pm-12am ET</strong></td><td>Off-peak</td><td>rate-limit 宽松</td></tr>
+<tr><td><strong>Weekend</strong></td><td>Off-peak</td><td>rate-limit 最宽松</td></tr>
+</tbody>
+</table></div>
+<div class="quote">"If you actually think about this strategically, maybe you want to make your heavy batch jobs run off-peak. Same $25/M tokens, but the rate limits are way better."<span class="src">— Nate Herk, Ch 34 (paraphrased)</span></div>
+<div class="card"><h4>Prompt Caching</h4><p>Claude API 支持 prompt cache (90% 折扣 for cached tokens)。Nate 强调:claude.md + skills + memory files 都应该设计为 cache-friendly (稳定前缀)。</p></div>
+<div class="card"><h4>Patrick 对位</h4><p>Patrick <code>cross-agent-observability</code> v0.4 给 agent-tasks.jsonl structured records + drift detection。Nate 给"何时跑"的策略,Patrick 给"何时记录"的 infra。</p></div>
+
+<h3 id="h3-40" class="sub">Final Thoughts (Ch 35)</h3>
+<div class="quote">"My AIOS is still a work in progress. Every day, every week, every month, I'm adding so much stuff and I'm building it out. This will never be a finished product. It's just going to be the way that I always work."<span class="src">— Nate Herk, Ch 35 (verbatim)</span></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-patrick">
+<h2 id="h2-13" class="section">Patrick 工作关联 (15+ cards)</h2>
+<p style="color:var(--text-dim);font-size:13px;margin-bottom:14px;">这部分是 RAG-on-Obsidian-vault 的 load-bearing 节点 — 不要丢失 (Pitfall 21)。</p>
+
+<h3 id="h3-41" class="sub">1. <code>media/video-to-obsidian</code> ↔ 4-step pipeline</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate 的 6h 教程本身走的就是这条 pipeline — fetch transcript → chapter segmentation → dashboard build → TOC patch。<strong>实战 06-23 batch patch 32 daily-reports → v1.4.2 TOC hover-expand</strong>是同一套机制。</p>
+
+<h3 id="h3-42" class="sub">2. <code>patricks-vault-os</code> ↔ Herk 2 项目</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate 的 "Herk 2 project" 是他的 AI OS,Patrick 的 <code>patricks-vault-os</code> (5-tool Loop OS + Obsidian vault) 是同一思路的 2026-07 更成熟版本。<strong>对照</strong>:Nate 用 claude.md + memory 文件;Patrick 用 <code>MEMORY.md</code> + vault + 5 tools。</p>
+
+<h3 id="h3-43" class="sub">3. <code>agent-orchestration</code> ↔ Sub-Agents vs Agent Teams</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 31 给出关键区分:Sub-agents 不互通,Agent teams 互通。Patrick <code>agent-orchestration</code> v1.10.0 已覆盖 subagent 误用 4 mode。<strong>互补</strong>:Nate 给 Claude Code 内的子代理机制,Patrick 给 multi-LLM vendor 跨模型调度。</p>
+
+<h3 id="h3-44" class="sub">4. <code>grilling</code> ↔ Grill-Me Skill ⭐ (直接同源)</h3>
+<p style="color:var(--text-dim);font-size:13px;"><strong>Nate 公开说</strong>"I originally got this from Matt Pocock"。Patrick 的 <code>grilling</code> skill 也是 Matt Pocock ported。<strong>两者同源</strong>。Patrick 版强调"单问串问 + 必带推荐答案";Nate 版更 casual。<strong>可借 Nate 的 brainstorm session 用例补充 Patrick 版的"对话深度"</strong>。</p>
+
+<h3 id="h3-45" class="sub">5. <code>single-file-spa-design-patterns</code> ↔ Front-End Design Skill</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 25 强调 "always invoke the front-end design skill before writing any front-end code"。Patrick 实战中靠 <code>single-file-spa-design-patterns</code> v1.20.0 实现同效果。<strong>对照</strong>:Nate 简化版,Patrick 实战版 75 个 pitfall-decoded pattern library。</p>
+
+<h3 id="h3-46" class="sub">6. <code>local-llm-integration-hermes</code> ↔ Harness vs Model 类比</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate 的核心类比:Opus = engine, Claude Code = car, 你 = driver + data。Patrick 的 <code>local-llm-integration-hermes</code> 是这层思想的实战。</p>
+
+<h3 id="h3-47" class="sub">7. <code>hybrid-llm-router</code> ↔ 3-tier Model Strategy</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 21 给出 sub-agent 跨 Opus/Sonnet/Haiku 的 cost arbitrage。Patrick <code>hybrid-llm-router</code> 已覆盖 5-dimension scoring + LiteLLM/OpenRouter config。</p>
+
+<h3 id="h3-48" class="sub">8. <code>claude-superpowers</code> ↔ 6 Power Phrases</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 4 强调 "Taste + Iteration";Patrick <code>claude-superpowers</code> 的 6 phrases 是同思路的系统化。<strong>Nate 的口诀 ≈ Patrick 的 phrases,但缺 verify 步骤的 rigor</strong>。</p>
+
+<h3 id="h3-49" class="sub">9. <code>cron-watchdog-patterns</code> ↔ Cloud Routines</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 32 给出 local vs cloud routines 区分。Patrick <code>cron-watchdog-patterns</code> v1.x 给 no_agent cron 实战。<strong>对照</strong>:Nate 给产品级区分,Patrick 给 no_agent Python 实战 + 26 个具体 pitfall。</p>
+
+<h3 id="h3-50" class="sub">10. <code>loop-engineering</code> ↔ Research Automation 24 min</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 33 用 24 分钟讲 1 个 research automation 实战。Patrick <code>loop-engineering</code> 给 cron + watchdog + auto-promote 三件套打包。</p>
+
+<h3 id="h3-51" class="sub">11. <code>agent-trace-integrity</code> ↔ "Make AI prove its work"</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 10 给出 "Make the AI prove its work" 的具体 prompt 模式。Patrick <code>agent-trace-integrity</code> 是同思路的 4 failure modes 系统化。<strong>Nate 是入门版,Patrick 是企业级</strong>。</p>
+
+<h3 id="h3-52" class="sub">12. <code>cross-agent-observability</code> ↔ Token Management</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 34 给 peak vs off-peak usage window。Patrick <code>cross-agent-observability</code> v0.4 给 agent-tasks.jsonl structured records + drift detection。</p>
+
+<h3 id="h3-53" class="sub">13. <code>sop-to-agentic-workflow</code> ↔ Skills = Cookbook Recipe</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 17 用 cookbook recipe 类比 skills。Patrick <code>sop-to-agentic-workflow</code> 是同思路的形式化 (Human SOP → Agentic Workflow)。</p>
+
+<h3 id="h3-54" class="sub">14. <code>distributed-research-playbook</code> ↔ 5 Levels of 2nd Brain ⭐</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 29 给出 5-level 2nd brain:L1 关键词 / L2 主题 / L3 多源 / L4 关系图谱 / L5 跨 agent。Patrick <code>distributed-research-playbook</code> v1.2 是同思路的研究基础设施 (vault + skills + cron 三层)。</p>
+
+<h3 id="h3-55" class="sub">15. <code>daily-observatory</code> ↔ Obsidian-as-2nd-Brain 实战</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate Ch 28 用 20 分钟讲 Obsidian 实战。Patrick <code>daily-observatory</code> skill 是同思路的产物 — 35 daily reports 渲染成 nebula particles + planet orbits + heatmap。</p>
+
+<h3 id="h3-56" class="sub">16. <code>ai-mastery-verbs</code> ↔ 12 Mindset Shifts</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate 的 12 Mindset Shifts 是 verbs 视角。Patrick <code>ai-mastery-verbs</code> 是同思路的系统化。<strong>重叠 ~70%</strong>。</p>
+
+<h3 id="h3-57" class="sub">17. <code>skill-run-api</code> ↔ Skill 互相调用</h3>
+<p style="color:var(--text-dim);font-size:13px;">Nate 演示 skill 互相调用。Patrick <code>skill-run-api</code> 是同思路的形式化 (skill A 显式调 skill B)。</p>
+
+<h3 id="h3-58" class="sub">⚠️ 18. Nate 没覆盖但 Patrick 实战重要的 5 件事</h3>
+<div class="card" style="border-color:var(--warn);"><ul>
+<li><strong>Secret injection 安全</strong> (PITFALL #52) — Nate 没演示 secure injection</li>
+<li><strong>CF Pages deploy 3 道墙</strong> (PITFALL #49-51) — Nate 用 Vercel,没碰 CF Pages edge cache</li>
+<li><strong>TOC sidebar hover-expand 实战</strong> (v1.4.3) — Nate 不知道 dashboard TOC pattern</li>
+<li><strong>node --check 验证 JS</strong> (PITFALL #74) — Nate 没演示 build script 验证</li>
+<li><strong>Cron 失败 recovery</strong> (PITFALL X) — Nate 提到 routines 但没演示 auto-rollback</li>
+</ul></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-action">
+<h2 id="h2-14" class="section">Patrick 实战路线</h2>
+
+<h3 id="h3-59" class="sub">立即 (本周可做)</h3>
+<div class="card"><h4>1. 整合 12 Mindset Shifts 到 MEMORY.md</h4><p>作为 cheat sheet (5 min)。对比 <code>ai-mastery-verbs</code>,合并去重。</p></div>
+<div class="card"><h4>2. 复制 Nate 的 Herk 2 项目结构</h4><p>到 Patrick 的 <code>~/AIOS/</code>(类似目录,但加上 <code>~/.pi/agent/</code> + <code>~/.hermes/</code> 的双 harness 视图)。</p></div>
+<div class="card"><h4>3. 校准 claude.md 模板</h4><p>Nate 的风格偏 casual,Patrick 的版本已更结构化 (frontmatter + sections),保留 Patrick 版的 rigor。</p></div>
+<div class="card"><h4>4. 复刻 Grill-Me Skill</h4><p>Patrick 已有,但 Nate 给了 brainstorm session 模板。<strong>对比两边 question list 取并集</strong>。</p></div>
+
+<h3 id="h3-60" class="sub">中期 (1-2 月)</h3>
+<div class="card"><h4>1. 建立 sub-agent skill library</h4><p>基于 Nate Plan Roaster 案例 + Patrick <code>parallel-subagent-shared-contract</code>。5-10 个常用 sub-agent YAML templates。</p></div>
+<div class="card"><h4>2. 建立第二大脑 5 Levels query interface</h4><p>L1 grep / L2 rg topic / L3 multi-source (用 <code>graphify</code>) / L4 graph (用 graphify / obsidian-vault) / L5 跨 agent (用 <code>patricks-vault-os</code> 5-tool)。</p></div>
+<div class="card"><h4>3. Token usage dashboard</h4><p>用 <code>cross-agent-observability</code> 给 <code>~/.codex/logs/codex-proxy.log</code> + <code>~/.hermes/logs/</code> + <code>~/.pi/agent/logs/</code> 加 peak/off-peak 监控。</p></div>
+
+<h3 id="h3-61" class="sub">长期 (3+ 月)</h3>
+<div class="card"><h4>1. Cloud routine infrastructure</h4><p>Nate 提 cloud routines,但 Patrick 没真用过。考虑 Modal / Cloudflare Workers / 简单 self-hosted agent server。</p></div>
+<div class="card"><h4>2. Agent teams 实战</h4><p>Nate Ch 31 说 "agent teams" 但 Claude Code 还没真发布;Patrick 可作为 early adopter。</p></div>
+<div class="card"><h4>3. Harness 跨 vendor</h4><p>Nate 只演示 Claude Code;Patrick 已用 Codex + Claude Code + Hermes 三 harness,可写"Harness Comparison" dashboard。</p></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-quotes">
+<h2 id="h2-15" class="section">金句库 (18 quotes)</h2>
+
+<div class="quote">In this course, I'm going to take you from a complete beginner to someone who is AI native and can build automations, AI agents, literally anything that you can describe, you're going to be able to build by the end of this course.<span class="src">— Nate Herk, Intro</span></div>
+
+<div class="quote">Claude Code is just a harness — a UI shell that wraps the model. The model does the thinking. The harness gives it hands. You give it context.<span class="src">— Nate Herk, Ch 2</span></div>
+
+<div class="quote">Opus is the engine. Claude Code is the car. You are the driver plus your data, your context, your business. Models change. Harnesses change. You + context — that's the moat.<span class="src">— Nate Herk, Ch 3</span></div>
+
+<div class="quote">Context engineering is the new prompt engineering. The whole point is to stop opening Claude in a blank chat. Spin up a Project, feed it real context, and watch what changes.<span class="src">— Nate Herk, Ch 5</span></div>
+
+<div class="quote">Taste is knowing what good looks like. Iteration speed is getting there as fast as possible. The two compound. Every iteration is more data, every data point gets you closer to good.<span class="src">— Nate Herk, Ch 6</span></div>
+
+<div class="quote">The old career model was one job, one income, a 401k. All your eggs in one basket. The new model is job stacking — your day job plus a couple of AI-powered side income streams.<span class="src">— Nate Herk, Ch 7</span></div>
+
+<div class="quote">Make the AI prove its work. ALL CAPS. Tell it: Cite your source. Show your reasoning. Don't make stuff up.<span class="src">— Nate Herk, Ch 10</span></div>
+
+<div class="quote">A token is roughly 3/4 of a word. Opus 4.8 output costs $25 per million. A 25,000-token Excel task costs about 63 cents. Token management is not optional.<span class="src">— Nate Herk, Ch 11</span></div>
+
+<div class="quote">claude.md is your AI's first impression of your project. Update it constantly. Don't stress about getting it perfect — it's a living document.<span class="src">— Nate Herk, Ch 12</span></div>
+
+<div class="quote">Auto mode is the new default. Trust it for most things. Bypass permissions is dangerous — but if you're working on a throwaway project and you trust the scope, go ahead.<span class="src">— Nate Herk, Ch 14</span></div>
+
+<div class="quote">CLI first, MCP if CLI doesn't exist, Direct API if neither. Every MCP server eats context tokens — don't use MCP for everything.<span class="src">— Nate Herk, Ch 16</span></div>
+
+<div class="quote">Skills are cookbook recipes. Step 1, step 2, step 3, step 4. Done. Deliverable. Repeat as needed. That's the whole skill system.<span class="src">— Nate Herk, Ch 17</span></div>
+
+<div class="quote">If I just did a /clear, I'd lose everything. But with session handoff, I tell Claude: write everything you need to remember into this file. New session, import. Context preserved.<span class="src">— Nate Herk, Ch 18</span></div>
+
+<div class="quote">Constraint is the only place where work compounds. Everywhere else you're just busy. Automate a broken process and you don't fix it — you scale it.<span class="src">— Nate Herk, Ch 20 (verbatim key quote)</span></div>
+
+<div class="quote">Sub-agents are isolated context windows. Use them when a task is about to dump a pile of stuff into my chat that I'll never read again.<span class="src">— Nate Herk, Ch 21/23</span></div>
+
+<div class="quote">ALWAYS INVOKE THE FRONT-END DESIGN SKILL BEFORE WRITING ANY FRONT-END CODE. EVERY SESSION. NO EXCEPTIONS.<span class="src">— Nate Herk, Ch 25 (ALL CAPS in original)</span></div>
+
+<div class="quote">A skill called grill-me, which I originally got from Matt Pocock. I customize it a little bit. I'll leave the skill in my free Skool community.<span class="src">— Nate Herk, Ch 30 (verbatim — same source as Patrick's <code>grilling</code> skill)</span></div>
+
+<div class="quote">My AIOS is still a work in progress. Every day, every week, every month, I'm adding so much stuff. This will never be a finished product. It's just going to be the way that I always work.<span class="src">— Nate Herk, Ch 35 (verbatim)</span></div>
+</div>
+
+<div class="tab-content" data-tab-content="t-mastery">
+<h2 class="section" id="sec-mastery">🎯 Mastery Check — 6h 教程掌握度自测</h2>
+<p style="color:var(--text-dim);font-size:13px;margin-bottom:18px;">18 题,覆盖 6 大主题。做完看分数和 verdict。<strong>14/18 = Master</strong> · 10-13 = Working knowledge · &lt;10 = Re-watch。引用 click 后会高亮对错 + 显示解析。</p>
+
+
+<div class="srs-intro" id="srsIntro">
+  <strong>SRS (Spaced Repetition System)</strong> 用 Leitner 5-box 算法:答对 → box+1 (间隔 1d→3d→7d→14d→30d) · 答错 → 回到 box 1 (1d)。进度存 localStorage,跨 session 持久化。<strong>每天打开 dashboard,只做"due today"的几题,30 天覆盖全部 18 题 = 长期记忆</strong>。
+</div>
+
+<div class="mode-toggle">
+  <button class="mode-btn active" data-mode="single" onclick="setMode('single')">Single Pass · 单次过</button>
+  <button class="mode-btn" data-mode="srs" onclick="setMode('srs')">🔁 SRS Mode · 间隔复测</button>
+</div>
+
+<div id="srsPanel" style="display:none;">
+  <div class="srs-stats" id="srsStats">
+    <div class="srs-stat warn"><div class="num" id="statDue">—</div><div class="lbl">📅 Due Today</div></div>
+    <div class="srs-stat good"><div class="num" id="statMastered">—</div><div class="lbl">✓ Mastered (Box 5)</div></div>
+    <div class="srs-stat"><div class="num" id="statLearning">—</div><div class="lbl">🔄 Learning (Box 1-4)</div></div>
+    <div class="srs-stat"><div class="num" id="statStreak">—</div><div class="lbl">🔥 Streak (days)</div></div>
+    <div class="srs-stat dim"><div class="num" id="statSeen">—</div><div class="lbl">📊 Seen / 18</div></div>
+    <div class="srs-stat dim"><div class="num" id="statAcc">—</div><div class="lbl">🎯 Accuracy</div></div>
+  </div>
+
+  <div id="srsDueSection"></div>
+
+  <div class="srs-controls">
+    <button class="quiz-btn" id="srsStartBtn" onclick="srsStart()">▶ Start SRS Session</button>
+    <button class="quiz-btn ghost" onclick="srsReset()">↻ Reset Progress</button>
+    <button class="quiz-btn ghost" onclick="srsExport()">📋 Export Stats</button>
+  </div>
+
+  <div id="srsSessionHost"></div>
+
+  <div class="srs-log" id="srsLogSection">
+    <h4>📜 Session History</h4>
+    <div id="srsLog"></div>
+  </div>
+</div>
+
+<div class="quiz-progress"><div class="quiz-progress-bar" id="quizBar"></div></div>
+<div class="quiz-meta">
+  <span id="quizProgress">Question 1 / 18</span>
+  <span id="quizScoreLive">Score: 0 / 0 attempted</span>
+</div>
+
+<div id="quizContainer">
+<div class="quiz-card" id="q1" style="display:block">
+  <div class="cat">Foundations · Harness/Model 类比</div>
+  <div class="q">Q1. Nate 的核心类比:Opus = engine,Claude Code = ____,你 = ____。</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q1" data-opt="0" onclick="quizSelect('q1', 0)"><span class="letter">A.</span><span>car / driver</span></div>
+    <div class="quiz-option" data-q="q1" data-opt="1" onclick="quizSelect('q1', 1)"><span class="letter">B.</span><span>car / tank</span></div>
+    <div class="quiz-option" data-q="q1" data-opt="2" onclick="quizSelect('q1', 2)"><span class="letter">C.</span><span>tank / driver</span></div>
+    <div class="quiz-option" data-q="q1" data-opt="3" onclick="quizSelect('q1', 3)"><span class="letter">D.</span><span>engine / driver</span></div>
+  </div>
+  <div class="quiz-explain" id="q1-explain">
+    <strong>正确:</strong> car / driver<br>
+    <strong>出处:</strong> Ch 3 · Model vs Context 类比
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q1')">Skip →</button>
+    <button class="quiz-btn" id="q1-submit" onclick="quizSubmit('q1', 0)" disabled>Submit</button>
+    <button class="quiz-btn" id="q1-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 3 · Model vs Context 类比</div>
+</div>
+<div class="quiz-card" id="q2" style="display:none">
+  <div class="cat">Foundations · AI Native</div>
+  <div class="q">Q2. "AI Native" 在 Nate 的定义里主要指什么?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q2" data-opt="0" onclick="quizSelect('q2', 0)"><span class="letter">A.</span><span>用 AI 做所有事</span></div>
+    <div class="quiz-option" data-q="q2" data-opt="1" onclick="quizSelect('q2', 1)"><span class="letter">B.</span><span>默认先试 AI + 只在 constraint 上投入工作</span></div>
+    <div class="quiz-option" data-q="q2" data-opt="2" onclick="quizSelect('q2', 2)"><span class="letter">C.</span><span>成为 prompt engineering 专家</span></div>
+    <div class="quiz-option" data-q="q2" data-opt="3" onclick="quizSelect('q2', 3)"><span class="letter">D.</span><span>只用 Claude Code 一个工具</span></div>
+  </div>
+  <div class="quiz-explain" id="q2-explain">
+    <strong>正确:</strong> 默认先试 AI + 只在 constraint 上投入工作<br>
+    <strong>出处:</strong> Ch 4 (Mindset Shifts) + Ch 20 (Constraints)
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q2')">Skip →</button>
+    <button class="quiz-btn" id="q2-submit" onclick="quizSubmit('q2', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q2-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 4 (Mindset Shifts) + Ch 20 (Constraints)</div>
+</div>
+<div class="quiz-card" id="q3" style="display:none">
+  <div class="cat">Foundations · 12 Mindset Shifts</div>
+  <div class="q">Q3. 下面哪个 NOT 是 Nate 的 12 mindset shifts?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q3" data-opt="0" onclick="quizSelect('q3', 0)"><span class="letter">A.</span><span>AI 已是 new normal,不是 optional</span></div>
+    <div class="quiz-option" data-q="q3" data-opt="1" onclick="quizSelect('q3', 1)"><span class="letter">B.</span><span>Constraint is the only place work compounds</span></div>
+    <div class="quiz-option" data-q="q3" data-opt="2" onclick="quizSelect('q3', 2)"><span class="letter">C.</span><span>Always use the largest model possible for best results</span></div>
+    <div class="quiz-option" data-q="q3" data-opt="3" onclick="quizSelect('q3', 3)"><span class="letter">D.</span><span>Verify output (make AI prove its work)</span></div>
+  </div>
+  <div class="quiz-explain" id="q3-explain">
+    <strong>正确:</strong> Always use the largest model possible for best results<br>
+    <strong>出处:</strong> Ch 4 · Nate 主张 3-tier model arbitrage,不是 always largest
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q3')">Skip →</button>
+    <button class="quiz-btn" id="q3-submit" onclick="quizSubmit('q3', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q3-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 4 · Nate 主张 3-tier model arbitrage,不是 always largest</div>
+</div>
+<div class="quiz-card" id="q4" style="display:none">
+  <div class="cat">Foundations · Prompt vs Context Eng</div>
+  <div class="q">Q4. Nate 把 prompt engineering 替换成什么?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q4" data-opt="0" onclick="quizSelect('q4', 0)"><span class="letter">A.</span><span>Token engineering</span></div>
+    <div class="quiz-option" data-q="q4" data-opt="1" onclick="quizSelect('q4', 1)"><span class="letter">B.</span><span>Context engineering</span></div>
+    <div class="quiz-option" data-q="q4" data-opt="2" onclick="quizSelect('q4', 2)"><span class="letter">C.</span><span>Memory engineering</span></div>
+    <div class="quiz-option" data-q="q4" data-opt="3" onclick="quizSelect('q4', 3)"><span class="letter">D.</span><span>Skill engineering</span></div>
+  </div>
+  <div class="quiz-explain" id="q4-explain">
+    <strong>正确:</strong> Context engineering<br>
+    <strong>出处:</strong> Ch 5 · Prompt vs Context Engineering
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q4')">Skip →</button>
+    <button class="quiz-btn" id="q4-submit" onclick="quizSubmit('q4', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q4-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 5 · Prompt vs Context Engineering</div>
+</div>
+<div class="quiz-card" id="q5" style="display:none">
+  <div class="cat">Setup · claude.md 性质</div>
+  <div class="q">Q5. claude.md 是什么?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q5" data-opt="0" onclick="quizSelect('q5', 0)"><span class="letter">A.</span><span>项目的 README</span></div>
+    <div class="quiz-option" data-q="q5" data-opt="1" onclick="quizSelect('q5', 1)"><span class="letter">B.</span><span>AI 的 first impression + living document</span></div>
+    <div class="quiz-option" data-q="q5" data-opt="2" onclick="quizSelect('q5', 2)"><span class="letter">C.</span><span>配置文件 + 静态说明</span></div>
+    <div class="quiz-option" data-q="q5" data-opt="3" onclick="quizSelect('q5', 3)"><span class="letter">D.</span><span>API key 存储位置</span></div>
+  </div>
+  <div class="quiz-explain" id="q5-explain">
+    <strong>正确:</strong> AI 的 first impression + living document<br>
+    <strong>出处:</strong> Ch 12 · Project Setup
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q5')">Skip →</button>
+    <button class="quiz-btn" id="q5-submit" onclick="quizSubmit('q5', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q5-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 12 · Project Setup</div>
+</div>
+<div class="quiz-card" id="q6" style="display:none">
+  <div class="cat">Setup · Permission Modes</div>
+  <div class="q">Q6. 5 个 permission modes 里,日常用最平衡的组合是?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q6" data-opt="0" onclick="quizSelect('q6', 0)"><span class="letter">A.</span><span>bypass permissions 全自动</span></div>
+    <div class="quiz-option" data-q="q6" data-opt="1" onclick="quizSelect('q6', 1)"><span class="letter">B.</span><span>manual 每次都确认</span></div>
+    <div class="quiz-option" data-q="q6" data-opt="2" onclick="quizSelect('q6', 2)"><span class="letter">C.</span><span>auto (default) / accept-edits 编辑自动,sensitive 确认</span></div>
+    <div class="quiz-option" data-q="q6" data-opt="3" onclick="quizSelect('q6', 3)"><span class="letter">D.</span><span>plan 只生成 plan 不执行</span></div>
+  </div>
+  <div class="quiz-explain" id="q6-explain">
+    <strong>正确:</strong> auto (default) / accept-edits 编辑自动,sensitive 确认<br>
+    <strong>出处:</strong> Ch 14 · Permission Modes
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q6')">Skip →</button>
+    <button class="quiz-btn" id="q6-submit" onclick="quizSubmit('q6', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q6-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 14 · Permission Modes</div>
+</div>
+<div class="quiz-card" id="q7" style="display:none">
+  <div class="cat">Setup · Token 成本</div>
+  <div class="q">Q7. Opus 4.8 输出价格是多少 (Nate 实战数据)?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q7" data-opt="0" onclick="quizSelect('q7', 0)"><span class="letter">A.</span><span>$5 / 1M tokens</span></div>
+    <div class="quiz-option" data-q="q7" data-opt="1" onclick="quizSelect('q7', 1)"><span class="letter">B.</span><span>$25 / 1M tokens</span></div>
+    <div class="quiz-option" data-q="q7" data-opt="2" onclick="quizSelect('q7', 2)"><span class="letter">C.</span><span>$50 / 1M tokens</span></div>
+    <div class="quiz-option" data-q="q7" data-opt="3" onclick="quizSelect('q7', 3)"><span class="letter">D.</span><span>$100 / 1M tokens</span></div>
+  </div>
+  <div class="quiz-explain" id="q7-explain">
+    <strong>正确:</strong> $25 / 1M tokens<br>
+    <strong>出处:</strong> Ch 11 + Ch 34 · Token Management
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q7')">Skip →</button>
+    <button class="quiz-btn" id="q7-submit" onclick="quizSubmit('q7', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q7-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 11 + Ch 34 · Token Management</div>
+</div>
+<div class="quiz-card" id="q8" style="display:none">
+  <div class="cat">Skills · Skill Anatomy</div>
+  <div class="q">Q8. skill 文件的标准 anatomy 不包含:</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q8" data-opt="0" onclick="quizSelect('q8', 0)"><span class="letter">A.</span><span>YAML frontmatter (name + description trigger)</span></div>
+    <div class="quiz-option" data-q="q8" data-opt="1" onclick="quizSelect('q8', 1)"><span class="letter">B.</span><span>Step-by-step instructions</span></div>
+    <div class="quiz-option" data-q="q8" data-opt="2" onclick="quizSelect('q8', 2)"><span class="letter">C.</span><span>Pitfalls / 已知坑</span></div>
+    <div class="quiz-option" data-q="q8" data-opt="3" onclick="quizSelect('q8', 3)"><span class="letter">D.</span><span>Full essay 长篇大论解释背景</span></div>
+  </div>
+  <div class="quiz-explain" id="q8-explain">
+    <strong>正确:</strong> Full essay 长篇大论解释背景<br>
+    <strong>出处:</strong> Ch 17 · Skills Deep Dive · cookbook recipe analogy
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q8')">Skip →</button>
+    <button class="quiz-btn" id="q8-submit" onclick="quizSubmit('q8', 3)" disabled>Submit</button>
+    <button class="quiz-btn" id="q8-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 17 · Skills Deep Dive · cookbook recipe analogy</div>
+</div>
+<div class="quiz-card" id="q9" style="display:none">
+  <div class="cat">Sub-Agents · Decision Rule</div>
+  <div class="q">Q9. Nate 给的 sub-agent 决策规则是?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q9" data-opt="0" onclick="quizSelect('q9', 0)"><span class="letter">A.</span><span>任何 task 都该用 sub-agent</span></div>
+    <div class="quiz-option" data-q="q9" data-opt="1" onclick="quizSelect('q9', 1)"><span class="letter">B.</span><span>When "this is about to dump a pile of stuff into my chat that I'll never read again"</span></div>
+    <div class="quiz-option" data-q="q9" data-opt="2" onclick="quizSelect('q9', 2)"><span class="letter">C.</span><span>只有 Opus 模型才用</span></div>
+    <div class="quiz-option" data-q="q9" data-opt="3" onclick="quizSelect('q9', 3)"><span class="letter">D.</span><span>当 main agent 跑得太慢时</span></div>
+  </div>
+  <div class="quiz-explain" id="q9-explain">
+    <strong>正确:</strong> When "this is about to dump a pile of stuff into my chat that I'll never read again"<br>
+    <strong>出处:</strong> Ch 23 · When to Use Sub-Agents (verbatim rule)
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q9')">Skip →</button>
+    <button class="quiz-btn" id="q9-submit" onclick="quizSubmit('q9', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q9-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 23 · When to Use Sub-Agents (verbatim rule)</div>
+</div>
+<div class="quiz-card" id="q10" style="display:none">
+  <div class="cat">Skills · CLI vs MCP</div>
+  <div class="q">Q10. Nate 推荐的工具连接顺序是?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q10" data-opt="0" onclick="quizSelect('q10', 0)"><span class="letter">A.</span><span>MCP first → CLI → Direct API</span></div>
+    <div class="quiz-option" data-q="q10" data-opt="1" onclick="quizSelect('q10', 1)"><span class="letter">B.</span><span>Direct API → MCP → CLI</span></div>
+    <div class="quiz-option" data-q="q10" data-opt="2" onclick="quizSelect('q10', 2)"><span class="letter">C.</span><span>CLI first → MCP if no CLI → Direct API if neither</span></div>
+    <div class="quiz-option" data-q="q10" data-opt="3" onclick="quizSelect('q10', 3)"><span class="letter">D.</span><span>Always use MCP for everything</span></div>
+  </div>
+  <div class="quiz-explain" id="q10-explain">
+    <strong>正确:</strong> CLI first → MCP if no CLI → Direct API if neither<br>
+    <strong>出处:</strong> Ch 16 · Google Workspace CLI vs MCP
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q10')">Skip →</button>
+    <button class="quiz-btn" id="q10-submit" onclick="quizSubmit('q10', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q10-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 16 · Google Workspace CLI vs MCP</div>
+</div>
+<div class="quiz-card" id="q11" style="display:none">
+  <div class="cat">2nd Brain · 5 Levels</div>
+  <div class="q">Q11. 5 Levels of 2nd Brain 里,Level 4 "see connections" 最适合的工具?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q11" data-opt="0" onclick="quizSelect('q11', 0)"><span class="letter">A.</span><span>grep / Spotlight</span></div>
+    <div class="quiz-option" data-q="q11" data-opt="1" onclick="quizSelect('q11', 1)"><span class="letter">B.</span><span>rg + tag search</span></div>
+    <div class="quiz-option" data-q="q11" data-opt="2" onclick="quizSelect('q11', 2)"><span class="letter">C.</span><span>Obsidian graph view / graphify</span></div>
+    <div class="quiz-option" data-q="q11" data-opt="3" onclick="quizSelect('q11', 3)"><span class="letter">D.</span><span>devonthink multi-source</span></div>
+  </div>
+  <div class="quiz-explain" id="q11-explain">
+    <strong>正确:</strong> Obsidian graph view / graphify<br>
+    <strong>出处:</strong> Ch 29 · 5 Levels of a Second Brain
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q11')">Skip →</button>
+    <button class="quiz-btn" id="q11-submit" onclick="quizSubmit('q11', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q11-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 29 · 5 Levels of a Second Brain</div>
+</div>
+<div class="quiz-card" id="q12" style="display:none">
+  <div class="cat">2nd Brain · Grill-Me Origin</div>
+  <div class="q">Q12. Grill-Me skill 的原始作者是? (Patrick-flavored 同源)</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q12" data-opt="0" onclick="quizSelect('q12', 0)"><span class="letter">A.</span><span>Anthropic</span></div>
+    <div class="quiz-option" data-q="q12" data-opt="1" onclick="quizSelect('q12', 1)"><span class="letter">B.</span><span>OpenAI</span></div>
+    <div class="quiz-option" data-q="q12" data-opt="2" onclick="quizSelect('q12', 2)"><span class="letter">C.</span><span>Matt Pocock</span></div>
+    <div class="quiz-option" data-q="q12" data-opt="3" onclick="quizSelect('q12', 3)"><span class="letter">D.</span><span>Nate Herk 自创</span></div>
+  </div>
+  <div class="quiz-explain" id="q12-explain">
+    <strong>正确:</strong> Matt Pocock<br>
+    <strong>出处:</strong> Ch 30 · Nate 明示"I originally got this from Matt Pocock" · 与 Patrick `grilling` skill 同源
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q12')">Skip →</button>
+    <button class="quiz-btn" id="q12-submit" onclick="quizSubmit('q12', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q12-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 30 · Nate 明示"I originally got this from Matt Pocock" · 与 Patrick `grilling` skill 同源</div>
+</div>
+<div class="quiz-card" id="q13" style="display:none">
+  <div class="cat">2nd Brain · Sub-Agents vs Agent Teams</div>
+  <div class="q">Q13. Sub-Agents 和 Agent Teams 的关键区别?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q13" data-opt="0" onclick="quizSelect('q13', 0)"><span class="letter">A.</span><span>Cost 不同</span></div>
+    <div class="quiz-option" data-q="q13" data-opt="1" onclick="quizSelect('q13', 1)"><span class="letter">B.</span><span>Sub-agents 不互通,Agent teams 互通</span></div>
+    <div class="quiz-option" data-q="q13" data-opt="2" onclick="quizSelect('q13', 2)"><span class="letter">C.</span><span>Speed 不同</span></div>
+    <div class="quiz-option" data-q="q13" data-opt="3" onclick="quizSelect('q13', 3)"><span class="letter">D.</span><span>Model tier 不同</span></div>
+  </div>
+  <div class="quiz-explain" id="q13-explain">
+    <strong>正确:</strong> Sub-agents 不互通,Agent teams 互通<br>
+    <strong>出处:</strong> Ch 31 · Sub-Agents vs Agent Teams
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q13')">Skip →</button>
+    <button class="quiz-btn" id="q13-submit" onclick="quizSubmit('q13', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q13-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 31 · Sub-Agents vs Agent Teams</div>
+</div>
+<div class="quiz-card" id="q14" style="display:none">
+  <div class="cat">Routines · Local vs Cloud</div>
+  <div class="q">Q14. Cloud routine 比 local routine 的最大优势?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q14" data-opt="0" onclick="quizSelect('q14', 0)"><span class="letter">A.</span><span>更便宜</span></div>
+    <div class="quiz-option" data-q="q14" data-opt="1" onclick="quizSelect('q14', 1)"><span class="letter">B.</span><span>24/7 跑,不需要 desktop app 开</span></div>
+    <div class="quiz-option" data-q="q14" data-opt="2" onclick="quizSelect('q14', 2)"><span class="letter">C.</span><span>更安全</span></div>
+    <div class="quiz-option" data-q="q14" data-opt="3" onclick="quizSelect('q14', 3)"><span class="letter">D.</span><span>更快</span></div>
+  </div>
+  <div class="quiz-explain" id="q14-explain">
+    <strong>正确:</strong> 24/7 跑,不需要 desktop app 开<br>
+    <strong>出处:</strong> Ch 32 · Scheduled + Cloud Routines
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q14')">Skip →</button>
+    <button class="quiz-btn" id="q14-submit" onclick="quizSubmit('q14', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q14-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 32 · Scheduled + Cloud Routines</div>
+</div>
+<div class="quiz-card" id="q15" style="display:none">
+  <div class="cat">Tokens · Peak Window</div>
+  <div class="q">Q15. Peak usage window (Nate 实战数据) 是?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q15" data-opt="0" onclick="quizSelect('q15', 0)"><span class="letter">A.</span><span>8pm-2am ET weekday</span></div>
+    <div class="quiz-option" data-q="q15" data-opt="1" onclick="quizSelect('q15', 1)"><span class="letter">B.</span><span>8am-2pm ET weekday</span></div>
+    <div class="quiz-option" data-q="q15" data-opt="2" onclick="quizSelect('q15', 2)"><span class="letter">C.</span><span>周末全天</span></div>
+    <div class="quiz-option" data-q="q15" data-opt="3" onclick="quizSelect('q15', 3)"><span class="letter">D.</span><span>凌晨 4-6am</span></div>
+  </div>
+  <div class="quiz-explain" id="q15-explain">
+    <strong>正确:</strong> 8am-2pm ET weekday<br>
+    <strong>出处:</strong> Ch 34 · Token Management · peak rate-limit 较紧
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q15')">Skip →</button>
+    <button class="quiz-btn" id="q15-submit" onclick="quizSubmit('q15', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q15-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 34 · Token Management · peak rate-limit 较紧</div>
+</div>
+<div class="quiz-card" id="q16" style="display:none">
+  <div class="cat">Foundations · Constraint Principle</div>
+  <div class="q">Q16. Nate 的关键 insight:"Constraint is the only place where work compounds" 含义?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q16" data-opt="0" onclick="quizSelect('q16', 0)"><span class="letter">A.</span><span>要尽量限制 AI 的输出长度</span></div>
+    <div class="quiz-option" data-q="q16" data-opt="1" onclick="quizSelect('q16', 1)"><span class="letter">B.</span><span>只在约束 / 瓶颈上工作才真正积累价值,其他都是 busywork</span></div>
+    <div class="quiz-option" data-q="q16" data-opt="2" onclick="quizSelect('q16', 2)"><span class="letter">C.</span><span>不要给 AI 任何约束</span></div>
+    <div class="quiz-option" data-q="q16" data-opt="3" onclick="quizSelect('q16', 3)"><span class="letter">D.</span><span>把所有事都自动化</span></div>
+  </div>
+  <div class="quiz-explain" id="q16-explain">
+    <strong>正确:</strong> 只在约束 / 瓶颈上工作才真正积累价值,其他都是 busywork<br>
+    <strong>出处:</strong> Ch 20 (verbatim) · Constraints, Metrics, Mapping Process
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q16')">Skip →</button>
+    <button class="quiz-btn" id="q16-submit" onclick="quizSubmit('q16', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q16-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 20 (verbatim) · Constraints, Metrics, Mapping Process</div>
+</div>
+<div class="quiz-card" id="q17" style="display:none">
+  <div class="cat">Build · Front-end Skill Rule</div>
+  <div class="q">Q17. Nate 的 front-end design skill 黄金规则是?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q17" data-opt="0" onclick="quizSelect('q17', 0)"><span class="letter">A.</span><span>只在设计时 invoke</span></div>
+    <div class="quiz-option" data-q="q17" data-opt="1" onclick="quizSelect('q17', 1)"><span class="letter">B.</span><span>ALWAYS INVOKE before any front-end code, every session, no exceptions</span></div>
+    <div class="quiz-option" data-q="q17" data-opt="2" onclick="quizSelect('q17', 2)"><span class="letter">C.</span><span>可选,看心情</span></div>
+    <div class="quiz-option" data-q="q17" data-opt="3" onclick="quizSelect('q17', 3)"><span class="letter">D.</span><span>只在 VS Code 里 invoke</span></div>
+  </div>
+  <div class="quiz-explain" id="q17-explain">
+    <strong>正确:</strong> ALWAYS INVOKE before any front-end code, every session, no exceptions<br>
+    <strong>出处:</strong> Ch 25 (verbatim, ALL CAPS in original) · 与 Patrick `single-file-spa-design-patterns` v1.20.0 等价
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q17')">Skip →</button>
+    <button class="quiz-btn" id="q17-submit" onclick="quizSubmit('q17', 1)" disabled>Submit</button>
+    <button class="quiz-btn" id="q17-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Ch 25 (verbatim, ALL CAPS in original) · 与 Patrick `single-file-spa-design-patterns` v1.20.0 等价</div>
+</div>
+<div class="quiz-card" id="q18" style="display:none">
+  <div class="cat">Deploy · CF Pages vs Vercel</div>
+  <div class="q">Q18. Nate 用 Vercel (简单)。Patrick 实战主要用什么 + 为什么?</div>
+  <div class="quiz-options">
+    <div class="quiz-option" data-q="q18" data-opt="0" onclick="quizSelect('q18', 0)"><span class="letter">A.</span><span>Heroku 因为最便宜</span></div>
+    <div class="quiz-option" data-q="q18" data-opt="1" onclick="quizSelect('q18', 1)"><span class="letter">B.</span><span>Vercel 因为简单</span></div>
+    <div class="quiz-option" data-q="q18" data-opt="2" onclick="quizSelect('q18', 2)"><span class="letter">C.</span><span>Cloudflare Pages + Direct Upload API,适合 1MB+ files + custom domains + China-friendly</span></div>
+    <div class="quiz-option" data-q="q18" data-opt="3" onclick="quizSelect('q18', 3)"><span class="letter">D.</span><span>Netlify 因为免费</span></div>
+  </div>
+  <div class="quiz-explain" id="q18-explain">
+    <strong>正确:</strong> Cloudflare Pages + Direct Upload API,适合 1MB+ files + custom domains + China-friendly<br>
+    <strong>出处:</strong> Patrick PITFALL #49-51 · CF Pages deploy 3 道墙实战经验
+  </div>
+  <div class="quiz-actions">
+    <button class="quiz-btn ghost" onclick="quizSkip('q18')">Skip →</button>
+    <button class="quiz-btn" id="q18-submit" onclick="quizSubmit('q18', 2)" disabled>Submit</button>
+    <button class="quiz-btn" id="q18-next" onclick="quizNext()" style="display:none">Next →</button>
+  </div>
+  <div class="ref" style="color:var(--text-mute);font-size:11px;margin-top:8px;">📍 Patrick PITFALL #49-51 · CF Pages deploy 3 道墙实战经验</div>
+</div>
+</div>
+
+<div class="quiz-result" id="quizResult">
+  <div class="label">Final Score</div>
+  <div class="score" id="quizFinalScore">0 / 18</div>
+  <div class="verdict" id="quizVerdict">—</div>
+  <div class="blurb" id="quizBlurb">—</div>
+  <div class="quiz-grid" id="quizGrid"></div>
+  <div style="margin-top:18px;">
+    <button class="quiz-btn ghost" onclick="quizReset()">↻ Reset</button>
+  </div>
+</div>
+
+<div class="takeaway" style="margin-top:20px;">
+<h3>🎯 Why this quiz</h3>
+<ul>
+<li>这 18 题覆盖 35 章节的核心战术 reps — <strong>做完分数 ≥14 = 你可以跳过课程,直接做 Patrick 实战路线里的"立即"项</strong>。</li>
+<li>每题有 verbatim 出处,做错直接定位到视频 timestamp 重看。</li>
+<li>Q12 (Grill-Me origin) 和 Q18 (CF Pages vs Vercel) 是 Patrick-flavored 题 — 检验你是否能区分 Nate 教程 vs Patrick 实战。</li>
+</ul>
+</div>
+</div>
+
+<div class="tab-content" data-tab-content="t-time">
+<h2 id="h2-16" class="section">关键时间戳 (35 章节)</h2>
+<table>
+<thead><tr><th>时间</th><th>章节</th><th>关键 takeaway</th></tr></thead>
+<tbody>
+<tr><td>0:00</td><td>Intro</td><td>Beginner → AI Native 路线图</td></tr>
+<tr><td>1:00</td><td>What is Claude Code</td><td>Chat/Cowork/Code 三层区分</td></tr>
+<tr><td>5:04</td><td>Models vs Context</td><td>Engine/car/driver 类比</td></tr>
+<tr><td>6:48</td><td><strong>12 Mindset Shifts</strong></td><td>6+ shifts 提到</td></tr>
+<tr><td>14:52</td><td>Prompt vs Context Eng</td><td>Context Eng > Prompt Eng</td></tr>
+<tr><td>17:33</td><td>Taste + Iteration</td><td>"Iteration speed 是 separator"</td></tr>
+<tr><td>24:20</td><td>One Passion, Many Branches</td><td>Job stacking 模型</td></tr>
+<tr><td>31:44</td><td>Install + First Prompts</td><td>Pro $20 / Max $200</td></tr>
+<tr><td>34:09</td><td>Local Files (Excel/HTML)</td><td>Screenshot → Excel 案例</td></tr>
+<tr><td>38:18</td><td>Prompt Eng + Verify</td><td>"Make AI prove its work"</td></tr>
+<tr><td>43:25</td><td>Tokens + Models</td><td>Opus 4.8 价格</td></tr>
+<tr><td>48:10</td><td><strong>claude.md + settings.json</strong></td><td>12 min deep dive</td></tr>
+<tr><td>60:06</td><td>API keys + .env</td><td>工具互联基础</td></tr>
+<tr><td>69:59</td><td>Permission Modes</td><td>auto/manual/accept-edits/plan/bypass</td></tr>
+<tr><td>80:31</td><td>AI Operating System</td><td>Herk 2 项目</td></tr>
+<tr><td>85:08</td><td>Google Workspace CLI vs MCP</td><td>15 min 实战</td></tr>
+<tr><td>100:28</td><td><strong>Skills Deep Dive</strong></td><td>cookbook recipe 类比</td></tr>
+<tr><td>116:13</td><td>Context Window + Handoff</td><td>110K/1M, <code>/clear</code></td></tr>
+<tr><td>123:17</td><td>Memory + 2nd Brain</td><td>Obsidian + memory file</td></tr>
+<tr><td>131:35</td><td>Constraints, Metrics, Process</td><td>"constraint 唯一 place work compounds"</td></tr>
+<tr><td>140:23</td><td><strong>Sub-Agents Explained</strong></td><td>11 min 核心</td></tr>
+<tr><td>151:41</td><td><strong>Plan Roaster 实战</strong></td><td>12 min YAML 模板</td></tr>
+<tr><td>163:46</td><td>When to Use Sub-Agents</td><td>"pile of stuff I'll never read" rule</td></tr>
+<tr><td>167:27</td><td>Terminal Install + Resources</td><td>VS Code extension</td></tr>
+<tr><td>173:11</td><td><strong>Building & Cloning Websites</strong></td><td>18 min 含 front-end design skill</td></tr>
+<tr><td>190:54</td><td>Deploy GitHub + Vercel</td><td>8 min deploy pipeline</td></tr>
+<tr><td>198:58</td><td><strong>AI Systems Pyramid</strong></td><td>17 min chat → agents 自下而上</td></tr>
+<tr><td>216:15</td><td>Building 2nd Brain</td><td>20 min Obsidian 实战</td></tr>
+<tr><td>236:23</td><td><strong>5 Levels of 2nd Brain</strong></td><td>17 min L1-L5</td></tr>
+<tr><td>253:43</td><td><strong>Knowledge Graphs + Grill-Me</strong></td><td>18 min (← Matt Pocock 同源)</td></tr>
+<tr><td>271:50</td><td>Sub-Agents vs Agent Teams</td><td>14 min 关键区分</td></tr>
+<tr><td>285:35</td><td>Scheduled + Cloud Routines</td><td>17 min local vs cloud</td></tr>
+<tr><td>303:03</td><td><strong>Research Automation</strong></td><td>24 min 实战</td></tr>
+<tr><td>327:13</td><td><strong>Token Mgmt + Prompt Cache</strong></td><td>31 min peak/off-peak</td></tr>
+<tr><td>358:20</td><td>Final Thoughts</td><td>"work in progress, never done"</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="tab-content" data-tab-content="t-res">
+<h2 id="h2-17" class="section">资源</h2>
+
+<h3 id="h3-62" class="sub">原视频</h3>
+<ul style="color:var(--text-dim);font-size:13px;line-height:1.8;">
+<li>URL: <a href="https://www.youtube.com/watch?v=jdbOVepEtUE" style="color:var(--accent-2);">youtube.com/watch?v=jdbOVepEtUE</a></li>
+<li>Channel: Nate Herk | AI Automation (@nateherk)</li>
+<li>Transcript: <code>/tmp/claude-code-nate/raw-transcript.json</code> (438K chars)</li>
+<li>Chapter samples: <code>/tmp/claude-code-nate/chapter-samples.json</code> (35 chapters × 3 snippets)</li>
+</ul>
+
+<h3 id="h3-63" class="sub">Nate 推广资源 (⚠️ affiliate, 跳过 OK)</h3>
+<ul style="color:var(--text-dim);font-size:13px;line-height:1.8;">
+<li>Skool community: <code>skool.com/ai-automation-society</code> (付费)</li>
+<li>VPS: <code>hostinger.com/vps/claude-code-hostin</code> (code <code>NATEHERK</code>, 10% off)</li>
+<li>Voice to text: <code>get.glaido.com/nate</code> (1 month free)</li>
+<li>Nate's book: "Becoming AI Native"</li>
+</ul>
+
+<h3 id="h3-64" class="sub">Patrick 关联技能 (17)</h3>
+<ul style="color:var(--text-dim);font-size:13px;line-height:1.8;">
+<li><code>media/video-to-obsidian</code> (本笔记 pipeline)</li>
+<li><code>patricks-vault-os</code> (5-tool Loop OS)</li>
+<li><code>agent-orchestration</code> (sub-agent 调度)</li>
+<li><code>grilling</code> (Matt Pocock 同源 Grill-Me)</li>
+<li><code>single-file-spa-design-patterns</code> (front-end design skill 等价)</li>
+<li><code>local-llm-integration-hermes</code> (harness/model 分层)</li>
+<li><code>hybrid-llm-router</code> (3-tier model strategy)</li>
+<li><code>claude-superpowers</code> (6 power phrases)</li>
+<li><code>cron-watchdog-patterns</code> (cloud routines)</li>
+<li><code>loop-engineering</code> (research automation)</li>
+<li><code>agent-trace-integrity</code> (verify output)</li>
+<li><code>cross-agent-observability</code> (token monitoring)</li>
+<li><code>sop-to-agentic-workflow</code> (skills = recipe)</li>
+<li><code>distributed-research-playbook</code> (5 levels of 2nd brain)</li>
+<li><code>daily-observatory</code> (Obsidian dashboard)</li>
+<li><code>ai-mastery-verbs</code> (12 mindset shifts 等价)</li>
+<li><code>skill-run-api</code> (skill 互调)</li>
+</ul>
+
+<h3 id="h3-65" class="sub">输出文件</h3>
+<ul style="color:var(--text-dim);font-size:13px;line-height:1.8;">
+<li>Vault index.md: <code>~/Downloads/Obsidian Vault/llm-wiki/courses/claude-code-nate-herk-2026-07-12/index.md</code></li>
+<li>Vault dashboard: <code>~/Downloads/Obsidian Vault/llm-wiki/courses/claude-code-nate-herk-2026-07-12/dashboard.html</code> (本文件)</li>
+<li>Desktop copy: <code>~/Desktop/claude-code-nate-herk-2026-07-12-dashboard.html</code></li>
+<li>Blog draft (English): <code>/tmp/claude-code-nate/blog.md</code></li>
+<li>X thread (English): <code>/tmp/claude-code-nate/thread.md</code></li>
+</ul>
+</div>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+
+  <script>
+  (function() {
+    const tocLinks = document.querySelectorAll('aside.toc a[data-toc-target]');
+    if (!tocLinks.length) return;
+
+    // ── v1.4.1 click handler: activate .page/.tab-content + scroll ──
+    tocLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        const id = this.getAttribute('data-toc-target');
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+
+        // Pattern A: hidden .page ancestor (multi-page)
+        const hiddenPage = target.closest('.page');
+        if (hiddenPage) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          hiddenPage.classList.add('active');
+          const pageId = hiddenPage.id.replace('page-', '');
+          document.querySelectorAll('.nav button').forEach(b => {
+            const onclick = b.getAttribute('onclick') || '';
+            if (onclick.includes("'" + pageId + "'") || onclick.includes('"' + pageId + '"')) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        }
+
+        // Pattern B: tab-content ancestor (v1.3.x tabs)
+        // Pitfall O fix: try multiple tab-button class names + [data-tab] attr fallback
+        // + index-based fallback when .tab-content lacks data-tab-content attr.
+        // v1.5.0 patcher used `.tab` + assumed `data-tab-content` — both silently failed
+        // for projects using `.tab-btn` class and no data-tab-content attribute.
+        const tabContent = target.closest('.tab-content');
+        if (tabContent) {
+          // v1.4.2+: also add data-tab-content if missing (so this JS keeps working)
+          if (!tabContent.hasAttribute('data-tab-content') && tabContent.id.startsWith('tab-')) {
+            tabContent.setAttribute('data-tab-content', tabContent.id.replace('tab-', ''));
+          }
+          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+          tabContent.classList.add('active');
+          // Resolve tabId from data-tab-content (or fall back to id 'tab-XXX' or index)
+          let tabId = tabContent.getAttribute('data-tab-content');
+          if (!tabId && tabContent.id.startsWith('tab-')) {
+            tabId = tabContent.id.replace('tab-', '');
+          }
+          // Compatible selector: try common button class names + [data-tab] attr fallback
+          const btnSelector = '.tab, .tab-btn, .tab-button, [data-tab]';
+          const allBtns = document.querySelectorAll(btnSelector);
+          if (tabId) {
+            allBtns.forEach(b => {
+              if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          } else {
+            // Last-resort index-based matching: tab-content order = tab button order
+            const allContents = document.querySelectorAll('.tab-content');
+            const idx = Array.from(allContents).indexOf(tabContent);
+            allBtns.forEach(b => b.classList.remove('active'));
+            if (idx >= 0 && idx < allBtns.length) {
+              allBtns[idx].classList.add('active');
+            }
+          }
+        }
+
+        setTimeout(() => {
+          const rect = target.getBoundingClientRect();
+          const offset = window.scrollY + rect.top - 80;
+          window.scrollTo({ top: offset, behavior: 'smooth' });
+          history.replaceState(null, '', '#' + id);
+        }, 50);
+      });
+    });
+
+    // IntersectionObserver: active highlight
+    const sections = Array.from(tocLinks).map(a => {
+      const id = a.getAttribute('data-toc-target');
+      return document.getElementById(id);
+    }).filter(Boolean);
+    if (!sections.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(a => a.classList.remove('active'));
+          const id = entry.target.id;
+          const active = document.querySelector('aside.toc a[data-toc-target="' + id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => observer.observe(s));
+  })();
+  </script>
+
+
+<script>
+(function() {
+  // ── Nav button click handler (fixes broken nav switching) ──
+  document.querySelectorAll('.nav button[data-tab]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabId = this.getAttribute('data-tab');
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      const target = document.querySelector('.tab-content[data-tab-content="' + tabId + '"]');
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        history.replaceState(null, '', '#' + tabId);
+      }
+    });
+  });
+})();
+
+(function() {
+  // ── Mastery quiz state ──
+  let state = {
+    current: 1,
+    answers: {},     // qid -> {opt, correct: bool|null (skip)}
+    submitted: 0,
+    correct: 0,
+  };
+  const TOTAL = 18;
+  window.quizSelect = function(qid, optIdx) {
+    const card = document.getElementById(qid);
+    if (!card || card.dataset.submitted) return;
+    card.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+    card.querySelector('.quiz-option[data-opt="' + optIdx + '"]').classList.add('selected');
+    card.dataset.selected = optIdx;
+    document.getElementById(qid + '-submit').disabled = false;
+  };
+  window.quizSubmit = function(qid, ansIdx) {
+    const card = document.getElementById(qid);
+    if (!card || card.dataset.submitted) return;
+    const sel = card.dataset.selected;
+    if (sel === undefined) return;
+    const selInt = parseInt(sel, 10);
+    const correct = selInt === ansIdx;
+    card.dataset.submitted = '1';
+    card.querySelectorAll('.quiz-option').forEach(o => {
+      const idx = parseInt(o.getAttribute('data-opt'), 10);
+      if (idx === ansIdx) o.classList.add('correct');
+      else if (idx === selInt && !correct) o.classList.add('wrong');
+    });
+    document.getElementById(qid + '-explain').classList.add('show');
+    document.getElementById(qid + '-submit').style.display = 'none';
+    document.getElementById(qid + '-next').style.display = 'inline-block';
+    state.answers[qid] = {opt: selInt, correct};
+    state.submitted++;
+    if (correct) state.correct++;
+    updateProgress();
+  };
+  window.quizSkip = function(qid) {
+    const card = document.getElementById(qid);
+    if (!card || card.dataset.submitted) return;
+    state.answers[qid] = {opt: null, correct: null};
+    card.dataset.submitted = '1';
+    document.getElementById(qid + '-explain').classList.add('show');
+    document.getElementById(qid + '-submit').style.display = 'none';
+    document.getElementById(qid + '-next').style.display = 'inline-block';
+    state.submitted++;
+    updateProgress();
+  };
+  window.quizNext = function() {
+    if (state.current >= TOTAL) {
+      showResult();
+      return;
+    }
+    document.getElementById('q' + state.current).style.display = 'none';
+    state.current++;
+    document.getElementById('q' + state.current).style.display = 'block';
+    document.getElementById('quizProgress').textContent = 'Question ' + state.current + ' / ' + TOTAL;
+    updateProgress();
+  };
+  function updateProgress() {
+    const pct = Math.round((state.current / TOTAL) * 100);
+    document.getElementById('quizBar').style.width = pct + '%';
+    document.getElementById('quizScoreLive').textContent = 'Score: ' + state.correct + ' / ' + state.submitted + ' attempted';
+  }
+  function showResult() {
+    const score = state.correct;
+    document.getElementById('quizFinalScore').textContent = score + ' / ' + TOTAL;
+    const verdict = document.getElementById('quizVerdict');
+    const blurb = document.getElementById('quizBlurb');
+    if (score >= 14) {
+      verdict.textContent = '🎉 Master';
+      verdict.style.color = 'var(--good)';
+      blurb.textContent = '14/18+ 表明你已经掌握核心 tactical reps。可以跳过 6h 教程,直接做 Patrick 实战路线"立即"项 (整合 12 Mindset Shifts / 校准 claude.md / 复刻 Grill-Me / 建立 sub-agent library)。';
+    } else if (score >= 10) {
+      verdict.textContent = '📚 Working Knowledge';
+      verdict.style.color = 'var(--accent-2)';
+      blurb.textContent = '10-13 表示你知道大部分框架,但有 5-8 个盲点。建议重看错题的章节,再补 Patrick 专项 skill (grilling / single-file-spa / distributed-research-playbook 等)。';
+    } else {
+      verdict.textContent = '🔄 Re-watch Recommended';
+      verdict.style.color = 'var(--warn)';
+      blurb.textContent = '<10 表示还有 8+ 个核心 tactical reps 没掌握。建议完整看 6h 教程 + 配合 Patrick 实战路线"立即"项 一起做,做 1 周后再回来重测。';
+    }
+    // Grid
+    const grid = document.getElementById('quizGrid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= TOTAL; i++) {
+      const qid = 'q' + i;
+      const a = state.answers[qid];
+      const div = document.createElement('div');
+      if (!a) {
+        div.className = '';
+        div.textContent = 'Q' + i + ' · —';
+      } else if (a.correct === true) {
+        div.className = 'correct';
+        div.textContent = 'Q' + i + ' ✓';
+      } else if (a.correct === false) {
+        div.className = 'wrong';
+        div.textContent = 'Q' + i + ' ✗';
+      } else {
+        div.className = 'skipped';
+        div.textContent = 'Q' + i + ' ⤳';
+      }
+      grid.appendChild(div);
+    }
+    document.getElementById('quizResult').classList.add('show');
+    document.getElementById('quizResult').scrollIntoView({behavior: 'smooth', block: 'start'});
+  }
+  window.quizReset = function() {
+    state = {current: 1, answers: {}, submitted: 0, correct: 0};
+    document.querySelectorAll('.quiz-card').forEach((c, i) => {
+      c.style.display = i === 0 ? 'block' : 'none';
+      c.dataset.submitted = '';
+      c.dataset.selected = '';
+      c.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    });
+    document.querySelectorAll('.quiz-explain').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('[id$="-submit"]').forEach(b => { b.style.display = ''; b.disabled = true; });
+    document.querySelectorAll('[id$="-next"]').forEach(b => b.style.display = 'none');
+    document.getElementById('quizResult').classList.remove('show');
+    document.getElementById('quizProgress').textContent = 'Question 1 / ' + TOTAL;
+    document.getElementById('quizScoreLive').textContent = 'Score: 0 / 0 attempted';
+    document.getElementById('quizBar').style.width = '0%';
+    document.getElementById('quizContainer').scrollIntoView({behavior: 'smooth', block: 'start'});
+  };
+})();
+</script>
+
+
+<script>
+(function() {
+  const STORAGE_KEY = 'claude-code-nate-srs-v1';
+  const BOX_INTERVALS = [0, 1, 3, 7, 14, 30]; // Box 0..5, days
+  const QUESTIONS_TOTAL = 18;
+  const QUESTION_CATS = [
+    "Foundations · Harness/Model","Foundations · AI Native","Foundations · 12 Mindset","Foundations · Prompt/Context",
+    "Setup · claude.md","Setup · Permission","Setup · Token Cost",
+    "Skills · Anatomy","Sub-Agents · Decision","Skills · CLI vs MCP",
+    "2nd Brain · 5 Levels","2nd Brain · Grill-Me","2nd Brain · Sub vs Team",
+    "Routines · Local/Cloud","Tokens · Peak","Foundations · Constraint",
+    "Build · Front-end","Deploy · CF Pages"
+  ];
+
+  let srs = loadSRS();
+
+  function loadSRS() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      questions: {},      // q1..q18 -> {box, lastSeen, nextReview, attempts, correct}
+      log: [],            // [{date, type, count, accuracy}]
+      streak: 0,
+      lastSessionDate: null,
+    };
+  }
+  function saveSRS() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(srs)); } catch (e) {}
+  }
+  function todayStr() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
+  function isDue(qid) {
+    const q = srs.questions[qid];
+    if (!q) return true;       // unseen = due
+    if (q.box === 5) return false; // mastered = never due
+    return Date.now() >= (q.nextReview || 0);
+  }
+  function getDueQids() {
+    const out = [];
+    for (let i = 1; i <= QUESTIONS_TOTAL; i++) {
+      if (isDue('q' + i)) out.push('q' + i);
+    }
+    return out;
+  }
+  function updateStreak() {
+    const today = todayStr();
+    if (srs.lastSessionDate === today) return; // already counted
+    if (!srs.lastSessionDate) { srs.streak = 1; }
+    else {
+      const last = new Date(srs.lastSessionDate);
+      const now = new Date(today);
+      const diff = Math.floor((now - last) / 86400000);
+      srs.streak = diff === 1 ? srs.streak + 1 : 1;
+    }
+    srs.lastSessionDate = today;
+  }
+  function recordAnswer(qid, correct) {
+    const now = Date.now();
+    let q = srs.questions[qid] || {box: 0, attempts: 0, correct: 0, lastSeen: 0, nextReview: 0};
+    q.attempts++;
+    if (correct) q.correct++;
+    q.lastSeen = now;
+    q.box = correct ? Math.min(q.box + 1, 5) : 1;
+    const days = BOX_INTERVALS[q.box];
+    q.nextReview = now + days * 86400000;
+    srs.questions[qid] = q;
+    saveSRS();
+  }
+  function renderStats() {
+    const due = getDueQids().length;
+    const mastered = Object.values(srs.questions).filter(q => q.box === 5).length;
+    const learning = Object.values(srs.questions).filter(q => q.box >= 1 && q.box <= 4).length;
+    const seen = Object.keys(srs.questions).length;
+    let totalAttempts = 0, totalCorrect = 0;
+    Object.values(srs.questions).forEach(q => { totalAttempts += q.attempts; totalCorrect += q.correct; });
+    const acc = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) + '%' : '—';
+    document.getElementById('statDue').textContent = due;
+    document.getElementById('statMastered').textContent = mastered;
+    document.getElementById('statLearning').textContent = learning;
+    document.getElementById('statStreak').textContent = srs.streak;
+    document.getElementById('statSeen').textContent = seen + ' / ' + QUESTIONS_TOTAL;
+    document.getElementById('statAcc').textContent = acc;
+  }
+  function renderDueList() {
+    const due = getDueQids();
+    const section = document.getElementById('srsDueSection');
+    if (due.length === 0) {
+      const mastered = Object.values(srs.questions).filter(q => q.box === 5).length;
+      section.innerHTML = '<div class="srs-empty"><div class="emoji">🎉</div>No questions due today! ' + (mastered > 0 ? 'You\'ve mastered ' + mastered + ' / ' + QUESTIONS_TOTAL + ' questions.' : 'Run a session to start tracking.') + '</div>';
+      document.getElementById('srsStartBtn').disabled = true;
+      return;
+    }
+    let html = '<div style="color:var(--text-mute);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;font-weight:600;">Due today (' + due.length + ')</div><div class="srs-due-list">';
+    due.forEach(qid => {
+      const n = qid.slice(1);
+      const cat = QUESTION_CATS[n - 1] || ('Q' + n);
+      const q = srs.questions[qid];
+      const box = q ? q.box : 0;
+      const nextDays = BOX_INTERVALS[box];
+      const next = box === 0 ? 'new' : ('+' + nextDays + 'd after correct');
+      html += '<div class="srs-due-item"><span class="box-badge ' + (box === 5 ? 'box5' : '') + '">Box ' + box + '</span><span class="qtitle">Q' + n + ' · ' + cat + '</span><span class="next">' + next + '</span></div>';
+    });
+    html += '</div>';
+    section.innerHTML = html;
+    document.getElementById('srsStartBtn').disabled = false;
+  }
+  function renderLog() {
+    const logDiv = document.getElementById('srsLog');
+    if (!srs.log || srs.log.length === 0) {
+      logDiv.innerHTML = '<div style="color:var(--text-mute);font-size:11px;">No sessions yet.</div>';
+      return;
+    }
+    logDiv.innerHTML = srs.log.slice(-10).reverse().map(row =>
+      '<div class="srs-log-row"><span>' + row.date + ' · ' + row.type + ' · ' + row.count + ' 答' + (row.accuracy ? ' · ' + row.accuracy + '% 准确' : '') + '</span><span class="date">' + (row.boxChanges || '') + '</span></div>'
+    ).join('');
+  }
+  function renderAll() {
+    renderStats();
+    renderDueList();
+    renderLog();
+  }
+
+  // ── Mode toggle ──
+  let currentMode = 'single';
+  window.setMode = function(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    const singlePanel = document.getElementById('quizContainer');
+    const srsPanel = document.getElementById('srsPanel');
+    if (mode === 'srs') {
+      singlePanel.style.display = 'none';
+      document.getElementById('quizResult').classList.remove('show');
+      srsPanel.style.display = 'block';
+      renderAll();
+    } else {
+      singlePanel.style.display = 'block';
+      srsPanel.style.display = 'none';
+      document.getElementById('srsSessionHost').innerHTML = '';
+    }
+  };
+
+  // ── SRS Session ──
+  let sessionQueue = [];
+  let sessionIdx = 0;
+  let sessionCorrect = 0;
+  let sessionAttempted = 0;
+  let sessionStartBox = null;
+  window.srsStart = function() {
+    const due = getDueQids();
+    if (due.length === 0) return;
+    // Shuffle for variety
+    for (let i = due.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [due[i], due[j]] = [due[j], due[i]];
+    }
+    sessionQueue = due;
+    sessionIdx = 0;
+    sessionCorrect = 0;
+    sessionAttempted = 0;
+    updateStreak();
+    saveSRS();
+    renderSRSQuestion();
+  };
+  function renderSRSQuestion() {
+    const host = document.getElementById('srsSessionHost');
+    if (sessionIdx >= sessionQueue.length) {
+      // Session done
+      const acc = sessionAttempted > 0 ? Math.round((sessionCorrect / sessionAttempted) * 100) : 0;
+      srs.log.push({
+        date: todayStr(),
+        type: 'SRS',
+        count: sessionAttempted,
+        accuracy: acc,
+      });
+      saveSRS();
+      host.innerHTML = '<div class="quiz-result show"><div class="label">SRS Session Complete</div><div class="score">' + sessionCorrect + ' / ' + sessionAttempted + '</div><div class="verdict" style="color:var(--good);">' + acc + '% accuracy</div><div class="blurb">Progress saved to localStorage. Next due questions will appear automatically.</div></div>';
+      renderAll();
+      return;
+    }
+    const qid = sessionQueue[sessionIdx];
+    const n = qid.slice(1);
+    const cat = QUESTION_CATS[n - 1] || 'Q' + n;
+    const q = srs.questions[qid] || {box: 0};
+    const boxNow = q.box;
+    const interval = BOX_INTERVALS[boxNow];
+
+    // Reuse existing quiz cards - clone and reset
+    const orig = document.getElementById(qid);
+    if (!orig) {
+      sessionIdx++;
+      renderSRSQuestion();
+      return;
+    }
+    // Reset state of this card
+    delete orig.dataset.submitted;
+    delete orig.dataset.selected;
+    orig.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected', 'correct', 'wrong'));
+    orig.querySelectorAll('.quiz-explain').forEach(e => e.classList.remove('show'));
+    const submitBtn = document.getElementById(qid + '-submit');
+    const nextBtn = document.getElementById(qid + '-next');
+    if (submitBtn) { submitBtn.style.display = ''; submitBtn.disabled = true; submitBtn.textContent = 'Submit'; }
+    if (nextBtn) { nextBtn.style.display = 'none'; }
+
+    // Wrap with SRS session info
+    host.innerHTML = '<div class="srs-session-info"><span class="due-count">📅 Question ' + (sessionIdx + 1) + ' of ' + sessionQueue.length + '</span><span class="box-now">Box ' + boxNow + ' · next: +' + interval + 'd if correct</span></div>';
+    const card = orig.cloneNode(true);
+    // Re-attach event handlers by re-binding
+    card.querySelectorAll('.quiz-option').forEach(o => {
+      const optIdx = parseInt(o.getAttribute('data-opt'), 10);
+      o.onclick = function() { srsSelectOption(card, qid, optIdx); };
+    });
+    const sub = card.querySelector('[id$="-submit"]');
+    if (sub) sub.onclick = function() { srsSubmitAnswer(qid, boxNow); };
+    const nxt = card.querySelector('[id$="-next"]');
+    if (nxt) nxt.onclick = function() { sessionIdx++; renderSRSQuestion(); };
+    host.appendChild(card);
+    card.style.display = 'block';
+  }
+  window.srsSelectOption = function(card, qid, optIdx) {
+    if (card.dataset.submitted) return;
+    card.querySelectorAll('.quiz-option').forEach(o => o.classList.remove('selected'));
+    card.querySelector('.quiz-option[data-opt="' + optIdx + '"]').classList.add('selected');
+    card.dataset.selected = optIdx;
+    const submitBtn = card.querySelector('[id$="-submit"]');
+    if (submitBtn) submitBtn.disabled = false;
+  };
+  window.srsSubmitAnswer = function(qid, boxBefore) {
+    const host = document.getElementById('srsSessionHost');
+    const card = host.querySelector('.quiz-card');
+    if (!card || card.dataset.submitted) return;
+    const sel = card.dataset.selected;
+    if (sel === undefined) return;
+    const selInt = parseInt(sel, 10);
+    // Get correct answer from existing quiz card (which has the answer baked in)
+    const origCard = document.getElementById(qid);
+    const origSubmitBtn = origCard.querySelector('[id$="-submit"]');
+    const origOnclick = origSubmitBtn.getAttribute('onclick');
+    // Extract ansIdx from "quizSubmit('qN', 3)"
+    const m = origOnclick.match(/quizSubmit\('q\d+',\s*(\d+)/);
+    if (!m) return;
+    const ansIdx = parseInt(m[1], 10);
+    const correct = selInt === ansIdx;
+    card.dataset.submitted = '1';
+    card.querySelectorAll('.quiz-option').forEach(o => {
+      const idx = parseInt(o.getAttribute('data-opt'), 10);
+      if (idx === ansIdx) o.classList.add('correct');
+      else if (idx === selInt && !correct) o.classList.add('wrong');
+    });
+    card.querySelector('.quiz-explain').classList.add('show');
+    const submitBtn = card.querySelector('[id$="-submit"]');
+    const nextBtn = card.querySelector('[id$="-next"]');
+    if (submitBtn) submitBtn.style.display = 'none';
+    if (nextBtn) {
+      nextBtn.style.display = 'inline-block';
+      nextBtn.textContent = (sessionIdx + 1 < sessionQueue.length) ? 'Next →' : '✓ Finish Session';
+    }
+    recordAnswer(qid, correct);
+    sessionAttempted++;
+    if (correct) sessionCorrect++;
+    renderStats();
+  };
+  window.srsReset = function() {
+    if (!confirm('Reset ALL SRS progress? This cannot be undone.')) return;
+    srs = {questions: {}, log: [], streak: 0, lastSessionDate: null};
+    saveSRS();
+    renderAll();
+  };
+  window.srsExport = function() {
+    const lines = ['Question,Box,Attempts,Correct,Accuracy%,LastSeen,NextReview'];
+    for (let i = 1; i <= QUESTIONS_TOTAL; i++) {
+      const qid = 'q' + i;
+      const q = srs.questions[qid];
+      if (q) {
+        const acc = q.attempts > 0 ? Math.round((q.correct / q.attempts) * 100) : 0;
+        lines.push([i, q.box, q.attempts, q.correct, acc, new Date(q.lastSeen).toISOString(), new Date(q.nextReview).toISOString()].join(','));
+      } else {
+        lines.push([i, 0, 0, 0, 0, '', ''].join(','));
+      }
+    }
+    lines.push('', 'Streak,' + srs.streak, 'LastSession,' + (srs.lastSessionDate || ''));
+    const blob = new Blob([lines.join('\n')], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'claude-code-nate-srs-' + todayStr() + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Expose srs for debugging
+  window.__srs = srs;
+  window.__saveSRS = saveSRS;
+})();
+</script>
+
+</body>
+</html>
