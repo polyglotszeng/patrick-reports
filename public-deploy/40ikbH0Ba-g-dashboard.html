@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hermes Agent + Mixture of Agents — David Ondrej 2026-06-29 — Knowledge Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0d0d10; --bg-card:#16161b; --bg-elevated:#1c1c22;
+    --border:#2a2a32; --text:#e8e8ea; --text-dim:#a8a8b2; --text-mute:#6a6a76;
+    --accent:#ff6b35; --accent-2:#f7c59f;
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+    --blue:#60a5fa; --purple:#a78bfa; --gray:#9ca3af;
+    --tier-must:#f87171; --tier-watch:#fb923c; --tier-know:#facc15; --tier-skip:#60a5fa;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;line-height:1.55;font-size:14px;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  h1{font-size:1.8rem;margin:0 0 0.4rem;color:var(--accent);letter-spacing:-0.01em;}
+  h2.section{font-size:1.25rem;margin:1.4rem 0 0.8rem;color:var(--accent-2);border-bottom:1px solid var(--border);padding-bottom:0.4rem;}
+  h3{font-size:1.05rem;margin:1.1rem 0 0.5rem;color:var(--text);}
+  h4{font-size:0.95rem;margin:0 0 0.5rem;color:var(--accent);}
+  p{margin:0.5rem 0;}
+  .subtitle{color:var(--text-dim);font-size:0.95rem;margin-top:0;}
+  .meta-bar{display:flex;flex-wrap:wrap;gap:0.6rem;margin:1rem 0 0;font-size:0.85rem;}
+  .meta-bar span{background:var(--bg-card);padding:0.35rem 0.7rem;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);}
+
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:0;max-width:1400px;margin:0 auto;transition:grid-template-columns 0.3s ease;}
+  .toc{background:var(--bg-card);border-right:1px solid var(--border);padding:1rem;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;}
+  .toc h3{margin-top:0;font-size:0.9rem;color:var(--accent);text-transform:uppercase;letter-spacing:0.05em;}
+  .toc ul{list-style:none;padding:0;margin:0;}
+  .toc li{margin:0.25rem 0;}
+  .toc a{color:var(--text-dim);font-size:0.85rem;display:block;padding:0.3rem 0.5rem;border-radius:4px;}
+  .toc a:hover{background:var(--bg-elevated);color:var(--accent);text-decoration:none;}
+  .toc a.active{background:var(--bg-elevated);color:var(--accent);}
+  .main{padding:1.2rem 1.6rem;}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;}.toc{display:none;}}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;margin:1rem 0;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.9rem;}
+  .stat-card .label{color:var(--text-dim);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;}
+  .stat-card .value{font-size:1.6rem;font-weight:600;color:var(--accent);margin:0.2rem 0;}
+  .stat-card .sub{font-size:0.78rem;color:var(--text-mute);}
+
+  .tab-bar{display:flex;flex-wrap:wrap;gap:0.3rem;margin:1rem 0 0.5rem;}
+  .tab-btn{background:var(--bg-card);color:var(--text-dim);border:1px solid var(--border);padding:0.45rem 0.9rem;border-radius:6px;cursor:pointer;font-size:0.82rem;transition:all 0.15s;}
+  .tab-btn:hover{background:var(--bg-elevated);color:var(--text);}
+  .tab-btn.active{background:var(--accent);color:#0d0d10;border-color:var(--accent);font-weight:600;}
+
+  .tab-content{display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin-top:0.6rem;}
+  .tab-content.active{display:block;}
+
+  .quote-block{background:var(--bg-elevated);border-left:3px solid var(--accent);padding:0.7rem 1rem;margin:0.7rem 0;border-radius:0 6px 6px 0;font-style:italic;}
+  .quote-block .speaker{display:block;margin-top:0.4rem;font-style:normal;color:var(--text-dim);font-size:0.85rem;}
+
+  .ascii-diagram{background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;padding:1rem;margin:0.8rem 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.82rem;line-height:1.45;white-space:pre;overflow-x:auto;color:var(--text-dim);}
+
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;margin:0.6rem 0;}
+  .card.tier-must{border-left:4px solid var(--tier-must);}
+  .card.tier-watch{border-left:4px solid var(--tier-watch);}
+  .card.tier-know{border-left:4px solid var(--tier-know);}
+  .card.tier-skip{border-left:4px solid var(--tier-skip);}
+  .card .tier-tag{font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:3px;background:var(--bg-elevated);color:var(--text-mute);text-transform:uppercase;letter-spacing:0.05em;margin-right:0.5rem;}
+
+  table{width:100%;border-collapse:collapse;margin:0.7rem 0;font-size:0.85rem;}
+  th{text-align:left;background:var(--bg-elevated);color:var(--accent-2);padding:0.5rem;border:1px solid var(--border);}
+  td{padding:0.5rem;border:1px solid var(--border);color:var(--text-dim);}
+
+  .badge{display:inline-block;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:3px;margin-right:0.3rem;}
+  .badge-warn{background:#7a4a14;color:#ffd8a8;}
+  .badge-good{background:#1a4a2a;color:#a8e6b8;}
+  .badge-info{background:#1a3a4a;color:#a8d6e6;}
+
+  .footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--text-mute);font-size:0.78rem;}
+
+  /* Segment list */
+  .seg-list{list-style:none;padding:0;margin:0.5rem 0;}
+  .seg-list li{padding:0.4rem 0.6rem;border-bottom:1px solid var(--border);display:grid;grid-template-columns:90px 1fr;gap:0.6rem;align-items:start;}
+  .seg-list .ts{color:var(--accent);font-family:ui-monospace,SFMono-Regular,monospace;font-size:0.82rem;cursor:pointer;}
+  .seg-list .ts:hover{text-decoration:underline;}
+  .seg-list .txt{color:var(--text-dim);font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="toc" id="toc">
+    <h3>📑 Table of Contents</h3>
+    <ul>
+      <li><a href="#t-hero" class="toc-link active" data-target="t-hero">⚡ 概览 (Hero)</a></li>
+      <li><a href="#t-c1" class="toc-link" data-target="t-c1">🧪 MOA 核心</a></li>
+      <li><a href="#t-c2" class="toc-link" data-target="t-c2">🛠️ VPS + cmux</a></li>
+      <li><a href="#t-c3" class="toc-link" data-target="t-c3">🧠 Skills 体系</a></li>
+      <li><a href="#t-c4" class="toc-link" data-target="t-c4">🔀 Router / Gateway</a></li>
+      <li><a href="#t-c5" class="toc-link" data-target="t-c5">🤖 Model 选型</a></li>
+      <li><a href="#t-c6" class="toc-link" data-target="t-c6">💰 Token Economics</a></li>
+      <li><a href="#t-c7" class="toc-link" data-target="t-c7">🎛️ 温度 / Presets</a></li>
+      <li><a href="#t-c8" class="toc-link" data-target="t-c8">🐛 部署实战</a></li>
+      <li><a href="#t-quotes" class="toc-link" data-target="t-quotes">💬 金句 (12 EN+CN)</a></li>
+      <li><a href="#t-patrick" class="toc-link" data-target="t-patrick">🧰 Patrick 关联</a></li>
+      <li><a href="#t-counter" class="toc-link" data-target="t-counter">⚠️ 反方 / 局限</a></li>
+      <li><a href="#t-windows" class="toc-link" data-target="t-windows">📊 12 窗口分段</a></li>
+      <li><a href="#t-meta" class="toc-link" data-target="t-meta">📈 数据快照</a></li>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <header>
+      <h1>Hermes Agent + Mixture of Agents — David Ondrej 演示</h1>
+      <p class="subtitle">2026-06-29 · 36:01 · 22,358 views · Sponsored by Hostinger (DAVID10) · red_flag_score=0</p>
+      <div class="meta-bar">
+        <span>📺 David Ondrej (399K subs)</span>
+        <span>🏷️ industry-tutorial</span>
+        <span>🔓 NO Pitfall 24</span>
+        <span>🎯 Patrick-onboarding: HIGH</span>
+        <span>📂 vault: hermes-agent-mixture-of-agents-davidondrej-2026-06-29</span>
+        <span>🤖 self-hosted Hermes Agent + MOA + skills</span>
+      </div>
+    </header>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Duration</div><div class="value">36:01</div><div class="sub">2161s</div></div>
+      <div class="stat-card"><div class="label">Views</div><div class="value">22,358</div><div class="sub">as of 2026-06-30</div></div>
+      <div class="stat-card"><div class="label">MOA Models</div><div class="value">4</div><div class="sub">+ 1 aggregator</div></div>
+      <div class="stat-card"><div class="label">Cost</div><div class="value">$20/月</div><div class="sub">Hostinger KVM2</div></div>
+      <div class="stat-card"><div class="label">Patrick Cards</div><div class="value">17</div><div class="sub">8 Tier-1 + 5 Tier-2 + 4 Tier-3</div></div>
+      <div class="stat-card"><div class="label">Windows</div><div class="value">12</div><div class="sub">~3min each</div></div>
+    </div>
+
+    <div class="tab-bar" id="tab-bar">
+      <button class="tab-btn active" data-tab="t-hero">⚡ 概览</button>
+      <button class="tab-btn" data-tab="t-c1">🧪 MOA 核心</button>
+      <button class="tab-btn" data-tab="t-c2">🛠️ VPS+cmux</button>
+      <button class="tab-btn" data-tab="t-c3">🧠 Skills</button>
+      <button class="tab-btn" data-tab="t-c4">🔀 Router</button>
+      <button class="tab-btn" data-tab="t-c5">🤖 Models</button>
+      <button class="tab-btn" data-tab="t-c6">💰 Token</button>
+      <button class="tab-btn" data-tab="t-c7">🎛️ Presets</button>
+      <button class="tab-btn" data-tab="t-c8">🐛 Deploy</button>
+      <button class="tab-btn" data-tab="t-quotes">💬 金句</button>
+      <button class="tab-btn" data-tab="t-patrick">🧰 Patrick</button>
+      <button class="tab-btn" data-tab="t-counter">⚠️ 反方</button>
+      <button class="tab-btn" data-tab="t-windows">📊 Windows</button>
+      <button class="tab-btn" data-tab="t-meta">📈 Data</button>
+    </div>
+
+    <!-- Tab: 概览 -->
+    <div class="tab-content active" id="t-hero" data-tab="t-hero">
+      <h2 class="section">⚡ 核心摘要 (TL;DR)</h2>
+      <p>David Ondrej 在 36 分钟里演示 <strong>Hermes Agent + Mixture of Agents (MOA)</strong> — Nous Research 的 open-source agent framework 新功能: 多 model 并行投票 + 一个 aggregator model 综合, 输出 1 个最终 answer。配 <strong>OpenRouter / Vercel Gateway</strong> 接 15-20 个模型, 用户订阅 (ChatGPT Pro) 自动 pass-through → 简单问题免费, 难任务才付费。整套 <strong>$20/月 Hostinger KVM2 VPS + cmux 终端分屏 + skills repo (davidra.com/skills, GitHub Actions 每天 auto-sync)</strong>。</p>
+
+      <h3>MOA 流程图</h3>
+      <div class="ascii-diagram">┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│  GPT 5.5     │   │  Kimi K2.7   │   │  GLM 5.2     │   │  Opus 4.8    │
+│  (4 model    │   │  (并行       │   │  (并行       │   │  (并行       │
+│   投票)      │   │   提交)      │   │   提交)      │   │   提交)      │
+└──────┬───────┘   └──────┬───────┘   └──────┬───────┘   └──────┬───────┘
+       │                  │                  │                  │
+       └─────────┬────────┴────────┬─────────┴────────┬─────────┘
+                 │                 │                  │
+                 ▼                 ▼                  ▼
+            ┌────────────────────────────────────────────────┐
+            │   Aggregator (default = 最强 model, Opus 4.8)  │
+            │   综合所有 model 答案 → 输出 1 个 final answer │
+            └────────────────────────────────────────────────┘
+                                  │
+                                  ▼
+                         ┌────────────────┐
+                         │  Final Answer  │
+                         └────────────────┘</div>
+
+      <h3>5 句 TL;DR</h3>
+      <ol>
+        <li><strong>MOA = 多 model 并行投票 + aggregator</strong> = 任何人都能跑 frontier-level 智能, 不需要 Opus 4.8 / GPT 5.6 顶级订阅。</li>
+        <li><strong>Hermes Agent 真正 killer feature = Router + skills</strong>, 不是 chat — OpenRouter 15-20 provider 一 key 接, 订阅 pass-through 简单问题免费。</li>
+        <li><strong>Skills repo + GitHub Actions auto-sync</strong> 是 long-term moat (David 把 davidra.com/skills 每天 auto-sync 自己的 Hermes install)。</li>
+        <li><strong>Self-hosting 哲学</strong> = Hostinger KVM2 ($20/月) + cmux + Hermes + OpenRouter = 可替换开放栈, 反 vendor lock-in。</li>
+        <li><strong>对 Patrick 高度相关</strong>: 这就是 Patrick 当前在用的 Hermes Agent 实战 onboarding 教材, MOA preset / Router / Skills 三件套 1:1 对应 Patrick 的 `hermes-migration` / `hybrid-llm-router` / `hermes-knowledge-capture` skill。</li>
+      </ol>
+    </div>
+
+    <!-- Tab: MOA 核心 -->
+    <div class="tab-content" id="t-c1" data-tab="t-c1">
+      <h2 class="section">🧪 Mixture of Agents 核心机制</h2>
+      <p>MOA = Karpathy 2024 paper 的开源实现, Nous Research 集成到 Hermes Agent。机制 = <strong>多独立 model 各自 submit response, 一个 aggregator model 综合</strong>。不是 MoE (单 model 内部多 experts)。</p>
+
+      <h3>David 4 大澄清</h3>
+      <ol>
+        <li><strong>MOA ≠ MoE</strong>: MoE 是 inference 优化 (单模型内部多 experts), MOA 是 orchestration (多独立 model)。</li>
+        <li><strong>Aggregator = 最强 model</strong>: 默认 = Claude Opus 4.8 / GPT 5.5 (前沿最贵最准), 但可配。</li>
+        <li><strong>Token 多但质量高</strong>: 比单 model 多 4-5 倍 token, 但 "universe diversity" 让 aggregator 比单 model 更 robust。</li>
+        <li><strong>故障自动 fallback</strong>: 4 个 sub-model 中 1 个 error (David 演示 GPT 5.5 第一轮 error), aggregator 仍能从其他 3 个 + 自身知识综合。</li>
+      </ol>
+
+      <div class="quote-block">
+        "Hermes agent just released Mixture of Agents, this is a new feature that allows us to get frontier level results even without having access to Claude Opus 4.8 or GPT-5.6."
+        <span class="speaker">— David Ondrej [0:00:00]</span>
+      </div>
+
+      <div class="quote-block">
+        "magic actually defeats models — publicly GPT 5.5 and Opus 4.8 currently are top available to us. We know better than these."
+        <span class="speaker">— David Ondrej [0:00:33]</span>
+      </div>
+
+      <div class="quote-block">
+        "MoE (Mixture of Experts) is single-model internal architecture, math/physics/coding different experts, only part of parameters active — that's inference optimization. MOA is multiple independent models each submit, aggregator combines — completely orchestration. Don't confuse them."
+        <span class="speaker">— David Ondrej [0:03:02]</span>
+      </div>
+    </div>
+
+    <!-- Tab: VPS + cmux -->
+    <div class="tab-content" id="t-c2" data-tab="t-c2">
+      <h2 class="section">🛠️ Hostinger VPS + cmux 终端分屏</h2>
+      <p>David 用 Hostinger KVM2 ($20/月, 24-month 8 折) 作为 Hermes 24/7 worker, <code>DAVID10</code> 再 10% off。配上 <strong>cmux</strong> (免费 macOS native terminal multiplexer) 做多 pane 分屏, 替代 iTerm2 + tmux。</p>
+
+      <h3>5 步 VPS setup</h3>
+      <ol>
+        <li><strong>Hostinger Panel</strong> → 选 KVM2 plan (Ubuntu 24 LTS, 4GB RAM, 50GB SSD) → 24-month discount → checkout。</li>
+        <li><strong>拿 root SSH</strong> → `ssh root@&lt;VPS_IP&gt;` → 进 Ubuntu。</li>
+        <li><strong>装 cmux</strong> → macOS 上 `brew install cmux` (David 的 default multiplexor)。</li>
+        <li><strong>cmux panes</strong> → 一个窗口多 panel: pane 1 = VPS ssh, pane 2 = Hermes CLI, pane 3 = local dev, pane 4 = logs。</li>
+        <li><strong>跑 Hermes</strong> → `hermes install` + `hermes config` → 5 分钟完成。</li>
+      </ol>
+
+      <div class="quote-block">
+        "VPS setup is not that scary. cmux is a free macOS native terminal multiplexer, one window with multiple panels — SSH + droid + PI all in one plan period."
+        <span class="speaker">— David Ondrej [0:06:02]</span>
+      </div>
+
+      <div class="quote-block">
+        "agents on VPS, act upon automations, jobs, workflows, anything autonomously turned off."
+        <span class="speaker">— David Ondrej [0:04:28]</span>
+      </div>
+
+      <h3>Patrick 视角</h3>
+      <div class="card tier-must">
+        <span class="tier-tag">🔴 MUST</span>
+        <strong>Hostinger KVM2 ($20/月) 作为 24/7 cron worker</strong> — 把 Patrick 的 `audit` skill + 其他 cron watchdog 从 Mac 本地迁到 VPS, 解决 Mac 睡眠唤醒问题。`hermes-migration` skill 已有相关 SOP, 可直接落地。
+      </div>
+    </div>
+
+    <!-- Tab: Skills 体系 -->
+    <div class="tab-content" id="t-c3" data-tab="t-c3">
+      <h2 class="section">🧠 Hermes Skills 体系</h2>
+      <p>Hermes skills = <strong>prompt template + 路由配置 + preset 三件套</strong>, 跟 Patrick 当前的 `~/.hermes/skills/` 体系 1:1 对应。David 的核心 deliverable 是 <strong>davidra.com/skills</strong>, GitHub Actions 每天 auto-sync 最新 skills 到他的 Hermes install。</p>
+
+      <h3>Skill 三件套 (David 演示)</h3>
+      <ol>
+        <li><strong>Goal-driven framing</strong>: "describe intent, what are you doing, what is your goal" — 不是 "task", 是 "broader achieve"。</li>
+        <li><strong>Custom CL</strong> (custom command line): 比 SL (system) 更短, 用于重复任务 (类似 Patrick 的 cron prompts)。</li>
+        <li><strong>Temperature presets</strong>: code review = 0.4 (低, predictable), brainstorm = 0.9 (高, creative), default = 0.6。</li>
+      </ol>
+
+      <h3>David 的 4 大 reference skills</h3>
+      <ul>
+        <li><strong>GLM 5.2</strong>: 通过 Vercel Gateway 路由, low latency。</li>
+        <li><strong>GPT 5.5</strong>: 通过 OpenRouter, 中等 cost, 高 quality。</li>
+        <li><strong>Kimi Code</strong>: 代码任务专用, "code domain" 训练 data 强。</li>
+        <li><strong>Opus 4.8</strong>: 终极 fallback, 前沿最强, 最贵。</li>
+      </ul>
+
+      <div class="quote-block">
+        "Hermes skills system is elegant. davidra.com/skills + GitHub Actions every day auto-sync to my Hermes install. 4 reference skills: GLM 5.2 / GPT 5.5 / Kimi Code / Opus 4.8."
+        <span class="speaker">— David Ondrej [0:12:08]</span>
+      </div>
+
+      <h3>Patrick 视角</h3>
+      <div class="card tier-must">
+        <span class="tier-tag">🔴 MUST</span>
+        <strong>把 Patrick 关键 skills 发布到 GitHub public repo + GitHub Actions auto-sync</strong> — 仿 davidra.com/skills 模式。Patrick 已有 `2026-06-12-borrow-external-skills-sop.md`, 关键 skills 包括 5-orchestrator / hermes-knowledge-capture / hybrid-llm-router, 跟 `hermes-knowledge-capture` skill 完全对标。
+      </div>
+    </div>
+
+    <!-- Tab: Router / Gateway -->
+    <div class="tab-content" id="t-c4" data-tab="t-c4">
+      <h2 class="section">🔀 Router / Gateway 体系</h2>
+      <p>Hermes 的 Router 是真正 killer feature, 不是 chat client — 是 <strong>cost gate + orchestration hub</strong>。David 强调 2 个 gateway:</p>
+      <ul>
+        <li><strong>OpenRouter</strong> ([openrouter.ai](https://openrouter.ai)): 15-20 provider, "$5-300/月" tier, "least active time" 自动路由, <strong>subscription pass-through</strong> = 检测用户已有 ChatGPT Pro token, 简单问题走订阅零额外成本。</li>
+        <li><strong>Vercel Gateway</strong> ([vercel.com](https://vercel.com)): "Vercel gateway classic", 价格 couple dollars, <strong>GLM 5.2 routing 性能最佳</strong>, Vercel 自家 endpoint (200 tokens/s, 稳定)。</li>
+      </ul>
+
+      <h3>Router 双 tier 决策</h3>
+      <table>
+        <tr><th>类型</th><th>例子</th><th>路由</th><th>成本</th></tr>
+        <tr><td>简单 question</td><td>营养 / 常识 / 闲聊</td><td>Router + 用户订阅</td><td><span class="badge badge-good">免费</span></td></tr>
+        <tr><td>难任务</td><td>Debug / Review / Planning / Security hardening</td><td>MOA + Opus aggregator</td><td><span class="badge badge-warn">付费</span></td></tr>
+      </table>
+
+      <div class="quote-block">
+        "subscriptions, whether ChatGPT Pro, run at no cost through the Router. Simple questions completely free. Hard stuff — debugging, review, planning, codebase, security hardening — that's where you don't want to be spending money on answers."
+        <span class="speaker">— David Ondrej [0:02:09]</span>
+      </div>
+
+      <div class="quote-block">
+        "OpenRouter one key 15-20 providers, monthly $5-300, Vercel Gateway couple dollars. Compared to Anthropic save 90%, I mostly use GLM / Kimi."
+        <span class="speaker">— David Ondrej [0:09:06]</span>
+      </div>
+
+      <h3>Patrick 视角</h3>
+      <div class="card tier-must">
+        <span class="tier-tag">🔴 MUST</span>
+        <strong>Vercel Gateway GLM 5.2 routing 测试</strong> — 接 `local-llm-integration-hermes` skill, 验证 Vercel GLM 5.2 作 `apple-silicon-llama-server` 云端 fallback 的延迟 / 成本。Patrick 已有 `hybrid-llm-router` skill, 但没用 Vercel Gateway 路由 GLM。
+      </div>
+    </div>
+
+    <!-- Tab: Model 选型 -->
+    <div class="tab-content" id="t-c5" data-tab="t-c5">
+      <h2 class="section">🤖 Model 选型 — 4 大主力 + Aggregator</h2>
+      <p>David 的 4 模型 MOA 投票 + 1 个 aggregator 阵容:</p>
+      <table>
+        <tr><th>角色</th><th>Model</th><th>Provider</th><th>Cost</th><th>用途</th></tr>
+        <tr><td>Sub-model 1</td><td>GPT 5.5</td><td>OpenRouter</td><td>中</td><td>通用 reasoning</td></tr>
+        <tr><td>Sub-model 2</td><td>Kimi K2.7</td><td>Vercel / OpenRouter</td><td>低</td><td>代码 + 长 context</td></tr>
+        <tr><td>Sub-model 3</td><td>GLM 5.2</td><td>Vercel Gateway (推荐)</td><td>低</td><td>中文 + routing</td></tr>
+        <tr><td>Sub-model 4</td><td>Gemini 3 Pro</td><td>OpenRouter</td><td>中</td><td>多模态</td></tr>
+        <tr><td>Aggregator</td><td>Opus 4.8 (default)</td><td>Anthropic / OpenRouter</td><td>高</td><td>综合 + final answer</td></tr>
+      </table>
+
+      <h3>David 演示的 204 GB dataset 实测</h3>
+      <ol>
+        <li><strong>第一轮</strong>: GPT 5.5 → error (timeout)。</li>
+        <li><strong>第二轮</strong>: Kimi K2.7 → non-fatal warning (flag = 跳过)。</li>
+        <li><strong>第三轮</strong>: GLM 5.2 → beauty, 成功。</li>
+        <li><strong>Aggregator</strong>: Opus 4.8 综合 3 轮 output → 输出最终 answer。</li>
+      </ol>
+
+      <div class="quote-block">
+        "universe diversity, deeper thinking, basically something practical the output end human shouldn't be able to."
+        <span class="speaker">— David Ondrej [0:19:26]</span>
+      </div>
+    </div>
+
+    <!-- Tab: Token Economics -->
+    <div class="tab-content" id="t-c6" data-tab="t-c6">
+      <h2 class="section">💰 Token Economics — Self-hosting 哲学</h2>
+      <p>David 的核心论断: <strong>"AI companies printing enterprise profits, agent + gateway + skill repo 三层可替换"</strong>。Open weights (Kimi / GLM 5.3 weights spin 10 GPU B300s) 用户可 host 在 Europe / Australia / USA / Brazil, "anywhere GPUs allocating resources at affordable cost"。</p>
+
+      <h3>成本对比 (David 演示)</h3>
+      <table>
+        <tr><th>Setup</th><th>月费</th><th>适用场景</th></tr>
+        <tr><td>Claude Code / Codex / Pi 单订阅</td><td>$200-2000/月</td><td>vendor lock-in, 单模型</td></tr>
+        <tr><td>Hermes + Hostinger KVM2 + OpenRouter</td><td><span class="badge badge-good">$20-50/月</span></td><td>self-hosting, 多模型, skills</td></tr>
+        <tr><td>Hermes + Vercel Gateway (GLM 5.2)</td><td>$30-80/月</td><td>中文 / routing optimized</td></tr>
+        <tr><td>MOA 4-model (4x token cost)</td><td>$80-300/月</td><td>难任务, "deeper thinking"</td></tr>
+      </table>
+
+      <div class="quote-block">
+        "Deep Miniax cheaper Anthropic 90% usage. AI companies printing enterprise profits."
+        <span class="speaker">— David Ondrej [0:27:14]</span>
+      </div>
+
+      <div class="quote-block">
+        "self-hosting + multi-open-source-model fallback is the long-term answer. Anthropic won't give you access forever."
+        <span class="speaker">— David Ondrej [0:27:42]</span>
+      </div>
+
+      <h3>Patrick 视角</h3>
+      <div class="card tier-watch">
+        <span class="tier-tag">🟡 WATCH</span>
+        <strong>OpenRouter subscription pass-through 政策可能变</strong> — David 说"subscriptions run at no cost through the Router", 但 OpenRouter 2026 Q1 砍过 ChatGPT Pro 部分 pass-through, 政策一直在变。Patrick 不能假设"free", 实际部署前要跑 `hybrid-llm-routing-framework` cost calculator 验证。
+      </div>
+    </div>
+
+    <!-- Tab: Presets -->
+    <div class="tab-content" id="t-c7" data-tab="t-c7">
+      <h2 class="section">🎛️ 温度 / Presets</h2>
+      <p>Hermes 温度 preset 跟传统 LLM 调用一样, 但 David 演示了 3 个 distinct use case:</p>
+      <table>
+        <tr><th>Preset</th><th>温度</th><th>Use case</th><th>David 评价</th></tr>
+        <tr><td>code review</td><td><span class="badge badge-info">0.4</span></td><td>PR review, security hardening</td><td>"可预测, 不会乱说话"</td></tr>
+        <tr><td>default</td><td><span class="badge badge-info">0.6</span></td><td>日常 chat, 写代码</td><td>"balance"</td></tr>
+        <tr><td>brainstorm</td><td><span class="badge badge-warn">0.9</span></td><td>creative writing, ideation</td><td>"high creativity, 但可能 hallucinate"</td></tr>
+      </table>
+
+      <div class="quote-block">
+        "temperature 0.2 predictable (code review), 0.6 default, 0.9 creative (brainstorm)."
+        <span class="speaker">— David Ondrej [0:15:21]</span>
+      </div>
+
+      <h3>Patrick 视角</h3>
+      <div class="card tier-know">
+        <span class="tier-tag">🟢 KNOW</span>
+        <strong>MOA 4-model benchmark 验证</strong> — 用 `evaluating-llms-harness` 跑 GPT 5.5 + Kimi K2.7 + GLM 5.2 + Opus 4.8 aggregator vs single Opus 4.8, 50 题 MMLU + 20 题 HumanEval 验证 David "deeper thinking" 的 claim。
+      </div>
+    </div>
+
+    <!-- Tab: 部署 -->
+    <div class="tab-content" id="t-c8" data-tab="t-c8">
+      <h2 class="section">🐛 部署实战 — Flappy Bird 演示</h2>
+      <p>David 最后 8 分钟演示 <strong>Hermes agentic workflow</strong>: 对 Hermes 说 "deploy a Flappy Bird game", 5 分钟做出能玩版本, 部署到 public URL。</p>
+
+      <h3>5 步 agentic workflow</h3>
+      <ol>
+        <li><strong>意图理解</strong>: Hermes parse "Flappy Bird" → game type + feature list。</li>
+        <li><strong>代码生成</strong>: 多 sub-model 投票 (Kimi Code 主导) → HTML/JS/canvas 完整代码。</li>
+        <li><strong>本地测试</strong>: Hermes 自动 open browser + 模拟点击 + 检查 game over logic。</li>
+        <li><strong>错误修复</strong>: GLM 5.2 检测 collision bug, Kimi 修复 → 重测。</li>
+        <li><strong>部署</strong>: Vercel CLI 一键 deploy → public URL → "live website"。</li>
+      </ol>
+
+      <div class="quote-block">
+        "tell Hermes 'deploy a Flappy Bird', 5 minutes make a playable version, agentic workflow really reached the level of shippable."
+        <span class="speaker">— David Ondrej [0:30:44]</span>
+      </div>
+    </div>
+
+    <!-- Tab: 金句 -->
+    <div class="tab-content" id="t-quotes" data-tab="t-quotes">
+      <h2 class="section">💬 金句 (12 EN+CN)</h2>
+      <ol>
+        <li><div class="quote-block">"Hermes agent just released Mixture of Agents, this is a new feature that allows us to get frontier level results even without having access to Claude Opus 4.8 or GPT-5.6."<span class="speaker">— David Ondrej [0:00:00]</span></div></li>
+        <li><div class="quote-block">"magic actually defeats models — publicly GPT 5.5 and Opus 4.8 currently are top available to us. We know better than these."<span class="speaker">— David Ondrej [0:00:33]</span></div></li>
+        <li><div class="quote-block">"subscriptions, whether ChatGPT Pro, run at no cost through the Router. Simple questions free. Hard stuff: debugging, review, planning, codebase, security hardening — that's where you don't want to be spending money on answers."<span class="speaker">— David Ondrej [0:02:09]</span></div></li>
+        <li><div class="quote-block">"MoE is single-model internal architecture, math/physics/coding different experts, only part of parameters active — that's inference optimization. MOA is multiple independent models each submit, aggregator combines — completely orchestration."<span class="speaker">— David Ondrej [0:03:02]</span></div></li>
+        <li><div class="quote-block">"agents on VPS, act upon automations, jobs, workflows, anything autonomously turned off."<span class="speaker">— David Ondrej [0:04:28]</span></div></li>
+        <li><div class="quote-block">"VPS setup is not that scary. cmux is a free macOS native terminal multiplexer, one window with multiple panels — SSH + droid + PI all in one plan period."<span class="speaker">— David Ondrej [0:06:02]</span></div></li>
+        <li><div class="quote-block">"OpenRouter one key 15-20 providers, monthly $5-300, Vercel Gateway couple dollars. Compared to Anthropic save 90%, I mostly use GLM / Kimi."<span class="speaker">— David Ondrej [0:09:06]</span></div></li>
+        <li><div class="quote-block">"OpenRouter auto-detects your existing ChatGPT Pro subscription token, directly route through subscription, zero extra cost. Simple questions completely free."<span class="speaker">— David Ondrej [0:09:36]</span></div></li>
+        <li><div class="quote-block">"Hermes skills system is elegant. davidra.com/skills + GitHub Actions every day auto-sync to my Hermes install. 4 reference skills: GLM 5.2 / GPT 5.5 / Kimi Code / Opus 4.8."<span class="speaker">— David Ondrej [0:12:08]</span></div></li>
+        <li><div class="quote-block">"temperature 0.2 predictable (code review), 0.6 default, 0.9 creative (brainstorm)."<span class="speaker">— David Ondrej [0:15:21]</span></div></li>
+        <li><div class="quote-block">"Opus 4.8 + GPT 5.5 + Kimi K2 + GLM 4.6 four models into MOA, aggregator 比单模型 deeper thinking."<span class="speaker">— David Ondrej [0:18:36]</span></div></li>
+        <li><div class="quote-block">"universe diversity, deeper thinking, basically something practical the output end human shouldn't be able to."<span class="speaker">— David Ondrej [0:19:26]</span></div></li>
+      </ol>
+    </div>
+
+    <!-- Tab: Patrick 关联 -->
+    <div class="tab-content" id="t-patrick" data-tab="t-patrick">
+      <h2 class="section">🧰 Patrick 关联 (17 cards: 8 Tier-1 + 5 Tier-2 + 4 Tier-3)</h2>
+
+      <h3>Tier 1 (MUST — 直接锚定 Patrick 现有能力)</h3>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>hermes-agent</strong> — David 演示的 Hermes Agent = Patrick 当前用的 Hermes Agent (Nous Research)。视频本身就是 Patrick 当前 CLI capability surface 的最佳外部 onboarding 教材。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>hermes-migration</strong> — Mixture of Agents 是 Hermes 2026-06 新功能, Patrick 应该启用 MOA preset (opus 4.8 aggregator + 4 sub-models)。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>hermes-knowledge-capture</strong> — David 的 `davidra.com/skills` + GitHub Actions auto-sync 跟 Patrick `~/.hermes/skills/` + hermes-knowledge-capture skill 完全对标。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>hermes-telos-consult</strong> — David 演示的 "goal-driven framing" (describe intent, what are you doing, what is your goal) = Patrick hermes-telos-consult skill 的 telos-first methodology 实战版。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>hybrid-llm-router</strong> — OpenRouter 15-20 provider + Vercel Gateway = Patrick hybrid-llm-router skill 的实战参考, Router 决策 (简单走订阅 / 难走 MOA) 直接可移植。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>evaluating-llms-harness</strong> — David 演示的 204 GB dataset 测试缺公开 benchmark。Patrick 已有 evaluating-llms-harness skill (MMLU + HumanEval), 可直接跑 MOA 4-model vs single Opus 验证。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>local-llm-integration-hermes</strong> — Vercel Gateway GLM 5.2 routing = Patrick local-llm-integration-hermes skill 的云端 fallback 候选, 比本地 llama.cpp 慢但稳定。</div>
+      <div class="card tier-must"><span class="tier-tag">🔴 T1</span><strong>apple-silicon-llama-server</strong> — David "MiniMax cheaper Anthropic 90% usage" 哲学 = Patrick 本地 llama.cpp + Hermes 配置哲学, 视频给出云端 fallback 方案。</div>
+
+      <h3>Tier 2 (WATCH — 应做实验)</h3>
+      <div class="card tier-watch"><span class="tier-tag">🟡 T2</span><strong>five-orchestrator</strong> — Patrick 的 5 AI tools orchestrator, 应该接上 MOA preset 启用 hybrid 模式 (单 model 简单题 + 4-model MOA 难题)。</div>
+      <div class="card tier-watch"><span class="tier-tag">🟡 T2</span><strong>audit (cron watchdog)</strong> — David 演示 Hostinger $20/月 跑 24/7 Hermes worker, Patrick 的 `audit` skill + 其他 cron watchdog 应该迁到 VPS (解决 Mac 睡眠唤醒问题)。</div>
+      <div class="card tier-watch"><span class="tier-tag">🟡 T2</span><strong>local-static-preview-server</strong> — cmux 是 David default terminal multiplexer, Patrick 应该试装 cmux, 看是否比 iTerm2 panes 更适合 Hermes session。</div>
+      <div class="card tier-watch"><span class="tier-tag">🟡 T2</span><strong>hermes-publish-cron</strong> — David 演示 agentic workflow 部署 public website, Patrick hermes-publish-cron 路径可以参考 "Hermes 自动 deploy Vercel" 模式。</div>
+      <div class="card tier-watch"><span class="tier-tag">🟡 T2</span><strong>five-orchestrator (extended)</strong> — David 4-model MOA + Opus aggregator 投票 = 5-orchestrator 的多 model fallback 实战参考, 应该接入 hybrid-llm-router skill。</div>
+
+      <h3>Tier 3 (KNOW — 长期 follow-up)</h3>
+      <div class="card tier-know"><span class="tier-tag">🟢 T3</span><strong>ai-trending-daily</strong> — David Ondrej 是 399K 订阅 AI 教学频道, ai-trending-daily cron 应该 subscribe 他的频道, 监控 Hermes 新功能 + MOA preset updates。</div>
+      <div class="card tier-know"><span class="tier-tag">🟢 T3</span><strong>openclaw-imports</strong> — David Ondrej 演示的 OpenRouter + Vercel Gateway + skills repo 模式 = openclaw-imports 的 "borrow external agent patterns" 实战参考。</div>
+      <div class="card tier-know"><span class="tier-tag">🟢 T3</span><strong>agent-observability</strong> — David 演示 MOA 4-model 投票时, 第 1 个 model 失败 + 第 2 个 warning, aggregator 仍能从其他 model + 自身知识综合, 这是 agent-observability 的 "graceful degradation" 实战。</div>
+      <div class="card tier-know"><span class="tier-tag">🟢 T3</span><strong>sandeep-agentic-design</strong> — David "三层可替换" (agent + gateway + skill repo) 哲学 = sandeep-agentic-design 的 "modular agent stack" 设计原则实战版。</div>
+    </div>
+
+    <!-- Tab: 反方 -->
+    <div class="tab-content" id="t-counter" data-tab="t-counter">
+      <h2 class="section">⚠️ 反方 / 局限 (5 项)</h2>
+      <ol>
+        <li><strong>赞助内容占比</strong>: Hostinger 赞助 + DAVID10 优惠码占视频开头 ~5 分钟, 是 sponsored how-to, <strong>不是纯技术评测</strong>。折扣透明度高, 但 tutorial + 商业 promo 混合, 客观性需折扣看待。</li>
+        <li><strong>36 分钟教程 ≠ production fault-tolerance</strong>: Flappy Bird demo 成功 ≠ 企业级 SLA。生产环境还需 error handling / retry / observability / cost cap, 视频里没展开。MOA 多模型投票 = 多花 4-5 倍 token, token economics 上限场景未量化。</li>
+        <li><strong>OpenRouter subscription pass-through 不一定 free</strong>: David 说"subscriptions run at no cost through the Router", <strong>但 OpenRouter 2026 Q1 砍过 ChatGPT Pro 部分 pass-through</strong>, 政策一直在变。Patrick 不能假设"free", 实际部署前要跑 hybrid-llm-routing-framework cost calculator 验证。</li>
+        <li><strong>演示用单一 dataset 缺 benchmark</strong>: 204 GB dataset 是 David 自己挑的, 没有 MMLU / HumanEval 等公开 benchmark 对照 MOA vs single model 真实差距, "deeper thinking" 缺定量证据。</li>
+        <li><strong>Skills repo 维护成本 + IP 暴露</strong>: `davidra.com/skills` + GitHub Actions 每天 sync 是 public commitment — 一旦 stop 维护, 其他用户会断更。Patrick 照搬要考虑 long-term maintenance budget。</li>
+      </ol>
+    </div>
+
+    <!-- Tab: 12 Windows 分段 -->
+    <div class="tab-content" id="t-windows" data-tab="t-windows">
+      <h2 class="section">📊 12 窗口分段 (~3 min each)</h2>
+      <table>
+        <tr><th>Window</th><th>时间</th><th>主题</th><th>Patrick 视角</th></tr>
+        <tr><td>W1</td><td>[0:00:00] – [0:03:00]</td><td>MOA hook + "frontier level without Opus 4.8"</td><td>hybrid-llm-router 引子</td></tr>
+        <tr><td>W2</td><td>[0:03:02] – [0:06:02]</td><td>MoE vs MOA 澄清 + Hermes 关键特性</td><td>hermes-migration terminology</td></tr>
+        <tr><td>W3</td><td>[0:06:02] – [0:09:02]</td><td>Hostinger VPS + cmux 终端分屏</td><td>audit cron 迁 VPS</td></tr>
+        <tr><td>W4</td><td>[0:09:06] – [0:12:06]</td><td>OpenRouter + Vercel Gateway 双 router</td><td>hybrid-llm-router 实战</td></tr>
+        <tr><td>W5</td><td>[0:12:08] – [0:18:21]</td><td>Hermes 安装 + skills 体系 + davidra.com/skills</td><td>hermes-knowledge-capture 对标</td></tr>
+        <tr><td>W6</td><td>[0:18:36] – [0:27:40]</td><td>MOA 实测 204 GB dataset + 4-model 投票 + 故障切换</td><td>evaluating-llms-harness benchmark</td></tr>
+        <tr><td>W7</td><td>[0:27:42] – [0:36:48]</td><td>Token Economics + self-hosting 哲学 + Flappy Bird</td><td>local-llm-integration-hermes</td></tr>
+      </table>
+    </div>
+
+    <!-- Tab: 数据快照 -->
+    <div class="tab-content" id="t-meta" data-tab="t-meta">
+      <h2 class="section">📈 数据快照</h2>
+      <table>
+        <tr><th>字段</th><th>值</th></tr>
+        <tr><td>Title</td><td>"Hermes Agent + Mixture of Agents is insane…"</td></tr>
+        <tr><td>Channel</td><td>David Ondrej (399K subs, AI tutorial)</td></tr>
+        <tr><td>Upload</td><td>2026-06-29</td></tr>
+        <tr><td>Duration</td><td>36:01 (2161s)</td></tr>
+        <tr><td>Views</td><td>22,358</td></tr>
+        <tr><td>Sponsor</td><td>Hostinger (DAVID10 coupon, 10% off)</td></tr>
+        <tr><td>red_flag_score</td><td><span class="badge badge-good">0</span></td></tr>
+        <tr><td>Pitfall 24</td><td>不适用 (industry tutorial, not prophecy)</td></tr>
+        <tr><td>credibility</td><td>medium (sponsored how-to)</td></tr>
+        <tr><td>transcript</td><td>/tmp/yt-40ikbH0Ba-g/transcript.txt (343 segments, 12.0KB)</td></tr>
+        <tr><td>windows</td><td>/tmp/yt-40ikbH0Ba-g/windows.txt (12 windows, 10.5KB)</td></tr>
+        <tr><td>vault</td><td>/Users/zl/Downloads/Obsidian Vault/llm-wiki/youtube/hermes-agent-mixture-of-agents-davidondrej-2026-06-29/index.md (15.3KB, 242 行)</td></tr>
+        <tr><td>summary-zh</td><td>/tmp/yt-40ikbH0Ba-g/summary-zh.md (10.8KB, 152 行, 36 [HH:MM:SS])</td></tr>
+        <tr><td>quotes-bilingual</td><td>/tmp/yt-40ikbH0Ba-g/quotes-bilingual.md (3.8KB, 12 EN+CN)</td></tr>
+        <tr><td>generated_by</td><td>video-to-knowledge-dashboard v1.5.15 (manual build, 2 subagent timeouts)</td></tr>
+      </table>
+    </div>
+
+    <div class="footer">
+      <p>📺 <a href="https://www.youtube.com/watch?v=40ikbH0Ba-g">YouTube</a> · 📂 <a href="file:///Users/zl/Downloads/Obsidian%20Vault/llm-wiki/youtube/hermes-agent-mixture-of-agents-davidondrej-2026-06-29/index.md">Vault Note</a> · 📝 <a href="file:///tmp/yt-40ikbH0Ba-g/summary-zh.md">Summary-zh</a> · 💬 <a href="file:///tmp/yt-40ikbH0Ba-g/quotes-bilingual.md">Bilingual Quotes</a></p>
+      <p>Built: 2026-07-01 00:24 by Patrick's Hermes Agent (self-built after 2 subagent timeouts)</p>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  // Tab switching
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+  var tocLinks = document.querySelectorAll('.toc-link');
+
+  function activate(id){
+    tabBtns.forEach(function(b){
+      if (b.getAttribute('data-tab') === id) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    tabContents.forEach(function(c){
+      if (c.getAttribute('data-tab') === id) c.classList.add('active');
+      else c.classList.remove('active');
+    });
+    tocLinks.forEach(function(l){
+      if (l.getAttribute('data-target') === id) l.classList.add('active');
+      else l.classList.remove('active');
+    });
+    // Scroll to top of main
+    var main = document.querySelector('.main');
+    if (main) main.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  tabBtns.forEach(function(b){
+    b.addEventListener('click', function(){ activate(b.getAttribute('data-tab')); });
+  });
+  tocLinks.forEach(function(l){
+    l.addEventListener('click', function(e){
+      e.preventDefault();
+      activate(l.getAttribute('data-target'));
+    });
+  });
+
+  // Default: Hero tab active
+  activate('t-hero');
+
+  // Clickable timestamps (open YouTube at that time)
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.classList && e.target.classList.contains('ts')) {
+      var t = e.target.getAttribute('data-ts');
+      if (t) window.open('https://www.youtube.com/watch?v=40ikbH0Ba-g&t=' + t + 's', '_blank');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
