@@ -116,6 +116,21 @@
     .archive-row.ghost-row:hover{background:none}
     .archive-row.ghost-row b{text-decoration:line-through;text-decoration-color:rgba(255,107,157,.55)}
     .ghost-badge{font-size:9px;padding:1px 6px;border-radius:4px;background:rgba(255,107,157,.18);color:#ff6b9d;letter-spacing:.08em;margin-left:4px}
+    /* v8: research database layout */
+    .filter-chip{background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:99px;cursor:pointer;transition:.2s;letter-spacing:.06em}
+    .filter-chip:hover{border-color:var(--lime);color:var(--ink)}
+    .filter-chip.active{background:var(--lime);color:#0b0b0b;border-color:var(--lime)}
+    .filter-chip .cnt{opacity:.6;margin-left:4px;font-size:10px}
+    .filter-chip.active .cnt{opacity:1}
+    .archive-row{display:block;padding:10px 12px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink);transition:.15s;cursor:pointer}
+    .archive-row:hover{background:#191a1d}
+    .archive-row._selected{background:rgba(213,255,63,.06);border-left:2px solid var(--lime);padding-left:10px}
+    .archive-row .row-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+    .archive-row .row-tag{font:10px ui-monospace,monospace;color:var(--violet);letter-spacing:.08em}
+    .archive-row .row-date{font:10px ui-monospace,monospace;color:var(--muted)}
+    .archive-row .row-title{display:block;font-size:13.5px;font-weight:520;line-height:1.3;margin-bottom:3px}
+    .archive-row .row-url{font-size:10px;color:var(--muted);font-family:ui-monospace,monospace;opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .archive-row:hover .row-url{opacity:.85;color:var(--lime)}
     /* v7: archive row is now an <a> tag — reset button styles, add hover arrow */
     a.archive-row{color:inherit;text-decoration:none;align-items:center}
     a.archive-row:hover{background:#191a1d}
@@ -355,11 +370,49 @@
     </section>
   </div>
 
-  <div class="overlay" id="archiveOverlay" role="dialog" aria-modal="true" aria-labelledby="archiveTitle">
-    <section class="modal">
-      <div class="modal-head"><strong id="archiveTitle">ALL REPORTS / 档案探索</strong><button class="close" data-close="archiveOverlay">关闭</button></div>
-      <input class="search" id="archiveSearch" placeholder="搜标题、主题或产线…">
-      <div class="archive-results" id="archiveResults"></div>
+  <div class="overlay" id="archiveOverlay" role="dialog" aria-modal="true" aria-labelledby="archiveTitle" style="z-index:40">
+    <section class="modal modal-wide" style="width:min(1180px,96vw);max-height:92vh;display:flex;flex-direction:column;padding:0">
+      <div class="modal-head" style="padding:18px 24px 14px;border-bottom:1px solid var(--line);flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+          <strong id="archiveTitle" style="color:var(--lime);letter-spacing:.12em;font-size:13px">⛁ ALL REPORTS / 档案数据库</strong>
+          <span id="archiveStats" style="font:11px ui-monospace,monospace;color:var(--muted);letter-spacing:.06em"></span>
+          <button class="close" data-close="archiveOverlay" style="margin-left:auto">关闭</button>
+        </div>
+      </div>
+      <div class="archive-filters" style="display:flex;gap:6px;padding:14px 24px 10px;border-bottom:1px solid var(--line);flex-shrink:0;flex-wrap:wrap;align-items:center">
+        <button class="filter-chip active" data-track="all" style="font:11px ui-monospace,monospace">全部 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="ai" style="font:11px ui-monospace,monospace">🤖 人工智能 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="dev" style="font:11px ui-monospace,monospace">🛠 开发与工具 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="product" style="font:11px ui-monospace,monospace">🎨 产品与设计 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="market" style="font:11px ui-monospace,monospace">📈 商业与市场 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="future" style="font:11px ui-monospace,monospace">🔬 科学与未来 <span class="cnt">0</span></button>
+        <button class="filter-chip" data-track="culture" style="font:11px ui-monospace,monospace">💭 文化与思想 <span class="cnt">0</span></button>
+        <select id="archiveSort" style="margin-left:auto;background:#111214;border:1px solid var(--line);color:var(--ink);padding:7px 10px;border-radius:6px;font:11px ui-monospace,monospace">
+          <option value="date-desc">最新优先</option>
+          <option value="date-asc">最早优先</option>
+          <option value="title-asc">标题 A-Z</option>
+          <option value="title-desc">标题 Z-A</option>
+        </select>
+      </div>
+      <div class="archive-body" style="display:grid;grid-template-columns:minmax(360px,1fr) minmax(380px,1.2fr);flex:1;min-height:0;overflow:hidden">
+        <div class="archive-left" style="display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0">
+          <div style="padding:12px 16px 8px;flex-shrink:0">
+            <input id="archiveSearch" placeholder="🔍 搜标题 / 主题 / 产线 / 日期 / 文件名…" style="width:100%;background:#0d0e10;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:6px;font:13px ui-monospace,monospace">
+          </div>
+          <div class="archive-results" id="archiveResults" style="flex:1;overflow-y:auto;padding:0 4px 8px 0"></div>
+          <div style="padding:12px 16px;border-top:1px solid var(--line);flex-shrink:0;background:rgba(213,255,63,.04)">
+            <div style="font:10px ui-monospace,monospace;color:var(--lime);letter-spacing:.12em;margin-bottom:6px">+ 添加新报告</div>
+            <div style="font:11px ui-monospace,monospace;color:var(--muted);line-height:1.5">新 HTML 加到 <code style="background:#0d0e10;padding:1px 5px;border-radius:3px;color:var(--ink)">~/patricks-reports/public-deploy/</code> → 同步到 <code style="background:#0d0e10;padding:1px 5px;border-radius:3px;color:var(--ink)">reports.json</code> → 自动出现在这里</div>
+          </div>
+        </div>
+        <div class="archive-right" id="archiveDetail" style="overflow-y:auto;padding:24px;background:#0a0b0c">
+          <div style="text-align:center;color:var(--muted);padding:60px 20px">
+            <div style="font-size:32px;margin-bottom:12px;opacity:.5">⛁</div>
+            <div style="font-size:14px;letter-spacing:.08em">选中左侧任意条目查看详情</div>
+            <div style="font-size:11px;margin-top:8px;opacity:.6">Click any item on the left to view full details</div>
+          </div>
+        </div>
+      </div>
     </section>
   </div>
 
@@ -663,7 +716,7 @@
       next:'下一站已准备好',finished:'路线完成，漂亮！',
       chooseFeedback:'先选一个感受就好',thanks:'谢谢，这个信号已经收到',
       leanPractical:'偏向“实用”，获得可落地的洞见',
-      leanCurious:'偏向“猎奇”，发现远方的可能',leanPrefix:'现在偏向',
+      leanCurious:'偏向“猎奇”，发现远方的可能',leanPrefix:'现在偏向',copied:'链接已复制',
       phrases:['确定、直接、今天能用','可落地的新鲜洞见','跨界与反直觉连接','最远的未知边界'],
       aria:'从实用到猎奇'
     };
@@ -691,7 +744,7 @@
       next:'Your next stop is ready',finished:'Route complete. Beautiful.',
       chooseFeedback:'Choose one quick reaction first',thanks:'Thanks—your signal is saved',
       leanPractical:'Leaning practical for ideas you can use',
-      leanCurious:'Leaning curious toward distant possibilities',leanPrefix:'Now leaning toward',
+      leanCurious:'Leaning curious toward distant possibilities',leanPrefix:'Now leaning toward',copied:'Link copied',
       phrases:['clear answers you can use today','fresh ideas with practical value',
         'cross-domain, counterintuitive links','the far edge of the unknown'],
       aria:'From practical to curious'
@@ -762,16 +815,87 @@
       }
       $('#articleOverlay').classList.add('open');save();
     }
-    function renderArchive(query=''){
-      const q=query.trim().toLowerCase();
-      const list=reports.filter(r=>{
-        const english=reportEnglish[r.title]?.join(' ')||'';
-        return (r.title+r.desc+r.tag+r.file+(r.date||'')+(r.category||'')+english).toLowerCase().includes(q);
+    let _activeTrack='all',_activeSort='date-desc',_selectedReport=null;
+    function getFilteredReports(){
+      const q=$('#archiveSearch')?.value.trim().toLowerCase()||'';
+      let list=reports.filter(r=>{
+        if(_activeTrack!=='all'&&r.track!==_activeTrack)return false;
+        if(!q)return true;
+        return (r.title+r.desc+r.tag+r.file+(r.date||'')+(r.category||'')).toLowerCase().includes(q);
       });
-      $('#archiveResults').innerHTML=list.length?list.map(r=>{const u=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;return `<a class="archive-row${r.ghost?' ghost-row':''}" href="${u}" target="_blank" rel="noopener" data-i=""><small>${reportText(r,'tag')}${r.ghost?' <span class="ghost-badge">🪦 缺失</span>':''}</small><b>${reportText(r,'title')}</b><span class="row-go">↗</span></a>`}).join(''):`<p style="color:#777">${tr().noResults}</p>`;
-
-    // v7: No JS click handler needed — <a href target=_blank> handles navigation natively.
-      // Right-click context menu works. cmd-click opens in new tab. Done.
+      const [field,dir]=(state.lang==='zh'?['date-desc','date-asc','title-asc','title-desc']:['date-desc','date-asc','title-asc','title-desc']);
+      const sortKey=_activeSort||'date-desc';
+      if(sortKey==='date-desc')list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+      else if(sortKey==='date-asc')list.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      else if(sortKey==='title-asc')list.sort((a,b)=>(a.title||'').localeCompare(b.title||''));
+      else if(sortKey==='title-desc')list.sort((a,b)=>(b.title||'').localeCompare(a.title||''));
+      return list;
+    }
+    function renderArchiveStats(){
+      const total=reports.length;
+      const tracks={};
+      reports.forEach(r=>{tracks[r.track]=(tracks[r.track]||0)+1});
+      const dates=reports.map(r=>r.date).filter(Boolean).sort();
+      const dateRange=dates.length?`${dates[0]} ~ ${dates[dates.length-1]}`:'';
+      $('#archiveStats').textContent=`${total} reports · 6 tracks · ${dateRange}`;
+      // Update filter chip counts
+      $$('.filter-chip').forEach(chip=>{
+        const t=chip.dataset.track;
+        const cnt=t==='all'?total:(tracks[t]||0);
+        chip.querySelector('.cnt').textContent=cnt;
+      });
+    }
+    function renderArchiveList(){
+      const list=getFilteredReports();
+      $('#archiveResults').innerHTML=list.length?list.map(r=>{
+        const u=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;
+        return `<a class="archive-row" href="${u}" target="_blank" rel="noopener" data-track="${r.track}" data-title="${r.title.replace(/"/g,'&quot;')}" data-date="${r.date||''}" data-desc="${(r.desc||'').replace(/"/g,'&quot;')}" data-url="${u}">
+          <div class="row-head"><span class="row-tag">${r.tag}</span><span class="row-date">${r.date||''}</span></div>
+          <b class="row-title">${r.title}</b>
+          <div class="row-url">${u}</div>
+        </a>`;
+      }).join(''):`<p style="color:#777;padding:24px;text-align:center">${tr().noResults}</p>`;
+      // Click row → show detail
+      $$('.archive-row').forEach(b=>b.onclick=(e)=>{
+        e.preventDefault();
+        const data={track:b.dataset.track,title:b.dataset.title,date:b.dataset.date,desc:b.dataset.desc,file:b.dataset.url,tag:b.querySelector('.row-tag').textContent};
+        showDetail(data);
+      });
+    }
+    function renderArchive(query=''){
+      renderArchiveStats();
+      renderArchiveList();
+    }
+    function showDetail(r){
+      _selectedReport=r;
+      const url=r.file.startsWith('http')?r.file:`https://2017zyl.xyz/${r.file}`;
+      // Find 5 related items (same track, excluding self)
+      const related=reports.filter(x=>x.track===r.track&&x.title!==r.title).slice(0,5);
+      const relatedHtml=related.length?`
+        <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
+          <div style="font:10px ui-monospace,monospace;color:var(--muted);letter-spacing:.14em;margin-bottom:10px">RELATED / 同产线</div>
+          ${related.map(x=>{
+            const u=x.file.startsWith('http')?x.file:`https://2017zyl.xyz/${x.file}`;
+            return `<a href="${u}" target="_blank" rel="noopener" style="display:block;padding:8px 10px;border-radius:5px;background:#0d0e10;border:1px solid var(--line);text-decoration:none;color:var(--ink);margin-bottom:6px;font-size:12px;transition:.2s" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--line)'">
+              <div style="font-size:10px;color:var(--violet);letter-spacing:.08em;margin-bottom:2px">${x.tag}${x.date?' · '+x.date:''}</div>
+              <div style="font-weight:520">${x.title}</div>
+              <div style="font-size:10px;color:var(--muted);font-family:ui-monospace,monospace;margin-top:2px;word-break:break-all">${u}</div>
+            </a>`;
+          }).join('')}
+        </div>`:'';
+      $('#archiveDetail').innerHTML=`
+        <div style="font:11px ui-monospace,monospace;color:var(--violet);letter-spacing:.14em;margin-bottom:4px">${r.tag} · ${r.track}</div>
+        <h2 style="font-size:22px;line-height:1.25;margin:0 0 8px;font-weight:600">${r.title}</h2>
+        <div style="font:11px ui-monospace,monospace;color:var(--muted);letter-spacing:.06em;margin-bottom:18px">${r.date?`📅 ${r.date}`:''}</div>
+        <div style="font-size:13px;color:#c9d1d9;line-height:1.65;margin-bottom:22px;padding:12px 14px;background:#0d0e10;border-left:2px solid var(--lime);border-radius:0 5px 5px 0">${r.desc||'(无简介)'}</div>
+        <div style="font:10px ui-monospace,monospace;color:var(--muted);letter-spacing:.12em;margin-bottom:6px;text-transform:uppercase">→ 真实 HTML 链接</div>
+        <a href="${url}" target="_blank" rel="noopener" style="display:block;padding:14px 16px;background:#0d0e10;border:1px solid var(--lime);border-radius:7px;margin-bottom:16px;word-break:break-all;font:12px ui-monospace,monospace;color:var(--lime);text-decoration:none;transition:.2s" onmouseover="this.style.background='#191a1d'" onmouseout="this.style.background='#0d0e10'">${url}</a>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="${url}" target="_blank" rel="noopener" style="flex:1;min-width:140px;background:var(--lime);color:#0b0b0b;padding:12px 18px;border-radius:99px;font-size:13px;font-weight:650;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:6px">↗ 在新窗口打开</a>
+          <button onclick="navigator.clipboard.writeText('${url}').then(()=>showToast('copied'))" style="background:#191a1d;border:1px solid var(--line);color:var(--ink);padding:12px 18px;border-radius:99px;font-size:12px;cursor:pointer">📋 复制链接</button>
+        </div>
+        ${relatedHtml}
+      `;
     }
 
     function applyLanguage(){
@@ -807,8 +931,12 @@
     $('#quickFeedback').onclick=e=>{if(!e.target.dataset.score)return;state.feedback=e.target.dataset.score;localStorage.setItem('patrick-feedback',JSON.stringify({score:state.feedback,text:'',lang:state.lang,date:new Date().toISOString()}));$$('#quickFeedback button').forEach(b=>b.classList.toggle('selected',b===e.target));showToast('thanks')};
     $('#feedbackOptions').onclick=e=>{if(!e.target.dataset.score)return;state.feedback=e.target.dataset.score;$$('#feedbackOptions button').forEach(b=>b.classList.toggle('selected',b===e.target))};
     $('#submitFeedback').onclick=()=>{if(!state.feedback){showToast('chooseFeedback');return}localStorage.setItem('patrick-feedback',JSON.stringify({score:state.feedback,text:$('#feedbackText').value,lang:state.lang,date:new Date().toISOString()}));$('#feedbackForm').style.display='none';$('#feedbackSuccess').classList.add('show')};
-    $('#archiveOpen').onclick=()=>{renderArchive();$('#archiveOverlay').classList.add('open');setTimeout(()=>$('#archiveSearch').focus(),80)};
-    $('#archiveSearch').oninput=e=>renderArchive(e.target.value);
+    $('#archiveOpen').onclick=()=>{_activeTrack='all';_activeSort='date-desc';_selectedReport=null;$('#archiveSort').value='date-desc';$$('.filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.track==='all'));renderArchive();$('#archiveOverlay').classList.add('open');setTimeout(()=>$('#archiveSearch').focus(),80)};
+// Filter chips
+$$('.filter-chip').forEach(chip=>chip.onclick=()=>{_activeTrack=chip.dataset.track;$$('.filter-chip').forEach(c=>c.classList.toggle('active',c===chip));renderArchiveList()});
+// Sort dropdown
+$('#archiveSort').onchange=(e)=>{_activeSort=e.target.value;renderArchiveList()};
+    $('#archiveSearch').oninput=()=>renderArchiveList();
     $$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('open'));
     $$('.overlay').forEach(o=>o.onclick=e=>{if(e.target===o)o.classList.remove('open')});
     document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.overlay').forEach(o=>o.classList.remove('open'));if(e.key==='/'){e.preventDefault();$('#archiveOpen').click()}});
