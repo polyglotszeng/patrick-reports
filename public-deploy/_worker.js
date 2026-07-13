@@ -49,7 +49,8 @@ export default {
     if (archiveRepair) return archiveRepair;
 
     // /<name>.html → /<name>  (308 Permanent Redirect)
-    if (path.endsWith('.html') && path !== '/index.html') {
+    // Skip rocket-launch-db/* paths to avoid redirect loop with explicit _redirects rules
+    if (path.endsWith('.html') && path !== '/index.html' && !path.startsWith('/rocket-launch-db/')) {
       return Response.redirect(new URL(path.slice(0, -5), url).toString(), 308);
     }
     // 路径无 .html → 尝试加 .html 找 ASSETS (如 /day_recommend → day_recommend.html)
