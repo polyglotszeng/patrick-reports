@@ -588,6 +588,96 @@ async function loadJSON(path, timeoutMs=8000, signal=null){
     clearTimeout(intTimeout);
   }
 }
+// v4.1.6 GCAT-to-LL2 normalizer (PITFALL: 2026-07-13 data schema drift)
+// GCAT primary data uses different field names: flight_id, vehicle, platform,
+// launch_site, orbpay. Render code expects LL2 shape: name, provider, country,
+// site, status, orbit. Map inline so list/drawer/filters all populate.
+const COUNTRY_BY_PLATFORM = {
+  VSFB:'USA',KSC:'USA',CCS:'USA',WFF:'USA',MARS:'USA',CAS:'USA',GLC:'USA',ER:'USA',YF:'USA',ISC:'USA',PMRF:'USA',OCE:'USA',CC:'USA',VSFBS:'USA',SLC:'USA',LP:'USA',SB:'USA',WI:'USA',AS:'USA',
+  CSG:'French Guiana',KOU:'French Guiana',BIA:'French Guiana',
+  JSC:'China',WSC:'China',XSLC:'China',HCSLS:'China',HCSLC:'China',JQU:'China',JQ:'China',TY:'China',TS:'China',XSC:'China',LC:'China',TC:'China',XS:'China',
+  GIK:'Russia/Kazakhstan',YAS:'Russia',DNEPR:'Russia',SVOB:'Russia',NIK:'Russia',KAP:'Russia',DOM:'Russia',
+  SRI:'India',SHAR:'India',ISRO:'India',
+  TA:'Japan',JAXA:'Japan',TNSC:'Japan',USC:'Japan',TNG:'Japan',
+  WAL:'Australia',HIM:'Australia',RHM:'Australia',
+  SOHAE:'North Korea',SO:'North Korea',
+  NARO:'South Korea',GO:'South Korea',NARO:'South Korea',
+  KAP:'Iran',SEM:'Iran',
+  ST:'New Zealand',MAHIA:'New Zealand',
+  WSC:'Israel',PAL:'Israel',SHLV:'Israel',
+  CEL:'Marshall Islands',OM:'Marshall Islands'
+};
+const PROVIDER_BY_FAMILY = {
+  'Alpha':'Firefly Aerospace','Firefly Alpha':'Firefly Aerospace',
+  'Falcon 9':'SpaceX','Falcon Heavy':'SpaceX','Starship':'SpaceX','Falcon 1':'SpaceX',
+  'Chang Zheng':'CALT','Long March':'CALT','CZ-':'CALT','CZ ':'CALT',
+  'Ariane 5':'Arianespace','Ariane 6':'Arianespace','Vega':'Arianespace','Ariane':'Arianespace',
+  'Soyuz':'Roscosmos','Proton':'Roscosmos','Angara':'Roscosmos','Soyuz-':'Roscosmos',
+  'Electron':'Rocket Lab','Neutron':'Rocket Lab',
+  'Electron (':'Rocket Lab',
+  'Atlas':'ULA','Vulcan':'ULA','Delta':'ULA','Antares':'Northrop Grumman',
+  'PSLV':'ISRO','GSLV':'ISRO','SSLV':'ISRO',
+  'H-IIA':'MHI','H-IIB':'MHI','H3':'MHI','H-II':'MHI',
+  'KSLV':'KARI','Nuri':'KARI',
+  'Simorgh':'ISA','Safir':'ISA',
+  'LauncherOne':'Virgin Orbit','Cosmos':'Roscosmos','Dnepr':'ISC Kosmotras'
+};
+const STATUS_BY_ORBPAY = {OS:'success',OF:'failure',PF:'partial_failure',MS:'success',MF:'failure',T:'attempted',A:'attempted'};
+function mapOrbit(r){
+  const d=String(r.dest||'').toUpperCase();
+  if(/GEO|GEOSTATIONARY/.test(d)) return 'GEO';
+  if(/GTO|TRANSFER/.test(d)) return 'GTO';
+  if(/SSO|SUN/.test(d)) return 'SSO';
+  if(/TLI|TRANSLUNAR/.test(d)) return 'TLI';
+  if(/MEO/.test(d)) return 'MEO';
+  if(/HEO/.test(d)) return 'HEO';
+  if(/ES|ESCAPE/.test(d)) return 'Escape';
+  if(/SUB/.test(d)) return 'Sub-orbital';
+  if(/PLA|PAYLOAD|LEO|LOW/.test(d)) return 'LEO';
+  return 'LEO';
+}
+function mapCountry(p, ls){
+  // Try platform first, then launch_site as fallback
+  for(const candidate of [p, ls]){
+    if(!candidate||candidate==='-'||candidate==='?') continue;
+    const u=String(candidate).toUpperCase().replace(/[?]/g,'');
+    for(const k of Object.keys(COUNTRY_BY_PLATFORM).sort((a,b)=>b.length-a.length)){
+      if(u.startsWith(k)) return COUNTRY_BY_PLATFORM[k];
+    }
+  }
+  return 'Unknown';
+}
+function mapProvider(r){
+  const a=r.agency; if(a&&a!=='-'&&a!=='?'&&a.length>2) return a;
+  const v=String(r.vehicle||''); const f=String(r.rocket_family_gcat||'');
+  for(const k of Object.keys(PROVIDER_BY_FAMILY).sort((a,b)=>b.length-a.length)){
+    if(v.startsWith(k)||f.startsWith(k)) return PROVIDER_BY_FAMILY[k];
+  }
+  if(f&&f!=='-') return f;
+  return '';
+}
+function mapName(r){
+  const f=r.flight_id;
+  if(f&&f!=='-'&&f!=='?'&&!/^xxx\//.test(f)&&!/^\?/.test(f)) return f;
+  const v=r.vehicle; if(v&&v!=='-'&&v!=='?'&&v.length>1) return v;
+  const m=r.mission; if(m&&m!=='-'&&m!=='?'&&m.length>1) return m;
+  const fam=r.rocket_family_gcat; if(fam&&fam!=='-'&&fam!=='?') return fam;
+  return r.launch_id;
+}
+function normalizeGCAT(r){
+  if(!r||typeof r!=='object') return r;
+  const id=String(r.launch_id||'');
+  if(!id.startsWith('gcat:')) return r;
+  if(r.name&&r.provider&&r.country&&r.site&&r.status&&r.orbit) return r;
+  return Object.assign({},r,{
+    name: r.name || mapName(r),
+    provider: r.provider || mapProvider(r),
+    country: r.country || mapCountry(r.platform, r.launch_site),
+    site: r.site || [String(r.platform||'').replace(/[-?]/g,'').trim(), String(r.launch_site||'').replace(/[-?]/g,'').trim()].filter(Boolean).join(' ') || 'Unknown',
+    status: r.status || STATUS_BY_ORBPAY[r.orbpay] || 'success',
+    orbit: r.orbit || mapOrbit(r)
+  });
+}
 async function loadData(){
   let liveOK = false;
   let errMsg = null;
@@ -603,7 +693,7 @@ async function loadData(){
     ]);
     if(launches && stats) {
       DB = {
-        launches: launches.records||[],
+        launches: (launches.records||[]).map(normalizeGCAT),
         objects: objects?.records||[],
         sources: sources?.sources||[],
         stats,
@@ -622,7 +712,7 @@ async function loadData(){
     }
   } catch(e) {
     console.warn('loadData core failed, fallback seed:', e.message, errMsg);
-    DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+    DB = {launches:SEED.launches.records.map(normalizeGCAT),objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
   } finally {
     clearTimeout(hardTimeout);
   }
@@ -1592,7 +1682,7 @@ let _loadDataFallbackTimer = setTimeout(() => {
     console.warn('[v4.1.5 fallback] loadData did not resolve in 6s — using SEED');
     // Hard fallback: use SEED and update UI
     try {
-      DB = {launches:SEED.launches.records,objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
+      DB = {launches:SEED.launches.records.map(normalizeGCAT),objects:SEED.objects.records,sources:SEED.sources.sources,stats:SEED.stats,timeline:null,tles:[],pads:SEED.pads,crew:SEED.crew,agencies:SEED.agencies,mode:'seed'};
       refreshFreshness(false);
       render();
     } catch(e){console.warn('hard fallback err:',e);}
