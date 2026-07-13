@@ -39,6 +39,12 @@ export interface Lab {
   data_freshness: string;
   data_freshness_days: number;
   watchlist_reason?: string;
+  // Resources (07-12 NEW)
+  homepage?: string;
+  video?: string;
+  arxiv?: string;
+  scholar?: string;
+  site?: string;
 }
 
 export interface PortfolioItem {

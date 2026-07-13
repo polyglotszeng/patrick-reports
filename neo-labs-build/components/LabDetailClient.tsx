@@ -110,6 +110,19 @@ export function LabDetailClient({ lab }: { lab: Lab }) {
         <button onClick={downloadCSV} className="btn">📊 下载 CSV</button>
         <button onClick={printPDF} className="btn">🖨️ 打印/PDF</button>
       </div>
+
+      {/* 资源 · RESOURCES（5 个外链） */}
+      <div className="section">
+        <h2>🔗 资源 · RESOURCES</h2>
+        <div style={{display: 'flex', gap: 8, flexWrap: 'wrap'}}>
+          <ResourceBtn href={lab.homepage} label="官网" icon="🔗" />
+          <ResourceBtn href={lab.video} label="视频" icon="▶" />
+          <ResourceBtn href={lab.scholar} label="Scholar" icon="🎓" />
+          <ResourceBtn href={lab.arxiv} label="arXiv" icon="📄" />
+          <ResourceBtn href={`/neo-labs/labs/${lab.slug}/`} label="详情子页" icon="📑" />
+        </div>
+        <p style={{fontSize: 11, color: '#6e6e73', marginTop: 8}}>如链接 404 / 错位, 多数为 arXiv/Scholar 通用 search query (可换精确 paper ID), 提交 issue 修复</p>
+      </div>
       
       {/* 6 维雷达 + 风险热力图 */}
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16}}>
@@ -205,6 +218,15 @@ function PercentileCard({ label, value, note, color }: { label: string; value: s
   );
 }
 
+function ResourceBtn({ href, label, icon }: { href?: string; label: string; icon: string }) {
+  if (!href) return null;
+  return (
+    <a href={href} target="_blank" rel="noopener" className="btn" style={{background: 'transparent', color: '#0071e3', border: '1px solid #0071e3', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, fontSize: 13}}>
+      {icon} {label}
+    </a>
+  );
+}
+
 function ScenarioCard({ name, mult, color, currentVal }: { name: string; mult: number; color: string; currentVal: number }) {
   const futureVal = currentVal * mult;
   const irr = mult > 0 ? (Math.pow(mult, 1/5) - 1) * 100 : 0;
@@ -217,3 +239,4 @@ function ScenarioCard({ name, mult, color, currentVal }: { name: string; mult: n
     </div>
   );
 }
+
