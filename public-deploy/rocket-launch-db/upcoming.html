@@ -1,0 +1,1147 @@
+''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球火箭发射数据库 · Mission Control</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<style>
+:root {
+  --bg: #050810;
+  --bg-2: #0d1320;
+  --bg-3: #131c2e;
+  --border: #1e2a44;
+  --border-bright: #2d4068;
+  --text: #e4e8f1;
+  --text-2: #9ba8c0;
+  --text-3: #5a6b85;
+  --lime: #d5ff3f;
+  --lime-dim: #9bbf2a;
+  --cyan: #06d4ff;
+  --green: #22c55e;
+  --orange: #ff8a3d;
+  --yellow: #fbbf24;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; min-height: 100vh; }
+body {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(59,130,246,0.08), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(168,85,247,0.06), transparent 50%),
+    var(--bg);
+  overflow-x: hidden;
+}
+.topbar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.topbar .stat {
+  background: var(--bg-2);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.topbar .stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(213,255,63,0.08);
+  border: 1px solid var(--lime-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+.topbar .stat-val { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; }
+.topbar .stat-lbl { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 0;
+  min-height: calc(100vh - 80px);
+  width: 100%;
+  max-width: 100vw;
+}
+.left-panel { padding: 28px 32px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.right-panel {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  min-width: 0;
+  border-left: 1px solid var(--border);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.hero-section {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+.earth-wrap {
+  height: 380px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #0a1424, #000);
+  position: relative;
+}
+#earth-canvas { width: 100% !important; height: 100%; display: block; background: transparent; max-width: 100%; }
+.earth-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, #0a1f3a 0%, #050810 70%);
+  z-index: -1;
+}
+.earth-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(5,8,16,0.7);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--cyan);
+  text-transform: uppercase;
+  border: 1px solid var(--border-bright);
+  z-index: 10;
+  font-weight: 700;
+}
+.earth-counter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(5,8,16,0.85);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text-2);
+  z-index: 10;
+  border: 1px solid var(--border-bright);
+}
+.earth-counter strong { color: var(--lime); font-size: 14px; }
+.next-launch { display: flex; flex-direction: column; gap: 12px; }
+.nl-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.nl-label .dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  margin-right: 6px;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239,68,68,0.6); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+.nl-mission {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.nl-mission img {
+  max-height: 26px;
+  vertical-align: middle;
+  margin-right: 6px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+}
+.nl-meta { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+.nl-meta div { display: flex; gap: 6px; }
+.nl-countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+.nl-cd-cell {
+  background: rgba(213,255,63,0.05);
+  border: 1px solid var(--lime-dim);
+  border-radius: 8px;
+  padding: 10px 4px;
+  text-align: center;
+}
+.nl-cd-num {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--lime);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.nl-cd-lbl {
+  font-size: 9px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+.nl-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.nl-action {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nl-action:hover { border-color: var(--lime); color: var(--lime); }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.section-title-zh { font-size: 11px; color: var(--text-3); margin-left: 8px; }
+.section-link { font-size: 11px; color: var(--cyan); text-decoration: none; }
+.cards-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 4px 0 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-bright) transparent;
+  min-width: 0;
+  max-width: 100%;
+}
+.cards-scroll::-webkit-scrollbar { height: 6px; }
+.cards-scroll::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+.launch-card {
+  flex: 0 0 280px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.launch-card:hover { border-color: var(--lime); transform: translateY(-2px); }
+.card-img-wrap {
+  height: 130px;
+  background: linear-gradient(180deg, #0a1424, #050810);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.card-img-wrap img {
+  max-height: 110px;
+  max-width: 90%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+.rocket-placeholder {
+  font-size: 36px;
+  color: var(--text-3);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+.card-body { padding: 12px 14px; }
+.card-status {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.badge-go { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+.badge-tbc { background: rgba(251,191,36,0.15); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+.badge-tbd { background: rgba(155,168,192,0.15); color: var(--text-2); border: 1px solid rgba(155,168,192,0.3); }
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.card-meta { font-size: 11px; color: var(--text-2); margin-bottom: 4px; }
+.card-meta span { display: block; }
+.card-rocket { color: var(--cyan); }
+.card-time {
+  font-size: 11px;
+  color: var(--text-3);
+  font-family: 'SF Mono', Menlo, monospace;
+  margin-top: 6px;
+}
+.widget {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.widget-head {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.provider-row, .site-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(30,42,68,0.5);
+}
+.provider-row:last-child, .site-row:last-child { border: none; }
+.prov-name, .site-name { color: var(--text); }
+.prov-count, .site-count {
+  background: var(--bg-3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--lime);
+  font-weight: 600;
+}
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--lime) 0%, var(--cyan) 50%, var(--border-bright) 100%);
+}
+.timeline-event {
+  position: relative;
+  padding: 8px 0 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.timeline-event.t-zero { padding: 14px 0; }
+.timeline-icon {
+  position: absolute;
+  left: -32px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-3);
+  border: 2px solid var(--border-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.timeline-event.t-zero .timeline-icon {
+  background: var(--lime);
+  border-color: var(--lime);
+  font-size: 16px;
+  box-shadow: 0 0 12px rgba(213,255,63,0.4);
+}
+.timeline-content { flex: 1; padding-left: 8px; }
+.timeline-time {
+  font-size: 11px;
+  font-family: 'SF Mono', Menlo, monospace;
+  color: var(--cyan);
+  font-weight: 600;
+}
+.timeline-event.t-zero .timeline-time { color: var(--lime); font-size: 12px; }
+.timeline-label { font-size: 12px; color: var(--text); margin-top: 1px; font-weight: 500; }
+.timeline-label-en { font-size: 10px; color: var(--text-3); }
+.footer {
+  max-width: 1400px;
+  margin: 16px auto;
+  padding: 0 32px;
+  font-size: 11px;
+  color: var(--text-3);
+  display: flex;
+  justify-content: space-between;
+}
+.footer a { color: var(--cyan); text-decoration: none; }
+@media (max-width: 1100px) {
+  .container { grid-template-columns: 1fr; }
+  .right-panel { max-height: none; border-left: none; border-top: 1px solid var(--border); }
+  .hero-section { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) { .topbar { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<!-- TOP STATS BAR -->
+<div class="topbar">
+  <div class="stat">
+    <div class="stat-icon">🚀</div>
+    <div>
+      <div class="stat-val">200</div>
+      <div class="stat-lbl">Upcoming · 全球发射</div>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon">🛫</div>
+    <div>
+      <div class="stat-val">30</div>
+      <div class="stat-lbl">Launch Pads · 发射台</div>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon">🏛️</div>
+    <div>
+      <div class="stat-val">36</div>
+      <div class="stat-lbl">Agencies · 航天机构</div>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon">👨‍🚀</div>
+    <div>
+      <div class="stat-val">847</div>
+      <div class="stat-lbl">Astronauts · 宇航员</div>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-icon">🛰️</div>
+    <div>
+      <div class="stat-val">14.2K</div>
+      <div class="stat-lbl">In Orbit · 在轨卫星</div>
+    </div>
+  </div>
+</div>
+<!-- MAIN GRID -->
+<div class="container">
+  <div class="left-panel">
+    <div class="hero-section">
+      <div class="earth-wrap">
+        <div class="earth-label">🌍 三维地球 · 3D EARTH</div>
+        <canvas id="earth-canvas"></canvas>
+        <div class="earth-counter"><strong id="site-count">30</strong> 发射场 · launch sites · NASA Blue Marble texture</div>
+      </div>
+      <div class="next-launch">
+        <div class="nl-label"><span class="dot"></span>NEXT LAUNCH · 下一次发射</div>
+        <div class="nl-mission"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="">Falcon 9 Block 5 | Starlink Group 15-14</div>
+        <div class="nl-meta">
+          <div>📍 Vandenberg SFB, CA, USA</div>
+          <div>🚀 Falcon 9 · SpaceX</div>
+          <div>🕒 2026-07-14T01:16 UTC</div>
+        </div>
+        <div class="nl-countdown">
+          <div class="nl-cd-cell"><div class="nl-cd-num" id="cd-d">00</div><div class="nl-cd-lbl">DAYS</div></div>
+          <div class="nl-cd-cell"><div class="nl-cd-num" id="cd-h">00</div><div class="nl-cd-lbl">HRS</div></div>
+          <div class="nl-cd-cell"><div class="nl-cd-num" id="cd-m">00</div><div class="nl-cd-lbl">MIN</div></div>
+          <div class="nl-cd-cell"><div class="nl-cd-num" id="cd-s">00</div><div class="nl-cd-lbl">SEC</div></div>
+        </div>
+        <div class="nl-actions">
+          <button class="nl-action">🔍 探索任务</button>
+          <button class="nl-action">⭐ 关注</button>
+          <button class="nl-action">📋 加入清单</button>
+          <button class="nl-action">🔗 分享</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-head">
+        <div><span class="section-title">UPCOMING LAUNCHES</span><span class="section-title-zh">即将发射</span></div>
+        <a href="#" class="section-link">查看全部 →</a>
+      </div>
+      <div class="cards-scroll">
+    <div class="launch-card" data-family="Falcon 9" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Starlink Group 15-14</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Vandenberg SFB, CA, USA</span>
+        </div>
+        <div class="card-time">2026-07-14T01:16 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Starlink Group 10-45</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Cape Canaveral SFS, FL, USA</span>
+        </div>
+        <div class="card-time">2026-07-14T07:15 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Soyuz 2.1a" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/soyuz_2.1a_image_20230805184309.jpg" alt="Soyuz 2.1a" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Soyuz 2.1a | Soyuz MS-29</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Soyuz 2.1a</span>
+          <span class="card-site">🌐 Baikonur Cosmodrome, Republic of Ka</span>
+        </div>
+        <div class="card-time">2026-07-14T14:47 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="To Be Confirmed">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbc">To Be Confirmed</div>
+        <h3 class="card-title">Falcon 9 Block 5 | SDA Tranche 1 Transport Layer E</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Vandenberg SFB, CA, USA</span>
+        </div>
+        <div class="card-time">2026-07-16T20:22 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Starship" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/starship_on_the_image_20250111100520.jpg" alt="Starship" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Starship | Flight 13</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Starship</span>
+          <span class="card-site">🌐 SpaceX Starbase, TX, USA</span>
+        </div>
+        <div class="card-time">2026-07-16T22:45 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Long March 7A" data-status="To Be Confirmed">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/cz-7a_launch_2_image_20251206093324.jpeg" alt="Long March 7A" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbc">To Be Confirmed</div>
+        <h3 class="card-title">Long March 7A | Unknown Payload</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Long March 7A</span>
+          <span class="card-site">🇨🇳 Wenchang Space Launch Site, People'</span>
+        </div>
+        <div class="card-time">2026-07-17T11:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Vikram-I" data-status="To Be Confirmed">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/vikram-i_artist_image_20251115043247.jpg" alt="Vikram-I" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbc">To Be Confirmed</div>
+        <h3 class="card-title">Vikram-I | Demo Flight</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Vikram-I</span>
+          <span class="card-site">🇮🇳 Satish Dhawan Space Centre, India</span>
+        </div>
+        <div class="card-time">2026-07-18T05:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Starlink Group 17-39</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Vandenberg SFB, CA, USA</span>
+        </div>
+        <div class="card-time">2026-07-18T14:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Long March 3B/E" data-status="To Be Confirmed">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/long2520march_image_20230907120240.jpeg" alt="Long March 3B/E" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbc">To Be Confirmed</div>
+        <h3 class="card-title">Long March 3B/E | Unknown Payload</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Long March 3B/E</span>
+          <span class="card-site">🇨🇳 Xichang Satellite Launch Center, Pe</span>
+        </div>
+        <div class="card-time">2026-07-23T11:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Starlink Group 17-51</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Vandenberg SFB, CA, USA</span>
+        </div>
+        <div class="card-time">2026-07-23T14:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Electron" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/electron_image_20190705175640.jpeg" alt="Electron" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Electron | LOXSAT 1</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Electron</span>
+          <span class="card-site">🇳🇿 Rocket Lab Launch Complex 1, Mahia </span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Electron" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/electron_image_20190705175640.jpeg" alt="Electron" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Electron | StriX Launch 11</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Electron</span>
+          <span class="card-site">🇳🇿 Rocket Lab Launch Complex 1, Mahia </span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Electron" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/electron_image_20190705175640.jpeg" alt="Electron" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Electron | The Grain Goddess Provides (iQPS Launch 7)</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Electron</span>
+          <span class="card-site">🇳🇿 Rocket Lab Launch Complex 1, Mahia </span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Globalstar 2-R Mission 1 (x 9)</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Cape Canaveral SFS, FL, USA</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Falcon 9 Block 5 | MRV-1</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Cape Canaveral SFS, FL, USA</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Gravity-1" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/gravity-1_image_20240108105446.jpeg" alt="Gravity-1" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Gravity-1 | Unknown Payload</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Gravity-1</span>
+          <span class="card-site">🇨🇳 Haiyang Oriental Spaceport</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="GSLV Mk II" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/gslv2520mk2520ii_image_20190825171642.jpg" alt="GSLV Mk II" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">GSLV Mk II | GISAT-1A (EOS-05)</h3>
+        <div class="card-meta">
+          <span class="card-rocket">GSLV Mk II</span>
+          <span class="card-site">🇮🇳 Satish Dhawan Space Centre, India</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Mir" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/south2520korea_image_20231204145331.png" alt="Mir" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Mir | Demo Flight</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Mir</span>
+          <span class="card-site">🌐 Sea Launch</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Soyuz 2.1b" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/soyuz_2.1b_image_20230802085331.jpg" alt="Soyuz 2.1b" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Soyuz 2.1b | 16 x Rassvet-3</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Soyuz 2.1b</span>
+          <span class="card-site">🇷🇺 Plesetsk Cosmodrome, Russian Federa</span>
+        </div>
+        <div class="card-time">2026-07-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Spectrum" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/spectrum_on_the_image_20250321072643.jpeg" alt="Spectrum" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Spectrum | Onward and Upward</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Spectrum</span>
+          <span class="card-site">🌐 Andøya Spaceport</span>
+        </div>
+        <div class="card-time">2026-08-06T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="H3-22" data-status="Go for Launch">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/h3-22_liftoff__image_20251028183835.jpg" alt="H3-22" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-go">Go for Launch</div>
+        <h3 class="card-title">H3-22 | Michibiki 7 (QZS-7)</h3>
+        <div class="card-meta">
+          <span class="card-rocket">H3-22</span>
+          <span class="card-site">🇯🇵 Tanegashima Space Center, Japan</span>
+        </div>
+        <div class="card-time">2026-08-06T19:30 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Ariane 62" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/ariane_62_lifto_image_20240711132056.jpeg" alt="Ariane 62" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Ariane 62 | MTG-I2</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Ariane 62</span>
+          <span class="card-site">🇬🇫 Guiana Space Centre, French Guiana</span>
+        </div>
+        <div class="card-time">2026-08-27T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon Heavy" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon_heavy_image_20220129192819.jpeg" alt="Falcon Heavy" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Falcon Heavy | Nancy Grace Roman Space Telescope</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon Heavy</span>
+          <span class="card-site">🌐 Kennedy Space Center, FL, USA</span>
+        </div>
+        <div class="card-time">2026-08-30T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Falcon 9 Block 5 | BlueBird Block 2 #6-8</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Cape Canaveral SFS, FL, USA</span>
+        </div>
+        <div class="card-time">2026-08-31T00:00 UTC</div>
+      </div>
+    </div>
+    <div class="launch-card" data-family="Falcon 9" data-status="To Be Determined">
+      <div class="card-img-wrap"><img src="https://thespacedevs-prod.nyc3.digitaloceanspaces.com/media/images/falcon2520925_image_20221009234147.png" alt="Falcon 9" loading="lazy"></div>
+      <div class="card-body">
+        <div class="card-status badge-tbd">To Be Determined</div>
+        <h3 class="card-title">Falcon 9 Block 5 | Dragon CRS-2 SpX-35</h3>
+        <div class="card-meta">
+          <span class="card-rocket">Falcon 9</span>
+          <span class="card-site">🌐 Cape Canaveral SFS, FL, USA</span>
+        </div>
+        <div class="card-time">2026-08-31T00:00 UTC</div>
+      </div>
+    </div></div>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="widget">
+      <div class="widget-head">⏱ MISSION TIMELINE · 任务时间线</div>
+      <div class="timeline">
+    <div class="timeline-event ">
+      <div class="timeline-icon">📋</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-72:00:00</div>
+        <div class="timeline-label">发射前 3 天</div>
+        <div class="timeline-label-en">L-3 Day Review</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔧</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-08:00:00</div>
+        <div class="timeline-label">助推器装配</div>
+        <div class="timeline-label-en">Booster Mate</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🛠️</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-02:30:00</div>
+        <div class="timeline-label">发射台就绪</div>
+        <div class="timeline-label-en">Pad Ready</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">⛽</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-01:35:00</div>
+        <div class="timeline-label">推进剂加注</div>
+        <div class="timeline-label-en">Propellant Load</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔌</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-00:35:00</div>
+        <div class="timeline-label">末段加注</div>
+        <div class="timeline-label-en">Strongback Retract</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">⚡</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-00:10:00</div>
+        <div class="timeline-label">内部检查</div>
+        <div class="timeline-label-en">Internal Power Up</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔴</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-00:00:30</div>
+        <div class="timeline-label">最终点火序列</div>
+        <div class="timeline-label-en">Final Auto Sequence</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔥</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-00:00:03</div>
+        <div class="timeline-label">主发动机点火</div>
+        <div class="timeline-label-en">Main Engine Start</div>
+      </div>
+    </div>
+    <div class="timeline-event t-zero">
+      <div class="timeline-icon">🚀</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T-00:00:00</div>
+        <div class="timeline-label">升空 (LIFTOFF)</div>
+        <div class="timeline-label-en">Liftoff</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">💨</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:00:58</div>
+        <div class="timeline-label">最大动压 (Max-Q)</div>
+        <div class="timeline-label-en">Max-Q</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔗</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:02:33</div>
+        <div class="timeline-label">助推器分离</div>
+        <div class="timeline-label-en">Booster Separation</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🛡️</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:03:08</div>
+        <div class="timeline-label">整流罩分离</div>
+        <div class="timeline-label-en">Fairing Separation</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🛑</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:08:30</div>
+        <div class="timeline-label">一级关机 (MECO)</div>
+        <div class="timeline-label-en">MECO</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">✂️</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:08:45</div>
+        <div class="timeline-label">一二级分离</div>
+        <div class="timeline-label-en">Stage Separation</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🔥</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:09:00</div>
+        <div class="timeline-label">二级发动机点火</div>
+        <div class="timeline-label-en">Second Engine Start</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">↩️</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:35:00</div>
+        <div class="timeline-label">一级再入点火</div>
+        <div class="timeline-label-en">Boostback Burn</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🛬</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:45:00</div>
+        <div class="timeline-label">一级着陆</div>
+        <div class="timeline-label-en">First Stage Landing</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">🛑</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+00:55:00</div>
+        <div class="timeline-label">二级关机 (SECO)</div>
+        <div class="timeline-label-en">SECO-1</div>
+      </div>
+    </div>
+    <div class="timeline-event ">
+      <div class="timeline-icon">📦</div>
+      <div class="timeline-content">
+        <div class="timeline-time">T+01:05:00</div>
+        <div class="timeline-label">载荷部署</div>
+        <div class="timeline-label-en">Payload Deploy</div>
+      </div>
+    </div></div>
+    </div>
+    <div class="widget">
+      <div class="widget-head">🏛️ TOP PROVIDERS · 主要航天机构</div>
+      <div class="provider-row"><span class="prov-name">SpaceX</span><span class="prov-count">70</span></div><div class="provider-row"><span class="prov-name">Rocket Lab</span><span class="prov-count">23</span></div><div class="provider-row"><span class="prov-name">United Launch Alliance</span><span class="prov-count">22</span></div><div class="provider-row"><span class="prov-name">Indian Space Research Organiza</span><span class="prov-count">15</span></div><div class="provider-row"><span class="prov-name">Arianespace</span><span class="prov-count">8</span></div><div class="provider-row"><span class="prov-name">Isar Aerospace</span><span class="prov-count">6</span></div><div class="provider-row"><span class="prov-name">Mitsubishi Heavy Industries</span><span class="prov-count">6</span></div><div class="provider-row"><span class="prov-name">Firefly Aerospace</span><span class="prov-count">6</span></div>
+    </div>
+    <div class="widget">
+      <div class="widget-head">🛫 TOP LAUNCH SITES · 主要发射场</div>
+      <div class="site-row"><span class="site-name">Cape Canaveral SFS, FL, USA</span><span class="site-count">61</span></div><div class="site-row"><span class="site-name">Vandenberg SFB, CA, USA</span><span class="site-count">42</span></div><div class="site-row"><span class="site-name">Rocket Lab Launch Complex 1, Mahia </span><span class="site-count">18</span></div><div class="site-row"><span class="site-name">Satish Dhawan Space Centre, India</span><span class="site-count">16</span></div><div class="site-row"><span class="site-name">Guiana Space Centre, French Guiana</span><span class="site-count">15</span></div><div class="site-row"><span class="site-name">Andøya Spaceport</span><span class="site-count">6</span></div><div class="site-row"><span class="site-name">Tanegashima Space Center, Japan</span><span class="site-count">6</span></div><div class="site-row"><span class="site-name">Kennedy Space Center, FL, USA</span><span class="site-count">5</span></div>
+    </div>
+    <div class="widget">
+      <div class="widget-head">🌍 COUNTRY ACTIVITY · 国家活跃度</div>
+      <div class="provider-row"><span class="prov-name">United States of America</span><span class="prov-count">114</span></div><div class="provider-row"><span class="prov-name">New Zealand</span><span class="prov-count">18</span></div><div class="provider-row"><span class="prov-name">India</span><span class="prov-count">16</span></div><div class="provider-row"><span class="prov-name">French Guiana</span><span class="prov-count">15</span></div><div class="provider-row"><span class="prov-name">China</span><span class="prov-count">11</span></div><div class="provider-row"><span class="prov-name">Japan</span><span class="prov-count">7</span></div><div class="provider-row"><span class="prov-name">Norway</span><span class="prov-count">6</span></div><div class="provider-row"><span class="prov-name">Kazakhstan</span><span class="prov-count">3</span></div>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <div>📡 数据源: <a href="https://ll.thespacedevs.com/">The Space Devs LL2</a> · 200 upcoming missions · 实时倒计时</div>
+  <div>🕒 数据刷新: 2026-07-13T08:29:10Z</div>
+</div>
+<script id="pads-data" type="application/json">[{"lat": 34.632, "lng": -120.611, "site": "Vandenberg SFB", "country": "United States of America", "count": 58}, {"lat": 28.56194122, "lng": -80.57735736, "site": "Cape Canaveral SFS", "country": "United States of America", "count": 38}, {"lat": -39.260881, "lng": 177.865826, "site": "Rocket Lab Launch Complex 1", "country": "New Zealand", "count": 14}, {"lat": 28.458, "lng": -80.528, "site": "Cape Canaveral SFS", "country": "United States of America", "count": 14}, {"lat": 5.256319, "lng": -52.786838, "site": "Guiana Space Centre", "country": "French Guiana", "count": 8}, {"lat": 28.58341025, "lng": -80.58303644, "site": "Cape Canaveral SFS", "country": "United States of America", "count": 8}, {"lat": -39.262833, "lng": 177.864469, "site": "Rocket Lab Launch Complex 1", "country": "New Zealand", "count": 7}, {"lat": 45.996034, "lng": 63.564003, "site": "Baikonur Cosmodrome", "country": "Kazakhstan", "count": 5}, {"lat": 19.597275, "lng": 110.930753, "site": "Wenchang Space Launch Site", "country": "China", "count": 5}, {"lat": 38.8583, "lng": 111.5802, "site": "Taiyuan Satellite Launch Center", "country": "China", "count": 5}, {"lat": 69.1084, "lng": 15.5895, "site": "Andøya Spaceport Orbital Launch Pad", "country": "Norway", "count": 4}, {"lat": 37.833262, "lng": -75.488235, "site": "Wallops Flight Facility", "country": "United States of America", "count": 4}, {"lat": 34.7556, "lng": -120.6224, "site": "Vandenberg SFB", "country": "United States of America", "count": 4}, {"lat": 30.400938, "lng": 130.97564, "site": "Tanegashima Space Center", "country": "Japan", "count": 4}, {"lat": 19.618452, "lng": 110.955356, "site": "Wenchang Space Launch Site", "country": "China", "count": 4}, {"lat": 40.960482, "lng": 100.298059, "site": "Jiuquan Satellite Launch Center", "country": "China", "count": 4}, {"lat": 40.957893, "lng": 100.290944, "site": "Jiuquan Satellite Launch Center", "country": "China", "count": 3}, {"lat": 28.60822681, "lng": -80.60428186, "site": "Kennedy Space Center", "country": "United States of America", "count": 3}, {"lat": -39.262833, "lng": 177.864469, "site": "Rocket Lab Launch Complex 1", "country": "New Zealand", "count": 3}, {"lat": 40.8182, "lng": 100.22514, "site": "Jiuquan Satellite Launch Center", "country": "China", "count": 3}, {"lat": 28.247059, "lng": 102.029008, "site": "Xichang Satellite Launch Center", "country": "China", "count": 3}, {"lat": 62.92883, "lng": 40.457098, "site": "Plesetsk Cosmodrome", "country": "Russia", "count": 3}, {"lat": 13.7199, "lng": 80.2304, "site": "Satish Dhawan Space Centre", "country": "India", "count": 2}, {"lat": 5.236, "lng": -52.775, "site": "Guiana Space Centre", "country": "French Guiana", "count": 2}, {"lat": 19.614334, "lng": 110.951011, "site": "Wenchang Space Launch Site", "country": "China", "count": 2}, {"lat": 25.99677, "lng": -97.15799, "site": "SpaceX Starbase", "country": "United States of America", "count": 2}, {"lat": 28.245504, "lng": 102.026768, "site": "Xichang Satellite Launch Center", "country": "China", "count": 2}, {"lat": 36.631333, "lng": 121.198361, "site": "Haiyang Oriental Spaceport Haiyang offshore launch location", "country": "China", "count": 2}, {"lat": 19.59755, "lng": 110.936481, "site": "Wenchang Space Launch Site", "country": "China", "count": 2}, {"lat": 40.969117, "lng": 100.343333, "site": "Jiuquan Satellite Launch Center", "country": "China", "count": 2}]</script>
+<script>
+// ===== Countdown =====
+const launchDate = new Date("2026-07-14T01:16:00Z");
+function updateCountdown() {
+  const now = new Date();
+  const diff = Math.max(0, launchDate - now);
+  const sec = Math.floor(diff / 1000);
+  document.getElementById('cd-d').textContent = String(Math.floor(sec / 86400)).padStart(2, '0');
+  document.getElementById('cd-h').textContent = String(Math.floor(sec / 3600) % 24).padStart(2, '0');
+  document.getElementById('cd-m').textContent = String(Math.floor(sec / 60) % 60).padStart(2, '0');
+  document.getElementById('cd-s').textContent = String(sec % 60).padStart(2, '0');
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+// ===== Three.js Earth =====
+const padsData = JSON.parse(document.getElementById('pads-data').textContent);
+const canvas = document.getElementById('earth-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
+
+function resize() {
+  const w = canvas.clientWidth || canvas.parentElement.clientWidth || 600;
+  const h = canvas.clientHeight || canvas.parentElement.clientHeight || 380;
+  renderer.setSize(w, h, false);
+  canvas.width = w * Math.min(window.devicePixelRatio, 2);
+  canvas.height = h * Math.min(window.devicePixelRatio, 2);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+camera.position.set(0, 0, 3.4);
+
+const earthGroup = new THREE.Group();
+scene.add(earthGroup);
+
+// Outer atmosphere glow (cyan, larger)
+const glowGeo = new THREE.SphereGeometry(1.18, 64, 64);
+const glowMat = new THREE.MeshBasicMaterial({ color: 0x06d4ff, transparent: true, opacity: 0.25, side: THREE.BackSide });
+const glow = new THREE.Mesh(glowGeo, glowMat);
+earthGroup.add(glow);
+
+// Inner atmosphere (lime, smaller)
+const glow2 = new THREE.Mesh(
+  new THREE.SphereGeometry(1.05, 64, 64),
+  new THREE.MeshBasicMaterial({ color: 0xd5ff3f, transparent: true, opacity: 0.12, side: THREE.BackSide })
+);
+earthGroup.add(glow2);
+
+// Solid Earth core — bright cyan-blue
+// Earth with REAL texture (continents from NASA Blue Marble)
+const earthGeo = new THREE.SphereGeometry(1, 96, 96);
+const textureLoader = new THREE.TextureLoader();
+textureLoader.crossOrigin = 'anonymous';
+// Loading state placeholder (will be replaced when texture loads)
+const earthMat = new THREE.MeshBasicMaterial({ color: 0x1e90ff });
+const earth = new THREE.Mesh(earthGeo, earthMat);
+earthGroup.add(earth);
+// Load real Earth texture (NASA Blue Marble diffuse map)
+let earthLoaded = false;
+const loadTimeout = setTimeout(() => {
+  if (!earthLoaded) console.warn('Earth texture timeout — using solid color fallback');
+}, 8000);
+textureLoader.load(
+  './assets/earth_atmos.jpg',
+  (tex) => {
+    earthLoaded = true;
+    clearTimeout(loadTimeout);
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const newMat = new THREE.MeshBasicMaterial({ map: tex });
+    earth.material = newMat;
+    earth.material.needsUpdate = true;
+    console.log('✓ Earth texture loaded');
+  },
+  undefined,
+  (err) => {
+    console.warn('Earth texture load failed (using cyan fallback):', err);
+    earth.material = new THREE.MeshBasicMaterial({ color: 0x1e90ff });
+  }
+);
+// Specular map (oceans reflect more, land reflects less)
+textureLoader.load(
+  './assets/earth_specular.jpg',
+  (spec) => {
+    // Could use MeshPhongMaterial for real reflection; for now keep simple
+  }
+);
+
+// Latitude/longitude lines (visible wireframe)
+const wireGeo = new THREE.SphereGeometry(1.002, 24, 24);
+const wireMat = new THREE.MeshBasicMaterial({ color: 0xd5ff3f, wireframe: true, transparent: true, opacity: 0.25 });
+const wire = new THREE.Mesh(wireGeo, wireMat);
+earthGroup.add(wire);
+
+// Real continents from NASA Blue Marble texture (no synthetic dots needed)
+const landGroup = new THREE.Group();
+earthGroup.add(landGroup);
+
+// Lat/lng to 3D (shared by continents + pad markers)
+function latLngToVec3(lat, lng, radius) {
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lng + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+// Pad markers (lime, larger)
+const padsGroup = new THREE.Group();
+earthGroup.add(padsGroup);
+const maxCount = Math.max(...padsData.map(p => p.count), 1);
+padsData.forEach(p => {
+  const pos = latLngToVec3(p.lat, p.lng, 1.01);
+  const size = 0.012 + 0.04 * (Math.log(p.count + 1) / Math.log(maxCount + 1));
+  const dot = new THREE.Mesh(
+    new THREE.SphereGeometry(size, 12, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff8a3d })
+  );
+  dot.position.copy(pos);
+  padsGroup.add(dot);
+  const ring = new THREE.Mesh(
+    new THREE.SphereGeometry(size * 2.5, 12, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff8a3d, transparent: true, opacity: 0.25 })
+  );
+  ring.position.copy(pos);
+  ring.userData = { phase: Math.random() * Math.PI * 2, baseSize: size * 2.5 };
+  padsGroup.add(ring);
+});
+
+// Star field
+const starsGeo = new THREE.BufferGeometry();
+const starsCount = 1200;
+const starsPos = new Float32Array(starsCount * 3);
+for (let i = 0; i < starsCount * 3; i += 3) {
+  const r = 12 + Math.random() * 6;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  starsPos[i] = r * Math.sin(phi) * Math.cos(theta);
+  starsPos[i+1] = r * Math.cos(phi);
+  starsPos[i+2] = r * Math.sin(phi) * Math.sin(theta);
+}
+starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.04, transparent: true, opacity: 0.85 });
+const stars = new THREE.Points(starsGeo, starsMat);
+scene.add(stars);
+
+function animate(t) {
+  requestAnimationFrame(animate);
+  const time = t * 0.001;
+  earthGroup.rotation.y = time * 0.04;
+  padsGroup.children.forEach(child => {
+    if (child.userData && child.userData.baseSize) {
+      const phase = child.userData.phase;
+      const scale = 1 + 0.35 * Math.sin(time * 1.5 + phase);
+      child.scale.setScalar(scale);
+      child.material.opacity = 0.15 + 0.15 * Math.cos(time * 1.5 + phase);
+    }
+  });
+  stars.rotation.y = time * 0.008;
+  renderer.render(scene, camera);
+}
+animate(0);
+
+// Drag controls
+let isDragging = false, prevX = 0, prevY = 0;
+canvas.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const dx = e.clientX - prevX;
+  const dy = e.clientY - prevY;
+  earthGroup.rotation.y += dx * 0.005;
+  earthGroup.rotation.x = Math.max(-1.2, Math.min(1.2, earthGroup.rotation.x + dy * 0.005));
+  prevX = e.clientX;
+  prevY = e.clientY;
+});
+</script>
+</body>
+</html>''
