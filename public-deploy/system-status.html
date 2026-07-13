@@ -48,9 +48,9 @@ h1{font-size:32px;font-weight:900;margin:0 0 8px;background:linear-gradient(135d
 
   <div class="kpi-strip">
     <div class="kpi"><div class="kpi-label">Total Outputs</div><div class="kpi-num" data-kpi="total">270+</div><div class="kpi-sub">across 7 systems</div></div>
-    <div class="kpi"><div class="kpi-label">Cron Jobs</div><div class="kpi-num">42</div><div class="kpi-sub">hermes scheduled</div></div>
+    <div class="kpi"><div class="kpi-label">Cron Jobs</div><div class="kpi-num">46</div><div class="kpi-sub">hermes scheduled</div></div>
+    <div class="kpi"><div class="kpi-label">SLO Pass</div><div class="kpi-num" data-kpi="slo_pass" style="background:linear-gradient(180deg,#fff 0%,#34d399 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">7</div><div class="kpi-sub" data-kpi="slo_warn_suffix">/ 7 systems</div></div>
     <div class="kpi"><div class="kpi-label">Data Feeds</div><div class="kpi-num">35</div><div class="kpi-sub">RSS sources</div></div>
-    <div class="kpi"><div class="kpi-label">CB Labs Tracked</div><div class="kpi-num">25</div><div class="kpi-sub">+ 4 extensions</div></div>
   </div>
 
   <div class="section-title">Frontier Knowledge</div>
@@ -142,7 +142,17 @@ h1{font-size:32px;font-weight:900;margin:0 0 8px;background:linear-gradient(135d
     </div>
   </div>
 
-  <div class="footer">
+  
+<div class="glass" style="margin-top:24px">
+  <h2>7-day SLO Trend</h2>
+  <div id="trend-svg-container" style="min-height:80px"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace;margin-top:8px">
+    <span class="text-slate-500">7-day window · daily 8:00 auto-update</span>
+    <span class="text-cyan-400" id="trend-summary">--</span>
+  </div>
+</div>
+
+<div class="footer">
     <div>📊 数据源: cron jobs (hermes) + 35 RSS feeds + Crunchbase API · 自动 cron Sunday cycle 22:00 → 23:05</div>
     <div>🛠 managed by <a href="https://github.com/polyglotszeng/patrick-reports">patrick-reports</a> repo · CF Pages direct upload · 5 段式 Neo Labs pipeline</div>
     <div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(148,163,184,.12)">📈 Neo Labs monitoring (live): <a href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#monitoring">charts section →</a> · <a href="https://2017zyl.xyz/neo-labs-divergence-trend.html">CB divergence →</a> · <a href="https://2017zyl.xyz/neo-labs-rss-weekly.html">RSS weekly →</a></div>
@@ -197,6 +207,34 @@ fetch('/.rss-stats.json').then(r => r.json()).then(s => {
   // Update footer "last updated"
   const u = document.getElementById('updated');
   if (u && s.date) u.textContent = s.date;
+}).catch(() => {});
+
+// 7-day SLO trend
+fetch('/.health-trend.json').then(r => r.json()).then(t => {
+  if (!t || !t.days || t.days.length < 2) return;
+  const days = t.days.slice(-7);
+  const container = document.getElementById('trend-svg-container');
+  if (!container) return;
+  const w = 600, h = 100, pad = 12;
+  const cw = (w - 2 * pad) / Math.max(days.length - 1, 1);
+  const ch = h - 2 * pad;
+  const maxPass = Math.max(...days.map(d => d.pass), 7);
+  let pts = days.map((d, i) => {
+    const x = pad + i * cw;
+    const y = pad + ch - (ch * d.pass / maxPass);
+    return [x, y];
+  });
+  const path = 'M ' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L ');
+  const area = path + ' L ' + pts[pts.length-1][0].toFixed(1) + ',' + (pad+ch) + ' L ' + pts[0][0].toFixed(1) + ',' + (pad+ch) + ' Z';
+  container.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;max-width:600px;height:auto">'
+    + '<defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399" stop-opacity="0.4"/><stop offset="100%" stop-color="#34d399" stop-opacity="0"/></linearGradient></defs>'
+    + '<path d="' + area + '" fill="url(#hg)"/>'
+    + '<path d="' + path + '" fill="none" stroke="#34d399" stroke-width="2.5"/>'
+    + pts.map(p => '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="#34d399" stroke="#04060d" stroke-width="2"/>').join('')
+    + days.map((d, i) => '<text x="' + (pad + i * cw).toFixed(1) + '" y="' + (h - 2) + '" text-anchor="middle" font-family="monospace" font-size="9" fill="#94a3b8">' + d.date.slice(5) + '</text>').join('')
+    + '</svg>';
+  const summary = document.getElementById('trend-summary');
+  if (summary) summary.textContent = days[days.length-1].pass + '/' + days[days.length-1].total + ' pass · ' + (days[days.length-1].warn + days[days.length-1].fail) + ' issues';
 }).catch(() => {});
 </script>
 </body>

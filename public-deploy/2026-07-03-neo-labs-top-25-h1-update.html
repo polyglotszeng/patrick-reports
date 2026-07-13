@@ -292,6 +292,73 @@ input[type=range]::-webkit-slider-thumb:hover{ transform:scale(1.15)}
 <!-- ========== Charts will be inserted below ========== -->
 <div id="charts"></div>
 
+<!-- ========== Tools & Monitoring section (CB Divergence + RSS Weekly) ========== -->
+<section class="max-w-7xl mx-auto px-5 sm:px-8 mt-12">
+  <div class="section-eyebrow mb-4">🛠 TOOLS & MONITORING · 数据调和与 RSS 追踪</div>
+  <p class="text-slate-400 text-sm mb-6">每周一 9:00 自动跑 · CB vs Vault divergence + 35 feeds RSS 追踪 · 数据源: Crunchbase Basic API + 11 lab blogs + 4 GitHub releases + 6 top media + 8 founder X feeds</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <a href="https://2017zyl.xyz/neo-labs-divergence-trend.html" target="_blank" class="glass p-5 sm:p-6 block hover:translate-y-[-2px] transition">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-2xl">📊</div>
+        <div class="flex-1">
+          <div class="text-[10px] font-mono text-slate-400 tracking-widest">DATA RECONCILIATION · CB-VAULT</div>
+          <div class="text-lg font-bold">CB Divergence Trend</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] font-mono text-slate-500 tracking-widest">CURRENT</div>
+          <div class="font-mono text-2xl font-black" id="cb-card-divergent">--</div>
+          <div class="text-[10px] font-mono text-slate-500" id="cb-card-pct">--</div>
+        </div>
+      </div>
+      <div class="text-sm text-slate-400 mb-3">每周日 22:55 自动生成 12-week sparkline 趋势 · 12-week archive 含 SVG 折线图 · 周日 23:05 divergence > 12 时推 Telegram 报警</div>
+      <div class="flex items-center justify-between text-[11px] font-mono">
+        <span class="text-cyan-400" id="cb-card-trend">--</span>
+        <span class="text-cyan-300">open trend →</span>
+      </div>
+    </a>
+    <a id="rss-card-link" href="https://2017zyl.xyz/neo-labs-rss-weekly.html" target="_blank" class="glass p-5 sm:p-6 block hover:translate-y-[-2px] transition">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="text-2xl">📡</div>
+        <div class="flex-1">
+          <div class="text-[10px] font-mono text-slate-400 tracking-widest">RSS TRACKING · 35 FEEDS</div>
+          <div class="text-lg font-bold">RSS Weekly Summary</div>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] font-mono text-slate-500 tracking-widest">ACTIONABLE</div>
+          <div class="font-mono text-2xl font-black" id="rss-card-actionable">--</div>
+          <div class="text-[10px] font-mono text-slate-500" id="rss-card-labs">--</div>
+        </div>
+      </div>
+      <div class="text-sm text-slate-400 mb-3">每周日 22:00 自动跑 · 35 feeds (lab blogs + GitHub + media + arxiv) · 80-89 conf events → Claude Haiku 自动 review → apply/reject/manual · 周日 23:00 提醒 Patrick</div>
+      <div class="flex items-center justify-between text-[11px] font-mono">
+        <a id="rss-card-top-link" href="https://2017zyl.xyz/neo-labs-rss-weekly.html" target="_blank" class="text-cyan-400 hover:text-cyan-300 truncate flex-1" style="text-decoration:none">
+          <span id="rss-card-top">--</span> ↗
+        </a>
+        <span class="text-cyan-300 ml-2">open weekly →</span>
+      </div>
+    </a>
+  </div>
+  <div class="mt-4 flex items-center gap-3 text-[11px] text-slate-500 font-mono">
+    <span>📅 自动更新 (Sun 22:00 / 22:55 · 每日 8:00 health)</span>
+    <span>·</span>
+    <span>🛠 cron: <code class="text-cyan-400">neo-labs-divergence-trend</code> + <code class="text-cyan-400">neo-labs-rss-weekly-summary</code> + <code class="text-cyan-400">neo-labs-system-health</code></span>
+    <span>·</span>
+    <a href="https://2017zyl.xyz/neo-labs-divergence-archive.html" class="text-violet-300 hover:underline">12-week archive →</a>
+    <span>·</span>
+    <a href="https://2017zyl.xyz/system-health-archive.html" class="text-emerald-300 hover:underline">SLO 12-week →</a>
+  </div>
+  <!-- 7-day SLO trend (live from /.health-trend.json) -->
+  <div class="mt-4 glass p-4" style="border-radius:10px">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[10px] font-mono text-emerald-400 tracking-widest uppercase">📊 7-day SLO Trend · all 7 systems</div>
+      <div class="text-[10px] font-mono" id="neo-health-trend-summary">--</div>
+    </div>
+    <div id="neo-health-trend-svg" style="min-height:60px"></div>
+  </div>
+</section>
+
+<!-- ========== High leverage section anchor ========== -->
+
 <!-- ========== High leverage section anchor ========== -->
 <div id="risk"></div>
 
@@ -969,6 +1036,69 @@ if (document.readyState === 'loading') {
     document.addEventListener('keydown', function esc(e){ if (e.key==='Escape' && document.getElementById('trackerModal')){ modal.remove(); opened = false; } });
   });
 })();
+
+// Live data: fetch .rss-stats.json + parse divergence-archive.html
+fetch('/.rss-stats.json').then(r => r.json()).then(s => {
+  if (!s) return;
+  const a = document.getElementById('rss-card-actionable');
+  const l = document.getElementById('rss-card-labs');
+  const t = document.getElementById('rss-card-top');
+  const tLink = document.getElementById('rss-card-top-link');
+  if (a) a.textContent = s.actionable_count || 0;
+  if (l) l.textContent = (s.labs_covered || 0) + ' LABS · ' + (s.total_events || 0) + ' EVT';
+  if (t && s.top_event) {
+    t.textContent = s.top_event.source + ' · ' + (s.top_event.title || '').slice(0, 60) + (s.top_event.title && s.top_event.title.length > 60 ? '…' : '');
+  }
+  // Click-through: make top event link to actual article URL
+  if (tLink && s.top_event && s.top_event.url) {
+    tLink.href = s.top_event.url;
+    tLink.title = 'Open original article: ' + (s.top_event.title || '');
+  }
+}).catch(() => {});
+
+// Fetch divergence-trend page for CB card (parse HTML for KPI numbers)
+fetch('/neo-labs-divergence-trend.html').then(r => r.text()).then(html => {
+  const m1 = html.match(/<div class="kpi-num">\s*(\d+)\s*\/\s*(\d+)\s*<\/div>/);
+  const m2 = html.match(/<div class="kpi-num">\s*([\d.]+)%\s*<\/div>/);
+  const m3 = html.match(/<div class="delta [^"]*">([^<]+)<\/div>/);
+  const d = document.getElementById('cb-card-divergent');
+  const p = document.getElementById('cb-card-pct');
+  const t = document.getElementById('cb-card-trend');
+  if (d && m1) d.textContent = m1[1] + '/' + m1[2];
+  if (p && m2) p.textContent = m2[1] + '% DIVERGENT';
+  if (t && m3) t.textContent = m3[1].replace(/↗|↘|→/g, c => c === '↗' ? '↗' : c === '↘' ? '↘' : '→');
+}).catch(() => {});
+
+// 7-day SLO trend (live)
+fetch('/.health-trend.json').then(r => r.json()).then(t => {
+  if (!t || !t.days || t.days.length < 2) return;
+  const days = t.days.slice(-7);
+  const container = document.getElementById('neo-health-trend-svg');
+  if (!container) return;
+  const w = 600, h = 60, pad = 8;
+  const cw = (w - 2 * pad) / Math.max(days.length - 1, 1);
+  const ch = h - 2 * pad - 8;
+  const maxPass = Math.max(...days.map(d => d.pass), 7);
+  const pts = days.map((d, i) => {
+    const x = pad + i * cw;
+    const y = pad + ch - (ch * d.pass / maxPass);
+    return [x, y];
+  });
+  const path = 'M ' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L ');
+  const area = path + ' L ' + pts[pts.length-1][0].toFixed(1) + ',' + (pad + ch) + ' L ' + pts[0][0].toFixed(1) + ',' + (pad + ch) + ' Z';
+  container.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;max-width:600px;height:auto">'
+    + '<defs><linearGradient id="nhg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399" stop-opacity="0.4"/><stop offset="100%" stop-color="#34d399" stop-opacity="0"/></linearGradient></defs>'
+    + '<path d="' + area + '" fill="url(#nhg)"/>'
+    + '<path d="' + path + '" fill="none" stroke="#34d399" stroke-width="2"/>'
+    + pts.map(p => '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="2.5" fill="#34d399"/>').join('')
+    + days.map((d, i) => '<text x="' + (pad + i * cw).toFixed(1) + '" y="' + (h - 1) + '" text-anchor="middle" font-family="monospace" font-size="8" fill="#64748b">' + d.date.slice(5) + '</text>').join('')
+    + '</svg>';
+  const summary = document.getElementById('neo-health-trend-summary');
+  if (summary) {
+    const last = days[days.length-1];
+    summary.innerHTML = '<span class="text-emerald-400">' + last.pass + '/' + last.total + ' pass</span>' + (last.fail > 0 ? ' <span class="text-rose-400">' + last.fail + ' fail</span>' : '');
+  }
+}).catch(() => {});
 </script>
 </body>
 </html>
