@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Status · Patrick Hub</title>
+<style>
+:root{--bg-0:#04060d;--bg-1:#0a0e1c;--bg-2:#101630;--bg-3:#1a1f3a;--line:rgba(148,163,184,.12);--txt-0:#f8fafc;--txt-1:#cbd5e1;--txt-2:#94a3b8;--txt-3:#64748b;--neon-cyan:#22d3ee;--neon-magenta:#e879f9;--neon-amber:#fbbf24;--neon-rose:#fb7185;--neon-violet:#a78bfa;--neon-emerald:#34d399}
+*{box-sizing:border-box}
+html,body{background:var(--bg-0);color:var(--txt-0);font-family:Inter,Noto Sans SC,system-ui,sans-serif;-webkit-font-smoothing:antialiased;margin:0;padding:0;min-height:100vh}
+body{background:radial-gradient(1200px 700px at 10% -10%,rgba(34,211,238,.10),transparent 60%),radial-gradient(900px 600px at 95% 8%,rgba(232,121,249,.08),transparent 60%),var(--bg-0);padding:32px}
+.shell{max-width:1100px;margin:0 auto}
+h1{font-size:32px;font-weight:900;margin:0 0 8px;background:linear-gradient(135deg,#22d3ee 0%,#a78bfa 50%,#e879f9 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.meta{color:var(--txt-2);font-size:13px;margin-bottom:32px;font-family:'JetBrains Mono',monospace}
+.meta a{color:var(--neon-cyan);text-decoration:none;border-bottom:1px dotted rgba(34,211,238,.4)}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
+.kpi{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:20px 24px}
+.kpi-label{font:11px 'JetBrains Mono',ui-monospace,monospace;color:var(--txt-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.kpi-num{font:700 32px 'JetBrains Mono',ui-monospace,monospace;background:linear-gradient(180deg,#fff 0%,#94e9ff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.kpi-sub{font:11px 'JetBrains Mono',ui-monospace,monospace;color:var(--neon-cyan);margin-top:4px}
+.systems{display:grid;gap:12px}
+.system{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:grid;grid-template-columns:auto 1fr auto auto;gap:18px;align-items:center;transition:.25s}
+.system:hover{transform:translateY(-2px);border-color:rgba(34,211,238,.32);box-shadow:0 14px 50px -20px rgba(34,211,238,.25)}
+.sys-num{font:700 14px 'JetBrains Mono',ui-monospace,monospace;color:var(--txt-3);width:36px;text-align:right}
+.sys-icon{font-size:24px;width:40px;text-align:center}
+.sys-info{min-width:0}
+.sys-cat{font:11px 'JetBrains Mono',ui-monospace,monospace;color:var(--txt-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.sys-name{font-size:17px;font-weight:700;margin-bottom:2px}
+.sys-desc{font-size:12px;color:var(--txt-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sys-status{font:11px 'JetBrains Mono',ui-monospace,monospace;padding:4px 10px;border-radius:99px;letter-spacing:.04em;white-space:nowrap}
+.sys-status.live{background:rgba(52,211,153,.12);color:var(--neon-emerald);border:1px solid rgba(52,211,153,.3)}
+.sys-status.weekly{background:rgba(34,211,238,.12);color:var(--neon-cyan);border:1px solid rgba(34,211,238,.3)}
+.sys-status.monitor{background:rgba(167,139,250,.12);color:var(--neon-violet);border:1px solid rgba(167,139,250,.3)}
+.sys-status.os{background:rgba(251,191,36,.12);color:var(--neon-amber);border:1px solid rgba(251,191,36,.3)}
+.sys-link{font:12px 'JetBrains Mono',ui-monospace,monospace;color:var(--neon-cyan);text-decoration:none;padding:6px 14px;border:1px solid rgba(34,211,238,.3);border-radius:8px;background:rgba(34,211,238,.08);transition:.2s}
+.sys-link:hover{background:rgba(34,211,238,.2);border-color:rgba(34,211,238,.5)}
+.footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);color:var(--txt-3);font-size:12px;font-family:'JetBrains Mono',ui-monospace,monospace;line-height:1.7}
+.footer a{color:var(--neon-cyan);text-decoration:none}
+.section-title{font:12px 'JetBrains Mono',ui-monospace,monospace;color:var(--neon-cyan);letter-spacing:.12em;text-transform:uppercase;margin:32px 0 12px;display:flex;align-items:center;gap:10px}
+.section-title::before{content:"";width:20px;height:1px;background:var(--neon-cyan)}
+.section-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(34,211,238,.3),transparent)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>System Status · Patrick Hub</h1>
+  <div class="meta">统一状态面板 · 7 大系统健康度 · <a href="https://2017zyl.xyz/">← back to home</a> · last updated <span id="updated">2026-07-13</span></div>
+
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-label">Total Outputs</div><div class="kpi-num" data-kpi="total">270+</div><div class="kpi-sub">across 7 systems</div></div>
+    <div class="kpi"><div class="kpi-label">Cron Jobs</div><div class="kpi-num">42</div><div class="kpi-sub">hermes scheduled</div></div>
+    <div class="kpi"><div class="kpi-label">Data Feeds</div><div class="kpi-num">35</div><div class="kpi-sub">RSS sources</div></div>
+    <div class="kpi"><div class="kpi-label">CB Labs Tracked</div><div class="kpi-num">25</div><div class="kpi-sub">+ 4 extensions</div></div>
+  </div>
+
+  <div class="section-title">Frontier Knowledge</div>
+  <div class="systems">
+    <div class="system" data-system="daily-reports">
+      <div class="sys-num">01</div>
+      <div class="sys-icon">📚</div>
+      <div class="sys-info">
+        <div class="sys-cat">KNOWLEDGE</div>
+        <div class="sys-name">Daily Reports</div>
+        <div class="sys-desc">270 outputs · 31 周 public-deployed · cron auto-sync-verify 周更</div>
+      </div>
+      <div class="sys-status weekly">WEEKLY</div>
+      <a class="sys-link" href="https://2017zyl.xyz/daily-reports" target="_blank">open →</a>
+    </div>
+    <div class="system" data-system="neo-labs">
+      <div class="sys-num">02</div>
+      <div class="sys-icon">🔬</div>
+      <div class="sys-info">
+        <div class="sys-cat">PRIVATE MARKETS</div>
+        <div class="sys-name">Neo Labs Tracker · 25 LABS</div>
+        <div class="sys-desc">H1 2026 中期更新 · CB + RSS + git tracking · <a href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#monitoring" target="_blank" style="color:#67e8f9">monitoring →</a></div>
+      </div>
+      <div class="sys-status monitor">MONITORED</div>
+      <a class="sys-link" href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#monitoring" target="_blank">open →</a>
+    </div>
+  </div>
+
+  <div class="section-title">Space & Earth</div>
+  <div class="systems">
+    <div class="system" data-system="rockets">
+      <div class="sys-num">03</div>
+      <div class="sys-icon">🚀</div>
+      <div class="sys-info">
+        <div class="sys-cat">SPACE LAUNCH</div>
+        <div class="sys-name">Rockets Launch DB · 248 LAUNCHES</div>
+        <div class="sys-desc">CelesTrak 35 sources · 31,000+ data points · GH Actions cron 每日更新</div>
+      </div>
+      <div class="sys-status live">LIVE</div>
+      <a class="sys-link" href="https://2017zyl.xyz/rocket-launch-db/" target="_blank">open →</a>
+    </div>
+    <div class="system" data-system="sat-ops">
+      <div class="sys-num">04</div>
+      <div class="sys-icon">🛰</div>
+      <div class="sys-info">
+        <div class="sys-cat">ORBITAL INTELLIGENCE</div>
+        <div class="sys-name">Satellite Ops · World Monitor 子站</div>
+        <div class="sys-desc">CelesTrak 30+ source feed · OMM JSON live · 6,500+ active satellites</div>
+      </div>
+      <div class="sys-status live">LIVE</div>
+      <a class="sys-link" href="https://2017zyl.xyz/worldmonitor/satellite-ops/" target="_blank">open →</a>
+    </div>
+    <div class="system" data-system="world-monitor">
+      <div class="sys-num">05</div>
+      <div class="sys-icon">🌐</div>
+      <div class="sys-info">
+        <div class="sys-cat">GLOBAL SIGNAL</div>
+        <div class="sys-name">World Monitor · 35 SOURCES</div>
+        <div class="sys-desc">China variant + main variant · 8 panels (markets / crypto / news / etc) · daily digest</div>
+      </div>
+      <div class="sys-status live">LIVE</div>
+      <a class="sys-link" href="https://2017zyl.xyz/worldmonitor/" target="_blank">open →</a>
+    </div>
+  </div>
+
+  <div class="section-title">Reasoning & Open Source</div>
+  <div class="systems">
+    <div class="system" data-system="llm-salon">
+      <div class="sys-num">06</div>
+      <div class="sys-icon">🧠</div>
+      <div class="sys-info">
+        <div class="sys-cat">COLLECTIVE REASONING</div>
+        <div class="sys-name">LLM Salon · 5 MODELS</div>
+        <div class="sys-desc">1 free + 5 paid (MiniMax 等) · web UI 集成 · 公开 prompt 库</div>
+      </div>
+      <div class="sys-status live">LIVE</div>
+      <a class="sys-link" href="https://2017zyl.xyz/llm-salon/" target="_blank">open →</a>
+    </div>
+    <div class="system" data-system="agentic-os">
+      <div class="sys-num">07</div>
+      <div class="sys-icon">⚙</div>
+      <div class="sys-info">
+        <div class="sys-cat">OPEN-SOURCE OS</div>
+        <div class="sys-name">Agentic OS · Free · MIT</div>
+        <div class="sys-desc">42 cron jobs · 100+ skills · 9 sub-systems (vault / skills / memory / rss / cb / pin-labs / sync / archive / weekly-divergence)</div>
+      </div>
+      <div class="sys-status os">FREE</div>
+      <a class="sys-link" href="https://2017zyl.xyz/agentic-os" target="_blank">open →</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>📊 数据源: cron jobs (hermes) + 35 RSS feeds + Crunchbase API · 自动 cron Sunday cycle 22:00 → 23:05</div>
+    <div>🛠 managed by <a href="https://github.com/polyglotszeng/patrick-reports">patrick-reports</a> repo · CF Pages direct upload · 5 段式 Neo Labs pipeline</div>
+    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(148,163,184,.12)">📈 Neo Labs monitoring (live): <a href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#monitoring">charts section →</a> · <a href="https://2017zyl.xyz/neo-labs-divergence-trend.html">CB divergence →</a> · <a href="https://2017zyl.xyz/neo-labs-rss-weekly.html">RSS weekly →</a></div>
+  </div>
+</div>
+
+<script>
+// Live data: fetch .system-health.json
+fetch('/.system-health.json').then(r => r.json()).then(h => {
+  if (!h) return;
+  // Update each system card with real data
+  Object.entries(h.systems).forEach(([sid, s]) => {
+    const card = document.querySelector('[data-system="' + sid + '"]');
+    if (card) {
+      // Update metric
+      const metricEl = card.querySelector('.sys-metric');
+      if (metricEl) metricEl.textContent = s.metric;
+      // Update freshness
+      const freshEl = card.querySelector('.sys-fresh');
+      if (freshEl) {
+        const d = s.freshness_days;
+        freshEl.textContent = d === 0 ? 'today' : d + 'd ago';
+        freshEl.style.color = d <= 1 ? '#34d399' : d <= 7 ? '#67e8f9' : '#fbbf24';
+      }
+      // Update status badge
+      const statusEl = card.querySelector('.sys-status');
+      if (statusEl) {
+        statusEl.className = 'sys-status ' + s.status;
+        statusEl.textContent = s.status.toUpperCase();
+      }
+    }
+  });
+  // Update KPI strip
+  const kpiMap = {
+    'total': h.summary.total,
+    'live': h.summary.live,
+    'weekly': h.summary.weekly,
+    'monitored': h.summary.monitored
+  };
+  Object.entries(kpiMap).forEach(([k, v]) => {
+    const el = document.querySelector('[data-kpi="' + k + '"]');
+    if (el) el.textContent = v;
+  });
+  // Update footer timestamp
+  const u = document.getElementById('updated');
+  if (u) u.textContent = h.today || (new Date().toISOString().slice(0, 10));
+}).catch(() => {});
+
+// Divergence count from .rss-stats.json (legacy fallback)
+fetch('/.rss-stats.json').then(r => r.json()).then(s => {
+  if (!s) return;
+  // Update footer "last updated"
+  const u = document.getElementById('updated');
+  if (u && s.date) u.textContent = s.date;
+}).catch(() => {});
+</script>
+</body>
+</html>
