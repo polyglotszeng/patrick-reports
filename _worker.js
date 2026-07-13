@@ -39,6 +39,12 @@ export default {
       return handleSalonAgentApi(request, env);
     }
 
+    // === /api/llm-salon/* — Mirror local proxy at 127.0.0.1:9876 (07-12 NEW) ===
+    // Lets /llm-salon/ page reach the API same-origin instead of trying to call localhost.
+    if (path.startsWith("/api/llm-salon")) {
+      return handleLlmSalonApi(request, env);
+    }
+
     const archiveRepair = await repairDailyReportArchivePath(path, url, env, request);
     if (archiveRepair) return archiveRepair;
 
@@ -655,4 +661,256 @@ async function handleApi(path, url, env, request) {
       { headers: cors },
     );
   }
+}// === LLM Salon API (07-12 NEW) ===
+// Mirrors the local Python proxy at 127.0.0.1:9876 (see ~/.llm-salon/scripts/llm-salon-proxy.py)
+// so the deployed /llm-salon/ page can reach the API via same-origin /api/llm-salon/*.
+// Falls back gracefully when secrets missing. Backends:
+//   - openrouter (env.OPENROUTER_API_KEY) — for free OpenRouter models
+//   - minimax    (env.MINIMAX_TOKEN)      — for paid MiniMax vendor-direct
+// Dispatch: model_id prefix → backend (matches local proxy).
+// Required env secrets: OPENROUTER_API_KEY, MINIMAX_TOKEN.
+
+const LLM_SALON_FREE_MODELS = [
+  { id: "openai/gpt-oss-120b:free", provider: "OpenAI", short: "GPT-OSS 120B", ctx: 131072, tier: "free",
+    blurb: "OpenAI's open-weight 120B. Only OpenRouter free model that returned a real answer in the 2026-07-09 curation test." },
+];
+const LLM_SALON_PAID_MODELS = [
+  { id: "MiniMax/MiniMax-M2",     provider: "MiniMax", backend: "minimax", short: "MiniMax M2",     ctx: 200000, tier: "paid", blurb: "MiniMax M2 flagship. Reasoning + Chinese strong." },
+  { id: "MiniMax/MiniMax-M2.7",   provider: "MiniMax", backend: "minimax", short: "MiniMax M2.7",   ctx: 200000, tier: "paid", blurb: "MiniMax M2.7 (mid-2026). Balanced cost/quality." },
+  { id: "MiniMax/MiniMax-M3",     provider: "MiniMax", backend: "minimax", short: "MiniMax M3",     ctx: 200000, tier: "paid", blurb: "MiniMax M3 (2026 Q3). Latest gen, top of MiniMax tier." },
+  { id: "MiniMax/MiniMax-M2.5",   provider: "MiniMax", backend: "minimax", short: "MiniMax M2.5",   ctx: 200000, tier: "paid", blurb: "MiniMax M2.5. Stable, fast, decent quality." },
+  { id: "MiniMax/MiniMax-M2.1",   provider: "MiniMax", backend: "minimax", short: "MiniMax M2.1",   ctx: 128000, tier: "paid", blurb: "MiniMax M2.1. Older, cheapest. Good fallback." },
+];
+
+const LLM_SALON_BACKENDS = {
+  openrouter: { url: "https://openrouter.ai/api/v1", path: "/chat/completions" },
+  minimax:    { url: "https://api.minimax.io/v1",   path: "/chat/completions" },
+};
+
+// === Per-request key resolution (Cloudflare Workers reads secrets via env, not globals) ===
+function llmSalonKey(env, backend) {
+  if (backend === "openrouter") return (env && env.OPENROUTER_API_KEY) || "";
+  if (backend === "minimax")    return (env && (env.MINIMAX_TOKEN || env.MINIMAX_API_KEY)) || "";
+  return "";
+}
+
+function llmSalonBackendFor(model) {
+  if (model.endsWith(":free")) return "openrouter";
+  if (model.startsWith("MiniMax/")) return "minimax";
+  return "openrouter";
+}
+
+async function llmSalonCall(model, messages, opts = {}) {
+  const env = opts.env || {};
+  const maxTokens = Math.max(opts.maxTokens || 800, model.startsWith("MiniMax/") ? 2500 : 800);
+  const temperature = opts.temperature ?? 0.8;
+  const backend = llmSalonBackendFor(model);
+  const cfg = LLM_SALON_BACKENDS[backend];
+  const key = llmSalonKey(env, backend);
+  if (!key) {
+    return { ok: false, text: null, error: `backend '${backend}' key not configured`, model, latency_ms: 0 };
+  }
+  // Strip vendor prefix when sending to native endpoints; OpenRouter keeps full slug.
+  // e.g. "MiniMax/MiniMax-M2" → "MiniMax-M2" for MiniMax native API.
+  const upstreamModel = (backend === "openrouter")
+    ? model
+    : (model.includes("/") ? model.split("/").slice(1).join("/") : model);
+  const body = JSON.stringify({
+    model: upstreamModel,
+    messages,
+    max_tokens: maxTokens,
+    temperature,
+    stream: false,
+  });
+  const headers = {
+    "authorization": `Bearer ${key}`,
+    "content-type": "application/json",
+  };
+  if (backend === "openrouter") {
+    headers["http-referer"] = "https://2017zyl.xyz/llm-salon/";
+    headers["x-title"] = "LLM Salon";
+  }
+  const t0 = Date.now();
+  try {
+    const resp = await fetch(cfg.url + cfg.path, { method: "POST", headers, body });
+    if (!resp.ok) {
+      const errBody = await resp.text().catch(() => "");
+      return { ok: false, text: null, error: `HTTP ${resp.status}: ${errBody.slice(0, 200)}`, model, latency_ms: Date.now() - t0 };
+    }
+    const data = await resp.json();
+    const msg = (data.choices && data.choices[0] && data.choices[0].message) || {};
+    let text = msg.content || msg.reasoning;
+    if (!text && Array.isArray(msg.reasoning_details) && msg.reasoning_details[0]) {
+      text = msg.reasoning_details[0].text || "";
+    }
+    if (!text) text = "[empty response — model returned no content]";
+    // MiniMax models wrap answer in <think>...</think> — strip reasoning block for user-facing view.
+    if (backend === "minimax" && text.includes("</think>")) {
+      text = text.split("</think>")[1].trim();
+      if (!text) text = "[MiniMax returned only reasoning, no final answer]";
+    }
+    return { ok: true, text, model, latency_ms: Date.now() - t0 };
+  } catch (e) {
+    return { ok: false, text: null, error: `${e.name || "Error"}: ${e.message || e}`, model, latency_ms: Date.now() - t0 };
+  }
+}
+
+// === handleLlmSalonApi — mirrors 127.0.0.1:9876 proxy endpoints ===
+async function handleLlmSalonApi(request, env) {
+  const cors = {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-headers": "content-type",
+  };
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/^\/api\/llm-salon/, "");
+
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: cors });
+  }
+
+  // ── /health — backend key status + model counts ──
+  if (path === "/health" || path === "" || path === "/") {
+    const orKey = env.OPENROUTER_API_KEY || "";
+    const mxKey = env.MINIMAX_TOKEN || env.MINIMAX_API_KEY || "";
+    return new Response(JSON.stringify({
+      ok: true,
+      free_models: LLM_SALON_FREE_MODELS.length,
+      paid_models: LLM_SALON_PAID_MODELS.length,
+      backends: {
+        openrouter: { configured: !!orKey, preview: orKey ? `${orKey.slice(0,6)}...${orKey.slice(-4)}` : "" },
+        minimax:    { configured: !!mxKey, preview: mxKey ? `${mxKey.slice(0,6)}...${mxKey.slice(-4)}` : "" },
+      },
+      served_from: "cf-worker",
+    }), { headers: cors });
+  }
+
+  // ── /v1/models — free tier ──
+  if (path === "/v1/models" && request.method === "GET") {
+    return new Response(JSON.stringify({ object: "list", data: LLM_SALON_FREE_MODELS }), { headers: cors });
+  }
+
+  // ── /v1/models/paid — paid tier ──
+  if (path === "/v1/models/paid" && request.method === "GET") {
+    return new Response(JSON.stringify({ object: "list", data: LLM_SALON_PAID_MODELS }), { headers: cors });
+  }
+
+  // ── /v1/chat — single chat (kept for parity, page uses batch) ──
+  if (path === "/v1/chat" && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch (e) {
+      return new Response(JSON.stringify({ error: `invalid JSON: ${e.message}` }), { status: 400, headers: cors });
+    }
+    const model = body.model;
+    const messages = body.messages || [];
+    if (!model || !messages.length) {
+      return new Response(JSON.stringify({ error: "model + messages required" }), { status: 400, headers: cors });
+    }
+    const result = await llmSalonCall(model, messages, { maxTokens: body.max_tokens, temperature: body.temperature, env });
+    return new Response(JSON.stringify({ ok: true, ...result }), { headers: cors });
+  }
+
+  // ── /v1/chat/batch — N models parallel ──
+  if (path === "/v1/chat/batch" && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch (e) {
+      return new Response(JSON.stringify({ error: `invalid JSON: ${e.message}` }), { status: 400, headers: cors });
+    }
+    let models;
+    if (Array.isArray(body.models) && body.models.length) {
+      models = body.models;
+    } else {
+      // Default: free + paid (matches local proxy)
+      models = [...LLM_SALON_FREE_MODELS.map(m => m.id), ...LLM_SALON_PAID_MODELS.map(m => m.id)];
+    }
+    const messages = body.messages || [];
+    const maxTokens = body.max_tokens || 800;
+    const temperature = body.temperature ?? 0.8;
+    const systemPrompt = body.system || "";
+    const userMessage = messages[messages.length - 1]?.content || body.question || "";
+    if (!userMessage) {
+      return new Response(JSON.stringify({ error: "messages or question required" }), { status: 400, headers: cors });
+    }
+    // Always build a non-empty messages array. Page sends `question` field; we materialize
+    // it into [{role:"user", content:question}]. If caller provided messages, use those.
+    const baseMessages = messages.length
+      ? messages
+      : [{ role: "user", content: userMessage }];
+    const fullMessages = systemPrompt
+      ? [{ role: "system", content: systemPrompt }, ...baseMessages]
+      : baseMessages;
+    const settled = await Promise.allSettled(
+      models.map(m => llmSalonCall(m, fullMessages, { maxTokens, temperature, env }))
+    );
+    const results = settled.map((s, i) => s.status === "fulfilled"
+      ? s.value
+      : { ok: false, text: null, error: `${s.reason}`, model: models[i], latency_ms: 0 });
+    return new Response(JSON.stringify({
+      ok: true,
+      question: userMessage,
+      system: systemPrompt,
+      count: results.length,
+      results,
+    }), { headers: cors });
+  }
+
+  // ── /v1/chat/diss — 2 models 3 rounds ──
+  if (path === "/v1/chat/diss" && request.method === "POST") {
+    let body;
+    try { body = await request.json(); } catch (e) {
+      return new Response(JSON.stringify({ error: `invalid JSON: ${e.message}` }), { status: 400, headers: cors });
+    }
+    const modelA = body.model_a || body.modelA;
+    const modelB = body.model_b || body.modelB;
+    const topic = body.topic || body.question || "";
+    if (!modelA || !modelB || !topic) {
+      return new Response(JSON.stringify({ error: "model_a, model_b, topic required" }), { status: 400, headers: cors });
+    }
+    const sysPrompt = body.system || "You are participating in a 3-round debate. Be sharp, opinionated, and concise (3-5 sentences per reply).";
+    const round1 = [
+      { role: "system", content: sysPrompt + "\n\nRound 1: State your position on the topic." },
+      { role: "user", content: topic },
+    ];
+    const r1 = await Promise.all([
+      llmSalonCall(modelA, round1, { env }),
+      llmSalonCall(modelB, round1, { env }),
+    ]);
+    const textA1 = r1[0].text || "";
+    const textB1 = r1[1].text || "";
+    const round2A = [
+      { role: "system", content: sysPrompt + `\n\nRound 2 (rebuttal): The other model said: "${textB1.slice(0, 800)}". Push back in 3-5 sentences.` },
+      { role: "user", content: topic },
+    ];
+    const round2B = [
+      { role: "system", content: sysPrompt + `\n\nRound 2 (rebuttal): The other model said: "${textA1.slice(0, 800)}". Push back in 3-5 sentences.` },
+      { role: "user", content: topic },
+    ];
+    const r2 = await Promise.all([llmSalonCall(modelA, round2A, { env }), llmSalonCall(modelB, round2B, { env })]);
+    const textA2 = r2[0].text || "";
+    const textB2 = r2[1].text || "";
+    const round3A = [
+      { role: "system", content: sysPrompt + `\n\nRound 3 (closing): Opponent said: "${textB2.slice(0, 800)}". Final 3-5 sentences.` },
+      { role: "user", content: topic },
+    ];
+    const round3B = [
+      { role: "system", content: sysPrompt + `\n\nRound 3 (closing): Opponent said: "${textA2.slice(0, 800)}". Final 3-5 sentences.` },
+      { role: "user", content: topic },
+    ];
+    const r3 = await Promise.all([llmSalonCall(modelA, round3A, { env }), llmSalonCall(modelB, round3B, { env })]);
+    return new Response(JSON.stringify({
+      ok: true,
+      topic,
+      model_a: modelA,
+      model_b: modelB,
+      rounds: [
+        { round: 1, a: { text: textA1, ...r1[0] }, b: { text: textB1, ...r1[1] } },
+        { round: 2, a: { text: textA2, ...r2[0] }, b: { text: textB2, ...r2[1] } },
+        { round: 3, a: { text: r3[0].text, ...r3[0] }, b: { text: r3[1].text, ...r3[1] } },
+      ],
+    }), { headers: cors });
+  }
+
+  return new Response(JSON.stringify({ error: `unknown LLM salon path: ${path}` }), { status: 404, headers: cors });
 }

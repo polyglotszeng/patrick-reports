@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM Salon — 27 Models, One Question</title>
-<meta name="description" content="A virtual roundtable of 27 free LLM models from OpenRouter. Pose one question, get 27 answers, then pick two models to debate each other in 3 rounds.">
+<meta name="description" content="A virtual roundtable of 6 LLM models. Pose one question, get 6 answers, then pick two models to debate each other in 3 rounds.">
 <style>
   :root {
     --bg-deep: #0c0a08;
@@ -303,14 +303,44 @@
     display: flex; align-items: center; justify-content: center;
     font-family: var(--font-mono); font-size: 11px; font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.25s cubic-bezier(.4, 0, .2, 1);
   }
-  .seat:hover { transform: scale(1.4); z-index: 10; box-shadow: var(--shadow); }
-  .seat.ok    { border-color: var(--success); background: rgba(110, 164, 124, 0.18); }
+  .seat:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 0 18px rgba(200, 156, 93, 0.4), var(--shadow); }
+  .seat.ok    {
+    border-color: var(--success);
+    background: rgba(110, 164, 124, 0.18);
+    box-shadow: 0 0 14px rgba(110, 164, 124, 0.35);
+  }
   .seat.fail  { border-color: var(--error); background: rgba(196, 90, 74, 0.12); opacity: 0.55; }
-  .seat.pending { border-color: var(--text-faint); opacity: 0.45; }
+  .seat.pending {
+    border-color: var(--accent-gold);
+    opacity: 0.55;
+    animation: seatPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes seatPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200, 156, 93, 0.0); transform: scale(1); }
+    50%      { box-shadow: 0 0 12px 2px rgba(200, 156, 93, 0.35); transform: scale(1.08); }
+  }
   .seat-loading { animation: spin 1.2s linear infinite; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* Seat internals — initials + tiny latency badge */
+  .seat-init {
+    line-height: 1;
+    font-size: 13px;
+    letter-spacing: -0.02em;
+  }
+  .seat-ms {
+    display: block;
+    font-size: 8px;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-top: 2px;
+    letter-spacing: 0;
+    opacity: 0.85;
+  }
+  .seat.fail .seat-ms { color: var(--error); font-weight: 700; }
+  .seat.ok .seat-ms   { color: var(--success); }
 
   /* Custom hover tooltip for seats */
   .seat-tip {
@@ -472,7 +502,7 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-title" id="sidebarTitle">Roster · 27 models</span>
+      <span class="sidebar-title" id="sidebarTitle">Roster · <span id="rosterCount">—</span> models</span>
       <span>
         <button class="chip" id="toggleAllBtn" style="font-size:10px; padding:3px 8px">all</button>
         <button class="chip" id="clearDissBtn" style="font-size:10px; padding:3px 8px; display:none" title="clear diss picks">↺</button>
@@ -485,7 +515,7 @@
   <main class="main" id="main">
     <div class="empty-state" id="emptyState">
       <h2>The salon is empty.</h2>
-      <p>Type a question above, or pick a chip. The 27 free models will each answer in parallel.
+      <p>Type a question above, or pick a chip. Each selected model will answer in parallel.
       Then you can name any two models and pit them against each other in a 3-round debate.</p>
     </div>
     <div class="table-wrap" id="tableWrap" style="display:none">
@@ -528,7 +558,7 @@ const STATE = {
   dissResults: null,           // last diss response
 };
 
-const PROXY = 'http://127.0.0.1:9876';
+const PROXY = '/api/llm-salon';
 
 // Provider colors (must match Python catalog order)
 const PROVIDER_COLORS = {
@@ -544,6 +574,8 @@ const PROVIDER_COLORS = {
   'Poolside': '#E91E63',
   'Alibaba': '#FF6A00',
   'Tencent': '#FAAD14',
+  'MiniMax':    '#FF6A2C',  // MiniMax brand orange (matches their dev site)
+  'Anthropic':  '#D97757',
 };
 
 const PROVIDER_SHORT_INITIALS = {
@@ -559,7 +591,15 @@ const PROVIDER_SHORT_INITIALS = {
   'Poolside': 'PS',
   'Alibaba': 'AL',
   'Tencent': 'TC',
+  'MiniMax':    'MM',
+  'Anthropic':  'A',
 };
+
+// Fallback: derive 2-char initials from provider name when no mapping exists.
+function providerInitials(provider) {
+  if (!provider) return '?';
+  return (PROVIDER_SHORT_INITIALS[provider] || provider.slice(0, 2).toUpperCase());
+}
 
 // ────────── Init ──────────
 async function init() {
@@ -664,6 +704,8 @@ function saveState() {
 function renderRoster(filter = '') {
   const el = document.getElementById('roster');
   el.innerHTML = '';
+  const countEl = document.getElementById('rosterCount');
+  if (countEl) countEl.textContent = STATE.models.length;
   const f = filter.toLowerCase().trim();
   const byProvider = {};
   for (const m of STATE.models) {
@@ -807,7 +849,7 @@ async function conveneSalon() {
     for (let i = 0; i < all.length; i++) {
       done++;
       STATE.results[all[i].model] = all[i];
-      renderRoundTableSeats(all.map(r => ({id: r.model, state: r.ok ? 'ok' : 'fail', ms: r.latency_ms})));
+      renderRoundTableSeats(all.map(r => ({id: r.model, state: r.ok ? 'ok' : 'fail', ms: r.latency_ms, error: r.error})));
       appendOrUpdateCard(all[i]);
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       document.getElementById('progress').innerHTML = `<span class="progress-num">${done}</span> / ${all.length} done in ${elapsed}s · ${j.results.filter(r => r.ok).length} succeeded<div class="progress-bar"><div class="progress-bar-fill" style="width:${(done/all.length*100).toFixed(0)}%"></div></div>`;
@@ -821,7 +863,7 @@ async function conveneSalon() {
       switchMode('diss');
     });
   } catch (e) {
-    document.getElementById('progress').innerHTML = `<span style="color:var(--error)">⚠ ${e.message} — is the proxy running on port 9876?</span>`;
+    document.getElementById('progress').innerHTML = `<span style="color:var(--error)">⚠ ${e.message} — proxy call to <code style="font-family:var(--font-mono);background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px">${PROXY}</code> failed</span>`;
   } finally {
     btn.disabled = false;
     btn.textContent = 'Convene Salon ▶';
@@ -872,9 +914,14 @@ function renderRoundTableSeats(seats) {
     seat.style.top = `calc(${y}% - 22px)`;
     const m = modelsById[s.id];
     const color = PROVIDER_COLORS[m?.provider] || '#666';
-    const init = (PROVIDER_SHORT_INITIALS[m?.provider] || '?').slice(0, 2);
-    seat.textContent = init;
+    const init = providerInitials(m?.provider);
     seat.style.color = color;
+    // Inner layout: provider initials as the main label, with a small latency badge
+    // appearing underneath after completion.
+    seat.innerHTML = `<span class="seat-init">${init}</span>` +
+      (s.ms != null && s.state === 'ok'
+        ? `<span class="seat-ms">${(s.ms/1000).toFixed(1)}s</span>`
+        : (s.state === 'fail' ? `<span class="seat-ms">!</span>` : ''));
     // Custom tooltip on hover (no native title)
     seat.addEventListener('mouseenter', (e) => showSeatTip(e, m, s));
     seat.addEventListener('mousemove', (e) => moveSeatTip(e));
@@ -926,7 +973,7 @@ function appendOrUpdateCard(result) {
   }
   const m = STATE.models.find(x => x.id === result.model);
   const color = PROVIDER_COLORS[m?.provider] || '#666';
-  const init = (PROVIDER_SHORT_INITIALS[m?.provider] || '?').slice(0, 2);
+  const init = providerInitials(m?.provider);
   card.innerHTML = `
     <div class="card-header">
       <div class="card-avatar" style="background:${color}">${init}</div>
@@ -985,8 +1032,8 @@ function renderDiss(j) {
   const bM = STATE.models.find(m => m.id === j.model_b);
   const aColor = PROVIDER_COLORS[aM?.provider] || '#5d9ccc';
   const bColor = PROVIDER_COLORS[bM?.provider] || '#c45a4a';
-  const aInit = (PROVIDER_SHORT_INITIALS[aM?.provider] || 'A').slice(0, 2);
-  const bInit = (PROVIDER_SHORT_INITIALS[bM?.provider] || 'B').slice(0, 2);
+  const aInit = providerInitials(aM?.provider);
+  const bInit = providerInitials(bM?.provider);
 
   const roundLabels = {1: 'opening', 2: 'rebuttal', 3: 'closing'};
   let html = `<h2 style="font-family:var(--font-serif); font-size:18px; color:var(--accent-gold); margin-bottom:4px; text-align:center">⚔️ ${aM?.short || aM}  vs  ${bM?.short || bM}</h2>`;
