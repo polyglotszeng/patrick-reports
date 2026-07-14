@@ -328,15 +328,15 @@
     
       
 
-    <a class="fcard" style="--c1:#5b8def;--c2:#b48cff" href="https://2017zyl.xyz/ai-trending/2026-07-13">
+    <a class="fcard" style="--c1:#5b8def;--c2:#b48cff" href="https://2017zyl.xyz/ai-trending/2026-07-14">
       <div class="ico">🤖</div>
-      <h4>AI 热门追踪 · 2026-07-13</h4>
+      <h4>AI 热门追踪 · 2026-07-14</h4>
       <p>每日 08:00 cron · HN + GitHub + arXiv cs.AI · AI 关键词过滤 · dark theme · 5 维数据</p>
       <span class="go">launch →</span>
     </a>
-    <a class="fcard" style="--c1:#ff6b9d;--c2:#b48cff" href="https://2017zyl.xyz/hardtech/2026-07-13">
+    <a class="fcard" style="--c1:#ff6b9d;--c2:#b48cff" href="https://2017zyl.xyz/hardtech/2026-07-14">
       <div class="ico">⚛️</div>
-      <h4>硬科技热门 · 2026-07-13</h4>
+      <h4>硬科技热门 · 2026-07-14</h4>
       <p>每日 09:00 cron · arXiv (plasm-ph + quant-ph + mes-hall + battery) + HN · 4 verticals: 核聚变 / 量子 / 电池 / 航天</p>
       <span class="go">launch →</span>
     </a>
@@ -819,6 +819,39 @@
       const el=$('#toast');el.textContent=tr()[key]||key;el.classList.add('show');
       setTimeout(()=>el.classList.remove('show'),1900);
     };
+
+    // sendFeedback — POST /api/feedback → Worker → CF Email Service → Outlook (07-14 NEW)
+    // Persists locally too so user keeps history on this device.
+    // onPending=true  = chip click (instant toast, no spinner)
+    // onPending=false = modal submit (wait for response)
+    async function sendFeedback({score,text,onPending=true}){
+      const payload={
+        score,
+        text: String(text||'').slice(0,1000),
+        lang: state.lang,
+        url:  location.href.slice(0,240),
+        ua:   navigator.userAgent.slice(0,240),
+        from: 'daily-reports-widget',
+        ts:   new Date().toISOString(),
+      };
+      // Always keep a local copy (offline-friendly fallback)
+      try{localStorage.setItem('patrick-feedback',JSON.stringify({...payload,kind:onPending?'chip':'modal'}));}catch(e){}
+      try{
+        const r=await fetch('/api/feedback',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+        const j=await r.json().catch(()=>({}));
+        if(r.ok&&j.ok){
+          showToast('已发到 Outlook');
+          console.info('[feedback] delivered',payload.score,j);
+        }else{
+          showToast('反馈已保存 (邮件延迟)');
+          console.warn('[feedback] saved-locally',r.status,j);
+        }
+      }catch(e){
+        showToast('反馈已保存 (网络延迟)');
+        console.warn('[feedback] network-error',e?.message);
+      }
+    }
+
     const trackName=id=>tracks.find(x=>x.id===id)?.[state.lang]||tr().all;
 
     function renderTracks(){
@@ -1007,9 +1040,9 @@ $$('.filter-chip').forEach(chip=>{
     $('#shuffle').onclick=()=>generateRoute(true);$('#startRoute').onclick=()=>openArticle(Math.min(state.current,2));
     $('#completeStop').onclick=()=>{$('#articleOverlay').classList.remove('open');state.current=Math.min(state.current+1,3);save();renderRoute();showToast(state.current<3?'next':'finished')};
     $('#feedbackOpen').onclick=()=>$('#feedbackOverlay').classList.add('open');
-    $('#quickFeedback').onclick=e=>{if(!e.target.dataset.score)return;state.feedback=e.target.dataset.score;localStorage.setItem('patrick-feedback',JSON.stringify({score:state.feedback,text:'',lang:state.lang,date:new Date().toISOString()}));$$('#quickFeedback button').forEach(b=>b.classList.toggle('selected',b===e.target));showToast('thanks')};
+    $('#quickFeedback').onclick=e=>{if(!e.target.dataset.score)return;state.feedback=e.target.dataset.score;$$('#quickFeedback button').forEach(b=>b.classList.toggle('selected',b===e.target));sendFeedback({score:state.feedback,text:''})};
     $('#feedbackOptions').onclick=e=>{if(!e.target.dataset.score)return;state.feedback=e.target.dataset.score;$$('#feedbackOptions button').forEach(b=>b.classList.toggle('selected',b===e.target))};
-    $('#submitFeedback').onclick=()=>{if(!state.feedback){showToast('chooseFeedback');return}localStorage.setItem('patrick-feedback',JSON.stringify({score:state.feedback,text:$('#feedbackText').value,lang:state.lang,date:new Date().toISOString()}));$('#feedbackForm').style.display='none';$('#feedbackSuccess').classList.add('show')};
+    $('#submitFeedback').onclick=async()=>{if(!state.feedback){showToast('chooseFeedback');return}const txt=$('#feedbackText').value;const btn=$('#submitFeedback');btn.disabled=true;btn.textContent='发送中…';await sendFeedback({score:state.feedback,text:txt,onPending:false});btn.disabled=false;btn.textContent='发送这个信号';$('#feedbackForm').style.display='none';$('#feedbackSuccess').classList.add('show')};
     $('#archiveOpen').onclick=()=>{_activeTrack='all';_activeSort='date-desc';_selectedReport=null;$('#archiveSort').value='date-desc';$$('.filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.track==='all'));renderArchive();$('#archiveOverlay').classList.add('open');setTimeout(()=>$('#archiveSearch').focus(),80)};
 // Filter chips
 $$('.filter-chip').forEach(chip=>chip.onclick=()=>{_activeTrack=chip.dataset.track;$$('.filter-chip').forEach(c=>c.classList.toggle('active',c===chip));renderArchiveList()});

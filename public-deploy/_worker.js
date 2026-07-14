@@ -45,6 +45,15 @@ export default {
       return handleLlmSalonApi(request, env);
     }
 
+    // === POST /api/feedback — daily-reports chip → email (07-14 NEW) ===
+    // Sends chip score (+ optional text from modal) to patrick.l.zeng@outlook.com
+    // via the Cloudflare Email Service REST API.
+    // Required env secrets: CF_API_TOKEN (Account level, Email Sending:Edit + Email Sending:Read).
+    // Required zone setup: `wrangler email sending enable 2017zyl.xyz` (one-shot terminal).
+    if (path === "/api/feedback" && request.method === "POST") {
+      return handleFeedbackApi(request, env);
+    }
+
     const archiveRepair = await repairDailyReportArchivePath(path, url, env, request);
     if (archiveRepair) return archiveRepair;
 
@@ -913,4 +922,150 @@ async function handleLlmSalonApi(request, env) {
   }
 
   return new Response(JSON.stringify({ error: `unknown LLM salon path: ${path}` }), { status: 404, headers: cors });
+}
+
+// === POST /api/feedback handler — daily-reports chip → Outlook (07-14 NEW) ===
+// Accepts JSON: { score: 'off'|'okay'|'great', text?: string, lang?: 'zh-CN'|'en',
+//                   from?: string, url?: string, ua?: string }
+// Sends via Cloudflare Email Service REST API to patrick.l.zeng@outlook.com.
+// Auth (env secret): CF_API_TOKEN (Account-level, Email Sending:Edit + Zones:Read).
+// Zone: must run `wrangler email sending enable 2017zyl.xyz` on Patrick's terminal
+// (one-shot) before sends will deliver.
+//
+// PITFALL-guards encoded:
+//   - spam guard: score must be one of 3; reject everything else with 400
+//   - text length limit: 1000 chars max (server-side cap)
+//   - UA already capped client-side via `navigator.userAgent.slice(0,240)`
+//   - URL capped server-side to 240 chars (defense vs header log poisoning)
+//   - never logs full payload (contains PII feel); only score + masked-from + ts
+async function handleFeedbackApi(request, env) {
+  const cors = {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    "access-control-allow-origin": "*",
+  };
+
+  if (!env.CF_API_TOKEN) {
+    return new Response(JSON.stringify({
+      error: "CF_API_TOKEN not configured. Add via: wrangler secret put CF_API_TOKEN",
+    }), { status: 503, headers: cors });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400, headers: cors,
+    });
+  }
+
+  const score = String(body.score || "");
+  const text  = String(body.text  || "");
+  const lang  = String(body.lang  || "zh-CN");
+  const url   = String(body.url   || "").slice(0, 240);
+  const ua    = String(body.ua    || "").slice(0, 240);
+  const from  = String(body.from  || "").slice(0, 80);
+
+  if (!["off", "okay", "great"].includes(score)) {
+    return new Response(JSON.stringify({ error: "Invalid score; must be off|okay|great" }), {
+      status: 400, headers: cors,
+    });
+  }
+  if (text.length > 1000) {
+    return new Response(JSON.stringify({ error: "Text exceeds 1000 chars" }), {
+      status: 400, headers: cors,
+    });
+  }
+
+  // Compose email body
+  const scoreLabel = score === "off" ? "偏了" : score === "okay" ? "还行" : "很对味";
+  const ts = new Date().toISOString();
+  const subject = `[daily-reports] ${scoreLabel}${text ? " + 备注" : ""} · ${ts.slice(0,10)}`;
+
+  const textBody = [
+    `Signal: ${scoreLabel} (${score})`,
+    `Lang:   ${lang}`,
+    `URL:    ${url || "(no referrer)"}`,
+    `From:   ${from || "(anonymous)"}`,
+    `UA:     ${ua || "(unknown)"}`,
+    `Time:   ${ts}`,
+    "",
+    "--- 备注 ---",
+    text || "(无)",
+  ].join("\n");
+
+  const htmlBody = `
+    <div style="font-family: -apple-system, 'Inter', sans-serif; max-width: 560px; padding: 18px; border: 1px solid #e5e7eb; border-radius: 12px;">
+      <div style="font-size: 11px; color: #6b7280; letter-spacing: .12em;">DAILY-REPORTS FEEDBACK SIGNAL</div>
+      <h2 style="margin: 8px 0 16px; font-size: 22px;">
+        ${scoreLabel} <span style="font-size: 13px; color: #6b7280;">(${score})</span>
+      </h2>
+      <table style="font-size: 13px; color: #374151; width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 4px 8px; color: #9ca3af;">Lang</td><td style="padding: 4px 8px;">${escapeHtml(lang)}</td></tr>
+        <tr><td style="padding: 4px 8px; color: #9ca3af;">URL</td><td style="padding: 4px 8px; word-break: break-all;">${escapeHtml(url) || '<em style="color:#9ca3af">(no referrer)</em>'}</td></tr>
+        <tr><td style="padding: 4px 8px; color: #9ca3af;">From</td><td style="padding: 4px 8px;">${escapeHtml(from) || '<em style="color:#9ca3af">(anonymous)</em>'}</td></tr>
+        <tr><td style="padding: 4px 8px; color: #9ca3af;">UA</td><td style="padding: 4px 8px; word-break: break-all; color:#9ca3af;">${escapeHtml(ua) || '<em style="color:#9ca3af">(unknown)</em>'}</td></tr>
+        <tr><td style="padding: 4px 8px; color: #9ca3af;">Time</td><td style="padding: 4px 8px;">${ts}</td></tr>
+      </table>
+      <div style="margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; font-size: 14px; color: #111827;">
+        ${text ? escapeHtml(text).replace(/\n/g, "<br>") : '<em style="color:#9ca3af">无备注</em>'}
+      </div>
+    </div>`;
+
+  // Call Cloudflare Email Service REST API (Email Sending)
+  // API: POST /client/v4/accounts/{account_id}/email/sending/send
+  // Account ID is hardcoded below — same as in /api/salon etc.
+  const accountId = "973acd5a421519e1a390fe9cd75de28a";
+  const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/email/sending/send`;
+
+  let resp;
+  try {
+    resp = await fetch(cfUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: { address: "feedback@2017zyl.xyz", name: "Patrick Daily-Reports" },
+        to:   [{ email: "patrick.l.zeng@outlook.com" }],
+        subject,
+        text: textBody,
+        html: htmlBody,
+        headers: {
+          "Reply-To": from ? `patrick.l.zeng@gmail.com` : "noreply@2017zyl.xyz",
+        },
+      }),
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({
+      error: "Email service unreachable", detail: String(e),
+    }), { status: 502, headers: cors });
+  }
+
+  const result = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    return new Response(JSON.stringify({
+      error: "Cloudflare Email Service rejected the send",
+      status: resp.status,
+      cf_errors: result.errors || [],
+    }), { status: 502, headers: cors });
+  }
+
+  return new Response(JSON.stringify({
+    ok: true,
+    delivered: result.delivered || [],
+    queued: result.queued || [],
+    ts,
+  }), { status: 200, headers: cors });
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
