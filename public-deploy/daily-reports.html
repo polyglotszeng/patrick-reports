@@ -748,7 +748,7 @@
       {title:'Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices',track:'video',tag:'',practical:70,time:10,desc:'Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices',file:'microsoft-build-2025-keynote.html',date:'2025-05-20'},
         ];
     const zh={
-      descriptor:'每日研究',count:'281 份报告<br>6 条产线',
+      descriptor:'每日研究',count:'290 份报告<br>6 条产线',
       title:'<span>Patrick</span><br>每日研究',kicker:'互动研究游乐场',
       intro:'不是让你翻完 281 份报告。<br>只用一个选择，找到今天最值得下潜的三站。',
       archive:'全部档案',dialLabel:'调 整 你 的 好 奇 心 强 度',dialScore:'探索指数',
@@ -775,7 +775,7 @@
       aria:'从实用到猎奇'
     };
     const en={
-      descriptor:'Daily Reports',count:'265 REPORTS · 189 LIVE',
+      descriptor:'Daily Reports',count:'290 REPORTS · 290 LIVE',
       title:'<span>Patrick</span><br>Daily Reports',
       kicker:'INTERACTIVE RESEARCH PLAYGROUND',
       intro:'Do not read all 281 reports.<br>Make one choice and find the three worth exploring today.',
@@ -869,11 +869,34 @@
       }
       $('#articleOverlay').classList.add('open');save();
     }
-    let _activeTrack='all',_activeSort='date-desc',_selectedReport=null;
+    let _activeTrack='all',_activeSort='date-desc',_selectedReport=null
+
+// === track_map: semantic chip → reports.json track enum ===
+// chip    → JSON enums
+// 'ai'      → ai (truly AI), brief (briefs/research), papers (research papers), video (video digests): AI-anything
+// 'dev'     → product (1-PP type tools/dev)
+// 'product' → product + other (everything "non-trivial content")
+// 'market'  → other (market / business signals)
+// 'future'  → papers + radar + quant (scientific / forecasting)
+// 'culture' → radar + video (cultural/foresight)
+// Note: overlap is intentional — these are UI facets, not exclusive.
+const _TRACK_MAP={
+  'ai':      ['ai','brief','papers','video'],
+  'dev':     ['product'],
+  'product': ['product','other'],
+  'market':  ['other'],
+  'future':  ['papers','radar','quant'],
+  'culture': ['radar','video']
+};
+;
     function getFilteredReports(){
       const q=$('#archiveSearch')?.value.trim().toLowerCase()||'';
       let list=reports.filter(r=>{
-        if(_activeTrack!=='all'&&r.track!==_activeTrack)return false;
+        if(_activeTrack!=='all'){
+          const enums=_TRACK_MAP[_activeTrack];
+          if(enums && !enums.includes(r.track)) return false;
+          if(!enums && r.track!==_activeTrack) return false;
+        }
         if(!q)return true;
         return (r.title+r.desc+r.tag+r.file+(r.date||'')+(r.category||'')).toLowerCase().includes(q);
       });
@@ -892,10 +915,13 @@
       const dates=reports.map(r=>r.date).filter(Boolean).sort();
       const dateRange=dates.length?`${dates[0]} ~ ${dates[dates.length-1]}`:'';
       $('#archiveStats').textContent=`${total} reports · 6 tracks · ${dateRange}`;
-      // Update filter chip counts
+      // Update filter chip counts via _TRACK_MAP (semantic chip → JSON enum)
       $$('.filter-chip').forEach(chip=>{
         const t=chip.dataset.track;
-        const cnt=t==='all'?total:(tracks[t]||0);
+        let cnt;
+        if(t==='all') cnt=total;
+        else if(_TRACK_MAP[t]) cnt=_TRACK_MAP[t].reduce((s,k)=>s+(tracks[k]||0),0);
+        else cnt=tracks[t]||0;
         chip.querySelector('.cnt').textContent=cnt;
       });
     }
