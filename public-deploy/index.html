@@ -56,13 +56,14 @@
   <aside class="drawer" id="drawer" aria-label="系统模块">
     <div class="drawer-top"><b>THE SYSTEM</b><button class="close" id="close" aria-label="关闭">×</button></div>
     <a class="module" href="https://2017zyl.xyz/daily-reports" target="_blank"><small>01 · KNOWLEDGE</small><strong>Daily Reports</strong><span>270 OUTPUTS</span></a>
-    <a class="module" href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#monitoring" target="_blank"><small>02 · PRIVATE MARKETS</small><strong>Neo Labs</strong><span>25 LABS</span></a>
-    <a class="module" href="https://2017zyl.xyz/rocket-launch-db/" target="_blank"><small>03 · SPACE LAUNCH</small><strong>Rockets Launch</strong><span>248 LAUNCHES</span></a>
-    <a class="module" href="https://2017zyl.xyz/worldmonitor/satellite-ops/" target="_blank"><small>04 · ORBITAL INTELLIGENCE</small><strong>Satellite Ops</strong><span>LIVE</span></a>
-    <a class="module" href="https://2017zyl.xyz/worldmonitor/" target="_blank"><small>05 · GLOBAL SIGNAL</small><strong>World Monitor</strong><span>35 SOURCES</span></a>
-    <a class="module" href="https://2017zyl.xyz/llm-salon/" target="_blank"><small>06 · COLLECTIVE REASONING</small><strong>LLM Salon</strong><span>5 MODELS</span></a>
-    <a class="module" href="https://2017zyl.xyz/agentic-os" target="_blank"><small>07 · OPEN-SOURCE OS</small><strong>Agentic OS</strong><span>FREE · MIT</span></a>
-    <a class="module" href="https://2017zyl.xyz/system-status.html" target="_blank"><small>08 · SYSTEM HEALTH</small><strong>Status Board</strong><span id="badge-status">7 LIVE</span></a>
+    <a class="module" href="https://2017zyl.xyz/2026-07-03-neo-labs-top-25-h1-update.html#charts" target="_blank"><small>02 · PRIVATE MARKETS</small><strong>Neo Labs</strong><span>25 LABS</span></a>
+    <a class="module" href="https://2017zyl.xyz/neo-labs-divergence-trend.html" target="_blank"><small>03 · DATA RECONCILIATION</small><strong>Neo Labs CB Diff</strong><span id="badge-cb">WEEKLY</span></a>
+    <a class="module" href="https://2017zyl.xyz/neo-labs-rss-weekly.html" target="_blank"><small>04 · RSS TRACKING</small><strong>Neo Labs RSS</strong><span id="badge-rss">WEEKLY</span></a>
+    <a class="module" href="https://2017zyl.xyz/rocket-launch-db/" target="_blank"><small>05 · SPACE LAUNCH</small><strong>Rockets Launch</strong><span>248 LAUNCHES</span></a>
+    <a class="module" href="https://2017zyl.xyz/worldmonitor/satellite-ops/" target="_blank"><small>06 · ORBITAL INTELLIGENCE</small><strong>Satellite Ops</strong><span>LIVE</span></a>
+    <a class="module" href="https://2017zyl.xyz/worldmonitor/" target="_blank"><small>07 · GLOBAL SIGNAL</small><strong>World Monitor</strong><span>35 SOURCES</span></a>
+    <a class="module" href="https://2017zyl.xyz/llm-salon/" target="_blank"><small>08 · COLLECTIVE REASONING</small><strong>LLM Salon</strong><span>5 MODELS</span></a>
+    <a class="module" href="https://2017zyl.xyz/agentic-os" target="_blank"><small>09 · OPEN-SOURCE OS</small><strong>Agentic OS</strong><span>FREE · MIT</span></a>
   </aside>
   <div class="toast" id="toast">Task routed to 9 agents</div>
 
@@ -75,31 +76,22 @@
     document.querySelector('#command').onsubmit=e=>{e.preventDefault();if(!input.value.trim())return;document.querySelector('#taskTitle').textContent=input.value.trim();stage.classList.add('running');running=true;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200);const phases=[document.querySelector('#phase1'),document.querySelector('#phase2'),document.querySelector('#phase3')];setTimeout(()=>{phases[0].className='phase done';phases[0].querySelector('.state-copy span:last-child').textContent='COMPLETE';phases[1].className='phase active';phases[1].querySelector('.state-copy span:last-child').textContent='RUNNING'},2300);setTimeout(()=>{phases[1].className='phase done';phases[1].querySelector('.state-copy span:last-child').textContent='COMPLETE';phases[2].className='phase active';phases[2].querySelector('.state-copy span:last-child').textContent='RUNNING'},4700);setTimeout(()=>{phases[2].className='phase done';phases[2].querySelector('.state-copy span:last-child').textContent='READY'},7000)};
     
 // Fetch latest RSS stats for badge
-// (CB Diff + RSS Tracking moved to Neo Labs page; drawer keeps only major modules)
-document.querySelector('#reset').onclick=()=>{stage.classList.remove('running');running=false;document.querySelectorAll('.phase').forEach((p,i)=>{p.className='phase'+(i===0?' active':'');p.querySelector('.state-copy span:last-child').textContent=i===0?'RUNNING':'QUEUED'});setTimeout(()=>input.focus(),300)};
-    const drawer=document.querySelector('#drawer'),backdrop=document.querySelector('#backdrop');function toggle(open){drawer.classList.toggle('open',open);backdrop.classList.toggle('open',open)}document.querySelector('#menu').onclick=()=>toggle(true);document.querySelector('#close').onclick=()=>toggle(false);backdrop.onclick=()=>toggle(false);addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
-
-// Live data: system health fetch (drawer badge + Neo Labs freshness)
-fetch('/.system-health.json').then(r => r.json()).then(h => {
-  if (!h) return;
-  // Update "Status Board" drawer badge
-  const elStatus = document.getElementById('badge-status');
-  if (elStatus && h.summary) {
-    elStatus.textContent = h.summary.badge_text;
-    elStatus.style.color = h.summary.stale > 0 ? '#fbbf24' : '#34d399';
-  }
-  // Update Neo Labs module badge with freshness
-  if (h.systems && h.systems['neo-labs']) {
-    const nd = h.systems['neo-labs'].freshness_days;
-    const nl = Array.from(document.querySelectorAll('a.module')).find(a => a.href.includes('2026-07-03-neo-labs'));
-    if (nl) {
-      const span = nl.querySelector('span');
-      if (span && nd !== undefined) {
-        span.textContent = nd <= 1 ? '25 LABS · 1d' : (nd <= 7 ? '25 LABS · ' + nd + 'd' : '25 LABS');
-      }
+fetch('/.rss-stats.json').then(r => r.json()).then(s => {
+  const elCb = document.querySelector('#badge-cb');
+  const elRss = document.querySelector('#badge-rss');
+  if (s && s.actionable_count !== undefined) {
+    if (elCb) {
+      elCb.textContent = s.actionable_count + ' ACT · ' + (s.notable_count || 0) + ' NOTE';
+      elCb.style.color = s.actionable_count > 0 ? '#67e8f9' : '#8b8d91';
+    }
+    if (elRss) {
+      elRss.textContent = s.total_events + ' EVT · ' + s.labs_covered + ' LABS';
+      elRss.style.color = '#d5ff3f';
     }
   }
 }).catch(() => {});
+document.querySelector('#reset').onclick=()=>{stage.classList.remove('running');running=false;document.querySelectorAll('.phase').forEach((p,i)=>{p.className='phase'+(i===0?' active':'');p.querySelector('.state-copy span:last-child').textContent=i===0?'RUNNING':'QUEUED'});setTimeout(()=>input.focus(),300)};
+    const drawer=document.querySelector('#drawer'),backdrop=document.querySelector('#backdrop');function toggle(open){drawer.classList.toggle('open',open);backdrop.classList.toggle('open',open)}document.querySelector('#menu').onclick=()=>toggle(true);document.querySelector('#close').onclick=()=>toggle(false);backdrop.onclick=()=>toggle(false);addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
   </script>
 </body>
 </html>

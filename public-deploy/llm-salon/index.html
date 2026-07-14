@@ -1106,35 +1106,5 @@ function attachHandlers() {
 
 init();
 </script>
-
-
-<!-- ========== System Health Monitoring (auto-updated) ========== -->
-<section id="monitoring" class="max-w-7xl mx-auto px-5 sm:px-8 mt-12 scroll-mt-20">
-  <div class="section-eyebrow mb-4">🛠 SYSTEM HEALTH MONITORING · 实时健康度</div>
-  <p class="text-slate-400 text-sm mb-6">每日 8:00 自动生成 <code class="text-cyan-400">/.system-health.json</code> · 7 系统聚合状态 + SLO pass/warn/fail</p>
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4" data-system="monitoring-kpis">
-    <div class="glass p-4 text-center"><div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">SLO PASS</div><div class="font-mono text-2xl font-black text-emerald-400" data-health-kpi="slo_pass">--</div></div>
-    <div class="glass p-4 text-center"><div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">SLO WARN</div><div class="font-mono text-2xl font-black text-amber-400" data-health-kpi="slo_warn">--</div></div>
-    <div class="glass p-4 text-center"><div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">SLO FAIL</div><div class="font-mono text-2xl font-black text-rose-400" data-health-kpi="slo_fail">--</div></div>
-    <div class="glass p-4 text-center"><div class="text-[10px] font-mono text-slate-500 tracking-widest uppercase">SYSTEMS</div><div class="font-mono text-2xl font-black text-cyan-400" data-health-kpi="total">--</div></div>
-  </div>
-  <div class="flex items-center justify-between text-[11px] font-mono">
-    <span class="text-slate-500">Last sync: <span data-health-kpi="generated_at" class="text-cyan-400">--</span></span>
-    <a href="https://2017zyl.xyz/system-status.html" target="_blank" class="text-cyan-300 hover:text-cyan-200">full status board →</a>
-  </div>
-</section>
-
-<script>
-// Live data: fetch system health for this page's monitoring widget
-fetch('/.system-health.json').then(r => r.json()).then(h => {
-  if (!h) return;
-  ['slo_pass', 'slo_warn', 'slo_fail', 'total'].forEach(k => {
-    const el = document.querySelector('[data-health-kpi="' + k + '"]');
-    if (el) el.textContent = h.summary[k] || 0;
-  });
-  const ts = document.querySelector('[data-health-kpi="generated_at"]');
-  if (ts) ts.textContent = h.today || (new Date().toISOString().slice(0, 10));
-}).catch(() => {});
-</script>
 </body>
 </html>
