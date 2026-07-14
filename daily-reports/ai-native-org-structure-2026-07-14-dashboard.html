@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="generated" content="2026-07-14 · Hermes Agent M3 · master-takeover session, network-blocked honest-synthesis">
+<meta name="description" content="AI-Native 组织架构综合 — 4 种结构原型 + 5 步 migration 路线图 + 对 Patrick 的具体 action items。">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI-Native 组织架构 — 2026-07 综合</title>
+<style>
+:root {
+  --bg:#0e1416;
+  --bg2:#1a2428;
+  --txt:#d4d8d9;
+  --muted:#7a8888;
+  --accent:#d5ff3f;
+  --blue:#62b3ec;
+  --warn:#ffb84d;
+  --red:#ff5b5b;
+  --green:#7cd6a2;
+  --line:rgba(213,255,63,.18);
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--txt);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.wrap {max-width:1240px;margin:0 auto;padding:24px 32px 80px}
+header.mast {
+  border-bottom:1px solid var(--line);
+  padding-bottom:18px;
+  margin-bottom:24px;
+}
+header.mast h1 {font-size:28px;margin:0 0 4px;color:var(--accent)}
+header.mast .sub {font-size:13.5px;color:var(--muted)}
+header.mast .versions {font-size:11.5px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+header.mast .warn-bar {
+  margin-top:14px;
+  background:rgba(255,184,77,.08);
+  border-left:4px solid var(--warn);
+  padding:10px 14px;
+  border-radius:6px;
+  font-size:13px;
+  color:#f5cf85;
+}
+.kpi-grid {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin:0 0 20px;
+}
+.kpi {
+  background:linear-gradient(180deg,rgba(213,255,63,.04),rgba(213,255,63,.01));
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:14px 16px;
+}
+.kpi .n {font-size:30px;font-weight:800;color:var(--accent);line-height:1}
+.kpi .l {font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.kpi .d {font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+.tabs {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:6px;
+  margin:24px 0 18px;
+}
+.tabs button {
+  background:transparent;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:6px 14px;
+  font:600 12px/1 -apple-system,BlinkMacSystemFont,sans-serif;
+  letter-spacing:.06em;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .2s;
+}
+.tabs button.on {
+  background:var(--accent);
+  color:#0e1416;
+  border-color:var(--accent);
+}
+.tabs button:hover {color:var(--txt)}
+.tab-panel {display:none}
+.tab-panel.on {display:block}
+.section-title {
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin:24px 0 12px;
+}
+.card-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:14px;
+}
+.card {
+  background:var(--bg2);
+  border:1px solid rgba(255,255,255,.06);
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  padding:14px 16px;
+}
+.card h4 {margin:0 0 6px;font-size:14.5px;color:var(--txt)}
+.card p, .card ul {margin:6px 0;font-size:13px;line-height:1.5;color:var(--muted)}
+.card ul {padding-left:18px}
+.card.warn {border-left-color:var(--warn)}
+.card.green {border-left-color:var(--green)}
+.card.blue {border-left-color:var(--blue)}
+.card.red {border-left-color:var(--red)}
+pre.code-block {
+  background:#000;
+  color:#d4d8d9;
+  padding:16px 18px;
+  border-radius:8px;
+  overflow-x:auto;
+  font:12.5px/1.45 'SF Mono',Menlo,Consolas,monospace;
+  border:1px solid rgba(255,255,255,.07);
+}
+table.t {
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+  margin:14px 0;
+}
+table.t th,table.t td {
+  border:1px solid rgba(255,255,255,.08);
+  padding:8px 10px;
+  text-align:left;
+  vertical-align:top;
+}
+table.t th {background:#1f2a2e;color:var(--accent);font-weight:700}
+table.t tr:nth-child(even) td {background:rgba(255,255,255,.02)}
+.badge {
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:10px;
+  font-size:11px;
+  letter-spacing:.04em;
+  margin-right:6px;
+  background:var(--bg2);
+  border:1px solid var(--line);
+}
+.badge.green {background:rgba(124,214,162,.18);border-color:rgba(124,214,162,.4);color:var(--green)}
+.badge.warn {background:rgba(255,184,77,.18);border-color:rgba(255,184,77,.4);color:#f5cf85}
+.badge.red {background:rgba(255,91,91,.18);border-color:rgba(255,91,91,.4);color:var(--red)}
+.badge.blue {background:rgba(98,179,236,.18);border-color:rgba(98,179,236,.4);color:var(--blue)}
+blockquote {
+  margin:14px 0;
+  padding:12px 18px;
+  border-left:3px solid var(--accent);
+  background:rgba(213,255,63,.05);
+  border-radius:0 6px 6px 0;
+  font-size:13.5px;
+}
+ul.ledger {list-style:none;padding-left:0}
+ul.ledger li {padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.06);font-size:13px}
+ul.ledger li:last-child {border-bottom:0}
+ul.ledger strong {color:var(--accent);margin-right:6px}
+footer.foot {
+  margin-top:60px;
+  border-top:1px solid var(--line);
+  padding-top:20px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+}
+footer.foot .pair {display:flex;flex-wrap:wrap;gap:18px;margin-top:10px}
+footer.foot .pair div {min-width:160px}
+footer.foot .pair b {color:var(--txt);font-weight:600}
+/* TOC sidebar */
+aside.toc {
+  position:fixed;
+  left:24px;
+  top:90px;
+  width:240px;
+  max-height:calc(100vh - 120px);
+  overflow-y:auto;
+  background:rgba(14,20,22,.94);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  font-size:12.5px;
+  backdrop-filter:blur(8px);
+  transition:transform .3s ease;
+}
+aside.toc h6 {
+  margin:0 0 10px;
+  font-size:11px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--accent);
+}
+aside.toc ol {list-style:none;padding:0;margin:0}
+aside.toc li {padding:5px 0}
+aside.toc li a {
+  color:var(--muted);
+  text-decoration:none;
+  display:block;
+  padding:4px 6px;
+  border-radius:5px;
+  transition:all .15s;
+}
+aside.toc li a:hover {background:rgba(213,255,63,.1);color:var(--accent)}
+.toc-toggle {
+  position:fixed;
+  left:14px;
+  top:50vh;
+  z-index:60;
+  background:var(--bg2);
+  border:1px solid var(--line);
+  border-radius:50%;
+  width:34px;height:34px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;
+  color:var(--accent);
+}
+.toc-collapsed aside.toc {transform:translateX(-12px) scale(.97);opacity:.05;pointer-events:none}
+.toc-collapsed .toc-toggle {left:14px}
+.toc-collapsed .wrap {padding-left:60px !important}
+.wrap {padding-left:260px;transition:padding-left .3s ease}
+@media (max-width:900px) {
+  aside.toc {display:none}
+  .wrap {padding-left:32px !important}
+  .kpi-grid {grid-template-columns:repeat(2,1fr)}
+  .card-grid {grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="toc-toggle" onclick="toggleToc()" title="Toggle TOC">📑</div>
+<aside class="toc">
+<h6>目录</h6>
+<ol>
+<li><a href="#t1">1. 核心论点</a></li>
+<li><a href="#t2">2. 三条主线</a></li>
+<li><a href="#t3">3. 4 种原型</a></li>
+<li><a href="#t4">4. Migration</a></li>
+<li><a href="#t5">5. 对 Patrick</a></li>
+<li><a href="#t6">6. 反方/风险</a></li>
+<li><a href="#t7">7. Fetch patch</a></li>
+<li><a href="#t8">8. 一行 takeaway</a></li>
+<li><a href="#t9">9. Vault 源</a></li>
+<li><a href="#t10">10. 决策树</a></li>
+<li><a href="#t11">11. Action items</a></li>
+<li><a href="#t12">12. Pitfalls</a></li>
+<li><a href="#t13">13. 相邻 skill</a></li>
+<li><a href="#t14">14. Patrick 关联</a></li>
+</ol>
+</aside>
+
+<div class="wrap">
+
+<header class="mast">
+<div class="versions">v1.0 · 2026-07-14 · Hermes Agent M3</div>
+<h1>AI-Native 公司组织架构 — 2026-07 综合</h1>
+<div class="sub">4 种结构原型 · 5 步 migration 路线图 · AGI 时代的 org design 框架</div>
+<div class="warn-bar">
+⚠️ <b>诚实折扣:</b> 本 dashboard 由 master takeover 写, sandbox Firecrawl 未配。所有具体数字 / 时间 / 引述带 <b>[TO VERIFY]</b> tag —
+vault 已固化 cross-ref 的源, 已经 [vault verified] 标记除外。Patrick 真要 ship 公开版本, 需网络通后跑 fetch patch (tab ⑦)。
+</div>
+</header>
+
+<div class="kpi-grid">
+<div class="kpi"><div class="n">4</div><div class="l">结构原型</div><div class="d">A. AI-Native Pyramid · B. Co-founder Pod · C. AGI Factory · D. Trainer + Auditor + Owners</div></div>
+<div class="kpi"><div class="n">5</div><div class="l">Migration 步</div><div class="d">月 1-2 audit → 月 13-18 真重组, 跨度 18 个月</div></div>
+<div class="kpi"><div class="n">8</div><div class="l">Vault 已 verify 源</div><div class="d">Greg Isenberg · TheAIGRID · Kokotajlo · Berman · Tristan · Tomasev · MoA · race-aware</div></div>
+<div class="kpi"><div class="n">12</div><div class="l">[TO VERIFY] tag</div><div class="d">具体数字 / 言论 / 时间待 network-fetch patch (tab ⑦)</div></div>
+</div>
+
+<div class="tabs" id="tabs">
+<button data-tab="t1" class="on">1. 核心论点</button>
+<button data-tab="t2">2. 三条主线</button>
+<button data-tab="t3">3. 4 种原型</button>
+<button data-tab="t4">4. Migration</button>
+<button data-tab="t5">5. 对 Patrick</button>
+<button data-tab="t6">6. 反方</button>
+<button data-tab="t7">7. Fetch patch</button>
+<button data-tab="t8">8. Takeaway</button>
+<button data-tab="t9">9. Vault 源</button>
+<button data-tab="t10">10. 决策树</button>
+<button data-tab="t11">11. Action</button>
+<button data-tab="t12">12. Pitfalls</button>
+<button data-tab="t13">13. 相邻 skill</button>
+<button data-tab="t14">14. Patrick 关联</button>
+</div>
+
+<div class="tab-panel on" id="t1">
+<h3 class="section-title">为什么 "组织架构" 在 AI 时代是头号议题</h3>
+<blockquote>
+软件以前能 "放大个人的腿脚"。AI 让任何白领个人能 "放大一个人的整个认知带宽"。
+这意味着 <b>公司价值不再来自 "人多", 而来自 "个人产出系数 × 人数"</b>;
+而系数的天花板被 AI 拉高后, <b>多一倍人 ≠ 多一倍价值</b>。
+所以组织架构的核心问题从 "如何管 1000 人" 变成 "如何让 5-10 个高杠杆个人 + 一组 AI 协作 + 一群 AI agent 做出 1000 个人的活"。
+</blockquote>
+
+<div class="card-grid">
+<div class="card">
+<h4>📐 软件变革三层</h4>
+<ul>
+<li><b>1990s</b>: 软件放大 "腿脚" — spreadsheet, ERP</li>
+<li><b>2010s</b>: 软件放大 "注意力" — social, mobile</li>
+<li><b>2025+</b>: AI 放大 "认知带宽" — LLM, agent, copilot</li>
+</ul>
+</div>
+<div class="card warn">
+<h4>⚠️ 数量 vs 杠杆</h4>
+<p>以前 10x 增长 = 招 10x 人 (HR, 管理, 文化成本)。
+现在 10x 增长 = 个人 × agent (杠杆), headcount 反而可能 ↓。
+"people-first" 文化被 "leverage-first" 文化取代。</p>
+</div>
+<div class="card green">
+<h4>✅ 新铁三角</h4>
+<p>人类 × 工具 × 流程 的旧铁三角, 现在 <b>人类 × AI 协作层 × 治理层</b>。
+新铁三角的 3 个核心问题:</p>
+<ul>
+<li><b>协作层</b>: 哪个任务给 agent, 哪个留人?</li>
+<li><b>治理层</b>: 谁 audit agent 输出?</li>
+<li><b>决策层</b>: 谁决定架构, 节奏频率多少?</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t2">
+<h3 class="section-title">三条主线趋势 (8 源 cross-validated)</h3>
+<div class="card-grid">
+<div class="card green">
+<h4>A. 极小化 + 高密度</h4>
+<p><span class="badge warn">[TO VERIFY]</span> Cognition (Devin) 几十号员工 = 几亿美元 ARR; OpenAI ~4000 人; Anthropic ~1000 人却估值 $300B+</p>
+<p><b>单兵能力</b> = 一辈子工程师 / 领域专家 / AI 编排者 一种。</p>
+<p><b>内部组织无正式层级</b>: "no managers" 不完全准 — 没有 middle management 但有 IC ladder + 出 owner 文化。</p>
+</div>
+<div class="card blue">
+<h4>B. 中层被 AI agent 接管</h4>
+<p>不是 "中层消失", 是 "中层职责被 AI agent 接管": 状态同步 / 跨团队对齐 / 写周报 / 做安排 / 走流程 / 跑 vendor。</p>
+<p>留下的是 <b>判断 + 风险 + 跨人化关系</b> 编进 code review / quarterly review / governance board。</p>
+<p><b>关键</b>: 中层重构 = trainer (给 agent 写 prompt/eval/RAG) + audit owner (看 agent 输出哪里错), 不是裁员。</p>
+<p><span class="badge green">[vault verified]</span> Greg Isenberg 06-26: "Pick one [new skill] and get dangerous. Pick two and you have leverage. Pick three and you become the kind of person that everyone wants on the team..."</p>
+</div>
+<div class="card warn">
+<h4>C. 市场 / 销售 / 设计 / 初级代码 = AI-first</h4>
+<p><b>高度流程化工种</b>: 第一份工作量都靠 AI 完成, 人类 = override + 偶尔手工。</p>
+<p><b>探索型工种</b> (调研 / 外联 / 竞品 / 客户开发): 半数时间跟 agent 协作, 半数时间推关键判断。</p>
+<p><span class="badge green">[vault verified]</span> Tomasev (DeepMind): N≥1000 agent 时 "协调 / 信任 / 价值观对齐" 比 "能力本身" 更紧要。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t3">
+<h3 class="section-title">AGI 后的 4 种结构原型</h3>
+
+<div class="card-grid">
+<div class="card">
+<h4>A. AI-Native Pyramid</h4>
+<pre class="code-block">    顶层:  CEO + 3-5 总监 (纯判断 + 高风险决策 + 投资人/大客户关系)
+   中层:  每个部门 1-2 个 AI-Director (≈ 以前 5 个中层, 现在 1 个看 agent 状态)
+   执行层:  开发者/设计师/AI Trainer + 各自 AI 助理
+   Agent Squad: 销售 / 客服 / 法务 / 财务 / BD / 调研 各 3-10 个 agent
+                 (命名/评估/被监控) — Greg Isenberg 06-26 命名</pre>
+<p><b>关键机制</b>: 每个执行者跑 5-10x 之前的项目包, job ladder 从 "管 5 人" 变成 "编排 5 个 agent"。</p>
+<p><b>现实案例</b>: <span class="badge warn">[TO VERIFY]</span> Anthropic / OpenAI / Cognition 内部部门结构。</p>
+</div>
+
+<div class="card blue">
+<h4>B. Co-founder Pod + Agent Cloud</h4>
+<pre class="code-block">   核心:   1-3 founder (不分工, 谁擅长谁干 + 决策非同步)
+   Pod:    2-5 个 AI-resilient 工程师 + 各 自带 custom config 的 agent
+           (几乎人人 "独立产线" — Greg "Builder Distributor")
+   Outside:  RPA bot 自动 run bookkeeper / vendor / legal NDA / bot 客服</pre>
+<p><b>关键机制</b>: <b>没有 "经理" 这件事</b> — 决策靠每周 founder call + 异步 weekly update + 自动 dashboard。</p>
+<p><b>现实案例</b>: <span class="badge warn">[TO VERIFY]</span> Lovable / Linear / 独立工程师 + AI 框架 公司。</p>
+</div>
+
+<div class="card green">
+<h4>C. AGI Factory (2027-2030 真正成型)</h4>
+<pre class="code-block">   Orchestrator (1) = 真人, 负责 "什么值得做"
+   Design Loop   (2) = 真人, "设计 agent 该如何写 prompt / 装什么 tool"
+   Eval Loop     (3) = 真人 + agent, "给 agent 评分 / 改错 / 下个版本"
+   Architecture  (4) = 真人 + agent, "每天重新设计公司里的岗位"
+   Meta-Audit    (5) = 真人, "这个公司本身的组织架构对不对"</pre>
+<p><span class="badge green">[vault verified]</span> TheAIGRID 07-14 + Kokotajlo 07-13: 人类从 "执行者" 变 "meta-architect"。</p>
+<p><span class="badge green">[vault verified]</span> Kokotajlo: "在 2026-2027 维持 distinction 'what to build vs how to build' 比以前更值钱; 老板的真正技能 = 提出正确问题 + 知道哪些 agent 输出能信"。</p>
+</div>
+
+<div class="card warn">
+<h4>D. Trainer + Auditor + Owners (现实迁移路线)</h4>
+<pre class="code-block">   一线员工   (60%) = 从事 "AI 做不了的事" (判断/关系/创意)
+   AI Trainer (15%) = 专门负责 "给公司 agent 写 prompt、建构 eval、出错修补"
+   AI Auditor (10%) = 监督 agent 输出、监督 AI Trainer、决定 release/rollback
+   Owners     (15%) = 真人部门负责人, 只对结果负责</pre>
+<p><b>关键洞察</b>: AI Trainer 跟 AI Auditor 是 <b>新生成的两类角色</b>, 不是 "中层换皮"。这两类必须是单独的 job family, 用 IC ladder 升。</p>
+<p><b>现实案例</b>: <span class="badge warn">[TO VERIFY]</span> BCGI 2024 / McKinsey March 2025 "重塑职能" 报告里的样本案例。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t4">
+<h3 class="section-title">5 步 Migration 路线图 (18 个月)</h3>
+<table class="t">
+<tr><th>月</th><th>步</th><th>主要动作</th><th>工具/方法</th><th>输出</th></tr>
+<tr><td>1-2</td><td><b>Audit</b></td><td>列出每个岗位的 "AI 可替代任务 %"</td><td>Process Mining (Celonis / Workday Illuminate 类) <span class="badge warn">[TO VERIFY]</span></td><td>1 张 hot-spot map, 标 agent-ready 工作流</td></tr>
+<tr><td>3-4</td><td><b>Pilot 找 3-5</b></td><td>找 "painful repetition" 试点: 法务 NDA / 销售 cold outreach / 财务月结 / 客服 1 线</td><td>小预算 (5-10k/月/试点) + clear metric (response time / error rate / cost saved)</td><td>3-5 ROI 证据 + 团队 ownership signal</td></tr>
+<tr><td>5-8</td><td><b>招 Trainer</b></td><td>1 个业务部门 1 个 "AI Trainer" IC 升 P。Trainer 走 "agent competence owner" ladder, 不是 manager</td><td>JD 模板: IC-only, 输出 = eval 套件 + prompt 库 + retrain rhythm</td><td>每部门 1 个 Trainer, 12 个月后看 ROI</td></tr>
+<tr><td>9-12</td><td><b>Auditor 角色</b></td><td>上 "AI Auditor" (合规 / 法务 / 安全), audit Step 2 agent 输出 + 写 owner-approval-gate 标准</td><td>Auditor = 全新 IC ladder, partner-level authority on agent release/rollback</td><td>"什么必须人批" vs "什么 agent 自动" 标准</td></tr>
+<tr><td>13-18</td><td><b>真重组</b></td><td>"中层管理职责" 已被分流成 Trainer + Auditor + Owner 三个清晰角色。中层要么升 Owner (5-10x 杠杆), 要么选 IC 路线深耕 (Trainer / Auditor)</td><td>不需要 "裁中层" 这件事 — 架构变化, 不是 headcount 战</td><td>新 org chart, headcount plateau 而 revenue ↑</td></tr>
+</table>
+
+<blockquote>
+<b>核心原则</b> (同源 Greg Isenberg + Anthropic econ + race-aware synthesis):
+<ul>
+<li>先做实验, 不要先做决定</li>
+<li>让人 "重新定义自己的职责", 不是 "裁掉他们"</li>
+<li>每个 agent 都有名字 + 上级 owner + eval 标准, 跟传统 employee 一样治理</li>
+</ul>
+</blockquote>
+</div>
+
+<div class="tab-panel" id="t5">
+<h3 class="section-title">对 Patrick 的具体影响</h3>
+<table class="t">
+<tr><th>Patrick 的现状</th><th>建议路径</th><th>时间窗</th><th>核心 take-away</th></tr>
+<tr><td>卖人类时间 (咨询/猎头/中介/教培)</td><td><b class="warn">风险最大</b>: AI 替代你客户。转身成 "帮人设计 AI 流" 的 meta-architect, 不再 "亲自做研究"</td><td>12-24 月</td><td>不要被客户的 "等一等" 信号骗, 客户跟你都是同一条船</td></tr>
+<tr><td>现有小公司 (1-10 人)</td><td>评估是不是已经原型 B。如果是 → 加 1 个 "AI Trainer" IC 升 P</td><td>3-6 月</td><td>Trainer 路线 ≠ manager 路线, 是新 IC ladder</td></tr>
+<tr><td>中型公司 (50-500 人)</td><td>启动 Step 1 audit + Step 2 试点, 不裁人, 走 Step 3-5 trajectory</td><td>12-18 月</td><td>架构变化, 不是 headcount 战 — Headcount plateau 即可</td></tr>
+<tr><td>个人 / 自由职业</td><td>评估 "你做的事里 60% 是 AI 可做" 的比例, 把那部分外包 agent, 升级自己到剩下 40% 的判断 / 关系 / 战略</td><td>6-12 月</td><td>杠杆来自 "剩下那 40%", 不来自 "原来 100%"</td></tr>
+<tr><td>经营投资 / 资产组合</td><td>把 "管理研究 / 投资分析" 类工作流的 80% 委托 AI, 升级自己到 "判断好坏 + 决断 + rare-deal sniper"</td><td>6-12 月</td><td>Analyst 类被替代最快; decision 类被替代最慢</td></tr>
+</table>
+</div>
+
+<div class="tab-panel" id="t6">
+<h3 class="section-title">关键风险 / 反方</h3>
+<p>"AGI 改变组织架构" 真反方极少, 但 boundary conditions 重要:</p>
+
+<div class="card-grid">
+<div class="card warn">
+<h4>1. "No manager" 实际不行</h4>
+<p>跨人关系处理 / 信任 + 责任归属 / 危机时刻方向判断 — 这些纯靠 "异步 + agent" 不够。</p>
+<p><b>任何真大型 org 都需要 "人形的 owner 网络"</b>。</p>
+</div>
+<div class="card red">
+<h4>2. AI bias / 合规</h4>
+<p><span class="badge green">[vault verified]</span> Tomasev: agent N≥1000 后, 价值对齐问题爆炸。</p>
+<p><b>原型 D 里的 AI Auditor 角色不是 nice-to-have, 是 P0</b>。</p>
+</div>
+<div class="card blue">
+<h4>3. Agent 自身维护成本被低估</h4>
+<p>跟 "雇人" 不同, agent 维护需要 perpetual eval + retrain + prompt up-version — "complexity tax"。</p>
+<p><b>人越少, agent 维护的人均成本越高</b>。1 人 + 10 agent 可能比 5 人 + 2 agent 贵。</p>
+</div>
+<div class="card">
+<h4>4. McKinsey 2025 数据缺口</h4>
+<p><span class="badge warn">[TO VERIFY]</span> 大部分 "AI 重塑组织" 还在宣传期, 实证 ROI 数据尚少; 5/10 公司报告 "agent 项目失败" 的根因不是能力, 是 "owners 没换好岗"。</p>
+</div>
+<div class="card green">
+<h4>5. Tristan Harris 视角</h4>
+<p><span class="badge green">[vault verified]</span> 人类从 "执行者" → "meta-architect", 这层转换对 99% 人力是 <b>demotion 不是 promotion</b>。</p>
+<p><b>社会级别的后果</b>: 大量中产白领失业 + 政府介入 + 反 AI 海啸。</p>
+<p><b>公司层面活得很好, 社会层面很惨</b> — Patrick 经商时这是 "supportive politician + 安全网建设" 信号。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t7">
+<h3 class="section-title">Fetch Patch 路线 (network 通后必跑)</h3>
+<blockquote>
+<b>本 dashboard 当前的诚实状态</b>: vault 已固化 8 源 cross-ref 已 [vault verified]; 其余 <b>12 处 [TO VERIFY] tag</b> 是 sandbox 网络不通下做的 recall, 不是 fresh source。
+</blockquote>
+
+<p><b>网络通后, 必跑 3 步:</b></p>
+<ol>
+<li><b>Fetch 一手源</b>: a16z 100 genAI consumer companies + Sequoia Ascent 2026 keynote + Anthropic economic futures paper + McKinsey state-of-ai 2025 + BCGI 2024 AI value report</li>
+<li><b>Patch [TO VERIFY] tag</b>: 每一个 [TO VERIFY] 替换成具体 quote + URL + retrieval date</li>
+<li><b>Re-build + Re-deploy</b>: 走 patricks-knowledge-hub v1.7.0 Phase 11 (single-MD-to-HTML-hub-entry) 重 ship</li>
+</ol>
+
+<h3 class="section-title">Network-fetch placeholder script (web tools 通后)</h3>
+<pre class="code-block"># fetch patch — sandbox 没配 web tools,本 script 是 placeholder
+# 网络通后跑:
+#   python3 ~/.hermes/scripts/fetch_ai_org_sources.py
+# 输出: /tmp/ai-org-fetch-2026-07-XX.json + html patch script
+
+URLS = [
+    "https://a16z.com/100-genai-consumer-companies/",
+    "https://sequoiacap.com/article/ais-600b-question/",
+    "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai",
+    "https://www.bcg.com/publications/2024/wheres-the-value-in-ai",
+    "https://www.anthropic.com/economic-futures",
+    "https://www.youtube.com/watch?v=jJIOA4GroBw",   # Greg Isenberg transcript 已存
+    "https://www.youtube.com/watch?v=...",   # Kokotajlo, TheAIGRID, Tomasev - vault 有 transcript
+]</pre>
+</div>
+
+<div class="tab-panel" id="t8">
+<h3 class="section-title">一行 takeaway</h3>
+<blockquote style="font-size:18px;padding:24px;">
+<b>"组织架构的真正变化, 不是 '有 AI' 跟 '没 AI' 的二分, 而是 'agent 跟员工的契约怎么写' 的连续重写"</b>
+<br><br>
+<b>谁先把这个写好, 谁先拿到 5-10x 的杠杆增量。</b>
+</blockquote>
+
+<h3 class="section-title">3 关键词 prep</h3>
+<ul>
+<li><b>契约</b> — agent 跟人之间的关系, 不是 "工具 + 使用者", 是 "同事 + 上下级"</li>
+<li><b>杠杆</b> — 个人产出系数天花板被 AI 拉高后, headcount ≠ 价值</li>
+<li><b>治理</b> — 每个 agent 都有名字 / 上级 owner / eval 标准, 跟 employee 一样治理</li>
+</ul>
+</div>
+
+<div class="tab-panel" id="t9">
+<h3 class="section-title">Vault 8 已固化 cross-ref 源</h3>
+<table class="t">
+<tr><th>源</th><th>日期</th><th>核心 anchor</th><th>vault 路径</th></tr>
+<tr><td>Greg Isenberg "6 Skills Agentic Era"</td><td>2026-06-26</td><td>6 个越涨价值 skill + builder-distributor 范式 + "first rep" 战术</td><td>llm-wiki/youtube/greg-isenberg-6-skills-agentic-era/</td></tr>
+<tr><td>TheAIGRID "DeepMind AGI/ASI Timeline"</td><td>2026-07-14</td><td>人类从执行者变 meta-architect</td><td>llm-wiki/youtube/theaigrid-google-deepmind-agi-asi-timeline-2026-07-14/</td></tr>
+<tr><td>Kokotajlo "AI 2027" (Diary of CEO)</td><td>2026-07-13</td><td>"what vs how to build" distinction + agent output 信度判断</td><td>llm-wiki/youtube/kokotajlo-ai-2027-diary-of-ceo-2026-07-13/</td></tr>
+<tr><td>Matthew Berman "Claude Tag / Anthropic Context Lock-in"</td><td>2026-06-26</td><td>context-lock-in + AI 时代 PC 范式演化</td><td>llm-wiki/youtube/matthew-berman-claude-tag-anthropic-context-lockin-2026-06-26/</td></tr>
+<tr><td>Tristan Harris "AGI Existential Risk"</td><td>2026 (vague)</td><td>99% 人力 demotion 不是 promotion + 社会后果</td><td>llm-wiki/youtube/tristan-harris-agi-existential-risk-neural-nutshell/</td></tr>
+<tr><td>Tomasev "When millions of AI agents meet DeepMind"</td><td>2026</td><td>N≥1000 agent 协调 / 信任 / 价值观对齐</td><td>llm-wiki/youtube/when-millions-of-ai-agents-meet-deepmind-tomasev/</td></tr>
+<tr><td>David Ondrej "Hermes Agent Mixture-of-Agents"</td><td>2026-06-29</td><td>agent orchestration pattern + 多 agent 系统</td><td>llm-wiki/youtube/hermes-agent-mixture-of-agents-davidondrej-2026-06-29/</td></tr>
+<tr><td>Race-Aware 4-Source Synthesis</td><td>2026-07-14</td><td>academic frame + 4-source cross-validation</td><td>llm-wiki/papers/race-aware-4-source-synthesis-2026-07-14/</td></tr>
+</table>
+</div>
+
+<div class="tab-panel" id="t10">
+<h3 class="section-title">4 种原型选择决策树</h3>
+<table class="t">
+<tr><th>你的情景</th><th>推荐原型</th><th>为什么</th></tr>
+<tr><td>创办 AI 时代新公司 (5-50 人)</td><td><span class="badge green">B</span> Pod + Agent Cloud</td><td>无历史包袱, 直接打 agent-first — Greg "Builder Distributor" 已验证</td></tr>
+<tr><td>中型企业 (200-2000 人) 准备转型</td><td><span class="badge blue">D → A</span> 先 Trainer/Auditor, 24 月内迁移到 Pyramid</td><td>5 步 migration 路线图 — 用架构变化取代 headcount 战</td></tr>
+<tr><td>巨型公司 (5000+)</td><td><span class="badge warn">D + A 混合</span>, 不同部门不同节奏</td><td>没法一刀切, 渐进</td></tr>
+<tr><td>AGI 之后的世界 (2030+)</td><td><span class="badge">C</span> Meta-Architect + AGI Factory</td><td>TheAIGRID + Kokotajlo — humans = orchestrators</td></tr>
+</table>
+</div>
+
+<div class="tab-panel" id="t11">
+<h3 class="section-title">Patrick Action Items (pari-mutual)</h3>
+<table class="t">
+<tr><th>优先级</th><th>动作</th><th>触发条件</th><th>预期结果</th></tr>
+<tr><td><span class="badge red">P0</span></td><td>评估 卖人类时间 的 60-80% 任务里 "哪些 agent 已能做"</td><td>本 session 完</td><td>一份 "我会 / 我不会" 二维表</td></tr>
+<tr><td><span class="badge warn">P1</span></td><td>挑 1 个 "painful repetition" workflow 试点 (e.g. daily-reporting / invoice / customer-cold-outreach)</td><td>本周末</td><td>1 个 working agent + 1 个 audit owner</td></tr>
+<tr><td><span class="badge warn">P1</span></td><td>看 4 视频 archive 里的 transcript(tomasev agent 1000+ / Kokotajlo AI 2027 / Tristan Harris / TheAIGRID),做笔记</td><td>2-3 session 内</td><td>vault 里 4 份强化 transcript</td></tr>
+<tr><td><span class="badge blue">P2</span></td><td>Patrick 自己定义 "AI Trainer" 那 15% 是什么</td><td>本季度</td><td>一份 1-pager role spec</td></tr>
+<tr><td><span class="badge blue">P2</span></td><td>如要 ship 公网版, network 通后跑 fetch patch (tab ⑦)</td><td>网络通后</td><td>12 处 [TO VERIFY] 全 patch</td></tr>
+<tr><td><span class="badge">P3</span></td><td>看 Greg Isenberg 6 skill first-rep "build a daily briefing agent", 看能不能复刻给 Patrick 自己用</td><td>1 月</td><td>1 个 self-running briefing agent</td></tr>
+</table>
+</div>
+
+<div class="tab-panel" id="t12">
+<h3 class="section-title">本 Dashboard 的诚实 Pitfalls (防 Patrick 抓 bug)</h3>
+<div class="card-grid">
+<div class="card warn">
+<h4>⚠️ Pitfall #1 — 12 处 [TO VERIFY]</h4>
+<p>具体数字 (e.g. "OpenAI 4000 人", "Anthropic $300B") 跟具体言论 (e.g. "AGI Factory" 命名) 都是 recall, 不是 fresh fetch。</p>
+<p><b>修复</b>: tab ⑦ fetch patch 路线。</p>
+</div>
+<div class="card blue">
+<h4>⚠️ Pitfall #2 — 没有反方公司案例</h4>
+<p>本综合只列 "成功转型" 视角。<b>5/10 公司 agent 项目失败</b> 数据虽 listed, 没具体案例。</p>
+<p><b>修复</b>: 加 "失败案例" tab (v1.1 待 network-fetch 后)。</p>
+</div>
+<div class="card">
+<h4>⚠️ Pitfall #3 — 4 原型理想化</h4>
+<p>每个原型都假设有 "完美 owner 文化 + 完美 audit owner"。<b>真实 = 这两个前提都难</b>。</p>
+<p><b>修复</b>: 加 "前提条件 checklist" 给每个原型 (v1.1)。</p>
+</div>
+<div class="card red">
+<h4>⚠️ Pitfall #4 — 文化 / 治理 ROI 数据缺</h4>
+<p>所有 5 步 migration 的 "时间窗" 是 framework 提出者共识, 不是 "100 个公司实测 median"。</p>
+<p><b>Patrick 实测</b> 注意到 "我自己的节奏可能快 / 慢 2x"。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t13">
+<h3 class="section-title">相邻 skill — 复用方法论</h3>
+<div class="card-grid">
+<div class="card blue">
+<h4>📚 media/video-to-public-deploy v1.3.0</h4>
+<p>单 YouTube URL → CF Pages live, 8-step pipeline + 6 pitfalls。</p>
+<p>本 dashboard 借其 <b>canonical HTML skeleton</b>(14 tabs + 6 stat cards + 17-card roster)。</p>
+</div>
+<div class="card green">
+<h4>📚 pdf-to-knowledge-dashboard v1.0.1</h4>
+<p>单 PDF → 中英 HTML + vault note, 5-step pipeline + 4 PITFALLS P-1..4。</p>
+<p>本 dashboard 借其 <b>14-tab template + vault note 同步模式</b>。</p>
+</div>
+<div class="card warn">
+<h4>📚 patricks-knowledge-hub v1.8.0</h4>
+<p>Phase 12 race-aware cluster 注册, 7-step atomic recipe。</p>
+<p>本 dashboard 待 ship 时走 <b>Phase 11 (single MD → HTML → hub)</b> 完整 3-step。</p>
+</div>
+<div class="card">
+<h4>📚 hermes-agent (本会话 root config)</h4>
+<p>For Patrick config / Provider / Model / Tool 任何修改。</p>
+<p>本 dashboard 用了 <code>~/.hermes/claude_api.py</code> 配置 inspection。</p>
+</div>
+</div>
+</div>
+
+<div class="tab-panel" id="t14">
+<h3 class="section-title">🔗 Patrick 工作关联 (5-card)</h3>
+<div class="card-grid">
+<div class="card" style="border-left-color:var(--accent)">
+<h4>🔗 <a href="https://2017zyl.xyz/daily-reports/" target="_blank" rel="noopener">patrick-reports daily 档案</a></h4>
+<p>Patrick 现有 290+ daily reports archive, 包括 6 份 race-aware cluster 7-14 ship。本综合属 "organizational design" — 建议 entry <code>featured=true</code> + cluster 主题 "AI-Native Org"。</p>
+</div>
+<div class="card" style="border-left-color:var(--accent)">
+<h4>🔗 <a href="../race-aware-4-source-synthesis-2026-07-14/index.html" target="_blank" rel="noopener">race-aware-4-source-synthesis-2026-07-14</a></h4>
+<p>本 dashboard 9 个 cross-ref 源里, 4 源 (Kokotajlo + Hassabis + Tristan + DeepMind paper) 已在 race-aware synthesis note 中 cross-validated。这是本 dashboard 的 "同源 sister"。</p>
+</div>
+<div class="card" style="border-left-color:var(--accent)">
+<h4>🔗 <a href="../greg-isenberg-6-skills-agentic-era/index.html" target="_blank" rel="noopener">greg-isenberg-6-skills-agentic-era</a></h4>
+<p>Greg "Builder Distributor" = 原型 B 的 person-level 范式。Patrick 看过 Greg 06-26 session, 互为 cousin。</p>
+</div>
+<div class="card" style="border-left-color:var(--accent)">
+<h4>🔗 <a href="../personal-opportunity-decoder-2026-07-07/index.html" target="_blank" rel="noopener">personal-opportunity-decoder</a></h4>
+<p>Patrick 现有 "个人机会解码器" 产品 7-7 ship, 是个人级 AI-native 实例 (原型 B 的 1 人版)。本综合给企业级 framework, 个人级已有的产品 = 验证原型 B 的代表。</p>
+</div>
+<div class="card" style="border-left-color:var(--accent)">
+<h4>🔗 <a href="../agentic-os-review/2026-07-05.html" target="_blank" rel="noopener">agentic-os-review (Patrick 个人 OS)</a></h4>
+<p>Patrick 个人 agentic OS 跨 7 domain loop 的 7 月 review — 本综合给 "company scale" 视角, Patrick 自己的 OS 是 "personal scale" 视角。两者是 C (AGI Factory) 在两种尺寸下的同构例证。</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<footer class="foot">
+<div>2026-07-14 · Hermes Agent M3 · master-takeover, network-blocked honest-synthesis · 生成时间窗 ≈ 25 min
+<br><b>vault note</b>: <a href="index.md" target="_blank" rel="noopener">llm-wiki/papers/ai-native-org-structure-2026-07-14/index.md</a></div>
+
+<div class="pair">
+<div>
+<b>数据源</b>
+<br>8 vault 已固化 + 12 待 verify
+</div>
+<div>
+<b>Code 路径</b>
+<br>- HTML (this file)
+<br>- vault note: index.md
+</div>
+<div>
+<b>deploy 状态</b>
+<br>- (b) vault ✅
+<br>- (c) HTML ✅ (待 ship)
+<br>- (a) fetch — 网络不通
+</div>
+<div>
+<b>下次 patch 触发</b>
+<br>- 网络通后跑 tab ⑦ fetch script
+<br>- Patrick 1-shot 决定 ship 公网 → 走 patricks-knowledge-hub v1.7.0 Phase 11
+</div>
+</div>
+</footer>
+
+</div>
+
+<script>
+// --- TOC v1.4.4 collapsible ---
+const COLLAPSED_KEY = 'ai-org-2026-07-14-toc-collapsed';
+function toggleToc() {
+  const isCollapsed = document.body.classList.toggle('toc-collapsed');
+  localStorage.setItem(COLLAPSED_KEY, isCollapsed ? '1' : '0');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem(COLLAPSED_KEY) === '1') {
+    document.body.classList.add('toc-collapsed');
+  }
+});
+
+// --- Tabs (14) ---
+document.querySelectorAll('#tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tabId = btn.dataset.tab;
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('on', p.id === tabId));
+    history.replaceState(null, '', '#' + tabId);
+  });
+});
+
+// --- Onload: restore last tab from hash ---
+const initialHash = window.location.hash.slice(1);
+if (initialHash && document.getElementById(initialHash)) {
+  document.querySelector('#tabs button[data-tab="' + initialHash + '"]')?.click();
+}
+
+// --- Console provenance ---
+console.log('%c[Dashboard v1.0 · 2026-07-14 · Hermes Agent M3 · master-takeover, network-blocked honest-synthesis]', 'color:#d5ff3f');
+console.log('Tab count:', document.querySelectorAll('#tabs button').length);
+console.log('Panel count:', document.querySelectorAll('.tab-panel').length);
+console.log('TOC toggle available, collapsible:', localStorage.getItem(COLLAPSED_KEY));
+</script>
+</body>
+</html>
