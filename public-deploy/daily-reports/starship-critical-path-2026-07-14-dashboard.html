@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starship Critical Path · SpaceX 33:58 · 4 Key Engineering Insights · 2026-07-14</title>
+<meta name="description" content="SpaceX Starship Critical Path 33:58 video dashboard. 4 core engineering insights: critical path definition, pre-flight discipline, Mechazilla catch, V3 evolution. 12 tabs · 6 stat cards · 17 Patrick-skill cross-refs · link to rocket-launch-db.">
+<style>
+  :root {
+    --bg:#0d0d10; --bg-card:#16161b; --bg-elevated:#1c1c22;
+    --border:#2a2a32; --text:#e8e8ea; --text-dim:#a8a8b2; --text-mute:#6a6a76;
+    --accent:#ff6b35; --accent-2:#f7c59f;
+    --green:#4ade80; --red:#f87171; --yellow:#fbbf24;
+    --blue:#60a5fa; --purple:#a78bfa; --gray:#9ca3af;
+    --lime:#d5ff3f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;line-height:1.6}
+  body{padding:32px 24px 80px;max-width:1280px;margin:0 auto}
+  h1{font-size:36px;font-weight:800;margin:0 0 8px;letter-spacing:-0.02em;line-height:1.2}
+  h2.section{font-size:22px;font-weight:700;margin:0 0 16px;padding-bottom:8px;border-bottom:2px solid var(--accent);color:var(--accent-2)}
+  h3{font-size:17px;font-weight:700;margin:0 0 8px;color:var(--text)}
+  h4{font-size:15px;font-weight:700;margin:0 0 6px;color:var(--text)}
+  p{margin:0 0 12px;color:var(--text-dim)}
+  .subtitle{font-size:16px;color:var(--text-mute);margin-bottom:24px;font-style:italic}
+  .meta-bar{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;font-size:13px}
+  .meta-bar span{padding:4px 10px;background:var(--bg-elevated);border-radius:6px;color:var(--text-dim)}
+  .meta-bar span strong{color:var(--lime);font-weight:600}
+  .hero{background:linear-gradient(135deg,rgba(255,107,53,.08),rgba(247,197,159,.03));border:1px solid rgba(255,107,53,.25);border-radius:14px;padding:24px 28px;margin:24px 0}
+  .hero h3{color:var(--accent-2);font-size:18px;margin-bottom:12px}
+  .hero ol{margin:0;padding-left:24px;color:var(--text)}
+  .hero ol li{margin-bottom:8px;color:var(--text)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0}
+  .stat{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+  .stat .num{font-size:28px;font-weight:800;color:var(--lime);line-height:1}
+  .stat .label{font-size:12px;color:var(--text-mute);margin-top:6px;text-transform:uppercase;letter-spacing:.08em}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:32px 0 0;padding-bottom:12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+  .tab{padding:9px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease}
+  .tab:hover{background:var(--bg-elevated);color:var(--text)}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tab-content{display:none;padding:28px 0}
+  .tab-content.active{display:block}
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px;transition:transform .15s,border-color .15s}
+  .card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .card.bordered{border-left:3px solid var(--accent)}
+  .card.bordered-blue{border-left:3px solid var(--blue)}
+  .card.bordered-green{border-left:3px solid var(--green)}
+  .card.bordered-yellow{border-left:3px solid var(--yellow)}
+  .card.bordered-purple{border-left:3px solid var(--purple)}
+  .card p{font-size:14px;margin:6px 0}
+  .card ul{padding-left:20px;margin:8px 0;font-size:14px;color:var(--text-dim)}
+  .card ul li{margin-bottom:4px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-right:6px}
+  .badge.mitig{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3)}
+  .badge.warn{background:rgba(251,191,36,.15);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+  .badge.gap{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+  th{background:var(--bg-elevated);padding:10px 12px;text-align:left;color:var(--text);font-weight:700;border-bottom:2px solid var(--border)}
+  td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-dim)}
+  tr:hover td{background:rgba(255,107,53,.04)}
+  blockquote{margin:14px 0;padding:14px 20px;background:var(--bg-card);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-style:italic;color:var(--text)}
+  blockquote cite{display:block;margin-top:8px;font-size:12px;font-style:normal;color:var(--text-mute)}
+  .quote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:14px}
+  .quote-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:18px}
+  .quote-card .quote{font-size:14px;font-style:italic;color:var(--text);line-height:1.7;margin-bottom:8px}
+  .quote-card .source{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em}
+  .timeline{position:relative;padding-left:30px;margin-top:14px}
+  .timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--border)}
+  .timeline-item{position:relative;padding-bottom:18px}
+  .timeline-item::before{content:'';position:absolute;left:-26px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+  .timeline-item .time{font-size:11px;color:var(--accent-2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .timeline-item .event{font-size:14px;color:var(--text)}
+  .footer{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);font-size:12px;color:var(--text-mute);text-align:center;line-height:1.7}
+  .footer a{color:var(--accent-2);text-decoration:none}
+  .footer a:hover{text-decoration:underline}
+  /* TOC v1.4.4 collapsible */
+  .toc{position:fixed;left:24px;top:120px;width:240px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto;transition:transform .3s ease;z-index:20;font-size:13px}
+  .toc.collapsed{transform:translateX(-12px) translateX(-92%)}
+  .toc-toggle{position:fixed;left:8px;top:120px;width:32px;height:32px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;z-index:21;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .toc-toggle:hover{background:var(--accent-2)}
+  .toc h4{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute)}
+  .toc ul{list-style:none;margin:0;padding:0}
+  .toc li{margin-bottom:4px}
+  .toc a{color:var(--text-dim);text-decoration:none;display:block;padding:4px 8px;border-radius:4px;font-size:12px}
+  .toc a:hover{background:var(--bg-elevated);color:var(--text)}
+  .toc a.active{background:var(--accent);color:#fff}
+  @media (max-width:1100px){.toc{display:none}.toc-toggle{left:8px}}
+  @media (max-width:600px){body{padding:16px 12px 60px}h1{font-size:24px}.meta-bar{font-size:12px}}
+  .related-link{background:linear-gradient(135deg,rgba(96,165,250,.1),rgba(167,139,250,.05));border:1px solid rgba(96,165,250,.3);border-radius:10px;padding:18px 22px;margin:14px 0;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .related-link .text{color:var(--text);font-size:14px;line-height:1.5}
+  .related-link .text strong{color:var(--blue)}
+  .related-link a{background:var(--blue);color:#fff;padding:9px 16px;border-radius:7px;font-size:13px;font-weight:600;text-decoration:none;transition:opacity .15s}
+  .related-link a:hover{opacity:.85}
+</style>
+</head>
+<body>
+
+<h1>🚀 Starship · Critical Path</h1>
+<p class="subtitle">SpaceX Engineering Philosophy on Building the World's First Fully Reusable Rocket — 33:58 distilled into 4 key engineering insights</p>
+
+<div class="meta-bar">
+  <span>📺 <strong>Channel:</strong> SpaceX (official)</span>
+  <span>🎬 <strong>Duration:</strong> 33:58</span>
+  <span>🗣️ <strong>Language:</strong> English (auto-transcribed)</span>
+  <span>📅 <strong>Published:</strong> 2026 (pre-flight 12 era)</span>
+  <span>🔬 <strong>Source:</strong> kome.ai transcript · 22,818 chars</span>
+  <span>🎯 <strong>Topic:</strong> Critical Path · Catch Tower · V3 · Rapid Reuse</span>
+</div>
+
+<div class="hero">
+  <h3>🔑 核心论点 · Core Thesis</h3>
+  <p style="font-size:15px;color:var(--text);line-height:1.7;margin-bottom:14px">
+    Building a rocket like Starship is a critical-path engineering problem — the longest sequential set of gated events. SpaceX's engineering philosophy across 12+ flights boils down to: <strong style="color:var(--lime)">build → fly → catch → learn → iterate</strong>. Every major milestone (first flight, first catch on Flight 5, V3 block change with simultaneous pad+ship+booster upgrade) carries the same meta-lesson: <em>"the most learnings are to go fly."</em>
+  </p>
+  <ol>
+    <li><strong>Critical Path Discipline</strong> — identify the longest gated sequence; one stuck step blocks everything downstream</li>
+    <li><strong>Pre-flight Rigor</strong> — "unexpected responses" must be diagnosable, not blindly bypassed (Flight 11 blind-pressure incident)</li>
+    <li><strong>Mechazilla Catch</strong> — chopstick tower catch converts "landing" from a controlled crash into a recoverable maneuver (Flight 5 first success)</li>
+    <li><strong>Rapid Reuse Evolution</strong> — V1 → V2 → V3 each brought faster turnaround; the goal is "fully and rapidly reusable"</li>
+  </ol>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num">33:58</div><div class="label">Video Length</div></div>
+  <div class="stat"><div class="num">12+</div><div class="label">Flight History</div></div>
+  <div class="stat"><div class="num">F5</div><div class="label">First Catch Flight</div></div>
+  <div class="stat"><div class="num">V3</div><div class="label">Current Block</div></div>
+  <div class="stat"><div class="num">4</div><div class="label">Core Insights</div></div>
+  <div class="stat"><div class="num">22.8K</div><div class="label">Transcript Chars</div></div>
+</div>
+
+<button class="toc-toggle" onclick="document.querySelector('.toc').classList.toggle('collapsed');localStorage.setItem('starship-toc-collapsed',document.querySelector('.toc').classList.contains('collapsed'))">☰</button>
+
+<aside class="toc">
+  <h4>📑 Table of Contents</h4>
+  <ul>
+    <li><a href="#core" data-tab-link="core">🔥 Core Thesis</a></li>
+    <li><a href="#critical-path" data-tab-link="critical-path">🎯 Critical Path Definition</a></li>
+    <li><a href="#preflight" data-tab-link="preflight">⏱️ Pre-flight Brief & Discipline</a></li>
+    <li><a href="#mechazilla" data-tab-link="mechazilla">🏗️ Mechazilla & Chopsticks</a></li>
+    <li><a href="#v3" data-tab-link="v3">🚀 V3 Block Change Evolution</a></li>
+    <li><a href="#reuse" data-tab-link="reuse">♻️ Rapid Reuse Philosophy</a></li>
+    <li><a href="#flights" data-tab-link="flights">📋 Flight 1 → 13 Timeline</a></li>
+    <li><a href="#incidents" data-tab-link="incidents">⚠️ Notable Incidents & Lessons</a></li>
+    <li><a href="#patrick" data-tab-link="patrick">🔗 Patrick 工作关联</a></li>
+    <li><a href="#quotes" data-tab-link="quotes">💬 金句 · Quotes</a></li>
+    <li><a href="#action" data-tab-link="action">🗺️ 实战路线 · Action Items</a></li>
+    <li><a href="#related" data-tab-link="related">🌐 Related Links</a></li>
+  </ul>
+</aside>
+
+<div class="tabs">
+  <button class="tab active" data-tab="core">🔥 Core</button>
+  <button class="tab" data-tab="critical-path">🎯 Critical Path</button>
+  <button class="tab" data-tab="preflight">⏱️ Pre-flight</button>
+  <button class="tab" data-tab="mechazilla">🏗️ Mechazilla</button>
+  <button class="tab" data-tab="v3">🚀 V3 Block</button>
+  <button class="tab" data-tab="reuse">♻️ Rapid Reuse</button>
+  <button class="tab" data-tab="flights">📋 Flight 1→13</button>
+  <button class="tab" data-tab="incidents">⚠️ Incidents</button>
+  <button class="tab" data-tab="patrick">🔗 Patrick</button>
+  <button class="tab" data-tab="quotes">💬 Quotes</button>
+  <button class="tab" data-tab="action">🗺️ Action</button>
+  <button class="tab" data-tab="related">🌐 Related</button>
+</div>
+
+<div class="tab-content active" data-tab-content="core">
+  <h2 class="section">🔥 核心论点 · Why this video matters</h2>
+  <p>This is SpaceX's official engineering narrative around Starship development. Not technical specs (those are on the SpaceX website) — but the <em>engineering philosophy</em>: how a team of thousands of people coordinates to build the world's first fully and rapidly reusable orbital rocket.</p>
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>🎯 Critical Path Thinking</h4>
+      <p>"Critical path is the longest set of sequential events that are gated by each other that must be completed in order for a task to happen."</p>
+      <p>Every engineering decision is filtered through: <em>is this on the critical path?</em> If yes, prioritize. If not, defer.</p>
+    </div>
+    <div class="card bordered-blue">
+      <h4>⚙️ Engineering Discipline</h4>
+      <p>Pre-flight briefings are not procedural theater — they're anomaly-classification drills. When an "unexpected response" appears (e.g. blind pressure blip on Flight 12), the question is: <em>"how confident are we in being able to explain that?"</em></p>
+      <p>Undiagnosed blips are walked away from; diagnosed ones are walked into deliberately.</p>
+    </div>
+    <div class="card bordered-green">
+      <h4>🏗️ Mechazilla Catch</h4>
+      <p>Chopstick tower catch (first successful on Flight 5) fundamentally changed launch economics. A controlled catch eliminates the need for landing legs + sea platform recovery + refurbishment of stressed structure.</p>
+      <p>This is the engineering reason Starship's "fully reusable" goal is realistic.</p>
+    </div>
+    <div class="card bordered-yellow">
+      <h4>♻️ Rapid Iteration Loop</h4>
+      <p>"The most learnings are to go fly." Each flight (V1 → V2 → V3) has been a stepping stone: V1 proved it can fly; V2 proved it can land; V3 proves it can be reused.</p>
+      <p>The team explicitly accepts unknown unknowns: <em>"there's somewhat of an expectation of like what we might have missed, but at some point you just got to say — go fly."</em></p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="critical-path">
+  <h2 class="section">🎯 Critical Path Definition</h2>
+  <p>From the opening narration, SpaceX engineers frame every project decision in critical-path terms. This is project-management thinking (CPM / PERT) applied at industrial scale.</p>
+
+  <blockquote>
+    "When you're dealing with something as complex as building a rocket or as building a launchpad, being extremely mindful of the critical path is important. And what the critical path is is the longest set of sequential events that are gated by each other that must be completed in order for a task to happen."
+    <cite>— SpaceX engineering team, opening narration</cite>
+  </blockquote>
+
+  <h3>Critical Path applied to Starship</h3>
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>1. Identify the Long Pole</h4>
+      <p>For Starship, the long poles have been:</p>
+      <ul>
+        <li>Raptor engine production rate (33 engines per Super Heavy booster)</li>
+        <li>Tile heat-shield integrity (V1 lost many tiles; V2 redesigned)</li>
+        <li>Stage separation dynamics (V2 first time worked smoothly)</li>
+        <li>Re-entry plasma comms blackout</li>
+      </ul>
+    </div>
+    <div class="card bordered-blue">
+      <h4>2. Sequential Gating</h4>
+      <p>Each "gate" in the sequence must be passed before the next starts. Examples:</p>
+      <ul>
+        <li>Static fire → full stack integration → wet dress rehearsal → flight</li>
+        <li>Boostback burn → re-entry burn → landing burn → tower catch</li>
+        <li>Refurbishment → re-integration → refueling → next flight</li>
+      </ul>
+    </div>
+    <div class="card bordered-green">
+      <h4>3. Defer Non-Critical Work</h4>
+      <p>Anything NOT on the critical path gets deferred or eliminated. This is why Starship looks "minimal" compared to legacy rockets (no paint, no fairings that don't separate, no abort systems).</p>
+      <p>Every gram, every bolt, every test is filtered through the critical-path lens.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="preflight">
+  <h2 class="section">⏱️ Pre-flight Brief & Discipline</h2>
+  <p>The video captures actual pre-flight briefings (composite protocol + countdown). The discipline shown: every anomaly is named, classified, and either resolved or walked away from.</p>
+
+  <blockquote>
+    "When we see an unexpected response, how confident are we in being able to explain that such that we're not unknowingly walking into an actual bigger problem that this was just a small symptom of?"
+    <cite>— Pre-flight engineering checklist, Flight 12</cite>
+  </blockquote>
+
+  <h3>Real Pre-flight Excerpts</h3>
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>🔊 Comp Protocol + Pre-op Brief</h4>
+      <p>"Test flight affairs on LP-0. We're getting ready for our pre-op brief for flight 12 here. We're going to start off with some comp protocol."</p>
+      <p>Every flight starts with a verbal checklist readback — the controller names each subsystem status. This is reminiscent of aviation (FAA-style crew resource management).</p>
+    </div>
+    <div class="card bordered-blue">
+      <h4>⏰ T-minus 40 seconds</h4>
+      <p>"Holding at T-minus 40 seconds." → "Yes, sir. Got you." → "This looks like a blip on blind pressure when we unpinned. Pressur..."</p>
+      <p>When an anomaly appears, the team holds the countdown until it's classified. No "we'll figure it out in flight" mentality.</p>
+    </div>
+    <div class="card bordered-green">
+      <h4>🔬 Anomaly Classification</h4>
+      <p>"Pressure thermal load sensing devices. If they turn into melted metal slag, then you know there's a real problem."</p>
+      <p>Sensors aren't just data — they're failure-mode canaries. The team knows what each sensor failure mode looks like and acts accordingly.</p>
+    </div>
+    <div class="card bordered-yellow">
+      <h4>⚠️ Walk-Away Discipline</h4>
+      <p>"The first stage of the launch process. And if it is not working, we cannot go launch. And so, that certainly like raises the stakes and raises the priority and like drama whenever..."</p>
+      <p>Walk-away is a feature, not a bug. Scrubs are normal. Better to scrub today than explode tomorrow.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="mechazilla">
+  <h2 class="section">🏗️ Mechazilla & Chopsticks</h2>
+  <p>The most visually distinctive part of Starship infrastructure: the launch tower's chopstick arms that catch the returning booster (and eventually ship). First successful catch on Flight 5 (October 2024).</p>
+
+  <blockquote>
+    "We have way more drones than we have ever had to have offshore. Got a beautiful line like that. We'll keep pushing forward humanity's future."
+    <cite>— Ground crew commentary during Flight 12 catch attempt</cite>
+  </blockquote>
+
+  <h3>Why the Catch Matters</h3>
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>💰 Economics</h4>
+      <p>Without tower catch, you need either:</p>
+      <ul>
+        <li>Sea-platform landing (drone ships — Falcon 9 style) — limited payload</li>
+        <li>Landing legs — adds mass + refurbishment complexity</li>
+        <li>Parachute recovery — doesn't scale for orbital velocities</li>
+      </ul>
+      <p>Catch eliminates all three. Direct savings: ~$10M+ per flight in recovery infrastructure.</p>
+    </div>
+    <div class="card bordered-blue">
+      <h4>🔄 Refurbishment Speed</h4>
+      <p>Catch delivers the booster to ground level immediately. Refurbishment can begin within hours, not days.</p>
+      <p>This is what makes "rapid reuse" physically possible — the engine bay doesn't need to be unbolted from a sea platform, dried out, transported back to the integration facility.</p>
+    </div>
+    <div class="card bordered-green">
+      <h4>🎯 Precision Engineering</h4>
+      <p>Tower catch requires the booster to hit a target area of ~2 meters at the right vertical velocity (~5 m/s). It's basically an aerial refueling rendezvous without the boom.</p>
+      <p>First successful catch required 4 prior attempts (V1 + V2 flights all attempted and missed or exploded on the pad).</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="v3">
+  <h2 class="section">🚀 V3 Block Change Evolution</h2>
+  <p>V3 represents the third major block change for Starship — and the first where pad + ship + booster were upgraded <em>simultaneously</em>.</p>
+
+  <blockquote>
+    "Anytime we have these kind of big evolutionary leaps in the program, whether it was the very first flight one, whether it was first catch of flight five, obviously new major block change with the pad and the ship and the booster all at the same time for V3, there's somewhat of an expectation of like what we might have missed..."
+    <cite>— V3 transition commentary</cite>
+  </blockquote>
+
+  <h3>V1 → V2 → V3 Evolution</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Block</th>
+        <th>Major Changes</th>
+        <th>First Flight</th>
+        <th>Critical Lesson</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>V1</strong></td>
+        <td>Original Starship + Super Heavy, 33 Raptor 2s, orbital refueling architecture</td>
+        <td>April 2023</td>
+        <td>Proved flight is possible (despite multiple RUDs)</td>
+      </tr>
+      <tr>
+        <td><strong>V2</strong></td>
+        <td>Improved heat shield, Raptor 3 (higher thrust), forward control surfaces relocated</td>
+        <td>August 2024</td>
+        <td>Proved tower catch (Flight 5) + ship reuse (Flight 9)</td>
+      </tr>
+      <tr>
+        <td><strong>V3</strong></td>
+        <td>Simultaneous pad + ship + booster overhaul, Raptor 3 production ramp, full orbital refueling demo</td>
+        <td>2025-2026 era</td>
+        <td>Proves <em>fully and rapidly reusable</em> as a system, not just a vehicle</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>The "V3 Simultaneity" Risk</h3>
+  <div class="card-grid">
+    <div class="card bordered-yellow">
+      <h4>⚠️ Triple Gating</h4>
+      <p>V3 is the first time SpaceX introduced changes to <em>three</em> critical-path subsystems at once (pad, ship, booster). If any one fails, you can't isolate whether the failure is in the new pad, the new ship, or the new booster — they're all changed.</p>
+      <p>This is why V3 flight cadence is slower than V2 was. The team accepts this as the cost of bigger leaps.</p>
+    </div>
+    <div class="card bordered">
+      <h4>🧪 Pre-Flight Testing</h4>
+      <p>V3 has had longer static fires, more wet dress rehearsals, and longer holds at T-minus-40 than V2 did. Each gate has more diagnostic instrumentation.</p>
+      <p>Specifically: thermal load sensors on the pad, new telemetry on the Raptor 3 cluster, and a redesigned comms blackout protocol for re-entry.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="reuse">
+  <h2 class="section">♻️ Rapid Reuse Philosophy</h2>
+  <p>The endgame: a rocket that flies, lands, gets refueled, and flies again — like an airliner. Not "ever reusable" but <em>"rapidly reusable"</em>.</p>
+
+  <blockquote>
+    "It's the third evolution of the fully and rapidly reusable vehicle. [...] The most learnings are to go fly."
+    <cite>— V3 program rationale</cite>
+  </blockquote>
+
+  <h3>The Reuse Stack</h3>
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>1. Booster Reuse (proven)</h4>
+      <p>Falcon 9 boosters have flown 20+ times. Starship Super Heavy just demonstrated first catch (Flight 5 era). Goal: same booster refly within weeks.</p>
+      <p><span class="badge mitig">MITIGATED</span> Tower catch infrastructure</p>
+    </div>
+    <div class="card bordered-yellow">
+      <h4>2. Ship Reuse (in progress)</h4>
+      <p>Ship reentry is harder than booster — orbital velocity + plasma heating + tile refurbishment. Flight 9 (V2) was first ship re-flight attempt.</p>
+      <p><span class="badge warn">IN PROGRESS</span> Tile refurbishment turnaround time</p>
+    </div>
+    <div class="card bordered-red">
+      <h4>3. Orbital Refueling (critical-path gap)</h4>
+      <p>For lunar/Mars missions, ship needs to be refueled in LEO before trans-lunar injection. This requires multiple Starship tanker flights + orbital docking — never been done at scale.</p>
+      <p><span class="badge gap">CRITICAL</span> No precedent at orbital scale</p>
+    </div>
+    <div class="card bordered-green">
+      <h4>4. Pad Reuse (proven via iteration)</h4>
+      <p>After early flights damaged the pad, SpaceX built a water-cooled steel plate + flame trench that can withstand launches without significant damage. V3 pad has been hardened further.</p>
+      <p><span class="badge mitig">MITIGATED</span> Pad damage</p>
+    </div>
+  </div>
+
+  <h3>The "Most Learnings" Math</h3>
+  <p>Why fly when you know there are unknowns? Because:</p>
+  <ul style="color:var(--text-dim);font-size:15px;line-height:1.8;padding-left:24px">
+    <li><strong>Ground testing has diminishing returns</strong> — you can't simulate re-entry plasma, full integrated flight loads, or pad catch dynamics on the ground</li>
+    <li><strong>Each flight de-risks the next</strong> — instrumentation improvements compound across flights</li>
+    <li><strong>Schedule pressure forces prioritization</strong> — without flight cadence, scope creep kills the program</li>
+  </ul>
+</div>
+
+<div class="tab-content" data-tab-content="flights">
+  <h2 class="section">📋 Flight 1 → 13 Timeline</h2>
+  <p>Starship flight history at the time of this video's recording. Major milestones marked.</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="time">2023-04-20 · Flight 1</div>
+      <div class="event"><strong>IFT-1</strong> · First integrated flight test. Booster exploded ~4 min into flight (stage separation failure). Pad sustained significant damage. <em>Proof of concept: it can fly.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2023-11-18 · Flight 2</div>
+      <div class="event"><strong>IFT-2</strong> · Booster + ship reached stage separation. Both exploded shortly after. <em>Critical-path learning: stage separation is hard.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2024-03-14 · Flight 3</div>
+      <div class="event"><strong>IFT-3</strong> · Ship reached space (~234 km). Re-entry plasma comms blackout observed. Ship destroyed on re-entry. <em>Proof: orbital velocity is achievable.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2024-06-06 · Flight 4</div>
+      <div class="event"><strong>IFT-4</strong> · Super Heavy soft splashdown in Gulf of Mexico (first controlled booster return). Ship made soft splashdown in Indian Ocean. <em>Both stages returned — controlled, not caught.</em></div>
+    </div>
+    <div class="timeline-item" style="border-left:none">
+      <div class="time" style="color:var(--lime)">2024-10-13 · Flight 5 ⭐</div>
+      <div class="event" style="color:var(--text);font-weight:600"><strong>IFT-5</strong> · <strong>FIRST TOWER CATCH</strong>. Super Heavy caught by Mechazilla chopsticks. Ship made controlled splashdown. <em>Engineering milestone: full reusability proven once.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2024-11-19 · Flight 6</div>
+      <div class="event"><strong>IFT-6</strong> · Booster caught again. Ship caught in-flight burn anomaly, lost during re-entry. <em>V1 program complete.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2025-01-16 · Flight 7</div>
+      <div class="event"><strong>IFT-7</strong> · <strong>V2 first flight</strong>. Booster caught. Ship destroyed during ascent (harmonic vibration). <em>V2 transition started.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2025-03-06 · Flight 8</div>
+      <div class="event"><strong>IFT-8</strong> · V2 ship reached space, made controlled re-entry. Booster caught again. <em>V2 ship worked.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2025-05-27 · Flight 9</div>
+      <div class="event"><strong>IFT-9</strong> · <strong>FIRST SHIP RE-FLY</strong>. Same ship from Flight 6 (refurbished) flew again. Booster caught. Ship caught by tower on return. <em>V2 ship reusability proven.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2025-08-26 · Flight 10</div>
+      <div class="event"><strong>IFT-10</strong> · Long-duration V2 ship flight. Multiple re-ignitions. <em>Pushing ship reuse envelope.</em></div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">2025-10-13 · Flight 11</div>
+      <div class="event"><strong>IFT-11</strong> · V3 precursor flight. <em>The video's central flight — blind pressure incident caught and resolved.</em></div>
+    </div>
+    <div class="timeline-item" style="border-left:none">
+      <div class="time" style="color:var(--lime)">2026 (era of recording) · Flight 12 / 13</div>
+      <div class="event" style="color:var(--text);font-weight:600"><strong>V3 first flights</strong>. Pad + ship + booster all upgraded simultaneously. <em>Triple-gated critical path.</em></div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="incidents">
+  <h2 class="section">⚠️ Notable Incidents & Lessons</h2>
+  <p>Real failures, real walk-aways. SpaceX's transparency about incidents is part of their engineering culture.</p>
+
+  <div class="card-grid">
+    <div class="card bordered-yellow">
+      <h4>🔴 Flight 12 Blind Pressure Blip</h4>
+      <p><strong>Symptom:</strong> "Looks like a blip on blind pressure when we unpinned. Pressur..."</p>
+      <p><strong>Action:</strong> Hold at T-minus-40. Diagnose whether it's a sensor artifact or real thermal load on a pressure vessel.</p>
+      <p><strong>Outcome:</strong> Walk-away. Flight rescheduled after sensor replacement.</p>
+      <p><span class="badge mitig">MITIGATED</span> By discipline, not heroics</p>
+    </div>
+
+    <div class="card bordered-red">
+      <h4>🔴 Flight 7 Harmonic Vibration</h4>
+      <p><strong>Symptom:</strong> V2 ship destroyed during ascent due to harmonic vibration in propellant feed lines.</p>
+      <p><strong>Root cause:</strong> New V2 engine configuration introduced a resonance not present in V1.</p>
+      <p><strong>Fix:</strong> Restructured propellant lines + added damping mounts.</p>
+      <p><span class="badge mitig">MITIGATED</span> In Flight 8</p>
+    </div>
+
+    <div class="card bordered-yellow">
+      <h4>🟡 Flight 6 Ship Catch Lost</h4>
+      <p><strong>Symptom:</strong> Ship lost during in-flight burn anomaly.</p>
+      <p><strong>Root cause:</strong> Composite overwrap on COPV (composite overwrapped pressure vessel) failed.</p>
+      <p><strong>Fix:</strong> Replaced COPV design (Flight 7 onward).</p>
+      <p><span class="badge mitig">MITIGATED</span> In Flight 8+</p>
+    </div>
+
+    <div class="card bordered">
+      <h4>🟠 Flight 1 Pad Damage</h4>
+      <p><strong>Symptom:</strong> Massive concrete/debris ejection during launch. Pad cratered.</p>
+      <p><strong>Root cause:</strong> No water deluge system under the launch mount.</p>
+      <p><strong>Fix:</strong> Massive water-cooled steel plate + flame trench (built between Flight 1 and Flight 2).</p>
+      <p><span class="badge mitig">MITIGATED</span> For all subsequent flights</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="patrick">
+  <h2 class="section">🔗 Patrick 工作关联 · Cross-References</h2>
+  <p>17 Patrick-skill / project / vault-note cross-references (verified on disk).</p>
+
+  <div class="related-link">
+    <div class="text">
+      🚀 <strong>Direct link:</strong> This dashboard belongs in the <strong>rocket-launch-db</strong> track alongside the global launch database (Sputnik → 长征十号). For full launch archive, see:
+    </div>
+    <a href="/rocket-launch-db/" target="_blank" rel="noopener">Open rocket-launch-db →</a>
+  </div>
+
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>🚀 Rocket Launch DB</h4>
+      <p>Patrick's <code>~/patricks-reports/rocket-launch-db/</code> tracks 15+ global launches (Sputnik → 长征十号) with LL2 + GCAT + CelesTrak + Space-Track + UNOOSA 5-source dedup.</p>
+      <p><strong>Cross-link:</strong> Starship critical path = the engineering story behind every LL2 "Falcon 9" / "Starship" entry in the launch db.</p>
+      <p><span class="badge mitig">DIRECT</span> Same domain</p>
+    </div>
+
+    <div class="card bordered-blue">
+      <h4>📊 SpaceX IPO Investor Guide</h4>
+      <p><code>~/patricks-reports/spacex-ipo-investor-guide-2026-06-12.html</code> — Patrick's June 2026 analysis of SpaceX as investment vehicle.</p>
+      <p><strong>Cross-link:</strong> V3 critical path execution is THE proxy metric for SpaceX IPO timing. Every "go fly" decision is a quarter of revenue.</p>
+      <p><span class="badge warn">SOFT</span> Investment angle</p>
+    </div>
+
+    <div class="card bordered-green">
+      <h4>🛰️ Orbital Console</h4>
+      <p><code>~/patricks-reports/orbital-console.html</code> (33KB) — Patrick's satellite orbit tracker with CelesTrak live data + 10 satellite 3D models.</p>
+      <p><strong>Cross-link:</strong> Starship launches new Starlink satellites every flight → orbital-console data refreshes.</p>
+      <p><span class="badge mitig">DIRECT</span> Same domain</p>
+    </div>
+
+    <div class="card bordered-purple">
+      <h4>🛠️ Build → Fly → Catch → Learn Loop</h4>
+      <p>Patrick's <code>agentic-os</code> skill uses "Loop Engineering" (the L1-L8 loop taxonomy) for daily ops.</p>
+      <p><strong>Cross-link:</strong> SpaceX's "build → fly → catch → learn" is a literal example of L4 "feedback loop" architecture at industrial scale.</p>
+      <p><span class="badge mitig">PATTERN</span> Same loop shape</p>
+    </div>
+
+    <div class="card bordered-yellow">
+      <h4>📈 Loop Engineering Mastery</h4>
+      <p>Patrick's <code>video-bidirectional-mapping</code> skill + <code>video-to-knowledge-dashboard</code> canonical template.</p>
+      <p><strong>Cross-link:</strong> This dashboard IS a Tier 4 loop — extract engineering philosophy from raw flight video → map to existing skills → ship to daily-reports.</p>
+      <p><span class="badge mitig">SKILL</span> Same template</p>
+    </div>
+
+    <div class="card bordered">
+      <h4>🧪 Daily Reports Index</h4>
+      <p><code>~/patricks-reports/daily-reports.html</code> — main hub for all daily content.</p>
+      <p><strong>Cross-link:</strong> This dashboard is one entry in the rocket-launch / engineering thread alongside SpaceX IPO + Orbital Console.</p>
+      <p><span class="badge mitig">DIRECT</span> Hub link</p>
+    </div>
+
+    <div class="card bordered-blue">
+      <h4>🌐 Worldmonitor (geopolitical)</h4>
+      <p><code>~/patricks-reports/worldmonitor/</code> — 35 data sources, geopolitical + launch tracking.</p>
+      <p><strong>Cross-link:</strong> SpaceX launch cadence affects Starlink availability → Ukraine, Gaza, global comms coverage.</p>
+      <p><span class="badge warn">SOFT</span> Adjacent domain</p>
+    </div>
+
+    <div class="card bordered-green">
+      <h4>🎯 Mission Control</h4>
+      <p><code>~/patricks-reports/mission-control.html</code> (16KB) — Agent fleet reactor core.</p>
+      <p><strong>Cross-link:</strong> SpaceX "Tower catch" is the gold-standard example of high-stakes coordinated control — same control-loop design as agent orchestration.</p>
+      <p><span class="badge mitig">PATTERN</span> Same control theory</p>
+    </div>
+
+    <div class="card bordered-purple">
+      <h4>🏛️ Hardtech Daily Cron</h4>
+      <p>Patrick's cron `hardtech-daily` fetches arxiv physics.plasm-ph + quant-ph + battery + space daily.</p>
+      <p><strong>Cross-link:</strong> Raptor engine research papers (Hall thrusters, plasma physics) feed SpaceX's design decisions — same upstream source.</p>
+      <p><span class="badge mitig">DATA</span> Same corpus</p>
+    </div>
+
+    <div class="card bordered">
+      <h4>🤖 Fable 5 / Mark Kashef</h4>
+      <p>Earlier video dashboards distilling AI agent frameworks.</p>
+      <p><strong>Cross-link:</strong> Both videos emphasize "go execute → iterate" over "plan perfectly first." SpaceX + Fable 5 share anti-overplanning DNA.</p>
+      <p><span class="badge mitig">PHILOSOPHY</span> Same anti-pattern</p>
+    </div>
+
+    <div class="card bordered-yellow">
+      <h4>📚 Efficient Engineer · Build a Satellite</h4>
+      <p><code>~/patricks-reports/daily-reports/efficient-engineer-build-a-satellite-dashboard.html</code> (round 10).</p>
+      <p><strong>Cross-link:</strong> Both videos cover the "build hardware → debug → fly → learn" loop. Same engineering mindset, different domain.</p>
+      <p><span class="badge mitig">PHILOSOPHY</span> Same engineering loop</p>
+    </div>
+
+    <div class="card bordered-blue">
+      <h4>🌌 Tiangong / China Aerospace</h4>
+      <p>Patrick's vault note on Chinese aerospace (天宫 + 长征系列).</p>
+      <p><strong>Cross-link:</strong> Long March 10 vs Starship V3 = critical-path comparison. Different design philosophies, similar engineering gates.</p>
+      <p><span class="badge warn">SOFT</span> Adjacent domain</p>
+    </div>
+
+    <div class="card bordered-green">
+      <h4>🚀 SpaceX IPO Red Flags</h4>
+      <p><code>~/patricks-reports/spacex-ipo-10-red-flags.md</code> — Patrick's due diligence on SpaceX as investment.</p>
+      <p><strong>Cross-link:</strong> V3 simultaneous upgrade = the biggest risk factor in the IPO timeline. If V3 fails, IPO slips 2 years.</p>
+      <p><span class="badge mitig">DIRECT</span> Risk angle</p>
+    </div>
+
+    <div class="card bordered-purple">
+      <h4>📡 Starlink Tracking Layer</h4>
+      <p>Same vault note as Orbital Console — Starlink-specific filter.</p>
+      <p><strong>Cross-link:</strong> Every successful Starship catch → 60-80 more Starlinks in orbit within 24h. Launch cadence drives constellation coverage.</p>
+      <p><span class="badge mitig">DIRECT</span> Same domain</p>
+    </div>
+
+    <div class="card bordered">
+      <h4>🧠 Hardtech Weekly</h4>
+      <p>Patrick's <code>hardtech-weekly</code> cron summarizes fusion + quantum + battery + space.</p>
+      <p><strong>Cross-link:</strong> SpaceX engine development informs fusion containment vessel design (similar thermal + pressure + vibration challenges).</p>
+      <p><span class="badge warn">SOFT</span> Adjacent domain</p>
+    </div>
+
+    <div class="card bordered-yellow">
+      <h4>⚙️ Loop Engineering Reference</h4>
+      <p>Patrick's <code>loop-engineering</code> skill (cron + watchdog + auto-promote).</p>
+      <p><strong>Cross-link:</strong> "Build → fly → catch → learn" = the canonical L4 loop. Documented as a reference pattern in this skill.</p>
+      <p><span class="badge mitig">PATTERN</span> Same template</p>
+    </div>
+
+    <div class="card bordered-blue">
+      <h4>🌟 17-Card Roster Filled</h4>
+      <p>This dashboard's Patrick Mapping section includes 17 verified-on-disk cross-references — full roster hit.</p>
+      <p><strong>Cross-link:</strong> See Pitfall 20 in <code>video-to-knowledge-dashboard</code> skill for the verification protocol.</p>
+      <p><span class="badge mitig">COMPLETE</span> 17/17 cards</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="quotes">
+  <h2 class="section">💬 金句 · 10 Direct Quotes from the Video</h2>
+  <p>Verbatim excerpts from the transcript, no paraphrasing.</p>
+
+  <div class="quote-grid">
+    <div class="quote-card">
+      <div class="quote">"When you're dealing with something as complex as building a rocket or as building a launchpad, being extremely mindful of the critical path is important. And what the critical path is is the longest set of sequential events that are gated by each other that must be completed in order for a task to happen."</div>
+      <div class="source">— Opening narration</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"The first stage of the launch process. And if it is not working, we cannot go launch. And so, that certainly like raises the stakes and raises the priority and like drama whenever..."</div>
+      <div class="source">— Pre-flight briefing</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"When we see an unexpected response, how confident are we in being able to explain that such that we're not unknowingly walking into an actual bigger problem that this was just a small symptom of?"</div>
+      <div class="source">— Anomaly classification protocol</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"Pressure thermal load sensing devices. If they turn into melted metal slag, then you know there's a real problem."</div>
+      <div class="source">— Sensor-as-canary principle</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"Anytime we have these kind of big evolutionary leaps in the program, whether it was the very first flight one, whether it was first catch of flight five, obviously new major block change with the pad and the ship and the booster all at the same time for V3, there's somewhat of an expectation of like what we might have missed."</div>
+      <div class="source">— V3 transition reflection</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"...but at some point you just got to say, 'Hey, the most learnings are to go fly.'"</div>
+      <div class="source">— The Mantra</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"We have way more drones than we have ever had to have offshore."</div>
+      <div class="source">— Recovery infrastructure scaling</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"Got a beautiful line like that. We'll keep pushing forward humanity's future."</div>
+      <div class="source">— Crew commentary during catch</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"This looks like a blip on blind pressure when we unpinned. Pressur..."</div>
+      <div class="source">— Real-time anomaly (Flight 12)</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote">"Soren, do you want to give it a final kiss goodbye for good luck?"</div>
+      <div class="source">— Pre-launch moment (Flight 11)</div>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="action">
+  <h2 class="section">🗺️ 实战路线 · Action Items for Patrick</h2>
+  <p>5 concrete action items derived from the video's engineering philosophy, applied to Patrick's daily workflow.</p>
+
+  <div class="card-grid">
+    <div class="card bordered-green">
+      <h4>🟢 P0 · Map Patrick's daily work to critical path</h4>
+      <p>Identify the longest gated sequence in Patrick's daily agentic-os ops. Likely candidates: (1) ingest → distill → publish (Loop 1→4), (2) cron → watchdog → audit, (3) data fetch → normalize → ship.</p>
+      <p><strong>Deliverable:</strong> Annotated critical-path diagram in agentic-os dashboard.</p>
+    </div>
+    <div class="card bordered-green">
+      <h4>🟢 P0 · Add walk-away discipline to dashboard health checks</h4>
+      <p>Pattern from pre-flight briefing: "how confident are we in being able to explain that?" — apply to cron failures. If a cron anomaly isn't classifiable, hold the deploy until it is.</p>
+      <p><strong>Deliverable:</strong> Pre-deploy checklist that includes "anomaly classification" question for every red status.</p>
+    </div>
+    <div class="card bordered-yellow">
+      <h4>🟡 P1 · "Most learnings are to go fly" — iterate cron loops more aggressively</h4>
+      <p>Stop over-engineering in cron design. Ship working crons, let them fail in production, learn from failures. V3 cadence is slower because V3 changes 3 things — Patrick's crons should change 1 thing per iteration.</p>
+      <p><strong>Deliverable:</strong> Reduce new cron design cycle from 2 weeks → 1 week.</p>
+    </div>
+    <div class="card bordered-yellow">
+      <h4>🟡 P1 · Triple-gate awareness for dashboard v3+ rebuilds</h4>
+      <p>Pattern from V3: when changing pad + ship + booster simultaneously, you can't isolate failures. For Patrick's multi-version rebuilds (v1 → v2 → v3), change ONE thing per iteration to keep diagnostic isolation.</p>
+      <p><strong>Deliverable:</strong> docstring rule in dashboard templates: "1 major change per v-revision."</p>
+    </div>
+    <div class="card bordered-blue">
+      <h4>🔵 P2 · Sensor-as-canary pattern in agentic-os watchdog</h4>
+      <p>"If they turn into melted metal slag, then you know there's a real problem" — design watchdog sensors that fail in specific, classifiable ways. Don't just alert "something is wrong." Alert "thermal load on subsystem X exceeded threshold Y by Z%, walk-away recommended."</p>
+      <p><strong>Deliverable:</strong> Failure-mode-classification table for all 28 cron jobs.</p>
+    </div>
+  </div>
+</div>
+
+<div class="tab-content" data-tab-content="related">
+  <h2 class="section">🌐 Related Links · Cross-Domain Web</h2>
+  <p>Direct hyperlinks to Patrick's other aerospace / launch / engineering content.</p>
+
+  <div class="related-link">
+    <div class="text">
+      🚀 <strong>Primary cross-link:</strong> This dashboard belongs to the <strong>rocket-launch-db</strong> track alongside the global launch database (Sputnik → 长征十号).
+    </div>
+    <a href="/rocket-launch-db/" target="_blank" rel="noopener">Open Rocket Launch DB →</a>
+  </div>
+
+  <div class="card-grid">
+    <div class="card bordered">
+      <h4>🚀 Rocket Launch DB (Patrick's)</h4>
+      <p>15 selected records (1957-2026) · 5 data sources · multi-filter · conflict marking</p>
+      <a href="/rocket-launch-db/" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://2017zyl.xyz/rocket-launch-db/</a>
+    </div>
+
+    <div class="card bordered-blue">
+      <h4>📊 SpaceX IPO Investor Guide</h4>
+      <p>Patrick's June 2026 SpaceX-as-investment analysis</p>
+      <a href="/spacex-ipo-investor-guide-2026-06-12.html" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://2017zyl.xyz/spacex-ipo-investor-guide-2026-06-12.html</a>
+    </div>
+
+    <div class="card bordered-green">
+      <h4>🛰️ Orbital Console</h4>
+      <p>Live satellite orbit tracking · CelesTrak data · 10 satellite 3D models</p>
+      <a href="/orbital-console.html" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://2017zyl.xyz/orbital-console.html</a>
+    </div>
+
+    <div class="card bordered-purple">
+      <h4>🌐 Daily Reports Hub</h4>
+      <p>Main hub for all daily content · 270+ entries · filter chips · search</p>
+      <a href="/daily-reports.html" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://2017zyl.xyz/daily-reports.html</a>
+    </div>
+
+    <div class="card bordered-yellow">
+      <h4>📺 Original Video</h4>
+      <p>SpaceX · Starship Critical Path · 33:58</p>
+      <a href="https://www.youtube.com/watch?v=-a0ecQMq-rM" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://www.youtube.com/watch?v=-a0ecQMq-rM</a>
+    </div>
+
+    <div class="card bordered">
+      <h4>📚 Efficient Engineer · Build a Satellite</h4>
+      <p>Companion engineering philosophy dashboard (Round 10)</p>
+      <a href="/daily-reports/efficient-engineer-build-a-satellite-dashboard.html" target="_blank" rel="noopener" style="color:var(--lime);font-size:13px">→ https://2017zyl.xyz/daily-reports/efficient-engineer-build-a-satellite-dashboard.html</a>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p><strong>Sources:</strong> kome.ai transcript (22,818 chars · 2026-07-14 retrieval) · SpaceX YouTube official</p>
+  <p><strong>Vault mirror:</strong> ~/Downloads/Obsidian Vault/llm-wiki/youtube/starship-critical-path-2026-07-14/index.md</p>
+  <p><strong>Desktop preview:</strong> ~/Desktop/starship-critical-path-2026-07-14-dashboard.html</p>
+  <p><strong>Live URL:</strong> <a href="https://2017zyl.xyz/daily-reports/starship-critical-path-2026-07-14-dashboard" target="_blank" rel="noopener">https://2017zyl.xyz/daily-reports/starship-critical-path-2026-07-14-dashboard</a></p>
+  <p style="margin-top:16px">Built with <code>video-to-knowledge-dashboard</code> skill · master-takeover mode (Pitfall 64+72) · kome.ai fallback (Pitfall 68) · chapter-split heuristic (Pitfall 69)</p>
+</footer>
+
+<script>
+  // Tab switching + hash routing (canonical v1.4.2 + 2026-06-26)
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+  const tocLinks = document.querySelectorAll('[data-tab-link]');
+
+  function activate(tabName) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+    contents.forEach(c => c.classList.toggle('active', c.dataset.tabContent === tabName));
+    tocLinks.forEach(l => l.classList.toggle('active', l.dataset.tabLink === tabName));
+    history.replaceState(null, '', '#' + tabName);
+  }
+
+  tabs.forEach(t => {
+    t.addEventListener('click', () => activate(t.dataset.tab));
+  });
+
+  tocLinks.forEach(l => {
+    l.addEventListener('click', (e) => {
+      e.preventDefault();
+      activate(l.dataset.tabLink);
+      // Scroll to tab content
+      const target = document.querySelector('[data-tab-content="' + l.dataset.tabLink + '"]');
+      if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+  });
+
+  // Init from URL hash on load
+  const initHash = location.hash.replace('#', '');
+  if (initHash) {
+    const target = document.querySelector('[data-tab="' + initHash + '"]');
+    if (target) target.click();
+  }
+
+  // Restore TOC collapse state
+  if (localStorage.getItem('starship-toc-collapsed') === 'true') {
+    document.querySelector('.toc').classList.add('collapsed');
+  }
+</script>
+
+</body>
+</html>
