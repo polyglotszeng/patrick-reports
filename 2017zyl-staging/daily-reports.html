@@ -157,22 +157,23 @@
   <div class="shell">
     <header>
       <div class="brand">Patrick</div><div class="slash"></div><div class="descriptor" id="descriptor">每日研究</div>
-      <div class="date">2026-07-12</div>
+      <div class="date" id="topDate">— — —</div>
       <div class="lang-switch" aria-label="语言切换"><button data-lang="zh" class="active">中</button><button data-lang="en">EN</button></div>
       <button class="header-action" id="archiveOpen">全部档案</button>
-      <div class="count" id="countLabel">281 份报告<br>6 条产线</div>
+      <div class="count" id="countLabel">— 份报告<br>— 条产线</div>
     </header>
 
     <main>
       <section class="intro" aria-labelledby="page-title">
         <h1 id="page-title"><span>Patrick</span><br>每日研究</h1>
         <div class="kicker" id="kicker">互动研究游乐场</div>
-        <p class="intro-copy" id="introCopy">不是让你翻完 281 份报告。<br>只用一个选择，找到今天最值得下潜的三站。</p>
+        <p class="intro-copy" id="introCopy">不是让你翻完所有报告。<br>只用一个选择，找到今天最值得下潜的三站。</p>
         <div class="pb-hero">
-          <span><b>281</b> reports</span><span class="sep">·</span>
-          <span><b>5+5+5</b> each</span><span class="sep">·</span>
+          <span><b id="pbHeroCount">—</b> reports</span><span class="sep">·</span>
+          <span><b id="pbHeroTracks">—</b> tracks</span><span class="sep">·</span>
           <span class="pb-badge ding" style="margin-left:0">✓ Patrick 担保</span><span class="sep">·</span>
-          <span>since 2026-Q2</span>
+          <span>since <b id="pbHeroSince">2026-Q2</b></span>
+          <span class="sep">·</span><span class="dim" id="pbHeroUpdated" style="font-size:11px">更新于 —</span>
         </div>
         <div class="tracks" id="tracks"></div>
       </section>
@@ -749,9 +750,9 @@
       {title:'Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices',track:'video',tag:'',practical:70,time:10,desc:'Microsoft Build 2025 — AI Era: Cloud, Edge, Agents & Devices',file:'microsoft-build-2025-keynote.html',date:'2025-05-20'},
         ];
     const zh={
-      descriptor:'每日研究',count:'291 份报告<br>6 条产线',
+      descriptor:'每日研究',count:()=>{const s=window.__liveStats||{n:'—',t:'—'};return `${s.n} 份报告<br>${s.t} 条产线`;},
       title:'<span>Patrick</span><br>每日研究',kicker:'互动研究游乐场',
-      intro:'不是让你翻完 281 份报告。<br>只用一个选择，找到今天最值得下潜的三站。',
+      intro:()=>{const s=window.__liveStats||{n:'—'};return `不是让你翻完所有 ${s.n} 份报告。<br>只用一个选择，找到今天最值得下潜的三站。`;},
       archive:'全部档案',dialLabel:'调 整 你 的 好 奇 心 强 度',dialScore:'探索指数',
       practical:'实用',curious:'猎奇',spectrum:['确定','拓展','未知'],
       moods:['今天就能用','想明白一件事','打破认知'],
@@ -776,10 +777,10 @@
       aria:'从实用到猎奇'
     };
     const en={
-      descriptor:'Daily Reports',count:'291 REPORTS · 291 LIVE',
+      descriptor:'Daily Reports',count:()=>{const s=window.__liveStats||{n:'—',t:'—'};return `${s.n} REPORTS · ${s.t} TRACKS`;},
       title:'<span>Patrick</span><br>Daily Reports',
       kicker:'INTERACTIVE RESEARCH PLAYGROUND',
-      intro:'Do not read all 281 reports.<br>Make one choice and find the three worth exploring today.',
+      intro:()=>{const s=window.__liveStats||{n:'—'};return `Do not read all ${s.n} reports.<br>Make one choice and find the three worth exploring today.`;},
       archive:'All reports',dialLabel:'TUNE YOUR CURIOSITY',dialScore:'EXPLORATION INDEX',
       practical:'Practical',curious:'Curious',spectrum:['CERTAIN','EXPAND','UNKNOWN'],
       moods:['Useful today','Understand deeply','Break the frame'],
@@ -816,6 +817,58 @@
       const field={title:0,tag:1,desc:2}[key];
       return reportEnglish[r.title]?.[field]||r[key];
     };
+
+    // Live stats — 2026-07-15 added. Loads ground-truth from reports.json on every page visit,
+    // so the header date + report count + track count + pb-hero chips stay current without a redeploy.
+    // Failure path: keeps "—" placeholders so the page renders even if reports.json is unreachable.
+    (function loadLiveStats(){
+      const fallback={n:'—',t:'—',d:'—',since:'2026-Q2'};
+      window.__liveStats=fallback;
+      function apply(){
+        // Top header date (most recent report date in archive)
+        const top=$('#topDate');
+        if(top && window.__liveStats.d && window.__liveStats.d!=='—' && window.__liveStats.d!=='0000-00-00') top.textContent=window.__liveStats.d;
+        // pb-hero chips
+        const c=$('#pbHeroCount'),tk=$('#pbHeroTracks'),since=$('#pbHeroSince'),upd=$('#pbHeroUpdated');
+        if(c) c.textContent=window.__liveStats.n;
+        if(tk) tk.textContent=window.__liveStats.t;
+        if(since && window.__liveStats.since) since.textContent=window.__liveStats.since;
+        if(upd && window.__liveStats.updatedLabel) upd.textContent=`更新于 ${window.__liveStats.updatedLabel}`;
+        // Refresh i18n-dependent strings (count + intro) — applyLanguage() must already be defined.
+        try{applyLanguage();}catch(e){}
+      }
+      window.__renderLiveStats=apply;
+      fetch('./reports.json?cb='+Date.now(),{cache:'no-store'})
+        .then(r=>{if(!r.ok)throw new Error('http '+r.status);return r.json();})
+        .then(d=>{
+          const list=Array.isArray(d)?d:(d&&Array.isArray(d.reports))?d.reports:[];
+          if(!list.length)return;
+          const n=list.length;
+          const tracks=new Set();
+          let latest='';
+          let earliest='9999-12-31';
+          for(const r of list){
+            const t=(r&&(r.track||r.category))||null;if(t)tracks.add(t);
+            const dd=(r&&r.date)||'';
+            if(dd && dd>latest)latest=dd;
+            if(dd && dd<earliest)earliest=dd;
+          }
+          const effectiveLatest=latest||'—';
+          const effectiveEarliest=(earliest==='9999-12-31')?'2026-Q2':earliest;
+          const earliestYear=String(effectiveEarliest).slice(0,4);
+          const earliestMonth=parseInt(String(effectiveEarliest).slice(5,7)||'1',10);
+          const quarter=Math.floor((earliestMonth-1)/3)+1;
+          window.__liveStats={
+            n:n,
+            t:tracks.size,
+            d:effectiveLatest,
+            since:`${earliestYear}-Q${quarter}`,
+            updatedLabel:new Date().toISOString().slice(0,16).replace('T',' ')
+          };
+          apply();
+        })
+        .catch(e=>{console.warn('liveStats: using fallback',e);apply();});
+    })();
     const showToast=key=>{
       const el=$('#toast');el.textContent=tr()[key]||key;el.classList.add('show');
       setTimeout(()=>el.classList.remove('show'),1900);
@@ -1013,8 +1066,8 @@ $$('.filter-chip').forEach(chip=>{
 
     function applyLanguage(){
       const x=tr();document.documentElement.lang=state.lang==='zh'?'zh-CN':'en';
-      $('#descriptor').textContent=x.descriptor;$('#countLabel').innerHTML=x.count;
-      $('#page-title').innerHTML=x.title;$('#kicker').textContent=x.kicker;$('#introCopy').innerHTML=x.intro;
+      $('#descriptor').textContent=x.descriptor;$('#countLabel').innerHTML=x.count();
+      $('#page-title').innerHTML=x.title;$('#kicker').textContent=x.kicker;$('#introCopy').innerHTML=x.intro();
       $('#archiveOpen').textContent=x.archive;$('#dialLabel').textContent=x.dialLabel;
       $('#dialScoreLabel').textContent=x.dialScore;$('#practicalLabel').textContent=x.practical;
       $('#curiousLabel').textContent=x.curious;$('#curiosity').setAttribute('aria-label',x.aria);
